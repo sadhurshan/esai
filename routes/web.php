@@ -34,7 +34,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders', fn () => Inertia::render('orders/index'))
         ->name('orders.index');
 
-    Route::get('/purchase-orders/{id}', fn () => Inertia::render('purchase-orders/show'))
+    Route::inertia('purchase-orders', 'purchase-orders/index')
+        ->name('purchase-orders.index');
+
+    Route::get('/purchase-orders/{id}', fn ($id) => Inertia::render('purchase-orders/show', ['id' => $id]))
         ->whereNumber('id')
         ->name('purchase-orders.show');
 });

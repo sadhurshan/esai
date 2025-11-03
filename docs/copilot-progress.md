@@ -1,3 +1,8 @@
+## 2025-11-03 14:30
+- Added the RFQ quote comparison page wiring existing award APIs, including supplier totals, inline acceptance, and back navigation.
+- Implemented purchase order list and detail Inertia pages with status filtering, totals, and line item presentation.
+- Updated web routes, toast flows, status badge mappings, and added feature tests to cover RFQ compare plus purchase order access.
+
 ## 2025-11-02 18:00
 - Updated `resources/js/components/app/file-dropzone.tsx` to import `ChangeEventHandler` directly and reuse the type alias in the file input change handler for clearer React typings.
 - Ran `npm run types` to confirm the frontend type checks successfully after the adjustments.

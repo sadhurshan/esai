@@ -9,6 +9,9 @@ export const RFQ_STATUS_BADGE_MAP: Record<string, string> = {
 };
 
 export const ORDER_STATUS_BADGE_MAP: Record<string, string> = {
+    draft: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700/80 dark:text-neutral-100',
+    sent: 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-100',
+    acknowledged: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-100',
     pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-100',
     confirmed: 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-100',
     in_production: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-100',

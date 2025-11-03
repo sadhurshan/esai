@@ -21,6 +21,7 @@ export interface PurchaseOrderResponseLine {
 
 export interface PurchaseOrderResponse {
     id: number;
+    company_id: number;
     po_number: string;
     status: string;
     currency: string;
@@ -76,6 +77,7 @@ export const mapPurchaseOrder = (
     payload: PurchaseOrderResponse,
 ): PurchaseOrderSummary => ({
     id: payload.id,
+    companyId: payload.company_id,
     poNumber: payload.po_number,
     status: payload.status,
     currency: payload.currency,

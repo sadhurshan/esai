@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Concerns\RespondsWithEnvelope;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
@@ -50,5 +51,24 @@ abstract class ApiController extends Controller
         $direction = strtolower((string) $request->query('sort_direction', $default));
 
         return in_array($direction, ['asc', 'desc'], true) ? $direction : $default;
+    }
+
+    protected function resolveRequestUser(Request $request): ?User
+    {
+        if (config('auth.guards.sanctum') !== null) {
+            try {
+                $sanctumUser = $request->user('sanctum');
+            } catch (\InvalidArgumentException) {
+                $sanctumUser = null;
+            }
+
+            if ($sanctumUser instanceof User) {
+                return $sanctumUser;
+            }
+        }
+
+        $defaultUser = $request->user();
+
+        return $defaultUser instanceof User ? $defaultUser : null;
     }
 }

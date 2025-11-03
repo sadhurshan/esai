@@ -26,6 +26,8 @@ Quick-run checks to validate each epic after deploys. These derive from `/docs/R
 - [ ] DB: `purchase_orders`, `po_lines`, `po_change_orders` persisted with soft deletes and change JSON payload.
 - [ ] API: `POST /api/purchase-orders/{id}/change-orders` queues approval workflow and returns cursor meta when listing.
 - [ ] UI: `/orders` PO detail shows timeline, change history drawer, and print-ready PDF link.
+- [ ] UI: Buyer PO detail exposes a Change Orders tab showing proposed revisions with approve/reject actions.
+- [ ] API/UI: Approving a change order increments `purchase_orders.revision_no` and updates the change order status.
 
 ## Order Execution & Tracking
 - [ ] DB: `orders.timeline` JSON stores status transitions with actor IDs.

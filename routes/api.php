@@ -48,18 +48,20 @@ Route::prefix('orders')->group(function (): void {
 
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('ensure.subscribed');
 
-Route::prefix('purchase-orders')->group(function (): void {
-    Route::get('/', [PurchaseOrderController::class, 'index']);
-    Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send']);
-    Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge']);
-    Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
-    Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
-        ->middleware('ensure.subscribed');
-    Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
-});
+Route::middleware('web')->group(function (): void {
+    Route::prefix('purchase-orders')->group(function (): void {
+        Route::get('/', [PurchaseOrderController::class, 'index']);
+        Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send']);
+        Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge']);
+        Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
+        Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
+            ->middleware('ensure.subscribed');
+        Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
+    });
 
-Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve']);
-Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject']);
+    Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve']);
+    Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject']);
+});
 
 Route::post('documents', [DocumentController::class, 'store'])
     ->middleware('ensure.subscribed');

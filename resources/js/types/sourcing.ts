@@ -125,6 +125,7 @@ export interface PurchaseOrderChangeOrder {
 
 export interface PurchaseOrderSummary {
     id: number;
+    companyId: number;
     poNumber: string;
     status: string;
     currency: string;

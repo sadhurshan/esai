@@ -6,6 +6,7 @@ use App\Http\Resources\PoChangeOrderResource;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PoChangeOrder;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -16,14 +17,17 @@ class PoChangeOrderController extends ApiController
 {
     public function index(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 401);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
         $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
-        $isBuyer = $user->company_id === $purchaseOrder->company_id;
-        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $user->company_id;
+        $isBuyer = $companyId === $purchaseOrder->company_id;
+        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
         abort_if(! $isBuyer && ! $isSupplier, 403);
 
@@ -39,13 +43,16 @@ class PoChangeOrderController extends ApiController
 
     public function store(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 401);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
         $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
-        abort_if($supplierCompanyId === null || $user->company_id !== $supplierCompanyId, 403);
+        abort_if($supplierCompanyId === null || $companyId !== $supplierCompanyId, 403);
 
         $validated = $this->validateChangeOrderPayload($request);
 
@@ -68,14 +75,17 @@ class PoChangeOrderController extends ApiController
 
     public function approve(PoChangeOrder $changeOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 401);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $changeOrder->loadMissing(['purchaseOrder.lines', 'purchaseOrder.quote.supplier']);
 
         $purchaseOrder = $changeOrder->purchaseOrder;
         abort_if($purchaseOrder === null, 404);
-        abort_if($user->company_id !== $purchaseOrder->company_id, 403);
+        abort_if($companyId !== $purchaseOrder->company_id, 403);
 
         if ($changeOrder->status !== 'proposed') {
             return $this->fail('Only proposed change orders can be approved.', 422);
@@ -111,14 +121,17 @@ class PoChangeOrderController extends ApiController
 
     public function reject(PoChangeOrder $changeOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 401);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $changeOrder->loadMissing(['purchaseOrder.quote.supplier', 'proposedByUser']);
 
         $purchaseOrder = $changeOrder->purchaseOrder;
         abort_if($purchaseOrder === null, 404);
-        abort_if($user->company_id !== $purchaseOrder->company_id, 403);
+        abort_if($companyId !== $purchaseOrder->company_id, 403);
 
         if ($changeOrder->status !== 'proposed') {
             return $this->fail('Only proposed change orders can be rejected.', 422);
@@ -187,5 +200,37 @@ class PoChangeOrderController extends ApiController
                 $line->save();
             }
         }
+    }
+
+    private function resolveUserCompanyId(User $user): ?int
+    {
+        if ($user->company_id !== null) {
+            return (int) $user->company_id;
+        }
+
+        $companyId = DB::table('company_user')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->value('company_id');
+
+        if ($companyId) {
+            return (int) $companyId;
+        }
+
+        $ownedCompanyId = DB::table('companies')
+            ->where('owner_user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->value('id');
+
+        if ($ownedCompanyId) {
+            return (int) $ownedCompanyId;
+        }
+
+        $supplierCompanyId = DB::table('suppliers')
+            ->where('email', $user->email)
+            ->orderByDesc('created_at')
+            ->value('company_id');
+
+        return $supplierCompanyId ? (int) $supplierCompanyId : null;
     }
 }

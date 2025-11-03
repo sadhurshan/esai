@@ -1,3 +1,8 @@
+## 2025-11-03 17:20
+- Added buyer-facing change order review tab on the purchase order detail page with approve/reject actions and toast feedback.
+- Exposed purchase order company context to the frontend and wired change order hooks for buyer workflows.
+- Documented acceptance updates and introduced API feature tests covering change order approvals and rejections.
+
 ## 2025-11-03 14:30
 - Added the RFQ quote comparison page wiring existing award APIs, including supplier totals, inline acceptance, and back navigation.
 - Implemented purchase order list and detail Inertia pages with status filtering, totals, and line item presentation.

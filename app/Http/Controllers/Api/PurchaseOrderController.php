@@ -4,27 +4,32 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PurchaseOrderController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
-        abort_if($user === null || $user->company_id === null, 403);
+        $user = $this->resolveRequestUser($request);
+        abort_if($user === null, 403, "User is null");
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $isSupplierListing = $request->boolean('supplier') === true;
 
         $query = PurchaseOrder::query()->with(['quote.supplier', 'rfq']);
 
         if ($isSupplierListing) {
-            $query->whereHas('quote.supplier', function ($supplierQuery) use ($user): void {
-                $supplierQuery->where('company_id', $user->company_id);
+            $query->whereHas('quote.supplier', function ($supplierQuery) use ($companyId): void {
+                $supplierQuery->where('company_id', $companyId);
             });
         } else {
-            $query->where('company_id', $user->company_id);
+            $query->where('company_id', $companyId);
         }
 
         $statusParam = $request->query('status');
@@ -51,14 +56,17 @@ class PurchaseOrderController extends ApiController
 
     public function show(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 403);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null, 403, 'Company context required.');
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
         $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
-        $isBuyer = $user->company_id === $purchaseOrder->company_id;
-        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $user->company_id;
+        $isBuyer = $companyId === $purchaseOrder->company_id;
+        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
         abort_if(! $isBuyer && ! $isSupplier, 403);
 
@@ -69,8 +77,11 @@ class PurchaseOrderController extends ApiController
 
     public function send(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
-        abort_if($user === null || $user->company_id !== $purchaseOrder->company_id, 403);
+        $user = $this->resolveRequestUser($request);
+        abort_if($user === null, 403);
+
+        $companyId = $this->resolveUserCompanyId($user);
+        abort_if($companyId === null || $companyId !== $purchaseOrder->company_id, 403);
 
         if ($purchaseOrder->status !== 'draft') {
             return $this->fail('Only draft purchase orders can be sent.', 422);
@@ -91,13 +102,15 @@ class PurchaseOrderController extends ApiController
 
     public function acknowledge(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
         abort_if($user === null, 401);
+
+        $companyId = $this->resolveUserCompanyId($user);
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
         $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
-        abort_if($supplierCompanyId === null || $supplierCompanyId !== $user->company_id, 403);
+        abort_if($supplierCompanyId === null || $companyId === null || $supplierCompanyId !== $companyId, 403);
 
         if ($purchaseOrder->status !== 'sent') {
             return $this->fail('Only sent purchase orders can be acknowledged.', 422);
@@ -149,5 +162,37 @@ class PurchaseOrderController extends ApiController
         }
 
         return null;
+    }
+
+    private function resolveUserCompanyId(User $user): ?int
+    {
+        if ($user->company_id !== null) {
+            return (int) $user->company_id;
+        }
+
+        $companyId = DB::table('company_user')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->value('company_id');
+
+        if ($companyId) {
+            return (int) $companyId;
+        }
+
+        $ownedCompanyId = DB::table('companies')
+            ->where('owner_user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->value('id');
+
+        if ($ownedCompanyId) {
+            return (int) $ownedCompanyId;
+        }
+
+        $supplierCompanyId = DB::table('suppliers')
+            ->where('email', $user->email)
+            ->orderByDesc('created_at')
+            ->value('company_id');
+
+        return $supplierCompanyId ? (int) $supplierCompanyId : null;
     }
 }

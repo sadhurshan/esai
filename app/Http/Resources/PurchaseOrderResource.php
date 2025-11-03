@@ -12,6 +12,7 @@ class PurchaseOrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'company_id' => $this->company_id,
             'po_number' => $this->po_number,
             'status' => $this->status,
             'currency' => $this->currency,

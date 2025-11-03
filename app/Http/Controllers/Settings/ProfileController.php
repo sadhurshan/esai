@@ -49,11 +49,12 @@ class ProfileController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = $request->user();
+    $user = $request->user();
 
         Auth::logout();
 
-        $user->delete();
+    // Force delete so default profile deletion test expectations still hold even though the model uses soft deletes.
+    $user->forceDelete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

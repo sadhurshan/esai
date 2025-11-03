@@ -26,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        $middleware->alias([
+            'ensure.subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

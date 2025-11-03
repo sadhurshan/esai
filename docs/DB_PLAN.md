@@ -1,6 +1,6 @@
 # Database Plan Summary (Derived from §26)
 
-This document distills the database guidance in `/docs/ProjectRequirements.pdf` §26. Treat the PDF as the source of truth; use this summary to keep migrations, factories, and model code aligned with the approved schema.
+This document distills the database guidance in `/docs/REQUIREMENTS_FULL.md` §26. Treat the PDF as the source of truth; use this summary to keep migrations, factories, and model code aligned with the approved schema.
 
 ## Conventions & Multitenancy
 - Storage engine `InnoDB`, charset/collation `utf8mb4` / `utf8mb4_unicode_ci`.

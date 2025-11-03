@@ -2,7 +2,7 @@
 
 ## Project Bible
 The **ultimate source of truth** for this project is the document:
-📄 `/docs/ProjectRequirements.pdf`
+📄 `/docs/REQUIREMENTS_FULL.md`
 
 Treat everything in this document as **the complete system specification**.  
 Every feature, table, module, and screen mentioned there **must be implemented**.
@@ -58,5 +58,5 @@ When generating code, interfaces, or documentation:
 - Migration order mirrors `/docs/DOMAIN_MODEL.md`; apply tenant scopes and indexes before writing seeders or factories.
 
 ## Source of Truth & Delivery
-- Read `/docs/ProjectRequirements.pdf`, `/docs/REQUIREMENTS.md`, `/docs/CONVENTIONS.md`, `/docs/PROMPTS.md`, `/docs/REQUIREMENTS_FULL.md` and module deep specs before implementing features; these are the authoritative playbooks.
+- Read `/docs/REQUIREMENTS_FULL.md`, `/docs/REQUIREMENTS.md`, `/docs/CONVENTIONS.md`, `/docs/PROMPTS.md`, `/docs/REQUIREMENTS_FULL.md` and module deep specs before implementing features; these are the authoritative playbooks.
 - Everything generated must be production-ready, tenant-safe, and spec-compliant; if requirements are unclear, add `TODO` comments or ask for guidance instead of guessing.

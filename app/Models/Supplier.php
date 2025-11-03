@@ -2,33 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property int $id
- * @property string $name
- * @property int $rating
- * @property array<int, string> $capabilities
- * @property array<int, string> $materials
- * @property string $location_region
- * @property int $min_order_qty
- * @property int $avg_response_hours
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read Collection<int, \App\Models\RFQQuote> $rfqQuotes
- */
 class Supplier extends Model
 {
     /** @use HasFactory<\Database\Factories\SupplierFactory> */
     use HasFactory;
+    use SoftDeletes;
 
-    /**
-     * @var list<string>
-     */
     protected $fillable = [
+        'company_id',
         'name',
         'rating',
         'capabilities',
@@ -36,21 +23,33 @@ class Supplier extends Model
         'location_region',
         'min_order_qty',
         'avg_response_hours',
+        'country',
+        'city',
+        'email',
+        'phone',
+        'website',
+        'status',
+        'rating_avg',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
-        'rating' => 'integer',
         'capabilities' => 'array',
         'materials' => 'array',
-        'min_order_qty' => 'integer',
-        'avg_response_hours' => 'integer',
+        'rating_avg' => 'decimal:2',
     ];
 
-    public function rfqQuotes(): HasMany
+    public function company(): BelongsTo
     {
-        return $this->hasMany(RFQQuote::class);
+        return $this->belongsTo(Company::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(SupplierDocument::class);
+    }
+
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
     }
 }

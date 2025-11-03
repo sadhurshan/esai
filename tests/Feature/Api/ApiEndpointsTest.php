@@ -1,11 +1,17 @@
 <?php
 
+use App\Models\Company;
+use App\Models\Customer;
+use App\Models\Plan;
 use App\Models\RFQ;
 use App\Models\RFQQuote;
+use App\Models\Subscription;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
@@ -29,8 +35,43 @@ it('returns suppliers with envelope and pagination metadata', function () {
     expect($response->json('data.meta.total'))->toBe(3);
 });
 
+beforeEach(function (): void {
+    Plan::factory()->create([
+        'code' => 'starter',
+        'name' => 'Starter',
+        'rfqs_per_month' => 10,
+        'users_max' => 5,
+        'storage_gb' => 10,
+    ]);
+});
+
+function actingAsSubscribedUser(): User
+{
+    $company = Company::factory()->create([
+        'plan_code' => 'starter',
+        'rfqs_monthly_used' => 0,
+    ]);
+
+    $customer = Customer::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    Subscription::factory()->create([
+        'company_id' => $company->id,
+        'customer_id' => $customer->id,
+        'stripe_status' => 'active',
+    ]);
+
+    $user = User::factory()->for($company)->create();
+
+    actingAs($user);
+
+    return $user;
+}
+
 it('creates an rfq with cad upload', function () {
     Storage::fake('local');
+    actingAsSubscribedUser();
 
     $payload = [
         'item_name' => 'Gearbox Housing',
@@ -68,7 +109,9 @@ it('creates an rfq with cad upload', function () {
 it('creates an rfq quote with attachment upload', function () {
     Storage::fake('local');
 
-    $rfq = RFQ::factory()->create();
+    $user = actingAsSubscribedUser();
+
+    $rfq = RFQ::factory()->for($user->company)->create();
     $supplier = Supplier::factory()->create();
 
     $payload = [
@@ -97,6 +140,8 @@ it('creates an rfq quote with attachment upload', function () {
 });
 
 it('returns validation errors for invalid rfq payloads', function () {
+    actingAsSubscribedUser();
+
     $response = $this->postJson('/api/rfqs', []);
 
     $response->assertStatus(422)
@@ -106,7 +151,9 @@ it('returns validation errors for invalid rfq payloads', function () {
 });
 
 it('returns validation errors for invalid rfq quote payloads', function () {
-    $rfq = RFQ::factory()->create();
+    $user = actingAsSubscribedUser();
+
+    $rfq = RFQ::factory()->for($user->company)->create();
 
     $response = $this->postJson("/api/rfqs/{$rfq->id}/quotes", []);
 

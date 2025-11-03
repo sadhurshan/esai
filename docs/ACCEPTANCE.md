@@ -1,6 +1,6 @@
 # Acceptance Smoke Tests
 
-Quick-run checks to validate each epic after deploys. These derive from `/docs/ProjectRequirements.pdf` §26 and companion specs; expand into full suites in Pest and Playwright as we automate more coverage.
+Quick-run checks to validate each epic after deploys. These derive from `/docs/REQUIREMENTS_FULL.md` §26 and companion specs; expand into full suites in Pest and Playwright as we automate more coverage.
 
 ## Supplier Discovery & Directory
 - [ ] DB: `suppliers` and `supplier_documents` seeded with tenant-scoped rows tied to `company_id`.

@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { home, orders, rfq, suppliers } from '@/routes';
+import { home, orders, rfq, suppliers, purchaseOrders } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
@@ -21,6 +21,7 @@ import {
     Folder,
     Home as HomeIcon,
     PackageCheck,
+    Truck,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -44,6 +45,11 @@ const mainNavItems: NavItem[] = [
         title: 'Orders',
         href: orders.index(),
         icon: PackageCheck,
+    },
+    {
+        title: 'Purchase Orders',
+        href: purchaseOrders.index(),
+        icon: Truck,
     },
     {
         title: 'Resource Center',

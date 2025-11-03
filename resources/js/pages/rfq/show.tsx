@@ -1,13 +1,17 @@
 import { CADPreview, DataTable, EmptyState, StatusBadge } from '@/components/app';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { home, rfq as rfqRoutes } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 
 import { useRFQ } from '@/hooks/api/useRFQ';
+import { useRfqItems } from '@/hooks/api/useRfqItems';
+import { useRfqInvitations } from '@/hooks/api/useRfqInvitations';
 import type { QuoteSummary } from '@/types/sourcing';
 
 function parseRfqId(url: string): number | null {
@@ -74,9 +78,25 @@ export default function RfqShow() {
     const rfqId = useMemo(() => parseRfqId(page.url), [page.url]);
 
     const { data, isLoading, isError, error, refetch } = useRFQ(rfqId ?? 0);
+    const {
+        data: rfqItemsData,
+        isLoading: itemsLoading,
+        isError: itemsError,
+        error: itemsErrorData,
+        refetch: refetchItems,
+    } = useRfqItems(rfqId ?? 0);
+    const {
+        data: invitationData,
+        isLoading: invitationsLoading,
+        isError: invitationsError,
+        error: invitationsErrorData,
+        refetch: refetchInvitations,
+    } = useRfqInvitations(rfqId ?? 0);
     const rfq = data?.rfq;
     const detail = data?.detail;
     const quotes = data?.quotes ?? [];
+    const rfqItems = rfqItemsData ?? [];
+    const invitations = invitationData?.items ?? [];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Home', href: home().url },
@@ -224,24 +244,175 @@ export default function RfqShow() {
                     </Card>
                 </section>
 
-                <Card className="border-muted/60">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Supplier Responses</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <DataTable
-                            data={quotes}
-                            columns={quoteColumns}
-                            isLoading={isLoading}
-                            emptyState={
-                                <EmptyState
-                                    title="No supplier responses yet"
-                                    description="Invited suppliers and open bidders will appear here once quotes are submitted."
+                <Tabs defaultValue="items" className="flex flex-col gap-4">
+                    <TabsList className="w-full justify-start overflow-x-auto">
+                        <TabsTrigger value="items">Items</TabsTrigger>
+                        <TabsTrigger value="invitations">Invitations</TabsTrigger>
+                        <TabsTrigger value="quotes">Quotes</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="items">
+                        <Card className="border-muted/60">
+                            <CardHeader>
+                                <CardTitle className="text-lg">RFQ Line Items</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {showSkeleton || itemsLoading ? (
+                                    <div className="space-y-3">
+                                        {Array.from({ length: 4 }).map((_, index) => (
+                                            <Skeleton key={`items-skeleton-${index}`} className="h-10 w-full" />
+                                        ))}
+                                    </div>
+                                ) : itemsError ? (
+                                    <EmptyState
+                                        title="Unable to load items"
+                                        description={
+                                            itemsErrorData?.message ?? 'We could not retrieve RFQ line items.'
+                                        }
+                                        ctaLabel="Retry"
+                                        ctaProps={{ onClick: () => refetchItems() }}
+                                    />
+                                ) : rfqItems.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-muted/60 text-sm">
+                                            <thead className="bg-muted/40">
+                                                <tr className="text-left text-xs font-semibold uppercase text-muted-foreground">
+                                                    <th className="px-4 py-3">Line</th>
+                                                    <th className="px-4 py-3">Part</th>
+                                                    <th className="px-4 py-3">Specification</th>
+                                                    <th className="px-4 py-3">Quantity</th>
+                                                    <th className="px-4 py-3">UOM</th>
+                                                    <th className="px-4 py-3">Target Price</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-muted/40">
+                                                {rfqItems.map((item) => (
+                                                    <tr key={item.id} className="text-sm">
+                                                        <td className="px-4 py-3 font-medium text-foreground">
+                                                            {item.lineNo}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-foreground">{item.partName}</td>
+                                                        <td className="px-4 py-3 text-muted-foreground">
+                                                            {item.spec ?? '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-foreground">
+                                                            {item.quantity.toLocaleString()}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-foreground">{item.uom}</td>
+                                                        <td className="px-4 py-3 text-foreground">
+                                                            {item.targetPrice !== undefined && item.targetPrice !== null
+                                                                ? item.targetPrice.toLocaleString(undefined, {
+                                                                      minimumFractionDigits: 2,
+                                                                      maximumFractionDigits: 2,
+                                                                  })
+                                                                : '—'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <EmptyState
+                                        title="No items captured"
+                                        description="RFQ line items will display here once added to the request."
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="invitations">
+                        <Card className="border-muted/60">
+                            <CardHeader>
+                                <CardTitle className="text-lg">Supplier Invitations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {invitationsLoading ? (
+                                    <div className="space-y-3">
+                                        {Array.from({ length: 3 }).map((_, index) => (
+                                            <Skeleton key={`invitation-skeleton-${index}`} className="h-10 w-full" />
+                                        ))}
+                                    </div>
+                                ) : invitationsError ? (
+                                    <EmptyState
+                                        title="Unable to load invitations"
+                                        description={
+                                            invitationsErrorData?.message ?? 'We could not fetch the invitations list.'
+                                        }
+                                        ctaLabel="Retry"
+                                        ctaProps={{ onClick: () => refetchInvitations() }}
+                                    />
+                                ) : invitations.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-muted/60 text-sm">
+                                            <thead className="bg-muted/40">
+                                                <tr className="text-left text-xs font-semibold uppercase text-muted-foreground">
+                                                    <th className="px-4 py-3">Supplier</th>
+                                                    <th className="px-4 py-3">Status</th>
+                                                    <th className="px-4 py-3">Invited</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-muted/40">
+                                                {invitations.map((invitation) => (
+                                                    <tr key={invitation.id} className="text-sm">
+                                                        <td className="px-4 py-3 text-foreground">
+                                                            {invitation.supplier?.name ?? 'Unknown supplier'}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <StatusBadge status={invitation.status} />
+                                                        </td>
+                                                        <td className="px-4 py-3 text-foreground">
+                                                            {formatDate(invitation.invitedAt)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <EmptyState
+                                        title="No invitations sent"
+                                        description="Invite suppliers from the RFQ creation flow or enable open bidding to receive quotes."
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="quotes">
+                        <Card className="border-muted/60">
+                            <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                <CardTitle className="text-lg">Supplier Quotes</CardTitle>
+                                {rfqId && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        asChild
+                                        disabled={quotes.length === 0}
+                                    >
+                                        <Link href={rfqRoutes.compare({ id: rfqId }).url}>
+                                            Compare Quotes
+                                        </Link>
+                                    </Button>
+                                )}
+                            </CardHeader>
+                            <CardContent>
+                                <DataTable
+                                    data={quotes}
+                                    columns={quoteColumns}
+                                    isLoading={isLoading}
+                                    emptyState={
+                                        <EmptyState
+                                            title="No supplier responses yet"
+                                            description="Invited suppliers and open bidders will appear here once quotes are submitted."
+                                        />
+                                    }
                                 />
-                            }
-                        />
-                    </CardContent>
-                </Card>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
         </AppLayout>
     );

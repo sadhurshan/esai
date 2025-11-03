@@ -4,7 +4,7 @@ import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { QuoteSummary, RFQ, RfqItem } from '@/types/sourcing';
 
-interface RFQDetailResponse {
+export interface RFQDetailResponse {
     id: number;
     number: string;
     item_name: string;
@@ -78,6 +78,16 @@ export interface RFQDetailResult {
     quotes: QuoteSummary[];
 }
 
+const mapRfqItem = (item: RfqItemResponse): RfqItem => ({
+    id: item.id,
+    lineNo: item.line_no,
+    partName: item.part_name,
+    spec: item.spec,
+    quantity: item.quantity,
+    uom: item.uom,
+    targetPrice: item.target_price ?? undefined,
+});
+
 const mapRFQDetail = (payload: RFQDetailResponse): RFQ => ({
     id: payload.id,
     rfqNumber: payload.number,
@@ -89,15 +99,7 @@ const mapRFQDetail = (payload: RFQDetailResponse): RFQ => ({
     status: payload.status,
     companyName: payload.client_company,
     openBidding: Boolean(payload.is_open_bidding),
-    items: (payload.items ?? []).map((item): RfqItem => ({
-        id: item.id,
-        lineNo: item.line_no,
-        partName: item.part_name,
-        spec: item.spec,
-        quantity: item.quantity,
-        uom: item.uom,
-        targetPrice: item.target_price ?? undefined,
-    })),
+    items: (payload.items ?? []).map(mapRfqItem),
 });
 
 const mapQuote = (payload: QuoteResponse): QuoteSummary => ({
@@ -128,20 +130,22 @@ const mapQuote = (payload: QuoteResponse): QuoteSummary => ({
     })),
 });
 
+export async function fetchRfqDetail(rfqId: number): Promise<RFQDetailResponse> {
+    return (await api.get<RFQDetailResponse>(`/rfqs/${rfqId}`)) as unknown as RFQDetailResponse;
+}
+
 export function useRFQ(id: number) {
-    return useQuery<RFQDetailResult, ApiError>({
+    return useQuery<RFQDetailResponse, ApiError, RFQDetailResult>({
         queryKey: queryKeys.rfqs.detail(id),
         enabled: Number.isFinite(id) && id > 0,
-        queryFn: async () => {
-            const response = (await api.get<RFQDetailResponse>(`/rfqs/${id}`)) as unknown as RFQDetailResponse;
-            const quotes = (response.quotes ?? []).map((quote) => mapQuote(quote));
-
-            return {
-                rfq: mapRFQDetail(response),
-                detail: response,
-                quotes,
-            };
-        },
+        queryFn: () => fetchRfqDetail(id),
+        select: (response) => ({
+            rfq: mapRFQDetail(response),
+            detail: response,
+            quotes: (response.quotes ?? []).map((quote) => mapQuote(quote)),
+        }),
         staleTime: 30_000,
     });
 }
+
+export { mapQuote, mapRFQDetail, mapRfqItem };

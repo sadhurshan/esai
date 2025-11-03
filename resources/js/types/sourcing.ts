@@ -113,10 +113,19 @@ export interface PurchaseOrderSummary {
     status: string;
     currency: string;
     incoterm?: string | null;
+    taxPercent?: number | null;
     revisionNo: number;
     rfqId: number | null;
     quoteId: number | null;
+    supplierId?: number | null;
     supplierName?: string | null;
+    rfqNumber?: string | null;
+    rfqTitle?: string | null;
     createdAt?: string | null;
+    updatedAt?: string | null;
     lines?: PurchaseOrderLine[];
+}
+
+export interface PurchaseOrderDetail extends PurchaseOrderSummary {
+    lines: PurchaseOrderLine[];
 }

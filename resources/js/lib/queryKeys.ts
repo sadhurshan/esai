@@ -13,6 +13,7 @@ export const queryKeys = {
         list: (params?: Record<string, unknown>) => ['orders', 'list', params ?? {}] as const,
     },
     purchaseOrders: {
+        root: () => ['purchase-orders'] as const,
         list: (params?: Record<string, unknown>) => ['purchase-orders', 'list', params ?? {}] as const,
         detail: (id: number) => ['purchase-orders', 'detail', id] as const,
     },
@@ -26,6 +27,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['rfqs']['quotes']
     | (typeof queryKeys)['orders']['list']
     | (typeof queryKeys)['rfqs']['invitations']
+    | (typeof queryKeys)['purchaseOrders']['root']
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']
 >;

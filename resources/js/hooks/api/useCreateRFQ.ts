@@ -23,6 +23,14 @@ interface RFQCreateResponse {
     cad_path: string | null;
 }
 
+export interface CreateRFQItemInput {
+    partName: string;
+    spec?: string;
+    quantity: number;
+    uom?: string;
+    targetPrice?: number;
+}
+
 export interface CreateRFQInput {
     type: 'ready_made' | 'manufacture';
     itemName: string;
@@ -38,6 +46,7 @@ export interface CreateRFQInput {
     isOpenBidding?: boolean;
     notes?: string;
     cad?: File | null;
+    items: CreateRFQItemInput[];
 }
 
 const mapRFQ = (payload: RFQCreateResponse): RFQ => ({
@@ -58,7 +67,7 @@ export function useCreateRFQ() {
     const queryClient = useQueryClient();
 
     return useMutation<RFQ, ApiError, CreateRFQInput>({
-    mutationFn: async (input: CreateRFQInput) => {
+        mutationFn: async (input: CreateRFQInput) => {
             const formData = new FormData();
 
             formData.append('type', input.type);
@@ -96,6 +105,23 @@ export function useCreateRFQ() {
             if (input.cad) {
                 formData.append('cad', input.cad);
             }
+
+            input.items.forEach((item, index) => {
+                formData.append(`items[${index}][part_name]`, item.partName);
+                formData.append(`items[${index}][quantity]`, String(item.quantity));
+
+                if (item.spec) {
+                    formData.append(`items[${index}][spec]`, item.spec);
+                }
+
+                if (item.uom) {
+                    formData.append(`items[${index}][uom]`, item.uom);
+                }
+
+                if (item.targetPrice !== undefined && item.targetPrice !== null) {
+                    formData.append(`items[${index}][target_price]`, String(item.targetPrice));
+                }
+            });
 
             const response = (await api.post<RFQCreateResponse>('/rfqs', formData, {
                 headers: {

@@ -9,7 +9,7 @@ interface FileDropzoneProps {
     accept?: string[];
     multiple?: boolean;
     disabled?: boolean;
-    onFilesSelected?: (files: FileList) => void;
+    onFilesSelected?: (files: File[]) => void;
     className?: string;
 }
 
@@ -31,9 +31,12 @@ export function FileDropzone({
     };
 
     const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-        if (event.target.files && event.target.files.length > 0) {
-            onFilesSelected?.(event.target.files);
+        if (!event.target.files || event.target.files.length === 0) {
+            return;
         }
+
+        const files = Array.from(event.target.files);
+        onFilesSelected?.(files);
     };
 
     return (

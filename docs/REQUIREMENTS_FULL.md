@@ -1,124 +1,118 @@
 
-# Project Requirements — Elements Supply AI
+# Requirements Companion — Elements Supply AI
 
-This document is a complete markdown version of the full requirement specification for the Elements Supply AI project.
+This living document mirrors `/docs/ProjectRequirements.pdf` and should be read alongside the PDF. Always treat the PDF as canonical; use the outline and checklists below to keep Copilot responses aligned with the approved scope.
 
-*(Due to length, only key sections are structured below; content matches the full PDF, reformatted for readability and Copilot context.)*
+## Section 26 Outline
+- [26 Database Plan (MySQL + Laravel 12)](#26-database-plan-mysql--laravel-12)
+	- [26.1 Conventions (Copilot must follow)](#261-conventions-copilot-must-follow)
+	- [26.2 Core Platform Tables](#262-core-platform-tables)
+		- [26.2.1 companies (tenant registry)](#2621-companies-tenant-registry)
+		- [26.2.2 users (platform identities)](#2622-users-platform-identities)
+		- [26.2.3 company_user (multi-org membership)](#2623-company_user-multi-org-membership)
+		- [26.2.4 Billing (Laravel Cashier baseline)](#2624-billing-laravel-cashier-baseline)
+	- [26.3 Directory & Supplier](#263-directory--supplier)
+	- [26.4 Sourcing: RFQs, Quotes, Awards](#264-sourcing-rfqs-quotes-awards)
+	- [26.5 Purchasing: POs, Change Orders, Orders](#265-purchasing-pos-change-orders-orders)
+	- [26.6 Receiving & Quality](#266-receiving--quality)
+	- [26.7 Invoicing & Match](#267-invoicing--match)
+	- [26.8 Documents & Media](#268-documents--media)
+	- [26.9 Notifications & Preferences](#269-notifications--preferences)
+	- [26.10 API & Webhooks](#2610-api--webhooks)
+	- [26.11 Analytics & Governance](#2611-analytics--governance)
+	- [26.12 Indexing & Search Guidance](#2612-indexing--search-guidance)
+	- [26.13 Cascade & Referential Rules](#2613-cascade--referential-rules)
+	- [26.14 Migration Order](#2614-migration-order)
+	- [26.15 Seeders (minimum)](#2615-seeders-minimum)
+	- [26.16 Acceptance Checks (DB)](#2616-acceptance-checks-db)
+	- [26.17 Laravel Model Notes](#2617-laravel-model-notes)
 
-## 1. Core Problem We Solve
-Documents are scattered, traceability is poor, and supplier/maintenance data is fragmented. Elements Supply AI unifies engineering documents, RFQs, quotes, orders, maintenance, and ESG compliance in one auditable workspace.
+### 26 Database Plan (MySQL + Laravel 12)
+Section 26 defines the authoritative data blueprint: conventions, tenancy rules, module tables, indexing, and delivery checklists. The detailed column and index summaries are captured in `/docs/DB_PLAN.md`; always reconcile code and migrations with §26 of the PDF.
 
-## 2. Modules at a Glance
-- **Document Control Hub** — versioning, approvals, watermarking, audit trails.
-- **Digital Twin Workspace** — 3D/2D viewer per asset with specs, CAD, manuals, and service history.
-- **Maintenance Library** — interactive repair manuals, checklists, exploded views.
-- **Sourcing & RFQ/RFP** — CAD-aware RFQs, supplier matching, quote comparison, open bidding.
-- **Inventory Forecasting** — AI/ML reorder and lead time prediction.
-- **Supplier Risk & ESG** — scoring, certificate tracking, ESG packs.
-- **ERP/CMMS Integration** — two-way sync, PdM-driven spares.
-- **Analytics & Copilot** — natural language actions like "Draft a PO", "Compare quotes".
+#### 26.1 Conventions (Copilot must follow)
+Engine/charset (InnoDB + utf8mb4), naming patterns, timestamps, soft deletes, multitenancy, enums, auditing, document storage, and indexing expectations.
 
-## 3. Digital Twin
-**Capabilities:** 3D/2D viewer, linked manuals/specs, exportable Twin bundles, RFQ creation from parts.  
-**Impact:** eliminates version confusion, reduces errors, improves audit traceability.
+### 26.2 Core Platform Tables
+Tenant registry, platform identities, membership bridging, and Cashier billing scaffolding that every other module depends on.
 
-## 4. Maintenance Manuals & Asset Care
-Interactive manuals with step-by-step guidance, tool specs, linked RFQs/POs, and downtime tracking.
+#### 26.2.1 companies (tenant registry)
+Defines tenant metadata, billing status, usage counters, and soft-delete lifecycle.
 
-## 5. Inventory Forecasting: AI + ML
-Uses demand history, lead times, and supplier reliability to forecast reorder points and stock levels.
+#### 26.2.2 users (platform identities)
+Holds cross-tenant users, roles, auth credentials, and soft-delete flags with optional platform scope.
 
-## 6. Supplier Risk & ESG
-Risk scoring combines delivery and defect data; ESG workspace generates Scope-3 proof packs.
+#### 26.2.3 company_user (multi-org membership)
+Maps users to companies with role overrides and uniqueness constraints for shared org access.
 
-## 7. Stakeholders
-- Buyer Admin / Requester
-- Supplier Admin / Estimator
-- Platform Admin
-- Finance
+#### 26.2.4 Billing (Laravel Cashier baseline)
+Adopts Cashier migrations with company-level linkage; extend with company_id when gating subscriptions.
 
-## 8. Functional Requirements
-Includes Supplier Discovery, RFQ/RFP creation, Quote Management, PO/Invoice/Order Tracking, Document Management, Reports, Integrations, Roles, Billing & Subscription, Approvals, Dispute Management, Notifications, Exports, Localization, Audit UI, Analytics, and Admin Console.
+### 26.3 Directory & Supplier
+Supplier directory tables (suppliers, supplier_documents) including FULLTEXT capability search and compliance document tracking.
 
-Each FR section lists: fields, workflows, permissions, and acceptance criteria.
+### 26.4 Sourcing: RFQs, Quotes, Awards
+RFQ master/detail, invitations, clarifications, and quote revisions underpinning sourcing workflows.
 
-## 9. Platform Admin Console
-Manages tenants, subscriptions, usage metrics, audit logs, impersonation, and announcements.
+### 26.5 Purchasing: POs, Change Orders, Orders
+Purchase order issuance, line items, change orders, and downstream order execution timelines.
 
-## 10. Must-Add Features
-Supplier KYC, RFQ clarifications, quote revisions, multi-currency, PO change orders, goods receipt, 3-way invoice match, notifications, document templates, CSV import, and performance guardrails.
+### 26.6 Receiving & Quality
+GRNs, inspection lines, and NCR tracking for non-conformance handling.
 
-## 11. Development Guard Rails
-Defines architecture, folder structure, API/UX standards, and "launch-ready" criteria.  
-**Backend:** Laravel 12 MVC + Livewire.  
-**Frontend:** React Starter Kit + Tailwind + shadcn/ui.  
-Includes global API envelope, pagination defaults, caching, audit logs, and reusable UI components.
+### 26.7 Invoicing & Match
+Invoice headers, lines, and three-way match records including status enums and document attachments.
 
-## 12. AI & ML Features
-RFQ Assist, Supplier Matching, Quote Assist, Cost Band Estimator, CAD Intelligence, Forecasting, Risk prediction, ESG pack generation, Copilot assistant, and learning loop.
+### 26.8 Documents & Media
+Polymorphic document storage with versioning, hashing, and tenant-aware scopes.
 
-## 13. Client Inputs
-Supplier data, past RFQs, quotes, POs, invoices, drawings, manuals, and maintenance logs.
+### 26.9 Notifications & Preferences
+User-facing notification feed and per-event channel preferences with digest settings.
 
-## 14. Digital Twin Packs (3D)
-Defines client data requirements for twin creation — CAD, BOM, assembly notes, finishes, etc.
+### 26.10 API & Webhooks
+Tenant API keys and outbound webhook subscriptions with scope and secret management.
 
-## 15. UI / UX Design Standards
-Strictly follows React Starter Kit + Tailwind + shadcn/ui theme.  
-SAP-like enterprise layout.  
-Includes full color, typography, layout, component, and accessibility rules.  
-All modules reuse shared components (buttons, modals, tables, etc.).
+### 26.11 Analytics & Governance
+Usage snapshots, audit logging, retention holds, and company plan overrides for governance.
 
-## 16. Copilot UI Development Instructions
-Explicit Copilot guidance for React components, forms, tables, modals, state handling, TypeScript conventions, and acceptance criteria.
+### 26.12 Indexing & Search Guidance
+Composite, FULLTEXT, and cursor-friendly index requirements that all migrations must respect.
 
-## 17. Notifications UX
-Standardizes notification model, realtime updates (Echo/Pusher), and email templates.
+### 26.13 Cascade & Referential Rules
+Delete/cascade strategy and soft-delete expectations for each aggregate.
 
-## 18. Analytics Permissions
-Plan-based gating, tenant scoping, PII masking, and export controls.
+### 26.14 Migration Order
+Canonical migration sequencing for scaffolding databases and seed data safely.
 
-## 19. Cross-Cutting Guard Rails
-DRY enforcement, consistent naming, UI rules, audit requirements, standard API envelope, pagination, search indexing, and error handling.
+### 26.15 Seeders (minimum)
+Baseline tenant, supplier, sourcing, purchasing, fulfillment, invoice, notification, and API key fixtures.
 
-## 20. Acceptance Test Checklists
-Scenario-based tests for all modules ensuring end-to-end functionality, UX consistency, and role-based flows.
+### 26.16 Acceptance Checks (DB)
+Database smoke criteria covering FK integrity, multitenancy enforcement, soft deletes, indexes, documents, auditing, retention, and Cashier readiness.
 
-## 21. End-to-End User Journey
-From upload → twin → RFQ → quote → PO → delivery → maintenance → forecast → ESG report.
+### 26.17 Laravel Model Notes
+Model traits, relationships, and JSON casting guidance for aligning Eloquent with §26.
 
-## 22. Security & Governance
-RBAC, approvals, audit trails, API-first architecture, tenant data isolation.
+## Scope Traceability
+Use this checklist to confirm every epic has matching features, migrations, tests, and docs before sign-off.
 
-## 23. Competitive Advantage
-Digital Twin–anchored traceability, explainable AI, integrated maintenance & procurement, ESG by design.
-
-## 24. Database Plan (MySQL + Laravel 12)
-Full schema specification with ~60 tables including:
-companies, users, suppliers, rfqs, quotes, purchase_orders, invoices, documents, notifications, etc.
-All tenant-scoped by company_id, soft-deletable, and audited.
-
-### Conventions
-- Tables = snake_case plural.
-- Include company_id everywhere.
-- Soft deletes on all business entities.
-- Audit trail for all CRUD.
-- S3 for binary files.
-- Standard foreign keys & indexes.
-
-### Migration Order
-companies → users → suppliers → rfqs → quotes → purchase_orders → grns → invoices → notifications → analytics.
-
-### Seeders
-Demo tenants, users, suppliers, RFQs, quotes, POs, GRNs, invoices, notifications, API keys.
-
-### Acceptance Checks
-FK validity, soft deletes, unique constraints, audit generation, Cashier presence.
-
----
-
-**Prepared by:** Upgraver Technologies (Pvt) Ltd  
-**Client:** Elements Technik Limited (trading as “Elements Supply AI”)  
-**Version:** 1.0
-
-This Markdown is equivalent to the full project requirements and can be referenced as `/docs/REQUIREMENTS_FULL.md`.
+- [ ] Supplier Discovery & Directory
+- [ ] RFQ / RFP Management
+- [ ] Quote Intake & Comparison
+- [ ] Awarding & Split Decisions
+- [ ] Purchase Orders & Change Orders
+- [ ] Order Execution & Tracking
+- [ ] Receiving, Inspection & NCRs
+- [ ] Invoicing & Three-Way Match
+- [ ] Document & CAD Control
+- [ ] Analytics & Operational Dashboards
+- [ ] Integrations & Webhooks
+- [ ] Notifications & Preferences
+- [ ] Company & User Administration
+- [ ] Billing, Plans & Entitlements
+- [ ] Approvals Matrix & Delegations
+- [ ] Global Search & Indexing
+- [ ] Localization, Units & Currency
+- [ ] Audit Trails & Governance
+- [ ] AI & Copilot Assistants
+- [ ] Platform Admin Console & Support

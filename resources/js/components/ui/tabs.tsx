@@ -3,6 +3,7 @@ import {
     createContext,
     type HTMLAttributes,
     type ReactNode,
+    useCallback,
     useContext,
     useMemo,
     useState,
@@ -34,16 +35,19 @@ function Tabs({
     const isControlled = controlledValue !== undefined;
     const value = isControlled ? (controlledValue as string) : uncontrolledValue;
 
-    const setValue = (next: string) => {
+    const setValue = useCallback(
+        (next: string) => {
         if (!isControlled) {
             setUncontrolledValue(next);
         }
         onValueChange?.(next);
-    };
+        },
+        [isControlled, onValueChange, setUncontrolledValue],
+    );
 
     const contextValue = useMemo<TabsContextValue>(
         () => ({ value, setValue }),
-        [value],
+        [value, setValue],
     );
 
     return (

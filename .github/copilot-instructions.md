@@ -17,7 +17,8 @@ When generating code, interfaces, or documentation:
 ## Product & Architecture
 - Multi-tenant procurement platform (RFQ → Quote → PO → Order → Receiving → Invoice) built with Laravel 12 + Inertia React TS.
 - Every aggregate carries `company_id`; scope queries with shared `BelongsToCompany` patterns and never leak cross-tenant data.
-- REST and Inertia endpoints return the JSON envelope `{ status, message, data, errors? }`; list endpoints include `meta { total, page, per_page, last_page }` with defaults of 25 per page (cap 100).
+- Database rules: MySQL InnoDB with `utf8mb4` collation, `{singular}_id` foreign keys, soft deletes on every business table, `company_id` on all tenant rows, and indexed foreign/composite/FULLTEXT columns exactly as §26 specifies.
+- REST and Inertia endpoints return the JSON envelope `{ status, message, data, errors? }` with named error maps; collection endpoints default to cursor pagination (returning `data.items`, `meta.next_cursor`, `meta.prev_cursor`, etc.) unless the spec explicitly calls for page/offset behaviour.
 - Follow module deep specs in `/deep-specs/*` and data definitions in `/docs/DOMAIN_MODEL.md`; do not invent new tables, routes, or enums beyond those sources.
 
 ## Backend Guardrails
@@ -30,7 +31,7 @@ When generating code, interfaces, or documentation:
 ## Frontend Guardrails
 - React pages live under `resources/js/pages`; wrap content with `AppLayout` or module layouts in `resources/js/layouts/**` (e.g. settings) for breadcrumbs and navigation.
 - Use Wayfinder-generated route helpers under `resources/js/actions`/`routes`; call `Controller.method.form()` when wiring `<Form>` components so HTTP verbs and spoofed methods stay in sync with backend routes.
-- Assemble UI with shadcn/ui components in `resources/js/components/ui`, Tailwind v4 utilities, and provide both skeleton loaders and empty states for every list/table view.
+- Keep Tailwind + shadcn/ui as the only design system, reuse React Starter Kit layout/composition patterns, and ensure every collection view ships with skeleton loaders, empty states, and accessible labels/ARIA where required.
 - Respect shared client utilities (`resources/js/hooks`, `resources/js/lib`) and keep browser-only APIs behind effects to preserve SSR compatibility (`resources/js/ssr.tsx`).
 
 ## UI Branding Rules
@@ -46,6 +47,7 @@ When generating code, interfaces, or documentation:
 - Implement revision workflows exactly as specced (RFQ versions, Quote revisions, PO change orders, invoice match state) and audit every transition.
 - Apply soft deletes to business records and index foreign keys plus required FULLTEXT indices (see `/docs/CONVENTIONS.md`).
 - Notifications flow through Laravel events → queued notifications; align entitlements, plan gates, and RBAC with `/docs/billing_plans.md` and `/docs/SECURITY_AND_RBAC.md`.
+- Billing & entitlements: wire feature-gating middleware hooks now and leave integration points for Stripe Cashier webhooks/events per §26 so downstream metering can plug in without refactors.
 - File/document features follow `/deep-specs/documents.md`; enforce virus scanning and metadata requirements before persisting.
 
 ## Developer Workflow

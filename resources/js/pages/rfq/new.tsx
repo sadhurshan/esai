@@ -138,7 +138,7 @@ export default function RfqNew() {
                                 <FileDropzone
                                     accept={cadAcceptTypes}
                                     onFilesSelected={(files) =>
-                                        setSelectedCad(files.item(0))
+                                        setSelectedCad(files[0] ?? null)
                                     }
                                     description="Drag your CAD here or browse supported formats."
                                 />

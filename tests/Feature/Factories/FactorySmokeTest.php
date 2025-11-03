@@ -37,5 +37,5 @@ it('creates an order via factory', function () {
     $order = Order::factory()->create();
 
     expect($order->exists)->toBeTrue()
-    ->and($order->number)->toMatch('/^PO-\d{5}$/');
+        ->and($order->number)->toMatch('/^PO-\d{5}$/');
 });

@@ -1,3 +1,13 @@
+export type Paged<T> = {
+    items: T[];
+    meta: {
+        total: number;
+        per_page: number;
+        current_page: number;
+        last_page: number;
+    };
+};
+
 export interface Supplier {
     id: number;
     name: string;

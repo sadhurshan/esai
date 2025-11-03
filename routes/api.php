@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
+use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
-use App\Http\Controllers\Api\RFQQuoteController;
+use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\RfqInvitationController;
+use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,13 +32,24 @@ Route::prefix('rfqs')->group(function (): void {
     Route::put('{rfq}', [RFQController::class, 'update']);
     Route::delete('{rfq}', [RFQController::class, 'destroy']);
 
-    Route::get('{rfq}/quotes', [RFQQuoteController::class, 'index']);
-    Route::post('{rfq}/quotes', [RFQQuoteController::class, 'store'])->middleware('ensure.subscribed');
+    Route::get('{rfq}/invitations', [RfqInvitationController::class, 'index']);
+    Route::post('{rfq}/invitations', [RfqInvitationController::class, 'store']);
+
+    Route::get('{rfq}/quotes', [QuoteController::class, 'index']);
+
+    Route::post('{rfq}/award', [AwardController::class, 'store']);
 });
 
 Route::prefix('orders')->group(function (): void {
     Route::get('/', [OrderController::class, 'index']);
     Route::get('{order}', [OrderController::class, 'show']);
+});
+
+Route::post('quotes', [QuoteController::class, 'store'])->middleware('ensure.subscribed');
+
+Route::prefix('purchase-orders')->group(function (): void {
+    Route::get('/', [PurchaseOrderController::class, 'index']);
+    Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
 });
 
 Route::post('documents', [DocumentController::class, 'store'])

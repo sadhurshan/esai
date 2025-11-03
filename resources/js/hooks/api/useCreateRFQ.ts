@@ -51,6 +51,7 @@ const mapRFQ = (payload: RFQCreateResponse): RFQ => ({
     status: payload.status,
     companyName: payload.client_company,
     openBidding: Boolean(payload.is_open_bidding),
+    items: [],
 });
 
 export function useCreateRFQ() {

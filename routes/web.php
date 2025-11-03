@@ -27,8 +27,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('id')
         ->name('rfq.open');
 
+    Route::get('/rfq/{id}/compare', fn () => Inertia::render('rfq/compare'))
+        ->whereNumber('id')
+        ->name('rfq.compare');
+
     Route::get('/orders', fn () => Inertia::render('orders/index'))
         ->name('orders.index');
+
+    Route::get('/purchase-orders/{id}', fn () => Inertia::render('purchase-orders/show'))
+        ->whereNumber('id')
+        ->name('purchase-orders.show');
 });
 
 require __DIR__.'/settings.php';

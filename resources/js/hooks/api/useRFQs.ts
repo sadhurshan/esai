@@ -39,6 +39,7 @@ const mapRFQ = (payload: RFQListResponse['items'][number]): RFQ => ({
     status: payload.status,
     companyName: payload.client_company,
     openBidding: Boolean(payload.is_open_bidding),
+    items: [],
 });
 
 type RFQListResult = { items: RFQ[]; meta: RFQListResponse['meta'] };

@@ -24,6 +24,12 @@ class RFQStoreRequest extends ApiFormRequest
             'is_open_bidding' => ['boolean'],
             'notes' => ['nullable', 'string'],
             'cad' => ['nullable', 'file', 'mimes:step,stp,iges,igs,dwg,dxf,sldprt,3mf,stl,pdf', 'max:20480'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.part_name' => ['required', 'string'],
+            'items.*.spec' => ['nullable', 'string'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.uom' => ['nullable', 'string', 'max:16'],
+            'items.*.target_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

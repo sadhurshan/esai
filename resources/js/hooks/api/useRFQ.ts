@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { RFQ, RFQQuote } from '@/types/sourcing';
+import type { QuoteSummary, RFQ, RfqItem } from '@/types/sourcing';
 
 interface RFQDetailResponse {
     id: number;
@@ -21,29 +21,61 @@ interface RFQDetailResponse {
     is_open_bidding: boolean;
     notes: string | null;
     cad_path: string | null;
-    quotes: RFQQuoteResponse[];
+    items?: RfqItemResponse[];
+    quotes: QuoteResponse[];
 }
 
-interface RFQQuoteResponse {
+interface RfqItemResponse {
+    id: number;
+    line_no: number;
+    part_name: string;
+    spec: string | null;
+    quantity: number;
+    uom: string;
+    target_price: number | null;
+}
+
+interface QuoteItemResponse {
+    id: number;
+    rfq_item_id: number;
+    unit_price: number;
+    lead_time_days: number;
+    note: string | null;
+}
+
+interface QuoteAttachmentResponse {
+    id: number;
+    filename: string;
+    path: string;
+    mime: string;
+    size_bytes: number;
+}
+
+interface QuoteResponse {
     id: number;
     rfq_id: number;
     supplier_id: number;
-    supplier_name?: string | null;
-    unit_price_usd: number;
-    total_price_usd?: number | null;
+    supplier?: {
+        id: number;
+        name: string;
+    } | null;
+    currency: string;
+    unit_price: number;
+    min_order_qty: number | null;
     lead_time_days: number;
     note: string | null;
-    attachment_path: string | null;
-    via: string;
+    status: string;
+    revision_no: number | null;
+    submitted_by: number | null;
     submitted_at: string | null;
-    status?: string | null;
-    revision?: number | null;
+    items?: QuoteItemResponse[];
+    attachments?: QuoteAttachmentResponse[];
 }
 
 export interface RFQDetailResult {
     rfq: RFQ;
     detail: RFQDetailResponse;
-    quotes: RFQQuote[];
+    quotes: QuoteSummary[];
 }
 
 const mapRFQDetail = (payload: RFQDetailResponse): RFQ => ({
@@ -57,6 +89,43 @@ const mapRFQDetail = (payload: RFQDetailResponse): RFQ => ({
     status: payload.status,
     companyName: payload.client_company,
     openBidding: Boolean(payload.is_open_bidding),
+    items: (payload.items ?? []).map((item): RfqItem => ({
+        id: item.id,
+        lineNo: item.line_no,
+        partName: item.part_name,
+        spec: item.spec,
+        quantity: item.quantity,
+        uom: item.uom,
+        targetPrice: item.target_price ?? undefined,
+    })),
+});
+
+const mapQuote = (payload: QuoteResponse): QuoteSummary => ({
+    id: payload.id,
+    supplierId: payload.supplier_id,
+    supplierName: payload.supplier?.name ?? `Supplier #${payload.supplier_id}`,
+    currency: payload.currency,
+    unitPrice: payload.unit_price,
+    minOrderQty: payload.min_order_qty ?? undefined,
+    leadTimeDays: payload.lead_time_days,
+    status: payload.status,
+    revision: payload.revision_no ?? 1,
+    submittedAt: payload.submitted_at ?? '',
+    note: payload.note ?? undefined,
+    items: (payload.items ?? []).map((item): QuoteSummary['items'][number] => ({
+        id: item.id,
+        rfqItemId: item.rfq_item_id,
+        unitPrice: item.unit_price,
+        leadTimeDays: item.lead_time_days,
+        note: item.note ?? undefined,
+    })),
+    attachments: (payload.attachments ?? []).map((attachment): QuoteSummary['attachments'][number] => ({
+        id: attachment.id,
+        filename: attachment.filename,
+        path: attachment.path,
+        mime: attachment.mime,
+        sizeBytes: attachment.size_bytes,
+    })),
 });
 
 export function useRFQ(id: number) {
@@ -65,16 +134,7 @@ export function useRFQ(id: number) {
         enabled: Number.isFinite(id) && id > 0,
         queryFn: async () => {
             const response = (await api.get<RFQDetailResponse>(`/rfqs/${id}`)) as unknown as RFQDetailResponse;
-            const quotes: RFQQuote[] = (response.quotes ?? []).map((quote, index) => ({
-                id: quote.id,
-                supplierName: quote.supplier_name ?? `Supplier #${quote.supplier_id}`,
-                revision: quote.revision ?? index + 1,
-                totalPriceUsd: quote.total_price_usd ?? quote.unit_price_usd,
-                unitPriceUsd: quote.unit_price_usd,
-                leadTimeDays: quote.lead_time_days,
-                status: (quote.status ?? 'submitted').replace(/\b\w/g, (char) => char.toUpperCase()),
-                submittedAt: quote.submitted_at ?? '',
-            }));
+            const quotes = (response.quotes ?? []).map((quote) => mapQuote(quote));
 
             return {
                 rfq: mapRFQDetail(response),

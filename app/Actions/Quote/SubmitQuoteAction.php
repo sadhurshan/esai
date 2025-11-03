@@ -58,7 +58,7 @@ class SubmitQuoteAction
 
             $this->auditLogger->created($quote);
 
-            return $quote->load('items');
+            return $quote->load(['items', 'documents']);
         });
     }
 }

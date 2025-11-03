@@ -31,7 +31,9 @@ class InviteSuppliersToRfqAction
                     ]
                 );
 
-                $this->auditLogger->created($invitation);
+                if ($invitation->wasRecentlyCreated) {
+                    $this->auditLogger->created($invitation);
+                }
             }
         });
     }

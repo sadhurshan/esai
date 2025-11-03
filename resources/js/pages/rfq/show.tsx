@@ -8,7 +8,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 
 import { useRFQ } from '@/hooks/api/useRFQ';
-import type { RFQQuote } from '@/types/sourcing';
+import type { QuoteSummary } from '@/types/sourcing';
 
 function parseRfqId(url: string): number | null {
     const [path] = url.split('?');
@@ -40,16 +40,17 @@ const quoteColumns = [
     { key: 'supplierName', title: 'Supplier' },
     { key: 'revision', title: 'Revision', align: 'center' as const },
     {
-        key: 'totalPriceUsd',
-        title: 'Total (USD)',
-        render: (row: RFQQuote) => `$${row.totalPriceUsd.toLocaleString()}`,
+        key: 'unitPrice',
+        title: 'Unit Price',
+        render: (row: QuoteSummary) =>
+            `${row.currency.toUpperCase()} ${row.unitPrice.toLocaleString()}`,
         align: 'right' as const,
     },
     {
-        key: 'unitPriceUsd',
-        title: 'Unit Price (USD)',
-        render: (row: RFQQuote) => `$${row.unitPriceUsd.toLocaleString()}`,
-        align: 'right' as const,
+        key: 'minOrderQty',
+        title: 'MOQ',
+        render: (row: QuoteSummary) => row.minOrderQty?.toLocaleString() ?? '—',
+        align: 'center' as const,
     },
     {
         key: 'leadTimeDays',
@@ -59,12 +60,12 @@ const quoteColumns = [
     {
         key: 'status',
         title: 'Status',
-        render: (row: RFQQuote) => <StatusBadge status={row.status} />,
+        render: (row: QuoteSummary) => <StatusBadge status={row.status} />,
     },
     {
         key: 'submittedAt',
         title: 'Submitted',
-        render: (row: RFQQuote) => formatDate(row.submittedAt),
+        render: (row: QuoteSummary) => formatDate(row.submittedAt),
     },
 ];
 

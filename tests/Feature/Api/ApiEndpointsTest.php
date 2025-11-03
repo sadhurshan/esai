@@ -4,9 +4,11 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\RFQ;
-use App\Models\RFQQuote;
+use App\Models\Quote;
+use App\Models\QuoteItem;
 use App\Models\Subscription;
 use App\Models\Supplier;
+use App\Models\RfqItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -86,6 +88,22 @@ it('creates an rfq with cad upload', function () {
         'is_open_bidding' => true,
         'notes' => 'Include inspection report.',
         'cad' => UploadedFile::fake()->create('housing.step', 50),
+        'items' => [
+            [
+                'part_name' => 'Valve Body',
+                'spec' => 'CNC machined, tolerance ±0.01mm',
+                'quantity' => 60,
+                'uom' => 'pcs',
+                'target_price' => 125.50,
+            ],
+            [
+                'part_name' => 'Cover Plate',
+                'spec' => 'Anodized exterior',
+                'quantity' => 60,
+                'uom' => 'pcs',
+                'target_price' => 48.20,
+            ],
+        ],
     ];
 
     $response = $this->postJson('/api/rfqs', $payload);
@@ -100,43 +118,62 @@ it('creates an rfq with cad upload', function () {
             ],
         ]);
 
-    $rfq = RFQ::first();
-    expect($rfq)->not->toBeNull();
+    $rfq = RFQ::with('items')->first();
+    expect($rfq)->not->toBeNull()
+        ->and($rfq->items)->toHaveCount(2);
 
     Storage::disk('local')->assertExists($rfq->cad_path);
 });
 
-it('creates an rfq quote with attachment upload', function () {
-    Storage::fake('local');
+it('creates a quote with items and attachment upload', function () {
+    Storage::fake('public');
 
     $user = actingAsSubscribedUser();
 
-    $rfq = RFQ::factory()->for($user->company)->create();
+    $rfq = RFQ::factory()->for($user->company)->create([
+        'is_open_bidding' => true,
+    ]);
+    $items = RfqItem::factory()->count(2)->for($rfq)->sequence(
+        ['line_no' => 1],
+        ['line_no' => 2],
+    )->create();
     $supplier = Supplier::factory()->create();
 
     $payload = [
+        'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
-        'unit_price_usd' => 145.50,
+        'currency' => 'USD',
+        'unit_price' => 145.50,
         'lead_time_days' => 21,
+        'min_order_qty' => 10,
         'note' => 'Includes expedited shipping.',
-        'via' => 'direct',
+        'items' => $items->map(fn (RfqItem $item) => [
+            'rfq_item_id' => $item->id,
+            'unit_price' => 72.75,
+            'lead_time_days' => 21,
+        ])->toArray(),
         'attachment' => UploadedFile::fake()->create('quote.pdf', 80),
     ];
 
-    $response = $this->postJson("/api/rfqs/{$rfq->id}/quotes", $payload);
+    $response = $this->postJson('/api/quotes', $payload);
 
     $response->assertCreated()
         ->assertJsonPath('status', 'success')
         ->assertJsonStructure([
             'data' => [
                 'id',
-                'attachment_path',
+                'items',
             ],
         ]);
 
-    $quote = RFQQuote::first();
-    expect($quote)->not->toBeNull();
-    Storage::disk('local')->assertExists($quote->attachment_path);
+    $quote = Quote::with(['items', 'documents'])->first();
+    expect($quote)->not->toBeNull()
+        ->and($quote->items)->toHaveCount(2)
+        ->and($quote->documents)->toHaveCount(1);
+
+    $document = $quote->documents->first();
+    Storage::disk('public')->assertExists($document->path);
+    expect(QuoteItem::count())->toBe(2);
 });
 
 it('returns validation errors for invalid rfq payloads', function () {
@@ -150,15 +187,20 @@ it('returns validation errors for invalid rfq payloads', function () {
         ->assertJsonStructure(['errors' => ['item_name']]);
 });
 
-it('returns validation errors for invalid rfq quote payloads', function () {
+it('returns validation errors for invalid quote payloads', function () {
     $user = actingAsSubscribedUser();
 
-    $rfq = RFQ::factory()->for($user->company)->create();
+    $rfq = RFQ::factory()->for($user->company)->create([
+        'is_open_bidding' => true,
+    ]);
 
-    $response = $this->postJson("/api/rfqs/{$rfq->id}/quotes", []);
+    $response = $this->postJson('/api/quotes', [
+        'rfq_id' => $rfq->id,
+        'supplier_id' => Supplier::factory()->create()->id,
+    ]);
 
     $response->assertStatus(422)
         ->assertJsonPath('status', 'error')
         ->assertJsonPath('message', 'Validation failed')
-        ->assertJsonStructure(['errors' => ['supplier_id']]);
+        ->assertJsonStructure(['errors' => ['currency']]);
 });

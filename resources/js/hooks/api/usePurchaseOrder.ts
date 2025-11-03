@@ -2,7 +2,12 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { PurchaseOrderDetail, PurchaseOrderLine, PurchaseOrderSummary } from '@/types/sourcing';
+import type {
+    PurchaseOrderChangeOrder,
+    PurchaseOrderDetail,
+    PurchaseOrderLine,
+    PurchaseOrderSummary,
+} from '@/types/sourcing';
 
 export interface PurchaseOrderResponseLine {
     id: number;
@@ -36,6 +41,23 @@ export interface PurchaseOrderResponse {
         title: string | null;
     } | null;
     lines?: PurchaseOrderResponseLine[];
+    change_orders?: PoChangeOrderResponse[];
+}
+
+export interface PoChangeOrderResponse {
+    id: number;
+    purchase_order_id: number;
+    reason: string;
+    status: 'proposed' | 'accepted' | 'rejected';
+    changes_json: Record<string, unknown> | null;
+    po_revision_no: number | null;
+    proposed_by?: {
+        id: number | null;
+        name: string | null;
+        email: string | null;
+    } | null;
+    created_at: string | null;
+    updated_at: string | null;
 }
 
 export const mapPurchaseOrderLine = (
@@ -69,6 +91,27 @@ export const mapPurchaseOrder = (
     createdAt: payload.created_at ?? undefined,
     updatedAt: payload.updated_at ?? undefined,
     lines: (payload.lines ?? []).map(mapPurchaseOrderLine),
+    changeOrders: (payload.change_orders ?? []).map(mapChangeOrder),
+});
+
+export const mapChangeOrder = (
+    payload: PoChangeOrderResponse,
+): PurchaseOrderChangeOrder => ({
+    id: payload.id,
+    purchaseOrderId: payload.purchase_order_id,
+    reason: payload.reason,
+    status: payload.status,
+    changes: payload.changes_json ?? {},
+    poRevisionNo: payload.po_revision_no ?? undefined,
+    proposedBy: payload.proposed_by
+        ? {
+              id: payload.proposed_by.id,
+              name: payload.proposed_by.name,
+              email: payload.proposed_by.email,
+          }
+        : undefined,
+    createdAt: payload.created_at ?? undefined,
+    updatedAt: payload.updated_at ?? undefined,
 });
 
 export function usePurchaseOrder(
@@ -84,6 +127,7 @@ export function usePurchaseOrder(
         select: (response) => ({
             ...mapPurchaseOrder(response),
             lines: (response.lines ?? []).map(mapPurchaseOrderLine),
+            changeOrders: (response.change_orders ?? []).map(mapChangeOrder),
         }),
         staleTime: 30_000,
     });

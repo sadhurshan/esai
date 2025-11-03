@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
+use App\Http\Controllers\Api\PoChangeOrderController;
 use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
@@ -49,8 +50,16 @@ Route::post('quotes', [QuoteController::class, 'store'])->middleware('ensure.sub
 
 Route::prefix('purchase-orders')->group(function (): void {
     Route::get('/', [PurchaseOrderController::class, 'index']);
+    Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send']);
+    Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge']);
+    Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
+    Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
+        ->middleware('ensure.subscribed');
     Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
 });
+
+Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve']);
+Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject']);
 
 Route::post('documents', [DocumentController::class, 'store'])
     ->middleware('ensure.subscribed');

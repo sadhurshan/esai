@@ -107,6 +107,22 @@ export interface PurchaseOrderLine {
     deliveryDate?: string | null;
 }
 
+export interface PurchaseOrderChangeOrder {
+    id: number;
+    purchaseOrderId: number;
+    reason: string;
+    status: 'proposed' | 'accepted' | 'rejected';
+    changes: Record<string, unknown>;
+    poRevisionNo?: number | null;
+    proposedBy?: {
+        id: number | null;
+        name: string | null;
+        email: string | null;
+    } | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
 export interface PurchaseOrderSummary {
     id: number;
     poNumber: string;
@@ -124,8 +140,10 @@ export interface PurchaseOrderSummary {
     createdAt?: string | null;
     updatedAt?: string | null;
     lines?: PurchaseOrderLine[];
+    changeOrders?: PurchaseOrderChangeOrder[];
 }
 
 export interface PurchaseOrderDetail extends PurchaseOrderSummary {
     lines: PurchaseOrderLine[];
+    changeOrders: PurchaseOrderChangeOrder[];
 }

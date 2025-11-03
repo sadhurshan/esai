@@ -4,6 +4,7 @@ import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { PurchaseOrderDetail } from '@/types/sourcing';
 import {
+    mapChangeOrder,
     mapPurchaseOrder,
     mapPurchaseOrderLine,
     type PurchaseOrderResponse,
@@ -30,6 +31,7 @@ export function useAwardQuote(
             return {
                 ...mapPurchaseOrder(response),
                 lines: (response.lines ?? []).map(mapPurchaseOrderLine),
+                changeOrders: (response.change_orders ?? []).map(mapChangeOrder),
             };
         },
         onSuccess: () => {

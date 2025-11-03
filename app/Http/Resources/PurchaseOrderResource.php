@@ -30,6 +30,7 @@ class PurchaseOrderResource extends JsonResource
                 'title' => $this->rfq?->title,
             ]),
             'lines' => PurchaseOrderLineResource::collection($this->whenLoaded('lines')),
+            'change_orders' => PoChangeOrderResource::collection($this->whenLoaded('changeOrders')),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

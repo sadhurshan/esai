@@ -11,8 +11,9 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { home, orders, rfq, suppliers, purchaseOrders } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import {
     BookMarked,
     BookOpen,
@@ -21,43 +22,10 @@ import {
     Folder,
     Home as HomeIcon,
     PackageCheck,
+    Package,
     Truck,
 } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: home(),
-        icon: HomeIcon,
-    },
-    {
-        title: 'Supplier Directory',
-        href: suppliers.index(),
-        icon: Factory,
-    },
-    {
-        title: 'RFQ',
-        href: rfq.index(),
-        icon: FileSpreadsheet,
-    },
-    {
-        title: 'Orders',
-        href: orders.index(),
-        icon: PackageCheck,
-    },
-    {
-        title: 'Purchase Orders',
-        href: purchaseOrders.index(),
-        icon: Truck,
-    },
-    {
-        title: 'Resource Center',
-        href: home(),
-        icon: BookMarked,
-        disabled: true,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -73,6 +41,59 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const page = usePage<SharedData>();
+    const userRole = page.props.auth?.user?.role ?? null;
+    const isSupplierUser =
+        typeof userRole === 'string' && userRole.startsWith('supplier_');
+
+    const mainNavItems = useMemo<NavItem[]>(() => {
+        const purchaseOrderNav: NavItem = {
+            title: 'Purchase Orders',
+            href: purchaseOrders.index(),
+            icon: Truck,
+        };
+
+        if (isSupplierUser) {
+            purchaseOrderNav.children = [
+                {
+                    title: 'Supplier POs',
+                    href: purchaseOrders.supplier.index(),
+                    icon: Package,
+                },
+            ];
+        }
+
+        return [
+            {
+                title: 'Home',
+                href: home(),
+                icon: HomeIcon,
+            },
+            {
+                title: 'Supplier Directory',
+                href: suppliers.index(),
+                icon: Factory,
+            },
+            {
+                title: 'RFQ',
+                href: rfq.index(),
+                icon: FileSpreadsheet,
+            },
+            {
+                title: 'Orders',
+                href: orders.index(),
+                icon: PackageCheck,
+            },
+            purchaseOrderNav,
+            {
+                title: 'Resource Center',
+                href: home(),
+                icon: BookMarked,
+                disabled: true,
+            },
+        ];
+    }, [isSupplierUser]);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

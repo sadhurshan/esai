@@ -16,9 +16,15 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
+                    const children = item.children ?? [];
+                    const hasActiveChild = children.some((child) =>
+                        page.url.startsWith(resolveUrl(child.href)),
+                    );
                     const isActive =
-                        !item.disabled &&
-                        page.url.startsWith(resolveUrl(item.href));
+                        (!item.disabled &&
+                            page.url.startsWith(resolveUrl(item.href))) ||
+                        hasActiveChild;
+
                     return (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
@@ -43,6 +49,60 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     </Link>
                                 )}
                             </SidebarMenuButton>
+
+                            {children.length > 0 && (
+                                <div className="mt-1 pl-6">
+                                    <SidebarMenu>
+                                        {children.map((child) => {
+                                            const childActive =
+                                                !child.disabled &&
+                                                page.url.startsWith(
+                                                    resolveUrl(child.href),
+                                                );
+
+                                            return (
+                                                <SidebarMenuItem
+                                                    key={`${item.title}-${child.title}`}
+                                                >
+                                                    <SidebarMenuButton
+                                                        asChild={!child.disabled}
+                                                        disabled={child.disabled}
+                                                        isActive={childActive}
+                                                        tooltip={
+                                                            child.disabled
+                                                                ? undefined
+                                                                : {
+                                                                      children:
+                                                                          child.title,
+                                                                  }
+                                                        }
+                                                        size="sm"
+                                                    >
+                                                        {child.disabled ? (
+                                                            <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                {child.icon && (
+                                                                    <child.icon className="h-3.5 w-3.5" />
+                                                                )}
+                                                                <span>{child.title}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <Link
+                                                                href={child.href}
+                                                                prefetch
+                                                            >
+                                                                {child.icon && (
+                                                                    <child.icon className="h-3.5 w-3.5" />
+                                                                )}
+                                                                <span>{child.title}</span>
+                                                            </Link>
+                                                        )}
+                                                    </SidebarMenuButton>
+                                                </SidebarMenuItem>
+                                            );
+                                        })}
+                                    </SidebarMenu>
+                                </div>
+                            )}
                         </SidebarMenuItem>
                     );
                 })}

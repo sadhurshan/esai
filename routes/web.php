@@ -10,6 +10,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::get('/company-registration', function () {
+        return Inertia::render('company/registration');
+    })->name('company.registration');
+
     Route::get('/suppliers', fn () => Inertia::render('suppliers/index'))
         ->name('suppliers.index');
 
@@ -47,6 +51,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/purchase-orders/{id}', fn ($id) => Inertia::render('purchase-orders/show', ['id' => $id]))
         ->whereNumber('id')
         ->name('purchase-orders.show');
+
+    Route::inertia('supplier/company-profile', 'supplier/company-profile')
+        ->name('supplier.company-profile');
+
+    Route::inertia('admin/companies', 'admin/companies/index')
+        ->name('admin.companies.index');
 });
 
 require __DIR__.'/settings.php';

@@ -21,8 +21,10 @@ import {
     FileSpreadsheet,
     Folder,
     Home as HomeIcon,
+    IdCard,
     PackageCheck,
     Package,
+    ShieldCheck,
     Truck,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -45,6 +47,8 @@ export function AppSidebar() {
     const userRole = page.props.auth?.user?.role ?? null;
     const isSupplierUser =
         typeof userRole === 'string' && userRole.startsWith('supplier_');
+    const isPlatformAdmin =
+        userRole === 'platform_super' || userRole === 'platform_support';
 
     const mainNavItems = useMemo<NavItem[]>(() => {
         const purchaseOrderNav: NavItem = {
@@ -63,7 +67,7 @@ export function AppSidebar() {
             ];
         }
 
-        return [
+        const items: NavItem[] = [
             {
                 title: 'Home',
                 href: home(),
@@ -85,14 +89,33 @@ export function AppSidebar() {
                 icon: PackageCheck,
             },
             purchaseOrderNav,
-            {
-                title: 'Resource Center',
-                href: home(),
-                icon: BookMarked,
-                disabled: true,
-            },
         ];
-    }, [isSupplierUser]);
+
+        if (isSupplierUser) {
+            items.push({
+                title: 'Company Profile',
+                href: '/supplier/company-profile',
+                icon: IdCard,
+            });
+        }
+
+        if (isPlatformAdmin) {
+            items.push({
+                title: 'Tenant Approvals',
+                href: '/admin/companies',
+                icon: ShieldCheck,
+            });
+        }
+
+        items.push({
+            title: 'Resource Center',
+            href: home(),
+            icon: BookMarked,
+            disabled: true,
+        });
+
+        return items;
+    }, [isPlatformAdmin, isSupplierUser]);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

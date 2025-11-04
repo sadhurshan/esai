@@ -6,7 +6,6 @@ use App\Http\Resources\PoChangeOrderResource;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PoChangeOrder;
 use App\Models\PurchaseOrder;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -202,35 +201,4 @@ class PoChangeOrderController extends ApiController
         }
     }
 
-    private function resolveUserCompanyId(User $user): ?int
-    {
-        if ($user->company_id !== null) {
-            return (int) $user->company_id;
-        }
-
-        $companyId = DB::table('company_user')
-            ->where('user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->value('company_id');
-
-        if ($companyId) {
-            return (int) $companyId;
-        }
-
-        $ownedCompanyId = DB::table('companies')
-            ->where('owner_user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->value('id');
-
-        if ($ownedCompanyId) {
-            return (int) $ownedCompanyId;
-        }
-
-        $supplierCompanyId = DB::table('suppliers')
-            ->where('email', $user->email)
-            ->orderByDesc('created_at')
-            ->value('company_id');
-
-        return $supplierCompanyId ? (int) $supplierCompanyId : null;
-    }
 }

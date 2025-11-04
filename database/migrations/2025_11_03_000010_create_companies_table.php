@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 160)->unique();
             $table->string('slug', 160)->unique();
-            $table->enum('status', ['pending', 'active', 'suspended'])->default('pending');
+            $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
             $table->string('region', 64)->nullable();
             $table->foreignId('owner_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedInteger('rfqs_monthly_used')->default(0);

@@ -67,7 +67,12 @@ Quick-run checks to validate each epic after deploys. These derive from `/docs/R
 ## Company & User Administration
 - [ ] DB: `companies`, `users`, `company_user` rows created with plan codes and soft deletes.
 - [ ] API: Invite endpoint issues signed link and enforces role limits.
-- [ ] UI: Admin console lists tenants with status badges and impersonate guard.
+- [ ] API: `POST /api/companies` captures required registration fields, stores pending status, and associates owner to tenant.
+- [ ] API: Platform super endpoint approves/rejects pending companies and persists rejection reason for auditing.
+- [ ] API/UI: Company document upload endpoint accepts PDF/JPEG/PNG ≤5MB with audit logging and delete support.
+- [ ] UI: `/company-registration` wizard collects legal + contact information, surfaces validation errors, and displays post-submission guidance.
+- [ ] UI: `/settings/company-profile` shows editable company data with status badge and document management.
+- [ ] UI: `/admin/companies` lists pending tenants with approve/reject controls and rejection reason dialog.
 
 ## Billing, Plans & Entitlements
 - [ ] DB: Cashier tables migrated; `company_plan_overrides` entries present for test tenant.

@@ -1,10 +1,12 @@
 <?php
 
-use App\Http\Controllers\Api\Billing\StripeWebhookController;
 use App\Http\Controllers\Api\AwardController;
+use App\Http\Controllers\Api\Billing\StripeWebhookController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\CompanyDocumentController;
+use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
 use App\Http\Controllers\Api\PoChangeOrderController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\Admin\CompanyApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
@@ -61,6 +64,22 @@ Route::middleware('web')->group(function (): void {
 
     Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve']);
     Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject']);
+
+    Route::prefix('companies')->group(function (): void {
+        Route::post('/', [CompanyRegistrationController::class, 'store']);
+        Route::get('{company}', [CompanyRegistrationController::class, 'show']);
+        Route::put('{company}', [CompanyRegistrationController::class, 'update']);
+
+        Route::get('{company}/documents', [CompanyDocumentController::class, 'index']);
+        Route::post('{company}/documents', [CompanyDocumentController::class, 'store']);
+        Route::delete('{company}/documents/{document}', [CompanyDocumentController::class, 'destroy']);
+    });
+
+    Route::prefix('admin/companies')->group(function (): void {
+        Route::get('/', [CompanyApprovalController::class, 'index']);
+        Route::post('{company}/approve', [CompanyApprovalController::class, 'approve']);
+        Route::post('{company}/reject', [CompanyApprovalController::class, 'reject']);
+    });
 });
 
 Route::post('documents', [DocumentController::class, 'store'])

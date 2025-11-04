@@ -1,3 +1,10 @@
+## 2025-11-03 21:15
+- Built the multi-step company registration wizard with document upload handling, status messaging, and tenant-aware routing.
+- Added company profile management in settings, supplier-facing profile read view, and admin pending company queue with approve/reject flows.
+- Created React Query hooks for company detail/documents/admin approvals and extended query key constants.
+- Authored `tests/Feature/Api/CompanyLifecycleTest.php` to cover registration, profile updates, document CRUD, and admin approvals.
+- Updated acceptance checklist to reflect the registration, profile, and admin review deliverables; tests still pending local execution.
+
 ## 2025-11-03 17:20
 - Added buyer-facing change order review tab on the purchase order detail page with approve/reject actions and toast feedback.
 - Exposed purchase order company context to the frontend and wired change order hooks for buyer workflows.

@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
+use App\Enums\CompanyStatus;
+use App\Models\CompanyDocument;
+use App\Models\Plan;
+use App\Models\RFQ;
+use App\Models\Subscription;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
-use App\Models\Plan;
-use App\Models\Subscription;
 
 class Company extends Model
 {
@@ -20,6 +25,16 @@ class Company extends Model
         'name',
         'slug',
         'status',
+        'registration_no',
+        'tax_id',
+        'country',
+        'email_domain',
+        'primary_contact_name',
+        'primary_contact_email',
+        'primary_contact_phone',
+        'address',
+        'phone',
+        'website',
         'region',
         'owner_user_id',
         'rfqs_monthly_used',
@@ -27,9 +42,11 @@ class Company extends Model
         'stripe_id',
         'plan_code',
         'trial_ends_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
+        'status' => CompanyStatus::class,
         'trial_ends_at' => 'datetime',
     ];
 
@@ -95,5 +112,10 @@ class Company extends Model
     public function suppliers(): HasMany
     {
         return $this->hasMany(Supplier::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(CompanyDocument::class);
     }
 }

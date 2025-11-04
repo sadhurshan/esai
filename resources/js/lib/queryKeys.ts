@@ -18,6 +18,13 @@ export const queryKeys = {
         detail: (id: number) => ['purchase-orders', 'detail', id] as const,
         changeOrders: (purchaseOrderId: number) => ['purchase-orders', 'change-orders', purchaseOrderId] as const,
     },
+    companies: {
+        detail: (id: number) => ['companies', 'detail', id] as const,
+        documents: (id: number) => ['companies', 'documents', id] as const,
+    },
+    admin: {
+        companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
+    },
 };
 
 export type QueryKey = ReturnType<
@@ -32,4 +39,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']
     | (typeof queryKeys)['purchaseOrders']['changeOrders']
+    | (typeof queryKeys)['companies']['detail']
+    | (typeof queryKeys)['companies']['documents']
+    | (typeof queryKeys)['admin']['companies']
 >;

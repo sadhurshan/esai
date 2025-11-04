@@ -18,6 +18,11 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     {
+        title: 'Company Profile',
+        href: '/settings/company-profile',
+        icon: null,
+    },
+    {
         title: 'Password',
         href: editPassword(),
         icon: null,

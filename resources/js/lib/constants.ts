@@ -21,3 +21,9 @@ export const ORDER_STATUS_BADGE_MAP: Record<string, string> = {
     requested: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-100',
     received: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100',
 };
+
+export const COMPANY_STATUS_BADGE_MAP: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-100',
+    active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100',
+    rejected: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-100',
+};

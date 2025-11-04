@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\CompanyStatus;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,12 @@ class EnsureSubscribed
         }
 
         $company->loadMissing(['plan', 'subscriptions']);
+
+        $status = $company->status;
+
+        if (($status instanceof CompanyStatus && $status === CompanyStatus::Pending) || $status === CompanyStatus::Pending->value) {
+            return $next($request);
+        }
 
         if (! $this->hasActiveSubscription($company)) {
             return $this->upgradeRequired('subscription_inactive', [

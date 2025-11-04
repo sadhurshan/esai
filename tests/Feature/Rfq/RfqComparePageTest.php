@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Company;
 use App\Models\User;
 
 test('rfq compare page requires authentication', function () {
@@ -8,7 +9,12 @@ test('rfq compare page requires authentication', function () {
 });
 
 test('rfq compare page renders for authenticated users', function () {
-    $this->actingAs(User::factory()->create());
+    $company = Company::factory()->create();
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $this->actingAs($user);
 
     $this->get(route('rfq.compare', ['id' => 1]))->assertOk();
 });

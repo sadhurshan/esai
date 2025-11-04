@@ -1,3 +1,8 @@
+## 2025-11-04 09:30
+- Added `EnsureCompanyRegistered` middleware to the auth stack, gating dashboard and navigation routes until a user completes the company wizard.
+- Updated the login and registration Inertia pages to surface a "Launch the wizard" link that opens the company registration flow for unassigned accounts.
+- Documented the auth link requirement in `docs/ACCEPTANCE.md` and added feature coverage to ensure redirects when a user without a company visits `/dashboard`.
+
 ## 2025-11-03 21:15
 - Built the multi-step company registration wizard with document upload handling, status messaging, and tenant-aware routing.
 - Added company profile management in settings, supplier-facing profile read view, and admin pending company queue with approve/reject flows.

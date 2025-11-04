@@ -71,6 +71,7 @@ Quick-run checks to validate each epic after deploys. These derive from `/docs/R
 - [ ] API: Platform super endpoint approves/rejects pending companies and persists rejection reason for auditing.
 - [ ] API/UI: Company document upload endpoint accepts PDF/JPEG/PNG ≤5MB with audit logging and delete support.
 - [ ] UI: `/company-registration` wizard collects legal + contact information, surfaces validation errors, and displays post-submission guidance.
+- [ ] UI: Login and register screens expose a link to launch the company registration wizard for unassigned users.
 - [ ] UI: `/settings/company-profile` shows editable company data with status badge and document management.
 - [ ] UI: `/admin/companies` lists pending tenants with approve/reject controls and rejection reason dialog.
 

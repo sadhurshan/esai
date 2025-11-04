@@ -5,14 +5,22 @@ use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('home'))->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
-
+Route::middleware(['auth'])->group(function () {
     Route::get('/company-registration', function () {
         return Inertia::render('company/registration');
     })->name('company.registration');
+});
+
+Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(function () {
+    Route::get('dashboard', function () {
+        $user = auth()->user();
+
+        if ($user?->company_id === null) {
+            return redirect()->route('company.registration');
+        }
+
+        return Inertia::render('dashboard');
+    })->name('dashboard');
 
     Route::get('/suppliers', fn () => Inertia::render('suppliers/index'))
         ->name('suppliers.index');

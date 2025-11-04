@@ -1,5 +1,6 @@
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import { registration as companyRegistration } from '@/routes/company';
 import { Form, Head } from '@inertiajs/react';
 
 import InputError from '@/components/input-error';
@@ -101,11 +102,13 @@ export default function Register() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
-                            </TextLink>
+                        <div className="space-y-2 text-center text-sm text-muted-foreground">
+                            <div>
+                                Already have an account?{' '}
+                                <TextLink href={login()} tabIndex={6}>
+                                    Log in
+                                </TextLink>
+                            </div>
                         </div>
                     </>
                 )}

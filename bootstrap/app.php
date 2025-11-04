@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'ensure.subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
+            'ensure.company.registered' => \App\Http\Middleware\EnsureCompanyRegistered::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

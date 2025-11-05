@@ -7,6 +7,7 @@ use App\Http\Requests\StoreQuoteRequest;
 use App\Http\Resources\QuoteResource;
 use App\Models\Quote;
 use App\Models\RFQ;
+use App\Models\Supplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,8 +18,8 @@ class QuoteController extends ApiController
 
     public function index(RFQ $rfq, Request $request): JsonResponse
     {
-    $user = $request->user();
-    abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
+        $user = $request->user();
+        abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
 
         $paginator = $rfq
             ->quotes()
@@ -37,19 +38,23 @@ class QuoteController extends ApiController
 
     public function store(StoreQuoteRequest $request): JsonResponse
     {
-    $rfq = $request->rfq();
+        $rfq = $request->rfq();
 
-    $user = $request->user();
-    abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
-
-    Gate::authorize('submit', [Quote::class, $rfq, (int) $request->validated('supplier_id')]);
+        $user = $request->user();
+        abort_if($user === null, 403);
 
         $payload = $request->validated();
+
+        Gate::authorize('submit', [Quote::class, $rfq, (int) $payload['supplier_id']]);
+
+        $supplier = Supplier::query()
+            ->with('company')
+            ->findOrFail((int) $payload['supplier_id']);
 
         $quote = $this->submitQuoteAction->execute([
             'company_id' => $rfq->company_id,
             'rfq_id' => $rfq->id,
-            'supplier_id' => (int) $payload['supplier_id'],
+            'supplier_id' => $supplier->id,
             'submitted_by' => $user->id,
             'currency' => $payload['currency'],
             'unit_price' => $payload['unit_price'],
@@ -64,7 +69,7 @@ class QuoteController extends ApiController
             ], $payload['items']),
         ], $request->file('attachment'));
 
-    $quote->load(['supplier', 'items', 'documents']);
+        $quote->load(['supplier', 'items', 'documents']);
 
         return $this->ok((new QuoteResource($quote))->toArray($request), 'Quote submitted')->setStatusCode(201);
     }

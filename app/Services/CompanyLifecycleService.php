@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\CompanyStatus;
+use App\Events\CompanyPendingVerification;
 use App\Enums\CompanySupplierStatus;
 use App\Enums\SupplierApplicationStatus;
 use App\Models\Company;
@@ -41,6 +42,8 @@ class CompanyLifecycleService
                 'slug' => $slug,
                 'status' => CompanyStatus::PendingVerification,
                 'supplier_status' => CompanySupplierStatus::None,
+                'directory_visibility' => 'private',
+                'supplier_profile_completed_at' => null,
                 'is_verified' => false,
                 'owner_user_id' => $user->id,
             ]);
@@ -65,6 +68,8 @@ class CompanyLifecycleService
             );
 
             $this->auditLogger->created($company);
+
+            event(new CompanyPendingVerification($company));
 
             return $company->fresh();
         });

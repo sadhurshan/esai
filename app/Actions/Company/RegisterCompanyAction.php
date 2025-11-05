@@ -3,6 +3,7 @@
 namespace App\Actions\Company;
 
 use App\Enums\CompanyStatus;
+use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
@@ -23,6 +24,9 @@ class RegisterCompanyAction
                 'name' => $payload['name'],
                 'slug' => $slug,
                 'status' => CompanyStatus::PendingVerification,
+                'supplier_status' => CompanySupplierStatus::None->value,
+                'directory_visibility' => 'private',
+                'supplier_profile_completed_at' => null,
                 'registration_no' => $payload['registration_no'],
                 'tax_id' => $payload['tax_id'],
                 'country' => strtoupper($payload['country']),

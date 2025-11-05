@@ -38,6 +38,7 @@ Route::prefix('supplier-applications')->group(function (): void {
     Route::delete('{application}', [SupplierApplicationController::class, 'destroy']);
 });
 
+
 Route::prefix('rfqs')->group(function (): void {
     Route::get('/', [RFQController::class, 'index']);
     Route::post('/', [RFQController::class, 'store'])->middleware('ensure.subscribed');
@@ -58,13 +59,14 @@ Route::prefix('orders')->group(function (): void {
     Route::get('{order}', [OrderController::class, 'show']);
 });
 
-Route::post('quotes', [QuoteController::class, 'store'])->middleware('ensure.subscribed');
+Route::post('quotes', [QuoteController::class, 'store'])->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
 
 Route::middleware('web')->group(function (): void {
     Route::prefix('purchase-orders')->group(function (): void {
         Route::get('/', [PurchaseOrderController::class, 'index']);
         Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send']);
-        Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge']);
+        Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge'])
+            ->middleware('ensure.supplier.approved');
         Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
         Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
             ->middleware('ensure.subscribed');

@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\SupplierSelfServiceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\PlanController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SupplierSettingsController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,6 +19,14 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/company-profile', function () {
         return Inertia::render('settings/company-profile');
     })->name('company-profile.edit');
+
+    Route::get('settings/supplier', SupplierSettingsController::class)
+        ->name('settings.supplier.index');
+
+    Route::prefix('api/me')->group(function (): void {
+        Route::get('supplier-application/status', [SupplierSelfServiceController::class, 'status']);
+        Route::put('supplier/visibility', [SupplierSelfServiceController::class, 'updateVisibility']);
+    });
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('user-password.edit');
 

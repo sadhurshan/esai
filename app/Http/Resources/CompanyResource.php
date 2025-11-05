@@ -16,6 +16,8 @@ class CompanyResource extends JsonResource
             'slug' => $this->slug,
             'status' => $this->status instanceof \BackedEnum ? $this->status->value : $this->status,
             'supplier_status' => $this->supplier_status instanceof \BackedEnum ? $this->supplier_status->value : $this->supplier_status,
+            'directory_visibility' => $this->directory_visibility,
+            'supplier_profile_completed_at' => $this->supplier_profile_completed_at?->toIso8601String(),
             'is_verified' => (bool) $this->is_verified,
             'verified_at' => $this->verified_at?->toIso8601String(),
             'verified_by' => $this->verified_by,

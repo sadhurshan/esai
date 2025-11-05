@@ -52,6 +52,11 @@ it('allows a company owner to apply for supplier status and a platform admin to 
     $payload = [
         'capabilities' => ['cnc_machining'],
         'materials' => ['aluminum'],
+        'location_region' => 'US-West',
+        'country' => 'US',
+        'city' => 'Seattle',
+        'min_order_qty' => 25,
+        'lead_time_days' => 14,
         'certifications' => ['iso9001'],
         'facilities' => 'Anodizing line and 5-axis machining center.',
         'website' => 'https://supplier.example',
@@ -74,8 +79,12 @@ it('allows a company owner to apply for supplier status and a platform admin to 
 
     Notification::assertSentTo($admin, SupplierApplicationSubmitted::class);
 
+    $company->refresh();
+
     expect($application->status)->toBe(SupplierApplicationStatus::Pending)
-        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::None);
+        ->and($company->supplier_status)->toBe(CompanySupplierStatus::None)
+        ->and($company->supplier_profile_completed_at)->not->toBeNull()
+        ->and($company->directory_visibility)->toBe('private');
 
     actingAs($admin);
 

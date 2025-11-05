@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\SupplierApplicationStatus;
 use App\Http\Requests\SupplierApplicationStoreRequest;
 use App\Http\Resources\SupplierApplicationResource;
+use App\Models\Company;
 use App\Models\SupplierApplication;
 use App\Models\User;
 use App\Notifications\SupplierApplicationSubmitted;
@@ -74,12 +75,16 @@ class SupplierApplicationController extends ApiController
             return $this->fail('There is already a pending supplier application for this company.', 422);
         }
 
+        $payload = $request->payload();
+
         $application = SupplierApplication::create([
             'company_id' => $company->id,
             'submitted_by' => $user->id,
             'status' => SupplierApplicationStatus::Pending,
-            'form_json' => $request->payload(),
+            'form_json' => $payload,
         ]);
+
+        $this->markSupplierProfileCompleted($company, $payload);
 
         $this->auditLogger->created($application);
 
@@ -95,6 +100,52 @@ class SupplierApplicationController extends ApiController
             (new SupplierApplicationResource($application->fresh(['company'])))->toArray($request),
             'Supplier application submitted.'
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function markSupplierProfileCompleted(Company $company, array $payload): void
+    {
+        if ($company->supplier_profile_completed_at !== null) {
+            return;
+        }
+
+        if (! $this->hasMinimumProfileData($payload)) {
+            return;
+        }
+
+        $before = $company->getOriginal();
+
+        $company->forceFill([
+            'supplier_profile_completed_at' => now(),
+        ]);
+
+        $changes = $company->getDirty();
+
+        if ($changes === []) {
+            return;
+        }
+
+        $company->save();
+
+        $this->auditLogger->updated($company, $before, $changes);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function hasMinimumProfileData(array $payload): bool
+    {
+        $hasCapabilities = is_array($payload['capabilities'] ?? null) && count($payload['capabilities']) > 0;
+        $hasMaterials = is_array($payload['materials'] ?? null) && count($payload['materials']) > 0;
+        $hasLocation = filled($payload['location_region'] ?? null) || filled($payload['country'] ?? null) || filled($payload['city'] ?? null);
+        $hasMOQ = isset($payload['min_order_qty']) && (int) $payload['min_order_qty'] > 0;
+        $hasLeadTime = isset($payload['lead_time_days']) && (int) $payload['lead_time_days'] > 0;
+        $contact = $payload['contact'] ?? [];
+        $hasContact = is_array($contact) && (filled($contact['email'] ?? null) || filled($contact['phone'] ?? null) || filled($contact['name'] ?? null));
+
+        return $hasCapabilities && $hasMaterials && $hasLocation && $hasMOQ && $hasLeadTime && $hasContact;
     }
 
     public function show(Request $request, SupplierApplication $application): JsonResponse

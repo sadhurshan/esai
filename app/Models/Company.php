@@ -11,6 +11,7 @@ use App\Models\Subscription;
 use App\Models\Supplier;
 use App\Models\SupplierApplication;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,6 +48,8 @@ class Company extends Model
         'trial_ends_at',
         'rejection_reason',
         'supplier_status',
+        'directory_visibility',
+        'supplier_profile_completed_at',
         'is_verified',
         'verified_at',
         'verified_by',
@@ -57,8 +60,21 @@ class Company extends Model
         'supplier_status' => CompanySupplierStatus::class,
         'is_verified' => 'boolean',
         'verified_at' => 'datetime',
+        'supplier_profile_completed_at' => 'datetime',
         'trial_ends_at' => 'datetime',
     ];
+
+    public function isSupplierApproved(): bool
+    {
+        return $this->supplier_status === CompanySupplierStatus::Approved;
+    }
+
+    public function isSupplierListed(): bool
+    {
+        return $this->isSupplierApproved()
+            && $this->directory_visibility === 'public'
+            && $this->supplier_profile_completed_at !== null;
+    }
 
     public function owner(): BelongsTo
     {
@@ -124,6 +140,11 @@ class Company extends Model
         return $this->hasMany(Supplier::class);
     }
 
+    public function supplier(): HasOne
+    {
+        return $this->hasOne(Supplier::class, 'company_id');
+    }
+
     public function supplierProfile(): HasOne
     {
         return $this->hasOne(Supplier::class, 'company_id');
@@ -137,5 +158,13 @@ class Company extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(CompanyDocument::class);
+    }
+
+    public function scopeListedSuppliers(Builder $query): Builder
+    {
+        return $query
+            ->where('supplier_status', CompanySupplierStatus::Approved->value)
+            ->where('directory_visibility', 'public')
+            ->whereNotNull('supplier_profile_completed_at');
     }
 }

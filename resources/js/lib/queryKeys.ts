@@ -25,6 +25,9 @@ export const queryKeys = {
     admin: {
         companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
     },
+    me: {
+        supplierStatus: () => ['me', 'supplier', 'status'] as const,
+    },
 };
 
 export type QueryKey = ReturnType<
@@ -42,4 +45,5 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['companies']['detail']
     | (typeof queryKeys)['companies']['documents']
     | (typeof queryKeys)['admin']['companies']
+    | (typeof queryKeys)['me']['supplierStatus']
 >;

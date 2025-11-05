@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
@@ -18,7 +19,17 @@ use function Pest\Laravel\actingAs;
 uses(RefreshDatabase::class);
 
 it('returns suppliers with envelope and pagination metadata', function () {
-    Supplier::factory()->count(3)->create();
+    $companies = Company::factory()->count(3)->create([
+        'supplier_status' => CompanySupplierStatus::Approved->value,
+        'directory_visibility' => 'public',
+        'supplier_profile_completed_at' => now(),
+    ]);
+
+    $companies->each(function (Company $company): void {
+        Supplier::factory()->for($company)->create([
+            'status' => 'approved',
+        ]);
+    });
 
     $response = $this->getJson('/api/suppliers');
 

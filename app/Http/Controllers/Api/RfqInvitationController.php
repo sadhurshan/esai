@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Rfq\InviteSuppliersToRfqAction;
+use App\Enums\CompanySupplierStatus;
 use App\Http\Requests\StoreInvitationRequest;
 use App\Http\Resources\RfqInvitationResource;
 use App\Models\RFQ;
@@ -18,7 +19,13 @@ class RfqInvitationController extends ApiController
         /** @var \App\Models\User|null $user */
         $user = $request->user();
 
-        abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
+        abort_if(
+            $user === null
+            || $user->company_id !== $rfq->company_id
+            || $user->company === null
+            || $user->company->supplier_status !== CompanySupplierStatus::Approved,
+            403
+        );
 
         $this->inviteSuppliersToRfqAction->execute(
             $rfq,
@@ -35,8 +42,14 @@ class RfqInvitationController extends ApiController
 
     public function index(RFQ $rfq, Request $request): JsonResponse
     {
-    $user = $request->user();
-    abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
+        $user = $request->user();
+        abort_if(
+            $user === null
+            || $user->company_id !== $rfq->company_id
+            || $user->company === null
+            || $user->company->supplier_status !== CompanySupplierStatus::Approved,
+            403
+        );
 
         $paginator = $rfq->invitations()
             ->with(['supplier'])

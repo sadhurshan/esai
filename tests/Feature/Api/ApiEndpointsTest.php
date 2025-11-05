@@ -52,6 +52,8 @@ function actingAsSubscribedUser(): User
     $company = Company::factory()->create([
         'plan_code' => 'starter',
         'rfqs_monthly_used' => 0,
+        'supplier_status' => 'approved',
+        'is_verified' => true,
     ]);
 
     $customer = Customer::factory()->create([
@@ -137,7 +139,11 @@ it('creates a quote with items and attachment upload', function () {
         ['line_no' => 1],
         ['line_no' => 2],
     )->create();
-    $supplier = Supplier::factory()->create();
+    $supplier = Supplier::factory()
+        ->for($user->company)
+        ->create([
+            'status' => 'approved',
+        ]);
 
     $payload = [
         'rfq_id' => $rfq->id,
@@ -194,9 +200,15 @@ it('returns validation errors for invalid quote payloads', function () {
         'is_open_bidding' => true,
     ]);
 
+    $supplier = Supplier::factory()
+        ->for($user->company)
+        ->create([
+            'status' => 'approved',
+        ]);
+
     $response = $this->postJson('/api/quotes', [
         'rfq_id' => $rfq->id,
-        'supplier_id' => Supplier::factory()->create()->id,
+        'supplier_id' => $supplier->id,
     ]);
 
     $response->assertStatus(422)

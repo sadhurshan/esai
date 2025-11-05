@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CompanySupplierStatus;
 use App\Models\RFQ;
+use App\Models\Supplier;
 use Illuminate\Validation\Rule;
 
 class StoreQuoteRequest extends ApiFormRequest
@@ -12,7 +14,7 @@ class StoreQuoteRequest extends ApiFormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        if ($user === null) {
+        if ($user === null || $user->company_id === null) {
             return false;
         }
 
@@ -27,18 +29,34 @@ class StoreQuoteRequest extends ApiFormRequest
             return false;
         }
 
-        if ($this->rfq->is_open_bidding) {
-            return true;
-        }
-
         $supplierId = (int) $this->input('supplier_id');
 
         if ($supplierId <= 0) {
             return false;
         }
 
+        $supplier = Supplier::query()
+            ->with('company')
+            ->whereKey($supplierId)
+            ->where('company_id', $user->company_id)
+            ->first();
+
+        if ($supplier === null) {
+            return false;
+        }
+
+        $company = $supplier->company;
+
+        if ($company === null || $company->supplier_status !== CompanySupplierStatus::Approved) {
+            return false;
+        }
+
+        if ($this->rfq->is_open_bidding) {
+            return true;
+        }
+
         return $this->rfq->invitations
-            ->contains(static fn ($invitation) => (int) $invitation->supplier_id === $supplierId);
+            ->contains(static fn ($invitation) => (int) $invitation->supplier_id === $supplier->id);
     }
 
     public function rules(): array

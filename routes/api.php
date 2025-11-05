@@ -14,7 +14,9 @@ use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\SupplierApplicationController;
 use App\Http\Controllers\Api\Admin\CompanyApprovalController;
+use App\Http\Controllers\Api\Admin\SupplierApplicationReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
@@ -27,6 +29,13 @@ Route::prefix('files')->group(function (): void {
 Route::prefix('suppliers')->group(function (): void {
     Route::get('/', [SupplierController::class, 'index']);
     Route::get('{supplier}', [SupplierController::class, 'show']);
+});
+
+Route::prefix('supplier-applications')->group(function (): void {
+    Route::get('/', [SupplierApplicationController::class, 'index']);
+    Route::post('/', [SupplierApplicationController::class, 'store']);
+    Route::get('{application}', [SupplierApplicationController::class, 'show']);
+    Route::delete('{application}', [SupplierApplicationController::class, 'destroy']);
 });
 
 Route::prefix('rfqs')->group(function (): void {
@@ -79,6 +88,12 @@ Route::middleware('web')->group(function (): void {
         Route::get('/', [CompanyApprovalController::class, 'index']);
         Route::post('{company}/approve', [CompanyApprovalController::class, 'approve']);
         Route::post('{company}/reject', [CompanyApprovalController::class, 'reject']);
+    });
+
+    Route::prefix('admin/supplier-applications')->group(function (): void {
+        Route::get('/', [SupplierApplicationReviewController::class, 'index']);
+        Route::post('{application}/approve', [SupplierApplicationReviewController::class, 'approve']);
+        Route::post('{application}/reject', [SupplierApplicationReviewController::class, 'reject']);
     });
 });
 

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('role', [
+                'owner',
                 'buyer_admin',
                 'buyer_requester',
                 'supplier_admin',

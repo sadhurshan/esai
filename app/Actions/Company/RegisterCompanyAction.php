@@ -22,7 +22,7 @@ class RegisterCompanyAction
             $company->fill([
                 'name' => $payload['name'],
                 'slug' => $slug,
-                'status' => CompanyStatus::Pending,
+                'status' => CompanyStatus::PendingVerification,
                 'registration_no' => $payload['registration_no'],
                 'tax_id' => $payload['tax_id'],
                 'country' => strtoupper($payload['country']),

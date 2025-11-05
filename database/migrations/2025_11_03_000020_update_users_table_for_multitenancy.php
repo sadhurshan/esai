@@ -16,6 +16,7 @@ return new class extends Migration
 
             if (! Schema::hasColumn('users', 'role')) {
                 $table->enum('role', [
+                    'owner',
                     'buyer_admin',
                     'buyer_requester',
                     'supplier_admin',
@@ -23,7 +24,7 @@ return new class extends Migration
                     'finance',
                     'platform_super',
                     'platform_support',
-                ])->default('buyer_admin')->after('password');
+                ])->default('owner')->after('password');
             }
 
             if (! Schema::hasColumn('users', 'last_login_at')) {

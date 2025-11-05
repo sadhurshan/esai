@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 
 abstract class ApiController extends Controller
@@ -103,5 +104,14 @@ abstract class ApiController extends Controller
             ->value('company_id');
 
         return $supplierCompanyId ? (int) $supplierCompanyId : null;
+    }
+
+    protected function authorizeDenied(?User $user, string $ability, mixed $arguments): bool
+    {
+        if ($user === null) {
+            return true;
+        }
+
+        return Gate::forUser($user)->denies($ability, $arguments);
     }
 }

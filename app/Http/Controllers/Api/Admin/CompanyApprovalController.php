@@ -30,7 +30,7 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $status = $request->query('status', CompanyStatus::Pending->value);
+    $status = $request->query('status', CompanyStatus::PendingVerification->value);
 
         if (! in_array($status, array_map(static fn (CompanyStatus $value) => $value->value, CompanyStatus::cases()), true)) {
             return $this->fail('Invalid status filter.', 422);
@@ -61,7 +61,7 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        if ($company->status !== CompanyStatus::Pending) {
+        if (! in_array($company->status, [CompanyStatus::Pending, CompanyStatus::PendingVerification], true)) {
             return $this->fail('Only pending companies can be approved.', 422);
         }
 
@@ -83,7 +83,7 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        if ($company->status !== CompanyStatus::Pending) {
+        if (! in_array($company->status, [CompanyStatus::Pending, CompanyStatus::PendingVerification], true)) {
             return $this->fail('Only pending companies can be rejected.', 422);
         }
 

@@ -3,16 +3,19 @@
 namespace App\Models;
 
 use App\Enums\CompanyStatus;
+use App\Enums\CompanySupplierStatus;
 use App\Models\CompanyDocument;
 use App\Models\Plan;
 use App\Models\RFQ;
 use App\Models\Subscription;
 use App\Models\Supplier;
+use App\Models\SupplierApplication;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -43,10 +46,17 @@ class Company extends Model
         'plan_code',
         'trial_ends_at',
         'rejection_reason',
+        'supplier_status',
+        'is_verified',
+        'verified_at',
+        'verified_by',
     ];
 
     protected $casts = [
         'status' => CompanyStatus::class,
+        'supplier_status' => CompanySupplierStatus::class,
+        'is_verified' => 'boolean',
+        'verified_at' => 'datetime',
         'trial_ends_at' => 'datetime',
     ];
 
@@ -112,6 +122,16 @@ class Company extends Model
     public function suppliers(): HasMany
     {
         return $this->hasMany(Supplier::class);
+    }
+
+    public function supplierProfile(): HasOne
+    {
+        return $this->hasOne(Supplier::class, 'company_id');
+    }
+
+    public function supplierApplications(): HasMany
+    {
+        return $this->hasMany(SupplierApplication::class);
     }
 
     public function documents(): HasMany

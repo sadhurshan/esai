@@ -30,13 +30,14 @@ Seeders follow each domain group (see §26.15) to ensure fixtures stay in sync w
 ## Table Summaries & Key Indexes
 
 ### Core Platform
-- **companies**: tenant registry with `name`, `slug`, `status`, `region`, owner linkage, usage counters, Stripe billing references, and `trial_ends_at`. Soft deletes enabled. Indexes: `(status)`, `(plan_code)`, `(owner_user_id)`.
+- **companies**: tenant registry with `name`, `slug`, `status`, supplier onboarding flags (`supplier_status`, `is_verified`, `verified_at`, `verified_by`), `region`, owner linkage, usage counters, Stripe billing references, and `trial_ends_at`. Soft deletes enabled. Indexes: `(status)`, `(plan_code)`, `(owner_user_id)`, `(supplier_status)`, `(is_verified)`, `(verified_by)`.
 - **users**: platform identities keyed by optional `company_id`, `role`, auth credentials, `last_login_at`, soft deletes. Indexes: `(company_id, role)`.
 - **company_user**: multi-org membership mapping `company_id`, `user_id`, `role`. Unique composite `(company_id, user_id)` with supporting indexes on both FKs.
 - **Billing (Cashier)**: adopt Cashier tables (subscriptions, subscription_items, etc.) and extend with `company_id` where tenancy is required. Standard indexes provided by Cashier plus any additional tenant scopes.
 
 ### Directory & Supplier
-- **suppliers**: tenant-filtered supplier directory with contact fields, `status`, capability JSON, rating averages, soft deletes. Indexes: `(company_id, status)` and `FULLTEXT(name, city, capabilities)`.
+- **suppliers**: tenant-filtered supplier directory with contact fields, `status`, capability JSON, rating averages, soft deletes. Indexes: `(company_id, status)`, `(status)`, unique `(company_id)`, and `FULLTEXT(name, city, capabilities)`.
+- **supplier_applications**: buyer-submitted supplier approval requests linking to `company_id`, submitter, JSON payload, reviewer metadata, and notes. Indexes: `(company_id, status)`, `(submitted_by)`, `(reviewed_by)`.
 - **supplier_documents**: compliance artifacts linking suppliers to `documents`, tracking `type`, `expires_at`, `status`. Indexes: `(supplier_id, type)` and `(expires_at)`.
 
 ### Sourcing: RFQs, Quotes, Awards

@@ -38,12 +38,12 @@ it('allows authenticated users to register their company', function () {
     $response->assertCreated()
         ->assertJsonPath('status', 'success')
         ->assertJsonPath('data.name', $payload['name'])
-        ->assertJsonPath('data.status', CompanyStatus::Pending->value);
+    ->assertJsonPath('data.status', CompanyStatus::PendingVerification->value);
 
     $company = Company::where('name', $payload['name'])->first();
 
     expect($company)->not->toBeNull()
-        ->and($company->status)->toBe(CompanyStatus::Pending)
+    ->and($company->status)->toBe(CompanyStatus::PendingVerification)
         ->and($company->owner_user_id)->toBe($user->id)
         ->and($user->fresh()->company_id)->toBe($company?->id);
 });

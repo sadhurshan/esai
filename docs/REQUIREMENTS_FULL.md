@@ -155,33 +155,75 @@ Client: Elements Technik Limited (trading as “Elements Supply AI")
 
    12. **FR-12 User & Company Lifecycle Management**
 
-1. Company Registration:
+1. Company Registration and Access Flow
 
-   1. A new buyer or supplier registers a company account through a dedicated sign-up wizard.  
-   2. Required fields: company name, registration number, tax ID, country, email domain, and primary contact.  
-   3. Registration triggers an **admin review/approval workflow**.  
-   4. Upon approval, the company becomes an active tenant within the multi-tenant database.
+   1. When a new user registers, the system automatically creates:
 
-2. User Invitations & Roles:
+      1. A user record (role \= owner).  
+      2. A company record linked to that user. The company is initially treated as a buyer by default.  
+      3. The company status \= pending\_verification until reviewed by a Platform Admin.  
+2. After login, the owner sees both Buyer and Supplier dashboards (partially gated).
+
+   1. Buyers can immediately perform buyer-side activities (create RFQs, invite suppliers, view quotes).  
+   2. Supplier-side activities remain locked until the company is approved as a supplier.
+
+3. Apply as Supplier Process
+
+   1. The owner (or buyer admin) can click “Apply as Supplier” from Settings → Supplier Profile.  
+   2. The application form collects additional supplier details (capabilities, materials, certifications, facilities, website, contact info).  
+   3. Submitting the form creates a Supplier Application record (status \=pending\_review) and triggers an email/push notification to Platform Super Admins.  
+   4. Admins review and approve or reject the application (KYC verification with uploaded documents).
+
+4. Post-Approval Behavior
+
+   1. Once approved (status \=approved), the company becomes dual-role: buyer \+ supplier.  
+   2. The Supplier Profile appears in the public Supplier Directory and becomes eligible for RFQ invitations and open bidding.  
+   3. If rejected (status \=rejected), the company cannot perform supplier actions or invite supplier roles.  
+   4. Approval and status changes are logged in audit\_logs.
+
+5. Role Behavior
+
+   1. The original registrant (owner) has full rights to act as both Buyer Admin and Supplier Admin within their company.  
+   2. Owners can invite additional users with specific roles: buyer\_admin, buyer\_requester, supplier\_admin, supplier\_estimator, finance.  
+   3. If a company has not applied for or been approved as a supplier, the UI must hide or disable supplier-only menus and functions (Quote submission, Supplier Dashboard, etc.).
+
+6. User Invitations & Roles:
 
    1. Company Admins can invite users via email and assign roles (Buyer Admin, Buyer Requester, Supplier Admin, Estimator, Finance).  
    2. Each invitation creates a pending user record with token expiration (48 hours).  
    3. Users can be deactivated, suspended, or reassigned without data loss.
 
-3. Company Switching / Multi-Org Access:
+7. Company Switching / Multi-Org Access:
 
    1. Certain users (consultants or service providers) may belong to multiple companies.  
    2. The UI provides a **“Switch Organization”** menu; permissions are scoped by the active tenant.
 
-4. Domain Verification:
+8. Domain Verification:
 
    1. Optional email-domain validation ensures all users under a company share a verified domain (e.g., *@[elementstechnik.com](http://elementstechnik.com)*).
 
-5. User Audit Trail:
+9. Admin Verification and Directory Visibility
 
-   1. All join, role change, and deactivation events are logged for compliance.
+   1. Platform Admins must verify each company before supplier activities are enabled.  
+   2. Only approved suppliers are listed in the Supplier Directory.  
+   3. Buyers can search and invite only approved suppliers.
 
-   13. **FR-13 Billing and Subscription Plans (Stripe Integration)**
+10. Database Additions
+
+    1. companies.supplier\_status ENUM('none','pending','approved','rejected') DEFAULT 'none'  
+    2. supplier\_applications (company\_id, submitted\_by, status, form\_json, reviewed\_by, reviewed\_at, notes)
+
+11. Acceptance Tests
+
+    1. AT-12.1 When a new user registers, a buyer company is created and awaits admin verification.  
+    2. AT-12.2 When “Apply as Supplier” is submitted, a pending application appears for super admins.  
+    3. AT-12.3 When an admin approves, the company is visible in the Supplier Directory and can submit quotes.  
+    4. AT-12.4 When rejected or unapplied, supplier menus and actions are inaccessible.  
+    5. **AT-12.5**: Until supplier approval, supplier menus are hidden/disabled and supplier-only endpoints return 403\.
+
+12. Either add owner to users.role or state that “owner is stored in companies.owner\_user\_id and has both Buyer Admin \+ Supplier Admin privileges.”
+
+    13. **FR-13 Billing and Subscription Plans (Stripe Integration)**
 
 1. **Purpose:** Implement recurring billing, entitlements, and upgrade/downgrade workflows using **Laravel Cashier (Stripe)**.  
 2. Plan Tiers
@@ -2410,7 +2452,7 @@ Create via `php artisan vendor:publish --tag=cashier-migrations`
 
 2. Cashier billing tables
 
-3. `suppliers`, `supplier_documents`, `documents`
+3. `Suppliers`, `supplier_applications,` `supplier_documents`, `documents`
 
 4. `rfqs`, `rfq_items`, `rfq_invitations`, `rfq_clarifications`
 
@@ -2493,6 +2535,41 @@ Create via `php artisan vendor:publish --tag=cashier-migrations`
   * `Document morphTo documentable`
 
 * Use `casts` for JSON fields (`capabilities`, `timeline`, `changes_json`, `meta`).
+
+## 26.18 Registration & Supplier Approval Amendments
+
+Add the following data-model clarifications to support the buyer / supplier dual-role registration flow:
+
+1. Company-level flags
+
+   1. Extend companies with a field to record supplier approval state (supplier\_status ENUM('none','pending','approved','rejected')).  
+   2. Add optional verified\_at, verified\_by, and is\_verified boolean to indicate platform admin verification.  
+   3. Keep existing buyer behaviour unchanged – all new companies default to buyer status until supplier approval.
+
+2. Supplier-application tracking
+
+   1. Introduce a lightweight table supplier\_applications to store each company’s supplier application request, reviewer, timestamps, and JSON form payload.  
+   2. One active pending record per company at a time.
+
+3. User roles linkage
+
+   1. Owners created at registration act as both buyer and potential supplier admins once the company is approved.  
+   2. No schema change required for roles; just ensure role validation respects companies.supplier\_status.
+
+4. Visibility rules
+
+   1. Supplier Directory queries must return only companies with supplier\_status \= 'approved' and is\_verified \= 1\.  
+   2. Pending or rejected suppliers are excluded from invitations and RFQ listings.
+
+5. Auditing and workflow
+
+   1. All supplier-application submissions, approvals, and rejections must generate entries in audit\_logs (entity \= SupplierApplication).  
+   2. Status transitions must follow the same retention and soft-delete policies as other transactional entities.
+
+6. Notification hooks
+
+   1. Queue notifications on supplier-application create, approve, and reject events (email \+ push to owner).  
+   2. Use the existing notifications schema; no new table required.
 
 ## 
 

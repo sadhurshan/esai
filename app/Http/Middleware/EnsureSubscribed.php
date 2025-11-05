@@ -30,7 +30,10 @@ class EnsureSubscribed
 
         $status = $company->status;
 
-        if (($status instanceof CompanyStatus && $status === CompanyStatus::Pending) || $status === CompanyStatus::Pending->value) {
+        if (
+            ($status instanceof CompanyStatus && ($status === CompanyStatus::Pending || $status === CompanyStatus::PendingVerification))
+            || in_array($status, [CompanyStatus::Pending->value, CompanyStatus::PendingVerification->value], true)
+        ) {
             return $next($request);
         }
 

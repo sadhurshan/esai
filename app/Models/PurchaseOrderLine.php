@@ -21,6 +21,8 @@ class PurchaseOrderLine extends Model
         'uom',
         'unit_price',
         'delivery_date',
+        'received_qty',
+        'receiving_status',
     ];
 
     protected $casts = [
@@ -28,6 +30,7 @@ class PurchaseOrderLine extends Model
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
         'delivery_date' => 'date',
+        'received_qty' => 'integer',
     ];
 
     public function purchaseOrder(): BelongsTo

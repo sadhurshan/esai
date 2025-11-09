@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\GoodsReceiptNote;
 use App\Models\Quote;
 use App\Models\SupplierApplication;
+use App\Policies\GoodsReceiptNotePolicy;
 use App\Policies\QuotePolicy;
 use App\Policies\SupplierApplicationPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -26,5 +28,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Quote::class, QuotePolicy::class);
         Gate::policy(SupplierApplication::class, SupplierApplicationPolicy::class);
+    Gate::policy(GoodsReceiptNote::class, GoodsReceiptNotePolicy::class);
     }
 }

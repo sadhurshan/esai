@@ -37,9 +37,12 @@ return new class extends Migration
             $table->string('uom', 16);
             $table->decimal('unit_price', 12, 2);
             $table->date('delivery_date')->nullable();
+            $table->unsignedInteger('received_qty')->default(0);
+            $table->enum('receiving_status', ['open', 'received', 'ncr_raised'])->default('open');
             $table->timestamps();
 
             $table->unique(['purchase_order_id', 'line_no'], 'po_lines_purchase_line_unique');
+            $table->index('receiving_status', 'po_lines_receiving_status_index');
         });
     }
 

@@ -57,6 +57,7 @@ class Company extends Model
         'region',
         'owner_user_id',
         'rfqs_monthly_used',
+    'invoices_monthly_used',
         'storage_used_mb',
         'stripe_id',
         'plan_code',

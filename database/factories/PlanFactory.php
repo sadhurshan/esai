@@ -19,6 +19,7 @@ class PlanFactory extends Factory
             'name' => 'Starter',
             'price_usd' => 2400.00,
             'rfqs_per_month' => 10,
+            'invoices_per_month' => 20,
             'users_max' => 5,
             'storage_gb' => 3,
             'erp_integrations_max' => 0,

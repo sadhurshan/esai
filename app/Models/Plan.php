@@ -15,6 +15,7 @@ class Plan extends Model
         'name',
         'price_usd',
         'rfqs_per_month',
+        'invoices_per_month',
         'users_max',
         'storage_gb',
         'erp_integrations_max',

@@ -87,6 +87,16 @@ class EnsureSubscribed
             ];
         }
 
+        if ($plan->invoices_per_month > 0 && $company->invoices_monthly_used >= $plan->invoices_per_month) {
+            return [
+                'code' => 'invoices_per_month',
+                'context' => [
+                    'limit' => $plan->invoices_per_month,
+                    'usage' => $company->invoices_monthly_used,
+                ],
+            ];
+        }
+
         if ($plan->users_max > 0) {
             $activeUsers = $company->users()->count();
 
@@ -122,7 +132,7 @@ class EnsureSubscribed
     {
         return response()->json([
             'status' => 'error',
-            'message' => 'Plan limit exceeded',
+            'message' => 'Upgrade required',
             'data' => null,
             'errors' => array_merge($context, [
                 'code' => $code,

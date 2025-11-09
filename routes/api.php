@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\CompanyDocumentController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Api\GoodsReceiptNoteController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
 use App\Http\Controllers\Api\PoChangeOrderController;
@@ -71,6 +72,10 @@ Route::middleware('web')->group(function (): void {
         Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
         Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
             ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        Route::get('{purchaseOrder}/invoices', [InvoiceController::class, 'index'])
+            ->middleware('ensure.company.onboarded');
+        Route::post('{purchaseOrder}/invoices', [InvoiceController::class, 'store'])
+            ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
         Route::get('{purchaseOrder}/grns', [GoodsReceiptNoteController::class, 'index'])
             ->middleware('ensure.company.onboarded');
         Route::post('{purchaseOrder}/grns', [GoodsReceiptNoteController::class, 'store'])
@@ -82,6 +87,12 @@ Route::middleware('web')->group(function (): void {
         Route::delete('{purchaseOrder}/grns/{note}', [GoodsReceiptNoteController::class, 'destroy'])
             ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
         Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
+    });
+
+    Route::prefix('invoices')->group(function (): void {
+        Route::get('{invoice}', [InvoiceController::class, 'show'])->middleware('ensure.company.onboarded');
+        Route::put('{invoice}', [InvoiceController::class, 'update'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        Route::delete('{invoice}', [InvoiceController::class, 'destroy'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
     });
 
     Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve'])

@@ -85,6 +85,6 @@ test('middleware blocks when rfq limit exceeded', function (): void {
     $response = $middleware->handle($request, static fn () => new Response('ok'));
 
     expect($response->getStatusCode())->toBe(402)
-        ->and($response->getContent())->toContain('Plan limit exceeded')
+        ->and($response->getContent())->toContain('Upgrade required')
         ->and(json_decode($response->getContent(), true)['errors']['code'])->toBe('rfqs_per_month');
 });

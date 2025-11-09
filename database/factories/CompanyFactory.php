@@ -37,6 +37,7 @@ class CompanyFactory extends Factory
             'region' => $this->faker->randomElement(['us', 'eu', 'asia']),
             'owner_user_id' => null,
             'rfqs_monthly_used' => 0,
+            'invoices_monthly_used' => 0,
             'storage_used_mb' => 0,
             'stripe_id' => null,
             'plan_code' => 'starter',

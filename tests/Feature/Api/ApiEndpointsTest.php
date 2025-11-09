@@ -18,6 +18,10 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    config(['documents.disk' => 'public']);
+});
+
 it('returns suppliers with envelope and pagination metadata', function () {
     $companies = Company::factory()->count(3)->create([
         'supplier_status' => CompanySupplierStatus::Approved->value,
@@ -65,6 +69,13 @@ function actingAsSubscribedUser(): User
         'rfqs_monthly_used' => 0,
         'supplier_status' => 'approved',
         'is_verified' => true,
+        'registration_no' => 'REG-001',
+        'tax_id' => 'TAX-001',
+        'country' => 'US',
+        'email_domain' => 'example.com',
+        'primary_contact_name' => 'Primary Contact',
+        'primary_contact_email' => 'primary@example.com',
+        'primary_contact_phone' => '+1-555-0100',
     ]);
 
     $customer = Customer::factory()->create([

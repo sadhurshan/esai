@@ -21,6 +21,10 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    config(['documents.disk' => 'public']);
+});
+
 it('allows an approved supplier to submit a quote to another company\'s rfq', function (): void {
     Storage::fake('public');
 

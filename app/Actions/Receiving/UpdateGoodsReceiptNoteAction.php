@@ -42,7 +42,7 @@ class UpdateGoodsReceiptNoteAction
 
         $linesPayload = collect($payload['lines']);
 
-        return $this->db->transaction(function () use ($linesPayload, $note): GoodsReceiptNote {
+        return $this->db->transaction(function () use ($linesPayload, $note, $user): GoodsReceiptNote {
             foreach ($linesPayload as $linePayload) {
                 /** @var GoodsReceiptLine|null $line */
                 $line = $note->lines()->whereKey($linePayload['id'])->first();
@@ -57,7 +57,7 @@ class UpdateGoodsReceiptNoteAction
 
                 $line->defect_notes = $linePayload['defect_notes'] ?? $line->defect_notes;
 
-                $attachmentIds = $this->resolveUpdatedAttachments($line, $linePayload);
+                $attachmentIds = $this->resolveUpdatedAttachments($user, $line, $linePayload);
 
                 if ($attachmentIds !== null) {
                     $line->attachment_ids = $attachmentIds;
@@ -80,10 +80,10 @@ class UpdateGoodsReceiptNoteAction
      * @param array<string, mixed> $linePayload
      * @return array<int, int>|null
      */
-    private function resolveUpdatedAttachments(GoodsReceiptLine $line, array $linePayload): ?array
+    private function resolveUpdatedAttachments(User $user, GoodsReceiptLine $line, array $linePayload): ?array
     {
         $currentIds = collect($line->attachment_ids ?? [])
-            ->map(fn ($id) => (int) $id)
+            ->map(static fn ($id) => (int) $id)
             ->values();
 
         $updated = false;
@@ -128,11 +128,17 @@ class UpdateGoodsReceiptNoteAction
                 }
 
                 $document = $this->documentStorer->store(
+                    $user,
                     $file,
-                    'grn',
+                    'qa',
                     $companyId,
                     $line->getMorphClass(),
-                    $line->id
+                    $line->id,
+                    [
+                        'kind' => 'po',
+                        'visibility' => 'company',
+                        'meta' => ['context' => 'grn_attachment'],
+                    ]
                 );
 
                 $currentIds->push($document->id);

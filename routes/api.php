@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierApplicationController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\Admin\SupplierApplicationReviewController;
 use Illuminate\Support\Facades\Route;
@@ -125,6 +127,19 @@ Route::middleware('web')->group(function (): void {
 
 Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+
+Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::prefix('notifications')->group(function (): void {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('mark-all-read', [NotificationController::class, 'markAllRead']);
+        Route::put('{notification}/read', [NotificationController::class, 'markRead']);
+    });
+
+    Route::prefix('notification-preferences')->group(function (): void {
+        Route::get('/', [NotificationPreferenceController::class, 'index']);
+        Route::put('/', [NotificationPreferenceController::class, 'update']);
+    });
+});
 
 Route::prefix('webhooks/stripe')->group(function (): void {
     Route::post('invoice/payment-succeeded', [StripeWebhookController::class, 'invoicePaymentSucceeded']);

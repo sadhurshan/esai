@@ -48,11 +48,17 @@ class SubmitQuoteAction
 
             if ($attachment) {
                 $this->documentStorer->store(
+                    auth()->user(),
                     $attachment,
-                    'quote',
+                    'commercial',
                     $quote->company_id,
                     $quote->getMorphClass(),
-                    $quote->id
+                    $quote->id,
+                    [
+                        'kind' => 'quote',
+                        'visibility' => 'company',
+                        'meta' => ['context' => 'quote_attachment'],
+                    ]
                 );
             }
 

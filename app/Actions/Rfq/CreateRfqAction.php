@@ -63,11 +63,17 @@ class CreateRfqAction
 
             if ($cadFile) {
                 $this->documentStorer->store(
+                    $user,
                     $cadFile,
-                    'rfq',
+                    'technical',
                     $rfq->company_id,
                     $rfq->getMorphClass(),
-                    $rfq->id
+                    $rfq->id,
+                    [
+                        'kind' => 'rfq',
+                        'visibility' => 'company',
+                        'meta' => ['source' => 'rfq_cad'],
+                    ]
                 );
             }
 

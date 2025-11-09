@@ -70,7 +70,7 @@ class CreateGoodsReceiptNoteAction
             ]);
         }
 
-        return $this->db->transaction(function () use ($companyId, $purchaseOrder, $payload, $linesPayload, $inspectorId, $user): array {
+    return $this->db->transaction(function () use ($companyId, $purchaseOrder, $payload, $linesPayload, $inspectorId, $user): array {
             $note = GoodsReceiptNote::create([
                 'company_id' => $companyId,
                 'purchase_order_id' => $purchaseOrder->id,
@@ -105,7 +105,7 @@ class CreateGoodsReceiptNoteAction
                     'attachment_ids' => [],
                 ]);
 
-                $attachmentIds = $this->storeAttachments($attachments, $companyId, $grnLine);
+                $attachmentIds = $this->storeAttachments($attachments, $companyId, $grnLine, $user);
 
                 if ($attachmentIds !== []) {
                     $grnLine->attachment_ids = $attachmentIds;
@@ -143,7 +143,7 @@ class CreateGoodsReceiptNoteAction
      * @param array<int, UploadedFile>|null $attachments
      * @return array<int, int>
      */
-    private function storeAttachments(?array $attachments, int $companyId, GoodsReceiptLine $line): array
+    private function storeAttachments(?array $attachments, int $companyId, GoodsReceiptLine $line, User $user): array
     {
         if ($attachments === null || $attachments === []) {
             return [];
@@ -157,11 +157,17 @@ class CreateGoodsReceiptNoteAction
             }
 
             $document = $this->documentStorer->store(
+                $user,
                 $file,
-                'grn',
+                'qa',
                 $companyId,
                 $line->getMorphClass(),
-                $line->id
+                $line->id,
+                [
+                    'kind' => 'po',
+                    'visibility' => 'company',
+                    'meta' => ['context' => 'grn_attachment'],
+                ]
             );
 
             $documents[] = $document->id;

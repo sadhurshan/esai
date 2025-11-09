@@ -68,7 +68,7 @@ class CreateInvoiceAction
         /** @var UploadedFile|null $document */
         $document = $payload['document'] ?? null;
 
-        return $this->db->transaction(function () use ($companyId, $user, $purchaseOrder, $supplierId, $invoiceNumber, $currency, $linesPayload, $document): Invoice {
+    return $this->db->transaction(function () use ($companyId, $user, $purchaseOrder, $supplierId, $invoiceNumber, $currency, $linesPayload, $document): Invoice {
             $resolvedLines = $this->resolveLines($purchaseOrder, $linesPayload);
 
             $totals = $this->calculateTotals($purchaseOrder, $resolvedLines);
@@ -98,11 +98,17 @@ class CreateInvoiceAction
 
             if ($document instanceof UploadedFile) {
                 $stored = $this->documentStorer->store(
+                    $user,
                     $document,
-                    'invoice',
+                    'financial',
                     $companyId,
                     $invoice->getMorphClass(),
-                    $invoice->id
+                    $invoice->id,
+                    [
+                        'kind' => 'invoice',
+                        'visibility' => 'company',
+                        'meta' => ['context' => 'invoice_attachment'],
+                    ]
                 );
 
                 $invoice->document_id = $stored->id;

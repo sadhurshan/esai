@@ -20,11 +20,16 @@ class RegisterCompanyRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:160', 'unique:companies,name'],
+            'name' => ['required', 'string', 'max:160'],
             'registration_no' => ['required', 'string', 'max:120'],
             'tax_id' => ['required', 'string', 'max:120'],
             'country' => ['required', 'string', 'size:2'],
-            'email_domain' => ['required', 'string', 'max:191', 'regex:/^(?!-)(?:[a-z0-9-]+\.)+[a-z]{2,}$/i', 'unique:companies,email_domain'],
+            'email_domain' => [
+                'required',
+                'string',
+                'max:191',
+                'regex:/^(?!-)(?:[a-z0-9-]+\.)+[a-z]{2,}$/i',
+            ],
             'primary_contact_name' => ['required', 'string', 'max:160'],
             'primary_contact_email' => ['required', 'email', 'max:191'],
             'primary_contact_phone' => ['required', 'string', 'max:60'],

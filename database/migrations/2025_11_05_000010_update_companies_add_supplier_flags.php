@@ -59,6 +59,14 @@ return new class extends Migration
             return;
         }
 
+        $verifiedByForeignKey = $this->getForeignKeyName('companies', 'verified_by');
+
+        if ($verifiedByForeignKey !== null) {
+            Schema::table('companies', function (Blueprint $table) use ($verifiedByForeignKey): void {
+                $table->dropForeign($verifiedByForeignKey);
+            });
+        }
+
         if ($this->indexExists('companies', 'companies_verified_by_index')) {
             Schema::table('companies', function (Blueprint $table): void {
                 $table->dropIndex('companies_verified_by_index');
@@ -78,13 +86,7 @@ return new class extends Migration
         }
 
         if (Schema::hasColumn('companies', 'verified_by')) {
-            $foreignKeyName = $this->getForeignKeyName('companies', 'verified_by');
-
-            Schema::table('companies', function (Blueprint $table) use ($foreignKeyName): void {
-                if ($foreignKeyName !== null) {
-                    $table->dropForeign($foreignKeyName);
-                }
-
+            Schema::table('companies', function (Blueprint $table): void {
                 $table->dropColumn('verified_by');
             });
         }

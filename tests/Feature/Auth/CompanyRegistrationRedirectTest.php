@@ -33,3 +33,22 @@ test('users with a company can access the dashboard', function () {
 
     $response->assertOk();
 });
+
+test('users with incomplete company details are redirected to the onboarding wizard', function () {
+    $company = Company::factory()->create([
+        'registration_no' => null,
+        'tax_id' => null,
+        'email_domain' => null,
+        'primary_contact_name' => null,
+        'primary_contact_email' => null,
+        'primary_contact_phone' => null,
+    ]);
+
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('dashboard'));
+
+    $response->assertRedirect(route('company.registration', absolute: false));
+});

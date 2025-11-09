@@ -24,6 +24,7 @@ export interface CompanyResponse {
     owner_user_id: number | null;
     created_at: string | null;
     updated_at: string | null;
+    has_completed_onboarding: boolean;
 }
 
 export const mapCompany = (payload: CompanyResponse): Company => ({
@@ -46,6 +47,7 @@ export const mapCompany = (payload: CompanyResponse): Company => ({
     ownerUserId: payload.owner_user_id ?? undefined,
     createdAt: payload.created_at,
     updatedAt: payload.updated_at,
+    hasCompletedOnboarding: payload.has_completed_onboarding ?? false,
 });
 
 export interface RegisterCompanyInput {

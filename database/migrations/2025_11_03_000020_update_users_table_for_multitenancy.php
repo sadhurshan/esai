@@ -45,6 +45,14 @@ return new class extends Migration
 
     public function down(): void
     {
+        $companyForeign = $this->getForeignKeyName('users', 'company_id');
+
+        if ($companyForeign !== null) {
+            Schema::table('users', function (Blueprint $table) use ($companyForeign): void {
+                $table->dropForeign($companyForeign);
+            });
+        }
+
         if ($this->indexExists('users', 'users_company_id_role_index')) {
             Schema::table('users', function (Blueprint $table): void {
                 $table->dropIndex('users_company_id_role_index');
@@ -53,7 +61,6 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table): void {
             if (Schema::hasColumn('users', 'company_id')) {
-                $table->dropForeign(['company_id']);
                 $table->dropColumn('company_id');
             }
 
@@ -81,6 +88,64 @@ return new class extends Migration
             'pgsql' => $this->postgresIndexExists($table, $index),
             default => false,
         };
+    }
+
+    private function getForeignKeyName(string $table, string $column): ?string
+    {
+        $driver = Schema::getConnection()->getDriverName();
+
+        return match ($driver) {
+            'mysql', 'mariadb' => $this->mysqlForeignKeyName($table, $column),
+            'pgsql' => $this->postgresForeignKeyName($table, $column),
+            'sqlite' => $this->sqliteForeignKeyName($table, $column),
+            default => null,
+        };
+    }
+
+    private function mysqlForeignKeyName(string $table, string $column): ?string
+    {
+        $database = DB::getDatabaseName();
+
+        return DB::table('information_schema.key_column_usage')
+            ->where('table_schema', $database)
+            ->where('table_name', $table)
+            ->where('column_name', $column)
+            ->whereNotNull('referenced_table_name')
+            ->value('constraint_name');
+    }
+
+    private function postgresForeignKeyName(string $table, string $column): ?string
+    {
+        $sql = <<<'SQL'
+            SELECT
+                tc.constraint_name
+            FROM
+                information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+            WHERE
+                tc.constraint_type = 'FOREIGN KEY'
+                AND tc.table_name = ?
+                AND kcu.column_name = ?
+        SQL;
+
+        $result = DB::select($sql, [$table, $column]);
+
+        return $result[0]->constraint_name ?? null;
+    }
+
+    private function sqliteForeignKeyName(string $table, string $column): ?string
+    {
+        $rows = DB::select("PRAGMA foreign_key_list('".$table."')");
+
+        foreach ($rows as $row) {
+            if ((string) ($row->from ?? '') === $column) {
+                return $row->id !== null ? 'fk_'.$table.'_'.$row->id : null;
+            }
+        }
+
+        return null;
     }
 
     private function sqliteIndexExists(string $table, string $index): bool

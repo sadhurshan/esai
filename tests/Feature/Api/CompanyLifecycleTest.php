@@ -11,6 +11,12 @@ use function Pest\Laravel\actingAs;
 uses(RefreshDatabase::class);
 
 it('allows authenticated users to register their company', function () {
+    Company::factory()->create([
+        'name' => 'Orbital Precision Manufacturing',
+        'slug' => 'orbital-precision-manufacturing-legacy',
+        'email_domain' => 'orbital-example.com',
+    ]);
+
     $user = User::factory()->create([
         'company_id' => null,
         'role' => 'buyer_admin',
@@ -38,14 +44,65 @@ it('allows authenticated users to register their company', function () {
     $response->assertCreated()
         ->assertJsonPath('status', 'success')
         ->assertJsonPath('data.name', $payload['name'])
-    ->assertJsonPath('data.status', CompanyStatus::PendingVerification->value);
+        ->assertJsonPath('data.status', CompanyStatus::PendingVerification->value)
+        ->assertJsonPath('data.has_completed_onboarding', true);
 
-    $company = Company::where('name', $payload['name'])->first();
+    $company = Company::where('owner_user_id', $user->id)->first();
 
     expect($company)->not->toBeNull()
     ->and($company->status)->toBe(CompanyStatus::PendingVerification)
         ->and($company->owner_user_id)->toBe($user->id)
-        ->and($user->fresh()->company_id)->toBe($company?->id);
+        ->and($user->fresh()->company_id)->toBe($company?->id)
+        ->and(Company::where('name', $payload['name'])->count())->toBe(2);
+});
+
+it('updates the existing placeholder company when onboarding details are submitted', function () {
+    $user = User::factory()->create([
+        'role' => 'buyer_admin',
+    ]);
+
+    $placeholder = Company::factory()->create([
+        'owner_user_id' => $user->id,
+        'registration_no' => null,
+        'tax_id' => null,
+        'country' => null,
+        'email_domain' => null,
+        'primary_contact_name' => null,
+        'primary_contact_email' => null,
+        'primary_contact_phone' => null,
+    ]);
+
+    $user->forceFill(['company_id' => $placeholder->id])->save();
+
+    actingAs($user);
+
+    $payload = [
+        'name' => 'Vanguard Robotics Inc.',
+        'registration_no' => 'EU-445566',
+        'tax_id' => '88-5566778',
+        'country' => 'DE',
+        'email_domain' => 'vanguard-robotics.com',
+        'primary_contact_name' => 'Elena Fischer',
+        'primary_contact_email' => 'elena@vanguard-robotics.com',
+        'primary_contact_phone' => '+49-30-1234567',
+        'address' => 'Innovation Park 5, Berlin',
+        'phone' => '+49-30-7654321',
+        'website' => 'https://vanguard-robotics.com',
+        'region' => 'Europe',
+    ];
+
+    $response = $this->postJson('/api/companies', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.id', $placeholder->id)
+        ->assertJsonPath('data.name', $payload['name'])
+        ->assertJsonPath('data.has_completed_onboarding', true);
+
+    expect(Company::count())->toBe(1)
+        ->and($placeholder->refresh()->registration_no)->toBe($payload['registration_no'])
+        ->and($placeholder->country)->toBe($payload['country'])
+        ->and($placeholder->email_domain)->toBe($payload['email_domain']);
 });
 
 it('rejects company registration for guests', function () {

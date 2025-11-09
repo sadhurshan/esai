@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCompanyRegistered
@@ -23,9 +25,28 @@ class EnsureCompanyRegistered
             return $next($request);
         }
 
-        if ($user->company_id === null) {
+        $user->loadMissing('company');
+        $company = $user->company;
+
+        if ($company === null || ! $company->hasCompletedBuyerOnboarding()) {
             if ($request->routeIs('company.registration')) {
                 return $next($request);
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Complete company onboarding before proceeding.',
+                    'data' => null,
+                    'errors' => [
+                        'company' => ['Company onboarding incomplete.'],
+                        'missing_fields' => $company?->buyerOnboardingMissingFields() ?? Company::BUYER_ONBOARDING_REQUIRED_FIELDS,
+                    ],
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            if ($request->header('X-Inertia')) {
+                return Inertia::location(route('company.registration'));
             }
 
             return redirect()->route('company.registration');

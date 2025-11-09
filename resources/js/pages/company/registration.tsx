@@ -17,8 +17,8 @@ import {
 import { FileDropzone } from '@/components/app/file-dropzone';
 import { StatusBadge } from '@/components/app/status-badge';
 import { formatDistanceToNow } from 'date-fns';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { Building2, FileText, ShieldAlert } from 'lucide-react';
 
 import type { SharedData } from '@/types';
@@ -92,7 +92,8 @@ export default function CompanyRegistrationWizard() {
     const registerCompany = useRegisterCompany();
     const uploadDocument = useUploadCompanyDocument();
     const deleteDocument = useDeleteCompanyDocument();
-    const registeredCompany = existingCompany ?? submittedCompany;
+    const onboardingCompleted = existingCompany?.hasCompletedOnboarding ?? false;
+    const registeredCompany = submittedCompany ?? (onboardingCompleted ? existingCompany : null);
     const { data: documents = [], isLoading: isDocumentsLoading } = useCompanyDocuments(registeredCompany?.id);
 
     const currentStep = registeredCompany ? 2 : localStep;
@@ -148,6 +149,7 @@ export default function CompanyRegistrationWizard() {
                 setSubmittedCompany(company);
                 setLocalStep(2);
                 successToast('Company registration submitted for review.');
+                router.reload({ only: ['auth'] });
             },
             onError: (error) => {
                 setFieldErrors(error.errors ?? EMPTY_ERRORS);
@@ -213,6 +215,28 @@ export default function CompanyRegistrationWizard() {
         setFieldErrors(EMPTY_ERRORS);
         setLocalStep((previous) => Math.max(previous - 1, 0));
     };
+
+    useEffect(() => {
+        if (!existingCompany || existingCompany.hasCompletedOnboarding) {
+            return;
+        }
+
+        setFormValues((previous) => ({
+            ...previous,
+            name: previous.name || existingCompany.name || '',
+            registration_no: previous.registration_no || existingCompany.registrationNo || '',
+            tax_id: previous.tax_id || existingCompany.taxId || '',
+            country: previous.country || existingCompany.country || '',
+            email_domain: previous.email_domain || existingCompany.emailDomain || '',
+            primary_contact_name: previous.primary_contact_name || existingCompany.primaryContactName || '',
+            primary_contact_email: previous.primary_contact_email || existingCompany.primaryContactEmail || '',
+            primary_contact_phone: previous.primary_contact_phone || existingCompany.primaryContactPhone || '',
+            address: previous.address || existingCompany.address || '',
+            phone: previous.phone || existingCompany.phone || '',
+            website: previous.website || existingCompany.website || '',
+            region: previous.region || existingCompany.region || '',
+        }));
+    }, [existingCompany]);
 
     const renderStepContent = () => {
         if (currentStep === 0) {

@@ -25,6 +25,21 @@ class Company extends Model
     use HasFactory;
     use SoftDeletes;
 
+    /**
+     * Fields that must be populated to consider buyer onboarding complete.
+     *
+     * @var array<int, string>
+     */
+    public const BUYER_ONBOARDING_REQUIRED_FIELDS = [
+        'registration_no',
+        'tax_id',
+        'country',
+        'email_domain',
+        'primary_contact_name',
+        'primary_contact_email',
+        'primary_contact_phone',
+    ];
+
     protected $fillable = [
         'name',
         'slug',
@@ -158,6 +173,33 @@ class Company extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(CompanyDocument::class);
+    }
+
+    public function hasCompletedBuyerOnboarding(): bool
+    {
+        foreach (self::BUYER_ONBOARDING_REQUIRED_FIELDS as $attribute) {
+            if (blank($this->{$attribute})) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function buyerOnboardingMissingFields(): array
+    {
+        $missing = [];
+
+        foreach (self::BUYER_ONBOARDING_REQUIRED_FIELDS as $attribute) {
+            if (blank($this->{$attribute})) {
+                $missing[] = $attribute;
+            }
+        }
+
+        return $missing;
     }
 
     public function scopeListedSuppliers(Builder $query): Builder

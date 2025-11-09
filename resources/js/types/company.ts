@@ -20,6 +20,7 @@ export interface Company {
     ownerUserId?: number | null;
     createdAt?: string | null;
     updatedAt?: string | null;
+    hasCompletedOnboarding: boolean;
 }
 
 export type CompanyDocumentType = 'registration' | 'tax' | 'esg' | 'other';

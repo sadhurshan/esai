@@ -63,4 +63,19 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function getRequiresCompanyOnboardingAttribute(): bool
+    {
+        $company = $this->getRelationValue('company');
+
+        if ($company === null) {
+            $company = $this->company()->first();
+        }
+
+        if ($company === null) {
+            return true;
+        }
+
+        return ! $company->hasCompletedBuyerOnboarding();
+    }
 }

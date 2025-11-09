@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'ensure.subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'ensure.company.registered' => \App\Http\Middleware\EnsureCompanyRegistered::class,
+            'ensure.company.onboarded' => \App\Http\Middleware\EnsureCompanyOnboarded::class,
             'ensure.supplier.approved' => \App\Http\Middleware\EnsureSupplierApproved::class,
         ]);
     })

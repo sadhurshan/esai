@@ -41,17 +41,17 @@ Route::prefix('supplier-applications')->group(function (): void {
 
 Route::prefix('rfqs')->group(function (): void {
     Route::get('/', [RFQController::class, 'index']);
-    Route::post('/', [RFQController::class, 'store'])->middleware('ensure.subscribed');
+    Route::post('/', [RFQController::class, 'store'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
     Route::get('{rfq}', [RFQController::class, 'show']);
-    Route::put('{rfq}', [RFQController::class, 'update']);
-    Route::delete('{rfq}', [RFQController::class, 'destroy']);
+    Route::put('{rfq}', [RFQController::class, 'update'])->middleware('ensure.company.onboarded');
+    Route::delete('{rfq}', [RFQController::class, 'destroy'])->middleware('ensure.company.onboarded');
 
     Route::get('{rfq}/invitations', [RfqInvitationController::class, 'index']);
-    Route::post('{rfq}/invitations', [RfqInvitationController::class, 'store']);
+    Route::post('{rfq}/invitations', [RfqInvitationController::class, 'store'])->middleware('ensure.company.onboarded');
 
     Route::get('{rfq}/quotes', [QuoteController::class, 'index']);
 
-    Route::post('{rfq}/award', [AwardController::class, 'store']);
+    Route::post('{rfq}/award', [AwardController::class, 'store'])->middleware('ensure.company.onboarded');
 });
 
 Route::prefix('orders')->group(function (): void {
@@ -64,17 +64,19 @@ Route::post('quotes', [QuoteController::class, 'store'])->middleware(['ensure.su
 Route::middleware('web')->group(function (): void {
     Route::prefix('purchase-orders')->group(function (): void {
         Route::get('/', [PurchaseOrderController::class, 'index']);
-        Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send']);
+        Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->middleware('ensure.company.onboarded');
         Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge'])
             ->middleware('ensure.supplier.approved');
         Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
         Route::post('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'store'])
-            ->middleware('ensure.subscribed');
+            ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
         Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
     });
 
-    Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve']);
-    Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject']);
+    Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve'])
+        ->middleware('ensure.company.onboarded');
+    Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject'])
+        ->middleware('ensure.company.onboarded');
 
     Route::prefix('companies')->group(function (): void {
         Route::post('/', [CompanyRegistrationController::class, 'store']);
@@ -100,7 +102,7 @@ Route::middleware('web')->group(function (): void {
 });
 
 Route::post('documents', [DocumentController::class, 'store'])
-    ->middleware('ensure.subscribed');
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::prefix('webhooks/stripe')->group(function (): void {
     Route::post('invoice/payment-succeeded', [StripeWebhookController::class, 'invoicePaymentSucceeded']);

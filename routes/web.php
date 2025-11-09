@@ -15,7 +15,9 @@ Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(func
     Route::get('dashboard', function () {
         $user = auth()->user();
 
-        if ($user?->company_id === null) {
+        $user?->loadMissing('company');
+
+        if ($user?->company === null || ! $user->company->hasCompletedBuyerOnboarding()) {
             return redirect()->route('company.registration');
         }
 

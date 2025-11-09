@@ -11,6 +11,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { home, orders, rfq, suppliers, purchaseOrders } from '@/routes';
+import { registration as companyRegistration } from '@/routes/company';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -25,6 +26,7 @@ import {
     PackageCheck,
     Package,
     ShieldCheck,
+    ShieldAlert,
     Truck,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -45,16 +47,20 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const page = usePage<SharedData>();
     const userRole = page.props.auth?.user?.role ?? null;
+    const requiresCompanyOnboarding = page.props.auth?.user?.requires_company_onboarding ?? false;
     const isSupplierUser =
         typeof userRole === 'string' && userRole.startsWith('supplier_');
     const isPlatformAdmin =
         userRole === 'platform_super' || userRole === 'platform_support';
+    // Lock buyer navigation while onboarding remains incomplete for the active tenant.
+    const onboardingLockActive = requiresCompanyOnboarding && !isPlatformAdmin;
 
     const mainNavItems = useMemo<NavItem[]>(() => {
         const purchaseOrderNav: NavItem = {
             title: 'Purchase Orders',
             href: purchaseOrders.index(),
             icon: Truck,
+            disabled: onboardingLockActive,
         };
 
         if (isSupplierUser) {
@@ -63,6 +69,7 @@ export function AppSidebar() {
                     title: 'Supplier POs',
                     href: purchaseOrders.supplier.index(),
                     icon: Package,
+                    disabled: onboardingLockActive,
                 },
             ];
         }
@@ -77,16 +84,19 @@ export function AppSidebar() {
                 title: 'Supplier Directory',
                 href: suppliers.index(),
                 icon: Factory,
+                disabled: onboardingLockActive,
             },
             {
                 title: 'RFQ',
                 href: rfq.index(),
                 icon: FileSpreadsheet,
+                disabled: onboardingLockActive,
             },
             {
                 title: 'Orders',
                 href: orders.index(),
                 icon: PackageCheck,
+                disabled: onboardingLockActive,
             },
             purchaseOrderNav,
         ];
@@ -107,6 +117,14 @@ export function AppSidebar() {
             });
         }
 
+        if (onboardingLockActive) {
+            items.unshift({
+                title: 'Complete Onboarding',
+                href: companyRegistration.url(),
+                icon: ShieldAlert,
+            });
+        }
+
         items.push({
             title: 'Resource Center',
             href: home(),
@@ -115,7 +133,7 @@ export function AppSidebar() {
         });
 
         return items;
-    }, [isPlatformAdmin, isSupplierUser]);
+    }, [isPlatformAdmin, isSupplierUser, onboardingLockActive]);
 
     return (
         <Sidebar collapsible="icon" variant="inset">

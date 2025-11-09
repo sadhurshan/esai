@@ -36,6 +36,7 @@ class CompanyResource extends JsonResource
             'owner_user_id' => $this->owner_user_id,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'has_completed_onboarding' => $this->hasCompletedBuyerOnboarding(),
         ];
     }
 }

@@ -137,15 +137,15 @@ class SupplierApplicationController extends ApiController
      */
     private function hasMinimumProfileData(array $payload): bool
     {
-        $hasCapabilities = is_array($payload['capabilities'] ?? null) && count($payload['capabilities']) > 0;
-        $hasMaterials = is_array($payload['materials'] ?? null) && count($payload['materials']) > 0;
-        $hasLocation = filled($payload['location_region'] ?? null) || filled($payload['country'] ?? null) || filled($payload['city'] ?? null);
-        $hasMOQ = isset($payload['min_order_qty']) && (int) $payload['min_order_qty'] > 0;
+        $capabilities = $payload['capabilities'] ?? [];
+        $hasCapabilities = is_array($capabilities) && collect($capabilities)->flatten()->filter()->isNotEmpty();
+        $hasLocation = filled($payload['address'] ?? null) || filled($payload['country'] ?? null) || filled($payload['city'] ?? null);
+        $hasMOQ = isset($payload['moq']) && (int) $payload['moq'] > 0;
         $hasLeadTime = isset($payload['lead_time_days']) && (int) $payload['lead_time_days'] > 0;
         $contact = $payload['contact'] ?? [];
         $hasContact = is_array($contact) && (filled($contact['email'] ?? null) || filled($contact['phone'] ?? null) || filled($contact['name'] ?? null));
 
-        return $hasCapabilities && $hasMaterials && $hasLocation && $hasMOQ && $hasLeadTime && $hasContact;
+        return $hasCapabilities && $hasLocation && $hasMOQ && $hasLeadTime && $hasContact;
     }
 
     public function show(Request $request, SupplierApplication $application): JsonResponse

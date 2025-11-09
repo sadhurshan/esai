@@ -6,34 +6,84 @@ import type { Paged, Supplier } from '@/types/sourcing';
 
 export interface SupplierQueryParams extends Record<string, unknown> {
     q?: string;
-    method?: string;
+    capability?: string;
     material?: string;
-    region?: string;
-    sort?: 'rating' | 'avg_response_hours';
+    finish?: string;
+    tolerance?: string;
+    location?: string;
+    industry?: string;
+    cert?: string;
+    rating_min?: number;
+    lead_time_max?: number;
+    sort?: 'match_score' | 'rating' | 'lead_time' | 'distance' | 'price_band';
     page?: number;
     per_page?: number;
 }
 
 type SupplierResponse = Paged<{
     id: number;
+    company_id: number;
     name: string;
-    rating: number;
-    capabilities: string[];
-    materials: string[];
-    location_region: string;
-    min_order_qty: number;
-    avg_response_hours: number;
+    status: 'pending' | 'approved' | 'rejected' | 'suspended';
+    capabilities: Supplier['capabilities'] | null;
+    rating_avg: string | number | null;
+    contact?: {
+        email?: string | null;
+        phone?: string | null;
+        website?: string | null;
+    } | null;
+    address?: {
+        line1?: string | null;
+        city?: string | null;
+        country?: string | null;
+    } | null;
+    geo?: {
+        lat?: string | number | null;
+        lng?: string | number | null;
+    } | null;
+    lead_time_days?: number | null;
+    moq?: number | null;
+    verified_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
 }>;
+
+const coerceNumber = (value: unknown): number | null => {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : null;
+};
 
 const mapSupplier = (payload: SupplierResponse['items'][number]): Supplier => ({
     id: payload.id,
+    companyId: payload.company_id,
     name: payload.name,
-    rating: payload.rating,
-    capabilities: payload.capabilities ?? [],
-    materials: payload.materials ?? [],
-    locationRegion: payload.location_region ?? '',
-    minimumOrderQuantity: payload.min_order_qty ?? 0,
-    averageResponseHours: payload.avg_response_hours ?? 0,
+    status: payload.status,
+    capabilities: payload.capabilities ?? {},
+    ratingAvg: Number(payload.rating_avg ?? 0),
+    contact: {
+        email: payload.contact?.email ?? null,
+        phone: payload.contact?.phone ?? null,
+        website: payload.contact?.website ?? null,
+    },
+    address: {
+        line1: payload.address?.line1 ?? null,
+        city: payload.address?.city ?? null,
+        country: payload.address?.country ?? null,
+    },
+    geo: {
+        lat: coerceNumber(payload.geo?.lat),
+        lng: coerceNumber(payload.geo?.lng),
+    },
+    leadTimeDays: payload.lead_time_days ?? null,
+    moq: payload.moq ?? null,
+    verifiedAt: payload.verified_at ?? null,
+    createdAt: payload.created_at ?? null,
+    updatedAt: payload.updated_at ?? null,
 });
 
 type SupplierResult = { items: Supplier[]; meta: SupplierResponse['meta'] };

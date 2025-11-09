@@ -10,7 +10,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Building2, Clock, Factory, MapPin } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
-import { useSuppliers } from '@/hooks/api/useSuppliers';
+import { useSuppliers, type SupplierQueryParams } from '@/hooks/api/useSuppliers';
 import type { Supplier } from '@/types/sourcing';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,19 +21,23 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function SuppliersIndex() {
     const [search, setSearch] = useState('');
     const [params, setParams] = useState({
-        method: '',
+        capability: '',
         material: '',
-        region: '',
-        sort: 'rating' as 'rating' | 'avg_response_hours',
+        industry: '',
+        cert: '',
+        location: '',
+        sort: 'match_score' as SupplierQueryParams['sort'],
         page: 1,
         per_page: 9,
     });
 
     const { data, isLoading, isError, error, refetch } = useSuppliers({
         q: search || undefined,
-        method: params.method || undefined,
+        capability: params.capability || undefined,
         material: params.material || undefined,
-        region: params.region || undefined,
+        industry: params.industry || undefined,
+        cert: params.cert || undefined,
+        location: params.location || undefined,
         sort: params.sort,
         page: params.page,
         per_page: params.per_page,
@@ -54,9 +58,11 @@ export default function SuppliersIndex() {
         setSearch('');
         setParams((previous) => ({
             ...previous,
-            method: '',
+            capability: '',
             material: '',
-            region: '',
+            industry: '',
+            cert: '',
+            location: '',
             page: 1,
         }));
     }, []);
@@ -100,7 +106,7 @@ export default function SuppliersIndex() {
                     <FilterBar
                         filters={[
                             {
-                                id: 'method',
+                                id: 'capability',
                                 label: 'Manufacturing Method',
                                 options: [
                                     { label: 'All Methods', value: '' },
@@ -109,7 +115,7 @@ export default function SuppliersIndex() {
                                     { label: 'Metal AM', value: 'metal_am' },
                                     { label: 'Investment Casting', value: 'investment_casting' },
                                 ],
-                                value: params.method,
+                                value: params.capability,
                             },
                             {
                                 id: 'material',
@@ -124,23 +130,50 @@ export default function SuppliersIndex() {
                                 value: params.material,
                             },
                             {
-                                id: 'region',
+                                id: 'industry',
+                                label: 'Industry Focus',
+                                options: [
+                                    { label: 'All Industries', value: '' },
+                                    { label: 'Aerospace', value: 'aerospace' },
+                                    { label: 'Automotive', value: 'automotive' },
+                                    { label: 'Medical Devices', value: 'medical' },
+                                    { label: 'Industrial Equipment', value: 'industrial' },
+                                ],
+                                value: params.industry,
+                            },
+                            {
+                                id: 'cert',
+                                label: 'Certification',
+                                options: [
+                                    { label: 'All Certifications', value: '' },
+                                    { label: 'ISO 9001', value: 'iso9001' },
+                                    { label: 'AS9100', value: 'as9100' },
+                                    { label: 'ITAR', value: 'itar' },
+                                    { label: 'ISO 14001', value: 'iso14001' },
+                                ],
+                                value: params.cert,
+                            },
+                            {
+                                id: 'location',
                                 label: 'Region',
                                 options: [
                                     { label: 'All Regions', value: '' },
-                                    { label: 'United States', value: 'usa' },
-                                    { label: 'Canada', value: 'canada' },
-                                    { label: 'Europe', value: 'europe' },
+                                    { label: 'North America', value: 'na' },
+                                    { label: 'Europe', value: 'eu' },
                                     { label: 'Asia Pacific', value: 'apac' },
+                                    { label: 'Latin America', value: 'latam' },
                                 ],
-                                value: params.region,
+                                value: params.location,
                             },
                             {
                                 id: 'sort',
                                 label: 'Sort By',
                                 options: [
+                                    { label: 'Smart Match', value: 'match_score' },
                                     { label: 'Highest Rating', value: 'rating' },
-                                    { label: 'Fastest Response', value: 'avg_response_hours' },
+                                    { label: 'Quickest Lead Time', value: 'lead_time' },
+                                    { label: 'Nearest Distance', value: 'distance' },
+                                    { label: 'Lowest Price Band', value: 'price_band' },
                                 ],
                                 value: params.sort,
                             },
@@ -182,34 +215,55 @@ export default function SuppliersIndex() {
                 ) : (
                     <>
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {suppliers.map((supplier) => (
-                                <Card key={supplier.id} className="flex h-full flex-col border-muted/70">
+                            {suppliers.map((supplier) => {
+                                const rating = Number.isFinite(supplier.ratingAvg)
+                                    ? supplier.ratingAvg
+                                    : 0;
+                                const methods = Array.isArray(supplier.capabilities?.methods)
+                                    ? supplier.capabilities.methods
+                                    : [];
+                                const materials = Array.isArray(supplier.capabilities?.materials)
+                                    ? supplier.capabilities.materials
+                                    : [];
+                                const location = [supplier.address.city, supplier.address.country]
+                                    .filter(Boolean)
+                                    .join(', ');
+
+                                return (
+                                    <Card key={supplier.id} className="flex h-full flex-col border-muted/70">
                                     <CardHeader>
                                         <CardTitle className="flex items-start justify-between text-lg">
                                             <span>{supplier.name}</span>
                                             <Badge variant="secondary" className="text-xs">
-                                                Rating {supplier.rating.toFixed(1)} / 5.0
+                                                    Rating {rating.toFixed(1)} / 5.0
                                             </Badge>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3 text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Factory className="size-4" aria-hidden />
-                                            <span>{supplier.capabilities.join(', ') || 'Capabilities coming soon'}</span>
+                                                <span>
+                                                    {methods.length > 0
+                                                        ? methods.join(', ')
+                                                        : 'Capabilities coming soon'}
+                                                </span>
                                         </div>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Building2 className="size-4" aria-hidden />
-                                            <span>{supplier.materials.join(', ') || 'Materials coming soon'}</span>
+                                                <span>
+                                                    {materials.length > 0
+                                                        ? materials.join(', ')
+                                                        : 'Materials coming soon'}
+                                                </span>
                                         </div>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <MapPin className="size-4" aria-hidden />
-                                            <span>{supplier.locationRegion || 'Region not specified'}</span>
+                                                <span>{location || 'Region not specified'}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Clock className="size-4" aria-hidden />
                                             <span>
-                                                MOQ {supplier.minimumOrderQuantity ?? '—'} • Avg response{' '}
-                                                {supplier.averageResponseHours ?? '—'} hrs
+                                                MOQ {supplier.moq ?? '—'} • Lead time {supplier.leadTimeDays ?? '—'} days
                                             </span>
                                         </div>
                                     </CardContent>
@@ -222,7 +276,8 @@ export default function SuppliersIndex() {
                                         </Button>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         <Pagination

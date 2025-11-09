@@ -17,25 +17,30 @@ class Supplier extends Model
     protected $fillable = [
         'company_id',
         'name',
-        'rating',
         'capabilities',
-        'materials',
-        'location_region',
-        'min_order_qty',
-        'avg_response_hours',
-        'country',
-        'city',
         'email',
         'phone',
         'website',
+        'address',
+        'country',
+        'city',
         'status',
+        'geo_lat',
+        'geo_lng',
+        'lead_time_days',
+        'moq',
         'rating_avg',
+        'verified_at',
     ];
 
     protected $casts = [
         'capabilities' => 'array',
-        'materials' => 'array',
+        'geo_lat' => 'float',
+        'geo_lng' => 'float',
+        'lead_time_days' => 'integer',
+        'moq' => 'integer',
         'rating_avg' => 'decimal:2',
+        'verified_at' => 'datetime',
     ];
 
     public function company(): BelongsTo

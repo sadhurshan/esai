@@ -18,7 +18,7 @@ import { FileDropzone } from '@/components/app/file-dropzone';
 import { StatusBadge } from '@/components/app/status-badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Building2, FileText, ShieldAlert } from 'lucide-react';
 
 import type { SharedData } from '@/types';
@@ -65,26 +65,28 @@ const REQUIRED_FIELDS_STEP_TWO: (keyof RegisterCompanyInput)[] = [
 
 const EMPTY_ERRORS: Record<string, string[]> = {};
 
+const EMPTY_FORM_VALUES: RegisterCompanyInput = {
+    name: '',
+    registration_no: '',
+    tax_id: '',
+    country: '',
+    email_domain: '',
+    primary_contact_name: '',
+    primary_contact_email: '',
+    primary_contact_phone: '',
+    address: '',
+    phone: '',
+    website: '',
+    region: '',
+};
+
 export default function CompanyRegistrationWizard() {
     const { auth } = usePage<SharedData>().props;
     const existingCompanyId = auth.user?.company_id ?? null;
 
     const [localStep, setLocalStep] = useState(0);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>(EMPTY_ERRORS);
-    const [formValues, setFormValues] = useState<RegisterCompanyInput>({
-        name: '',
-        registration_no: '',
-        tax_id: '',
-        country: '',
-        email_domain: '',
-        primary_contact_name: '',
-        primary_contact_email: '',
-        primary_contact_phone: '',
-        address: '',
-        phone: '',
-        website: '',
-        region: '',
-    });
+    const [formOverrides, setFormOverrides] = useState<Partial<RegisterCompanyInput>>({});
     const [selectedDocumentType, setSelectedDocumentType] = useState<CompanyDocumentType>('registration');
     const [submittedCompany, setSubmittedCompany] = useState<Company | null>(null);
 
@@ -95,6 +97,33 @@ export default function CompanyRegistrationWizard() {
     const onboardingCompleted = existingCompany?.hasCompletedOnboarding ?? false;
     const registeredCompany = submittedCompany ?? (onboardingCompleted ? existingCompany : null);
     const { data: documents = [], isLoading: isDocumentsLoading } = useCompanyDocuments(registeredCompany?.id);
+
+    const companyDefaults = useMemo<RegisterCompanyInput>(() => {
+        if (!existingCompany || existingCompany.hasCompletedOnboarding) {
+            return { ...EMPTY_FORM_VALUES };
+        }
+
+        return {
+            ...EMPTY_FORM_VALUES,
+            name: existingCompany.name ?? '',
+            registration_no: existingCompany.registrationNo ?? '',
+            tax_id: existingCompany.taxId ?? '',
+            country: existingCompany.country ?? '',
+            email_domain: existingCompany.emailDomain ?? '',
+            primary_contact_name: existingCompany.primaryContactName ?? '',
+            primary_contact_email: existingCompany.primaryContactEmail ?? '',
+            primary_contact_phone: existingCompany.primaryContactPhone ?? '',
+            address: existingCompany.address ?? '',
+            phone: existingCompany.phone ?? '',
+            website: existingCompany.website ?? '',
+            region: existingCompany.region ?? '',
+        };
+    }, [existingCompany]);
+
+    const formValues = useMemo<RegisterCompanyInput>(() => ({
+        ...companyDefaults,
+        ...formOverrides,
+    }), [companyDefaults, formOverrides]);
 
     const currentStep = registeredCompany ? 2 : localStep;
     const hasCompletedRegistration = Boolean(registeredCompany);
@@ -125,7 +154,7 @@ export default function CompanyRegistrationWizard() {
     };
 
     const handleFieldChange = <T extends keyof RegisterCompanyInput>(field: T, value: RegisterCompanyInput[T]) => {
-        setFormValues((previous) => ({
+        setFormOverrides((previous) => ({
             ...previous,
             [field]: value,
         }));
@@ -215,28 +244,6 @@ export default function CompanyRegistrationWizard() {
         setFieldErrors(EMPTY_ERRORS);
         setLocalStep((previous) => Math.max(previous - 1, 0));
     };
-
-    useEffect(() => {
-        if (!existingCompany || existingCompany.hasCompletedOnboarding) {
-            return;
-        }
-
-        setFormValues((previous) => ({
-            ...previous,
-            name: previous.name || existingCompany.name || '',
-            registration_no: previous.registration_no || existingCompany.registrationNo || '',
-            tax_id: previous.tax_id || existingCompany.taxId || '',
-            country: previous.country || existingCompany.country || '',
-            email_domain: previous.email_domain || existingCompany.emailDomain || '',
-            primary_contact_name: previous.primary_contact_name || existingCompany.primaryContactName || '',
-            primary_contact_email: previous.primary_contact_email || existingCompany.primaryContactEmail || '',
-            primary_contact_phone: previous.primary_contact_phone || existingCompany.primaryContactPhone || '',
-            address: previous.address || existingCompany.address || '',
-            phone: previous.phone || existingCompany.phone || '',
-            website: previous.website || existingCompany.website || '',
-            region: previous.region || existingCompany.region || '',
-        }));
-    }, [existingCompany]);
 
     const renderStepContent = () => {
         if (currentStep === 0) {

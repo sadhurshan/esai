@@ -50,12 +50,15 @@ it('allows a company owner to apply for supplier status and a platform admin to 
     actingAs($owner);
 
     $payload = [
-        'capabilities' => ['cnc_machining'],
-        'materials' => ['aluminum'],
-        'location_region' => 'US-West',
+        'capabilities' => [
+            'methods' => ['cnc_machining'],
+            'materials' => ['aluminum'],
+            'industries' => ['aerospace'],
+        ],
+        'address' => '120 Machinist Way',
         'country' => 'US',
         'city' => 'Seattle',
-        'min_order_qty' => 25,
+        'moq' => 25,
         'lead_time_days' => 14,
         'certifications' => ['iso9001'],
         'facilities' => 'Anodizing line and 5-axis machining center.',
@@ -109,5 +112,13 @@ it('allows a company owner to apply for supplier status and a platform admin to 
         ->and($company->verified_by)->toBe($admin->id)
         ->and($company->supplierProfile)->not->toBeNull();
 
-    expect(Supplier::query()->where('company_id', $company->id)->exists())->toBeTrue();
+    $supplier = Supplier::query()->where('company_id', $company->id)->firstOrFail();
+
+    expect($supplier->status)->toBe('approved')
+        ->and($supplier->moq)->toBe(25)
+        ->and($supplier->lead_time_days)->toBe(14)
+        ->and($supplier->country)->toBe('US')
+        ->and($supplier->city)->toBe('Seattle')
+        ->and($supplier->capabilities['methods'])->toContain('cnc_machining')
+        ->and($supplier->verified_at)->not->toBeNull();
 });

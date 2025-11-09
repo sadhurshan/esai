@@ -22,8 +22,12 @@ return new class extends Migration
                 $table->string('city', 120)->nullable()->after('country');
             }
 
+            if (! Schema::hasColumn('suppliers', 'address')) {
+                $table->string('address', 191)->nullable()->after('city');
+            }
+
             if (! Schema::hasColumn('suppliers', 'email')) {
-                $table->string('email', 191)->nullable()->after('city');
+                $table->string('email', 191)->nullable()->after('address');
             }
 
             if (! Schema::hasColumn('suppliers', 'phone')) {
@@ -38,14 +42,54 @@ return new class extends Migration
                 $table->enum('status', ['pending', 'approved', 'rejected', 'suspended'])->default('pending')->after('website');
             }
 
+            if (! Schema::hasColumn('suppliers', 'geo_lat')) {
+                $table->decimal('geo_lat', 10, 7)->nullable()->after('status');
+            }
+
+            if (! Schema::hasColumn('suppliers', 'geo_lng')) {
+                $table->decimal('geo_lng', 10, 7)->nullable()->after('geo_lat');
+            }
+
+            if (! Schema::hasColumn('suppliers', 'capabilities')) {
+                $table->json('capabilities')->nullable()->after('geo_lng');
+            }
+
+            if (! Schema::hasColumn('suppliers', 'lead_time_days')) {
+                $table->unsignedSmallInteger('lead_time_days')->nullable()->after('capabilities');
+            }
+
+            if (! Schema::hasColumn('suppliers', 'moq')) {
+                $table->unsignedInteger('moq')->nullable()->after('lead_time_days');
+            }
+
             if (! Schema::hasColumn('suppliers', 'rating_avg')) {
-                $table->decimal('rating_avg', 3, 2)->default(0)->after('capabilities');
+                $table->decimal('rating_avg', 3, 2)->default(0)->after('moq');
+            }
+
+            if (! Schema::hasColumn('suppliers', 'verified_at')) {
+                $table->timestamp('verified_at')->nullable()->after('rating_avg');
             }
 
             if (! Schema::hasColumn('suppliers', 'deleted_at')) {
                 $table->softDeletes();
             }
         });
+
+        $legacyColumns = collect(['rating', 'materials', 'location_region', 'min_order_qty', 'avg_response_hours'])
+            ->filter(fn (string $column): bool => Schema::hasColumn('suppliers', $column))
+            ->all();
+
+        if ($this->indexExists('suppliers', 'suppliers_location_region_index')) {
+            Schema::table('suppliers', function (Blueprint $table): void {
+                $table->dropIndex('suppliers_location_region_index');
+            });
+        }
+
+        if ($legacyColumns !== []) {
+            Schema::table('suppliers', function (Blueprint $table) use ($legacyColumns): void {
+                $table->dropColumn($legacyColumns);
+            });
+        }
 
         if (! $this->indexExists('suppliers', 'suppliers_company_id_status_index')) {
             Schema::table('suppliers', function (Blueprint $table): void {
@@ -57,13 +101,19 @@ return new class extends Migration
             // TODO: clarify with spec - MySQL cannot build FULLTEXT indexes on JSON columns, so introduce a generated TEXT column.
             if (! Schema::hasColumn('suppliers', 'capabilities_search')) {
                 Schema::table('suppliers', function (Blueprint $table): void {
-                    $table->text('capabilities_search')->storedAs('JSON_UNQUOTE(`capabilities`)');
+                    $table->text('capabilities_search')->storedAs("JSON_UNQUOTE(JSON_EXTRACT(`capabilities`, '$'))");
                 });
             }
 
-            if (! $this->indexExists('suppliers', 'suppliers_name_city_capabilities_fulltext')) {
+            if ($this->indexExists('suppliers', 'suppliers_name_city_capabilities_fulltext')) {
                 Schema::table('suppliers', function (Blueprint $table): void {
-                    $table->fullText(['name', 'city', 'capabilities_search'], 'suppliers_name_city_capabilities_fulltext');
+                    $table->dropFullText('suppliers_name_city_capabilities_fulltext');
+                });
+            }
+
+            if (! $this->indexExists('suppliers', 'suppliers_name_capabilities_fulltext')) {
+                Schema::table('suppliers', function (Blueprint $table): void {
+                    $table->fullText(['name', 'capabilities_search'], 'suppliers_name_capabilities_fulltext');
                 });
             }
         }
@@ -71,15 +121,19 @@ return new class extends Migration
         Schema::create('supplier_documents', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
-            $table->enum('type', ['iso', 'tax', 'insurance', 'registration', 'other']);
-            $table->unsignedBigInteger('document_id');
+            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
+            $table->enum('type', ['iso9001', 'iso14001', 'as9100', 'itar', 'reach', 'rohs', 'insurance', 'nda', 'other']);
+            $table->string('path', 2048);
+            $table->string('mime', 191);
+            $table->unsignedBigInteger('size_bytes');
+            $table->date('issued_at')->nullable();
             $table->date('expires_at')->nullable();
             $table->enum('status', ['valid', 'expiring', 'expired'])->default('valid');
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->unique(['supplier_id', 'document_id']);
             $table->index(['supplier_id', 'type']);
-            $table->index('expires_at');
+            $table->index(['type', 'expires_at']);
         });
     }
 
@@ -101,10 +155,16 @@ return new class extends Migration
             });
         }
 
+        if ($this->indexExists('suppliers', 'suppliers_status_index')) {
+            Schema::table('suppliers', function (Blueprint $table): void {
+                $table->dropIndex('suppliers_status_index');
+            });
+        }
+
         if (in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-            if ($this->indexExists('suppliers', 'suppliers_name_city_capabilities_fulltext')) {
+            if ($this->indexExists('suppliers', 'suppliers_name_capabilities_fulltext')) {
                 Schema::table('suppliers', function (Blueprint $table): void {
-                    $table->dropFullText('suppliers_name_city_capabilities_fulltext');
+                    $table->dropFullText('suppliers_name_capabilities_fulltext');
                 });
             }
 
@@ -120,7 +180,21 @@ return new class extends Migration
                 $table->dropColumn('company_id');
             }
 
-            foreach (['country', 'city', 'email', 'phone', 'website', 'status', 'rating_avg'] as $column) {
+            foreach ([
+                'country',
+                'city',
+                'address',
+                'email',
+                'phone',
+                'website',
+                'status',
+                'geo_lat',
+                'geo_lng',
+                'lead_time_days',
+                'moq',
+                'rating_avg',
+                'verified_at',
+            ] as $column) {
                 if (Schema::hasColumn('suppliers', $column)) {
                     $table->dropColumn($column);
                 }
@@ -130,6 +204,26 @@ return new class extends Migration
                 $table->dropSoftDeletes();
             }
         });
+
+        Schema::table('suppliers', function (Blueprint $table): void {
+            foreach ([
+                'rating' => fn (Blueprint $table) => $table->unsignedTinyInteger('rating')->nullable()->after('name'),
+                'materials' => fn (Blueprint $table) => $table->json('materials')->nullable()->after('capabilities'),
+                'location_region' => fn (Blueprint $table) => $table->string('location_region')->nullable()->after('materials'),
+                'min_order_qty' => fn (Blueprint $table) => $table->unsignedInteger('min_order_qty')->nullable()->after('location_region'),
+                'avg_response_hours' => fn (Blueprint $table) => $table->unsignedSmallInteger('avg_response_hours')->nullable()->after('min_order_qty'),
+            ] as $column => $callback) {
+                if (! Schema::hasColumn('suppliers', $column)) {
+                    $callback($table);
+                }
+            }
+        });
+
+        if (Schema::hasColumn('suppliers', 'location_region') && ! $this->indexExists('suppliers', 'suppliers_location_region_index')) {
+            Schema::table('suppliers', function (Blueprint $table): void {
+                $table->index('location_region', 'suppliers_location_region_index');
+            });
+        }
     }
 
     private function indexExists(string $table, string $index): bool

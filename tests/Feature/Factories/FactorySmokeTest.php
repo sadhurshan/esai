@@ -13,7 +13,8 @@ it('creates a supplier via factory', function () {
 
     expect($supplier->exists)->toBeTrue()
         ->and($supplier->capabilities)->toBeArray()
-        ->and($supplier->materials)->toBeArray();
+        ->and($supplier->capabilities['methods'] ?? [])->toBeArray()
+        ->and($supplier->status)->toBe('pending');
 });
 
 it('creates an rfq via factory', function () {

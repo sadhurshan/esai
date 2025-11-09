@@ -105,26 +105,26 @@ class CompanyLifecycleService
             $supplier->fill(array_filter([
                 'name' => $form['company_name'] ?? $company->name,
                 'capabilities' => $form['capabilities'] ?? null,
-                'materials' => $form['materials'] ?? null,
                 'website' => $form['website'] ?? $company->website,
                 'email' => $form['contact_email'] ?? $company->primary_contact_email,
                 'phone' => $form['contact_phone'] ?? $company->phone,
+                'address' => $form['address'] ?? null,
                 'city' => $form['city'] ?? null,
                 'country' => isset($form['country']) ? Str::upper((string) $form['country']) : ($company->country ?? null),
+                'lead_time_days' => $form['lead_time_days'] ?? null,
+                'moq' => $form['moq'] ?? ($form['min_order_qty'] ?? null),
+                'geo_lat' => Arr::get($form, 'geo.lat') ?? Arr::get($form, 'geo.latitude'),
+                'geo_lng' => Arr::get($form, 'geo.lng') ?? Arr::get($form, 'geo.longitude'),
             ], static fn ($value) => $value !== null));
 
             if (! $supplier->exists) {
-                // TODO: clarify default supplier metrics with spec owners.
                 $supplier->fill([
-                    'rating' => 0,
                     'rating_avg' => 0,
-                    'location_region' => $form['region'] ?? ($company->region ?? 'unspecified'),
-                    'min_order_qty' => 0,
-                    'avg_response_hours' => 0,
                 ]);
             }
 
             $supplier->status = 'approved';
+            $supplier->verified_at = now();
             $supplier->save();
 
             $applicationBefore = $application->getOriginal();

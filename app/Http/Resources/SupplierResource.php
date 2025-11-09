@@ -15,13 +15,28 @@ class SupplierResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'company_id' => $this->company_id,
             'name' => $this->name,
-            'rating' => $this->rating,
             'capabilities' => $this->capabilities,
-            'materials' => $this->materials,
-            'location_region' => $this->location_region,
-            'min_order_qty' => $this->min_order_qty,
-            'avg_response_hours' => $this->avg_response_hours,
+            'status' => $this->status,
+            'rating_avg' => $this->rating_avg,
+            'contact' => [
+                'email' => $this->email,
+                'phone' => $this->phone,
+                'website' => $this->website,
+            ],
+            'address' => [
+                'line1' => $this->address,
+                'city' => $this->city,
+                'country' => $this->country,
+            ],
+            'geo' => [
+                'lat' => $this->geo_lat,
+                'lng' => $this->geo_lng,
+            ],
+            'lead_time_days' => $this->lead_time_days,
+            'moq' => $this->moq,
+            'verified_at' => optional($this->verified_at)?->toIso8601String(),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

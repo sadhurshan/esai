@@ -24,25 +24,69 @@ class SupplierController extends ApiController
                 $query->where('suppliers.name', 'like', "%{$search}%");
             }
 
-            if ($method = $request->query('method')) {
-                $query->whereJsonContains('capabilities', $method);
+            if ($capability = $request->query('capability')) {
+                $query->whereJsonContains('suppliers.capabilities->methods', $capability);
             }
 
             if ($material = $request->query('material')) {
-                $query->whereJsonContains('materials', $material);
+                $query->whereJsonContains('suppliers.capabilities->materials', $material);
             }
 
-            if ($region = $request->query('region')) {
-                $query->where('suppliers.location_region', $region);
+            if ($industry = $request->query('industry')) {
+                $query->whereJsonContains('suppliers.capabilities->industries', $industry);
             }
 
-            $sort = $request->query('sort', 'rating');
-            $allowedSorts = ['rating', 'avg_response_hours'];
-            if (! in_array($sort, $allowedSorts, true)) {
-                $sort = 'rating';
+            if ($finish = $request->query('finish')) {
+                $query->whereJsonContains('suppliers.capabilities->finishes', $finish);
             }
 
-            $query->orderBy('suppliers.'.$sort, 'desc');
+            if ($tolerance = $request->query('tolerance')) {
+                $query->whereJsonContains('suppliers.capabilities->tolerances', $tolerance);
+            }
+
+            if ($location = $request->query('location')) {
+                $query->where(function ($locationQuery) use ($location): void {
+                    $locationQuery
+                        ->where('suppliers.country', $location)
+                        ->orWhere('suppliers.city', 'like', "%{$location}%");
+                });
+            }
+
+            if ($certification = $request->query('cert')) {
+                $query->whereHas('documents', function ($documentQuery) use ($certification): void {
+                    $documentQuery->where('type', $certification)->where('status', 'valid');
+                });
+            }
+
+            if ($ratingMin = $request->query('rating_min')) {
+                $query->where('suppliers.rating_avg', '>=', (float) $ratingMin);
+            }
+
+            if ($leadTimeMax = $request->query('lead_time_max')) {
+                $query->where(function ($leadTimeQuery) use ($leadTimeMax): void {
+                    $leadTimeQuery
+                        ->whereNull('suppliers.lead_time_days')
+                        ->orWhere('suppliers.lead_time_days', '<=', (int) $leadTimeMax);
+                });
+            }
+
+            $sort = $request->query('sort', 'match_score');
+
+            switch ($sort) {
+                case 'rating':
+                    $query->orderByDesc('suppliers.rating_avg');
+                    break;
+                case 'lead_time':
+                    $query->orderBy('suppliers.lead_time_days');
+                    break;
+                case 'distance':
+                case 'price_band':
+                case 'match_score':
+                default:
+                    // TODO: clarify distance and price band scoring strategy with spec owners.
+                    $query->orderByDesc('suppliers.rating_avg');
+                    break;
+            }
 
             $paginator = $query->paginate($this->perPage($request))->withQueryString();
 

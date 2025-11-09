@@ -137,7 +137,6 @@ class SchemaAlign extends Command
                     'deleted_at',
                 ],
                 'indexes' => [
-                    ['columns' => ['name'], 'type' => 'unique'],
                     ['columns' => ['slug'], 'type' => 'unique'],
                     ['columns' => ['status']],
                     ['columns' => ['plan_code']],
@@ -150,7 +149,9 @@ class SchemaAlign extends Command
                     'company_id',
                     'name',
                     'email',
+                    'email_verified_at',
                     'password',
+                    'remember_token',
                     'role',
                     'last_login_at',
                     'created_at',
@@ -273,16 +274,21 @@ class SchemaAlign extends Command
                 'columns' => [
                     'id',
                     'supplier_id',
+                    'company_id',
                     'type',
-                    'document_id',
+                    'path',
+                    'mime',
+                    'size_bytes',
+                    'issued_at',
                     'expires_at',
                     'status',
                     'created_at',
                     'updated_at',
+                    'deleted_at',
                 ],
                 'indexes' => [
                     ['columns' => ['supplier_id', 'type']],
-                    ['columns' => ['expires_at']],
+                    ['columns' => ['type', 'expires_at']],
                 ],
             ],
             'rfqs' => [
@@ -403,14 +409,10 @@ class SchemaAlign extends Command
      */
     protected function supplierFulltextColumns(): array
     {
-        $columns = ['name', 'city'];
-
         if (in_array($this->inspector->connection(), ['mysql', 'mariadb'], true)) {
-            $columns[] = 'capabilities_search';
-        } else {
-            $columns[] = 'capabilities';
+            return ['name', 'capabilities_search'];
         }
 
-        return $columns;
+        return ['name', 'capabilities'];
     }
 }

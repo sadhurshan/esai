@@ -15,44 +15,69 @@ class SupplierFactory extends Factory
     public function definition(): array
     {
         $capabilities = [
-            'CNC Milling',
-            'CNC Turning',
-            'Sheet Metal',
-            'Injection Molding',
-            '3D Printing',
+            'methods' => $this->faker->randomElements([
+                'CNC Milling',
+                'CNC Turning',
+                'Sheet Metal Fabrication',
+                'Injection Molding',
+                'Additive Manufacturing',
+                'Die Casting',
+                'Waterjet Cutting',
+            ], $this->faker->numberBetween(2, 5)),
+            'materials' => $this->faker->randomElements([
+                'Aluminum 6061',
+                'Aluminum 7075',
+                'Stainless Steel 304',
+                'Stainless Steel 316',
+                'Mild Steel',
+                'ABS',
+                'PA12',
+                'PEEK',
+                'Copper',
+                'Titanium',
+            ], $this->faker->numberBetween(3, 6)),
+            'tolerances' => $this->faker->randomElements([
+                '+/- 0.010"',
+                '+/- 0.005"',
+                '+/- 0.002"',
+                'ISO 2768-m',
+                'ISO 2768-f',
+            ], $this->faker->numberBetween(1, 3)),
+            'finishes' => $this->faker->randomElements([
+                'Anodizing',
+                'Powder Coat',
+                'Black Oxide',
+                'Passivation',
+                'Polishing',
+            ], $this->faker->numberBetween(1, 3)),
+            'industries' => $this->faker->randomElements([
+                'Aerospace',
+                'Automotive',
+                'Medical',
+                'Industrial Equipment',
+                'Consumer Electronics',
+                'Robotics',
+            ], $this->faker->numberBetween(2, 4)),
         ];
 
-        $materials = [
-            'Aluminum',
-            'Stainless Steel',
-            'Mild Steel',
-            'ABS',
-            'Nylon',
-            'Brass',
-            'Copper',
-        ];
-
-        $regions = [
-            'US-West',
-            'US-East',
-            'Canada',
-            'Mexico',
-            'Germany',
-            'Poland',
-            'United Kingdom',
-            'Japan',
-            'Singapore',
-            'India',
-        ];
+        $country = $this->faker->countryCode();
+        $city = $this->faker->city();
 
         return [
             'name' => $this->faker->unique()->company(),
-            'rating' => $this->faker->numberBetween(3, 5),
-            'capabilities' => $this->faker->randomElements($capabilities, $this->faker->numberBetween(2, 4)),
-            'materials' => $this->faker->randomElements($materials, $this->faker->numberBetween(3, 5)),
-            'location_region' => $this->faker->randomElement($regions),
-            'min_order_qty' => $this->faker->numberBetween(1, 500),
-            'avg_response_hours' => $this->faker->numberBetween(8, 72),
+            'capabilities' => $capabilities,
+            'email' => $this->faker->unique()->companyEmail(),
+            'phone' => $this->faker->phoneNumber(),
+            'website' => $this->faker->url(),
+            'address' => $this->faker->streetAddress(),
+            'country' => strtoupper($country),
+            'city' => $city,
+            'status' => 'pending',
+            'geo_lat' => $this->faker->latitude(),
+            'geo_lng' => $this->faker->longitude(),
+            'lead_time_days' => $this->faker->numberBetween(5, 45),
+            'moq' => $this->faker->numberBetween(1, 500),
+            'rating_avg' => $this->faker->randomFloat(2, 0, 5),
         ];
     }
 }

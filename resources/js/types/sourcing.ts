@@ -10,13 +10,39 @@ export type Paged<T> = {
 
 export interface Supplier {
     id: number;
+    companyId: number;
     name: string;
-    rating: number;
-    capabilities: string[];
-    materials: string[];
-    locationRegion: string;
-    minimumOrderQuantity: number;
-    averageResponseHours: number;
+    status: 'pending' | 'approved' | 'rejected' | 'suspended';
+    capabilities: SupplierCapabilities;
+    ratingAvg: number;
+    contact: {
+        email?: string | null;
+        phone?: string | null;
+        website?: string | null;
+    };
+    address: {
+        line1?: string | null;
+        city?: string | null;
+        country?: string | null;
+    };
+    geo: {
+        lat?: number | null;
+        lng?: number | null;
+    };
+    leadTimeDays?: number | null;
+    moq?: number | null;
+    verifiedAt?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface SupplierCapabilities {
+    methods?: string[];
+    materials?: string[];
+    tolerances?: string[];
+    finishes?: string[];
+    industries?: string[];
+    [key: string]: unknown;
 }
 
 export interface RfqItem {

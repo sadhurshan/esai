@@ -556,7 +556,7 @@ export default function RfqNew() {
                                                 <div className="space-y-1">
                                                     <p className="font-medium text-sm text-foreground">{supplier.name}</p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        Rating {supplier.rating.toFixed(1)} • MOQ {supplier.minimumOrderQuantity}
+                                                        Rating {supplier.ratingAvg.toFixed(1)} • MOQ {supplier.moq ?? '—'} • Lead time {supplier.leadTimeDays ?? '—'} days
                                                     </p>
                                                 </div>
                                             </label>

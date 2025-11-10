@@ -28,11 +28,23 @@ class PurchaseOrder extends Model
         'expected_at',
         'cancelled_at',
         'pdf_document_id',
+        'subtotal',
+        'tax_amount',
+        'total',
+        'subtotal_minor',
+        'tax_amount_minor',
+        'total_minor',
     ];
 
     protected $casts = [
         'tax_percent' => 'decimal:2',
         'revision_no' => 'integer',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'subtotal_minor' => 'integer',
+        'tax_amount_minor' => 'integer',
+        'total_minor' => 'integer',
     ];
 
     public function company(): BelongsTo

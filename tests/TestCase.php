@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Database\Seeders\CurrenciesSeeder;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -15,5 +16,7 @@ abstract class TestCase extends BaseTestCase
             \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
         ]);
+
+        $this->seed(CurrenciesSeeder::class);
     }
 }

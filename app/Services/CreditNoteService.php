@@ -5,12 +5,16 @@ namespace App\Services;
 use App\Enums\CreditNoteStatus;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
+use App\Enums\MoneyRoundRule;
+use App\Models\CompanyMoneySetting;
 use App\Models\CreditNote;
+use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Documents\DocumentStorer;
+use App\Support\Money\Money;
 use App\Support\Notifications\NotificationService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -52,14 +56,44 @@ class CreditNoteService
         $companyId = (int) $invoice->company_id;
         $grnId = $payload['grn_id'] ?? null;
 
-    $amount = $payload['amount'] ?? $invoice->total;
-    // TODO: align default amount with unresolved RMA balances when credit-matching metrics ship.
+        $currency = strtoupper((string) ($invoice->currency ?? ''));
 
-        if (! is_numeric($amount) || (float) $amount <= 0) {
+        if ($currency === '' && $purchaseOrder->currency !== null) {
+            $currency = strtoupper((string) $purchaseOrder->currency);
+        }
+
+        if ($currency === '') {
+            throw ValidationException::withMessages([
+                'currency' => ['Invoice currency context is required.'],
+            ]);
+        }
+
+        if (isset($payload['currency']) && strtoupper((string) $payload['currency']) !== $currency) {
+            throw ValidationException::withMessages([
+                'currency' => ['Credit note currency must match the invoice currency.'],
+            ]);
+        }
+
+        $minorUnit = $this->resolveMinorUnit($currency);
+        $roundRule = $this->resolveRoundRule($companyId);
+
+        $invoiceTotal = Money::fromDecimal((float) $invoice->total, $currency, $minorUnit, $roundRule);
+
+        $amountMinor = $this->resolveAmountMinor($payload['amount'] ?? null, $payload['amount_minor'] ?? null, $currency, $minorUnit, $roundRule);
+
+        if ($amountMinor <= 0) {
             throw ValidationException::withMessages([
                 'amount' => ['Amount must be greater than zero.'],
             ]);
         }
+
+        if ($amountMinor > $invoiceTotal->amountMinor()) {
+            throw ValidationException::withMessages([
+                'amount' => ['Credit amount cannot exceed the invoice total.'],
+            ]);
+        }
+
+        $amountMoney = Money::fromMinor($amountMinor, $currency);
 
         return DB::transaction(function () use (
             $invoice,
@@ -68,7 +102,10 @@ class CreditNoteService
             $creator,
             $attachments,
             $companyId,
-            $amount,
+            $amountMoney,
+            $amountMinor,
+            $currency,
+            $minorUnit,
             $grnId
         ): CreditNote {
             $creditNote = CreditNote::create([
@@ -77,8 +114,9 @@ class CreditNoteService
                 'purchase_order_id' => $purchaseOrder->id,
                 'grn_id' => $grnId,
                 'credit_number' => $this->generateCreditNumber($companyId),
-                'currency' => $invoice->currency,
-                'amount' => (float) $amount,
+                'currency' => $currency,
+                'amount' => $amountMoney->toDecimal($minorUnit),
+                'amount_minor' => $amountMinor,
                 'reason' => $payload['reason'],
                 'status' => CreditNoteStatus::Draft,
                 'review_comment' => null,
@@ -193,11 +231,49 @@ class CreditNoteService
                 ]);
             }
 
-            $invoiceBefore = ['total' => $invoice->total];
-            $invoice->total = max($invoice->total - $creditNote->amount, 0);
+            $invoiceCurrency = strtoupper($invoice->currency ?? $creditNote->currency ?? 'USD');
+            $minorUnit = $this->resolveMinorUnit($invoiceCurrency);
+            $roundRule = $this->resolveRoundRule((int) $creditNote->company_id);
+
+            $creditAmountMinor = $creditNote->amount_minor ?? Money::fromDecimal((float) $creditNote->amount, $invoiceCurrency, $minorUnit, $roundRule)->amountMinor();
+
+            $invoiceTotalMinor = Money::fromDecimal((float) $invoice->total, $invoiceCurrency, $minorUnit, $roundRule)->amountMinor();
+
+            $invoiceTaxMinor = $invoice->tax_amount !== null
+                ? Money::fromDecimal((float) $invoice->tax_amount, $invoiceCurrency, $minorUnit, $roundRule)->amountMinor()
+                : 0;
+
+            $invoiceSubtotalMinor = $invoice->subtotal !== null
+                ? Money::fromDecimal((float) $invoice->subtotal, $invoiceCurrency, $minorUnit, $roundRule)->amountMinor()
+                : max($invoiceTotalMinor - $invoiceTaxMinor, 0);
+
+            $creditMinor = min($creditAmountMinor, $invoiceTotalMinor);
+            $remaining = $creditMinor;
+
+            $taxReduction = min($remaining, $invoiceTaxMinor);
+            $newTaxMinor = max($invoiceTaxMinor - $taxReduction, 0);
+            $remaining -= $taxReduction;
+
+            $newSubtotalMinor = max($invoiceSubtotalMinor - $remaining, 0);
+            $newTotalMinor = max($invoiceTotalMinor - $creditMinor, 0);
+
+            $invoiceBefore = [
+                'subtotal' => $invoice->subtotal,
+                'tax_amount' => $invoice->tax_amount,
+                'total' => $invoice->total,
+            ];
+
+            $invoice->currency = $invoiceCurrency;
+            $invoice->subtotal = Money::fromMinor($newSubtotalMinor, $invoiceCurrency)->toDecimal($minorUnit);
+            $invoice->tax_amount = Money::fromMinor($newTaxMinor, $invoiceCurrency)->toDecimal($minorUnit);
+            $invoice->total = Money::fromMinor($newTotalMinor, $invoiceCurrency)->toDecimal($minorUnit);
             $invoice->save();
 
-            $this->auditLogger->updated($invoice, $invoiceBefore, ['total' => $invoice->total]);
+            $this->auditLogger->updated($invoice, $invoiceBefore, [
+                'subtotal' => $invoice->subtotal,
+                'tax_amount' => $invoice->tax_amount,
+                'total' => $invoice->total,
+            ]);
 
             $creditNoteBefore = $creditNote->getOriginal();
             $creditNote->status = CreditNoteStatus::Applied;
@@ -274,5 +350,42 @@ class CreditNoteService
                 'credit_event' => $creditEvent,
             ]
         );
+    }
+
+    private function resolveAmountMinor(mixed $amount, mixed $amountMinor, string $currency, int $minorUnit, MoneyRoundRule $roundRule): int
+    {
+        if ($amountMinor !== null && is_numeric($amountMinor)) {
+            return (int) $amountMinor;
+        }
+
+        if ($amount === null || ! is_numeric($amount)) {
+            return 0;
+        }
+
+        return Money::fromDecimal((float) $amount, $currency, $minorUnit, $roundRule)->amountMinor();
+    }
+
+    private function resolveMinorUnit(string $currency): int
+    {
+        $record = Currency::query()->where('code', strtoupper($currency))->first();
+
+        if ($record === null) {
+            throw ValidationException::withMessages([
+                'currency' => [sprintf('Currency %s is not configured.', strtoupper($currency))],
+            ]);
+        }
+
+        return (int) $record->minor_unit;
+    }
+
+    private function resolveRoundRule(int $companyId): MoneyRoundRule
+    {
+        $setting = CompanyMoneySetting::query()->where('company_id', $companyId)->first();
+
+        if ($setting === null || $setting->price_round_rule === null) {
+            return MoneyRoundRule::HalfUp;
+        }
+
+        return MoneyRoundRule::from($setting->price_round_rule);
     }
 }

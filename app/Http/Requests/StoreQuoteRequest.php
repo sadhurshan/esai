@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\CompanySupplierStatus;
 use App\Models\RFQ;
 use App\Models\Supplier;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 class StoreQuoteRequest extends ApiFormRequest
@@ -66,7 +67,7 @@ class StoreQuoteRequest extends ApiFormRequest
         return [
             'rfq_id' => ['required', 'integer', 'exists:rfqs,id'],
             'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
-            'currency' => ['required', 'string', 'size:3'],
+            'currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'min_order_qty' => ['nullable', 'integer', 'min:1'],
             'lead_time_days' => ['required', 'integer', 'min:1'],
@@ -77,11 +78,31 @@ class StoreQuoteRequest extends ApiFormRequest
                 'integer',
                 Rule::exists('rfq_items', 'id')->where(fn ($query) => $query->where('rfq_id', $rfqId)),
             ],
-            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.unit_price_minor' => ['nullable', 'integer', 'min:0'],
+            'items.*.currency' => ['nullable', 'string', 'size:3', Rule::exists('currencies', 'code')],
             'items.*.lead_time_days' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string'],
+            'items.*.tax_code_ids' => ['nullable', 'array'],
+            'items.*.tax_code_ids.*' => ['integer', 'min:1'],
             'attachment' => ['nullable', 'file', 'max:10240', 'mimes:step,stp,iges,igs,dwg,dxf,sldprt,3mf,stl,pdf'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator): void {
+            $items = $this->input('items', []);
+
+            foreach ($items as $index => $item) {
+                $hasUnit = isset($item['unit_price']) && $item['unit_price'] !== null;
+                $hasMinor = isset($item['unit_price_minor']) && $item['unit_price_minor'] !== null;
+
+                if (! $hasUnit && ! $hasMinor) {
+                    $validator->errors()->add("items.{$index}.unit_price", 'Provide either unit_price or unit_price_minor for each item.');
+                }
+            }
+        });
     }
 
     public function rfq(): RFQ

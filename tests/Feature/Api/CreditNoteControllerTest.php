@@ -10,13 +10,14 @@ use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Subscription;
+use Database\Seeders\CurrenciesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use function Pest\Laravel\actingAs;
+use function Pest\Laravel\seed;
 use function Pest\Laravel\postJson;
-use function Pest\Laravel\getJson;
 
 uses(RefreshDatabase::class);
 
@@ -47,6 +48,7 @@ function prepareCreditNotePlanContext(array $planOverrides = [], array $companyO
 beforeEach(function (): void {
     Config::set('documents.disk', 's3');
     Storage::fake('s3');
+    seed(CurrenciesSeeder::class);
 });
 
 it('creates and issues a credit note with attachments and notifications', function (): void {
@@ -73,7 +75,10 @@ it('creates and issues a credit note with attachments and notifications', functi
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
+        'subtotal' => 900.00,
+        'tax_amount' => 300.00,
         'total' => 1200.00,
+        'currency' => 'USD',
     ]);
 
     actingAs($user);
@@ -91,13 +96,16 @@ it('creates and issues a credit note with attachments and notifications', functi
     $response->assertCreated()
         ->assertJsonPath('status', 'success')
         ->assertJsonPath('data.status', CreditNoteStatus::Draft->value)
-        ->assertJsonPath('data.amount', '300.00');
+        ->assertJsonPath('data.amount', '300.00')
+        ->assertJsonPath('data.amount_minor', 30000)
+        ->assertJsonPath('data.currency', 'USD');
 
     $creditId = $response->json('data.id');
     expect($creditId)->not->toBeNull();
 
     $creditNote = CreditNote::findOrFail($creditId);
     expect($creditNote->documents()->count())->toBe(1);
+    expect($creditNote->amount_minor)->toBe(30000);
 
     postJson("/api/credit-notes/{$creditNote->id}/issue")
         ->assertOk()
@@ -126,7 +134,10 @@ it('approves a credit note, applies amount, and records usage', function (): voi
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
+        'subtotal' => 800.00,
+        'tax_amount' => 100.00,
         'total' => 900.00,
+        'currency' => 'USD',
     ]);
 
     actingAs($issuer);
@@ -153,7 +164,11 @@ it('approves a credit note, applies amount, and records usage', function (): voi
     ])->assertOk()
         ->assertJsonPath('data.status', CreditNoteStatus::Applied->value);
 
-    expect((float) Invoice::find($invoice->id)?->total)->toBe(700.0);
+    $freshInvoice = Invoice::findOrFail($invoice->id);
+
+    expect((float) $freshInvoice->total)->toBe(700.0);
+    expect((float) $freshInvoice->tax_amount)->toBe(0.0);
+    expect((float) $freshInvoice->subtotal)->toBe(700.0);
     expect($company->fresh()->credit_notes_monthly_used)->toBe(1);
 
     expect(Notification::query()
@@ -179,6 +194,7 @@ it('prevents unauthorized roles from issuing or approving credit notes', functio
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
+        'currency' => 'USD',
     ]);
 
     actingAs($admin);
@@ -238,6 +254,7 @@ it('enforces plan gating for credit notes', function (): void {
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
+        'currency' => 'USD',
     ]);
 
     actingAs($user);

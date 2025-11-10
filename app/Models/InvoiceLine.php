@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InvoiceLine extends Model
@@ -19,6 +20,8 @@ class InvoiceLine extends Model
         'quantity',
         'uom',
         'unit_price',
+        'currency',
+        'unit_price_minor',
     ];
 
     protected $casts = [
@@ -26,6 +29,7 @@ class InvoiceLine extends Model
         'po_line_id' => 'integer',
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
+        'unit_price_minor' => 'integer',
     ];
 
     public function invoice(): BelongsTo
@@ -36,5 +40,10 @@ class InvoiceLine extends Model
     public function purchaseOrderLine(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrderLine::class, 'po_line_id');
+    }
+
+    public function taxes(): MorphMany
+    {
+        return $this->morphMany(LineTax::class, 'taxable')->orderBy('sequence');
     }
 }

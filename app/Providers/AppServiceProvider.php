@@ -26,6 +26,8 @@ use App\Policies\QuotePolicy;
 use App\Policies\RfqClarificationPolicy;
 use App\Policies\SupplierApplicationPolicy;
 use App\Policies\SystemPolicy;
+use App\Models\TaxCode;
+use App\Policies\TaxCodePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -56,5 +58,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(System::class, SystemPolicy::class);
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(MaintenanceProcedure::class, MaintenanceProcedurePolicy::class);
+        Gate::policy(TaxCode::class, TaxCodePolicy::class);
     }
 }

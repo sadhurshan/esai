@@ -4,19 +4,31 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\GoodsReceiptLine;
 use App\Models\GoodsReceiptNote;
+use App\Models\InvoiceLine;
 use App\Models\InvoiceMatch;
 use App\Models\Plan;
+use App\Models\Currency;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Subscription;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\TaxCode;
 use App\Notifications\InvoiceMatchResultNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 function provisionInvoiceContext(int $invoiceCap = 5): array
 {
+    Currency::query()->firstOrCreate(
+        ['code' => 'USD'],
+        [
+            'name' => 'US Dollar',
+            'minor_unit' => 2,
+            'symbol' => '$',
+        ]
+    );
+
     $plan = Plan::factory()->create([
         'code' => 'invoice-'.Str::lower(Str::random(6)),
         'rfqs_per_month' => 25,
@@ -75,6 +87,12 @@ function provisionInvoiceContext(int $invoiceCap = 5): array
         'status' => 'approved',
     ]);
 
+    $taxCode = TaxCode::factory()->for($company)->create([
+        'code' => 'VAT10',
+        'rate_percent' => 10.0,
+        'type' => 'vat',
+    ]);
+
     return [
         'plan' => $plan,
         'company' => $company,
@@ -82,6 +100,7 @@ function provisionInvoiceContext(int $invoiceCap = 5): array
         'purchaseOrder' => $purchaseOrder,
         'poLines' => $poLines,
         'supplier' => $supplier,
+        'taxCode' => $taxCode,
     ];
 }
 
@@ -92,6 +111,7 @@ test('finance user can create invoice and receives match summary', function (): 
         'purchaseOrder' => $purchaseOrder,
         'poLines' => $poLines,
         'supplier' => $supplier,
+        'taxCode' => $taxCode,
     ] = provisionInvoiceContext();
 
     Notification::fake();
@@ -107,6 +127,7 @@ test('finance user can create invoice and receives match summary', function (): 
                 'quantity' => 3,
                 'uom' => 'EA',
                 'unit_price' => 120,
+                'tax_code_ids' => [$taxCode->id],
             ],
             [
                 'po_line_id' => $poLines[1]->id,
@@ -114,6 +135,7 @@ test('finance user can create invoice and receives match summary', function (): 
                 'quantity' => 2,
                 'uom' => 'EA',
                 'unit_price' => 80,
+                'tax_code_ids' => [$taxCode->id],
             ],
         ],
     ];
@@ -139,6 +161,13 @@ test('finance user can create invoice and receives match summary', function (): 
         'total' => '572.00',
     ]);
 
+    $this->assertDatabaseHas('line_taxes', [
+        'taxable_type' => InvoiceLine::class,
+        'company_id' => $company->id,
+        'tax_code_id' => $taxCode->id,
+        'amount_minor' => 3600,
+    ]);
+
     $results = InvoiceMatch::query()
         ->where('invoice_id', $invoiceId)
         ->pluck('result')
@@ -156,6 +185,7 @@ test('invoice creation is blocked when plan invoice cap is exhausted', function 
         'purchaseOrder' => $purchaseOrder,
         'poLines' => $poLines,
         'supplier' => $supplier,
+        'taxCode' => $taxCode,
     ] = provisionInvoiceContext(1);
 
     Notification::fake();
@@ -173,6 +203,7 @@ test('invoice creation is blocked when plan invoice cap is exhausted', function 
                 'quantity' => 1,
                 'uom' => 'EA',
                 'unit_price' => 150,
+                'tax_code_ids' => [$taxCode->id],
             ],
         ],
     ];
@@ -198,6 +229,7 @@ test('price mismatch recalculates invoice match results and notifies finance tea
         'purchaseOrder' => $purchaseOrder,
         'poLines' => $poLines,
         'supplier' => $supplier,
+        'taxCode' => $taxCode,
     ] = provisionInvoiceContext();
 
     Notification::fake();
@@ -213,6 +245,7 @@ test('price mismatch recalculates invoice match results and notifies finance tea
                 'quantity' => 5,
                 'uom' => 'EA',
                 'unit_price' => 110,
+                'tax_code_ids' => [$taxCode->id],
             ],
         ],
     ];
@@ -257,6 +290,13 @@ test('price mismatch recalculates invoice match results and notifies finance tea
         ->assertJsonPath('message', 'Invoice updated.')
         ->assertJsonPath('data.match_summary.price_mismatch', 1)
         ->assertJsonPath('data.total', 825);
+
+    $this->assertDatabaseHas('line_taxes', [
+        'taxable_id' => $invoiceLineId,
+        'taxable_type' => InvoiceLine::class,
+        'tax_code_id' => $taxCode->id,
+        'amount_minor' => 7500,
+    ]);
 
     $matches = InvoiceMatch::query()->where('invoice_id', $invoiceId)->get();
 

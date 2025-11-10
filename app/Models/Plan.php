@@ -35,6 +35,8 @@ class Plan extends Model
         'inventory_enabled',
         'inventory_history_months',
         'pr_enabled',
+        'multi_currency_enabled',
+        'tax_engine_enabled',
     ];
 
     protected $casts = [
@@ -55,6 +57,8 @@ class Plan extends Model
         'inventory_enabled' => 'boolean',
         'inventory_history_months' => 'integer',
         'pr_enabled' => 'boolean',
+        'multi_currency_enabled' => 'boolean',
+        'tax_engine_enabled' => 'boolean',
     ];
 
     public function companies(): HasMany

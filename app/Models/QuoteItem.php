@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\LineTax;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class QuoteItem extends Model
 {
@@ -17,6 +19,8 @@ class QuoteItem extends Model
         'quote_id',
         'rfq_item_id',
         'unit_price',
+        'currency',
+        'unit_price_minor',
         'lead_time_days',
         'note',
         'status',
@@ -24,6 +28,7 @@ class QuoteItem extends Model
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'unit_price_minor' => 'integer',
         'lead_time_days' => 'integer',
         'status' => 'string',
     ];
@@ -41,5 +46,10 @@ class QuoteItem extends Model
     public function award(): HasOne
     {
         return $this->hasOne(RfqItemAward::class);
+    }
+
+    public function taxes(): MorphMany
+    {
+        return $this->morphMany(LineTax::class, 'taxable')->orderBy('sequence');
     }
 }

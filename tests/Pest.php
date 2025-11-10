@@ -1,5 +1,12 @@
 <?php
 
+use App\Models\Company;
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Models\User;
+use Illuminate\Support\Str;
+use function Pest\Laravel\actingAs;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -41,7 +48,32 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function createMoneyFeatureUser(array $planOverrides = [], array $companyOverrides = [], string $role = 'buyer_admin'): User
 {
-    // ..
+    $plan = Plan::factory()->create(array_merge([
+        'code' => 'money-'.Str::lower(Str::random(8)),
+        'multi_currency_enabled' => true,
+        'tax_engine_enabled' => true,
+        'rfqs_per_month' => 50,
+        'invoices_per_month' => 50,
+        'users_max' => 10,
+        'storage_gb' => 10,
+    ], $planOverrides));
+
+    $company = Company::factory()->create(array_merge([
+        'plan_code' => $plan->code,
+        'status' => 'active',
+    ], $companyOverrides));
+
+    Subscription::factory()->for($company)->create([
+        'stripe_status' => 'active',
+    ]);
+
+    $user = User::factory()->for($company)->create([
+        'role' => $role,
+    ]);
+
+    actingAs($user);
+
+    return $user;
 }

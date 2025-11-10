@@ -29,7 +29,7 @@ class QuoteController extends ApiController
 
         $paginator = $rfq
             ->quotes()
-            ->with(['supplier', 'items', 'documents'])
+            ->with(['supplier', 'items.taxes.taxCode', 'items.rfqItem', 'documents'])
             ->orderBy($request->query('sort', 'created_at'), $this->sortDirection($request))
             ->paginate($this->perPage($request))
             ->withQueryString();
@@ -57,6 +57,19 @@ class QuoteController extends ApiController
             ->with('company')
             ->findOrFail((int) $payload['supplier_id']);
 
+        $items = array_map(static function (array $item): array {
+            return [
+                'rfq_item_id' => (int) $item['rfq_item_id'],
+                'unit_price' => array_key_exists('unit_price', $item) ? $item['unit_price'] : null,
+                'unit_price_minor' => array_key_exists('unit_price_minor', $item) ? $item['unit_price_minor'] : null,
+                'currency' => $item['currency'] ?? null,
+                'lead_time_days' => (int) $item['lead_time_days'],
+                'tax_code_ids' => array_map('intval', $item['tax_code_ids'] ?? []),
+                'note' => $item['note'] ?? null,
+                'status' => $item['status'] ?? null,
+            ];
+        }, $payload['items']);
+
         $quote = $this->submitQuoteAction->execute([
             'company_id' => $rfq->company_id,
             'rfq_id' => $rfq->id,
@@ -67,15 +80,10 @@ class QuoteController extends ApiController
             'min_order_qty' => $payload['min_order_qty'] ?? null,
             'lead_time_days' => $payload['lead_time_days'],
             'note' => $payload['note'] ?? null,
-            'items' => array_map(static fn (array $item) => [
-                'rfq_item_id' => (int) $item['rfq_item_id'],
-                'unit_price' => $item['unit_price'],
-                'lead_time_days' => $item['lead_time_days'],
-                'note' => $item['note'] ?? null,
-            ], $payload['items']),
+            'items' => $items,
         ], $request->file('attachment'));
 
-        $quote->load(['supplier', 'items', 'documents']);
+        $quote->load(['supplier', 'items.taxes.taxCode', 'items.rfqItem', 'documents']);
 
         return $this->ok((new QuoteResource($quote))->toArray($request), 'Quote submitted')->setStatusCode(201);
     }

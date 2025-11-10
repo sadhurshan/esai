@@ -39,6 +39,8 @@ class PlanFactory extends Factory
             'inventory_enabled' => false,
             'inventory_history_months' => 12,
             'pr_enabled' => false,
+            'multi_currency_enabled' => false,
+            'tax_engine_enabled' => false,
         ];
     }
 }

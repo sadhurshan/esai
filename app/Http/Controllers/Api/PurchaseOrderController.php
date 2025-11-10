@@ -69,7 +69,13 @@ class PurchaseOrderController extends ApiController
 
         abort_if(! $isBuyer && ! $isSupplier, 403);
 
-        $purchaseOrder->load(['lines', 'rfq', 'quote.supplier', 'changeOrders.proposedByUser']);
+        $purchaseOrder->load([
+            'lines.taxes.taxCode',
+            'lines.rfqItem',
+            'rfq',
+            'quote.supplier',
+            'changeOrders.proposedByUser',
+        ]);
 
         return $this->ok((new PurchaseOrderResource($purchaseOrder))->toArray($request));
     }
@@ -94,7 +100,12 @@ class PurchaseOrderController extends ApiController
             'sent_by_user_id' => $user->id,
         ]);
 
-        $purchaseOrder->load(['lines', 'rfq', 'quote.supplier']);
+        $purchaseOrder->load([
+            'lines.taxes.taxCode',
+            'lines.rfqItem',
+            'rfq',
+            'quote.supplier',
+        ]);
 
         return $this->ok((new PurchaseOrderResource($purchaseOrder))->toArray($request), 'Purchase order issued.');
     }
@@ -137,7 +148,12 @@ class PurchaseOrderController extends ApiController
             'actor_user_id' => $user->id,
         ]);
 
-        $purchaseOrder->load(['lines', 'rfq', 'quote.supplier']);
+        $purchaseOrder->load([
+            'lines.taxes.taxCode',
+            'lines.rfqItem',
+            'rfq',
+            'quote.supplier',
+        ]);
 
         $message = $action === 'accept' ? 'Purchase order acknowledged.' : 'Purchase order rejected by supplier.';
 

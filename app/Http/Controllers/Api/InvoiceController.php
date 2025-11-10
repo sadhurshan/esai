@@ -77,7 +77,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines', 'document', 'matches']);
+    $invoice->load(['lines.taxes.taxCode', 'document', 'matches']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice created.');
     }
@@ -94,7 +94,7 @@ class InvoiceController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $invoice->load(['lines', 'document', 'matches', 'purchaseOrder']);
+    $invoice->load(['lines.taxes.taxCode', 'document', 'matches', 'purchaseOrder']);
 
         if ($user->company_id === null || (int) $invoice->company_id !== (int) $user->company_id) {
             return $this->fail('Invoice not found for this company.', 404);
@@ -119,7 +119,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines', 'document', 'matches']);
+    $invoice->load(['lines.taxes.taxCode', 'document', 'matches']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice updated.');
     }

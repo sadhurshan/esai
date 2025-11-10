@@ -2,14 +2,24 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Currency;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Quote */
 class QuoteResource extends JsonResource
 {
+    private static array $minorUnitCache = [];
+
     public function toArray(Request $request): array
     {
+        $currency = strtoupper($this->currency ?? 'USD');
+        $minorUnit = $this->minorUnitFor($currency);
+
+        $subtotalMinor = $this->subtotal_minor ?? $this->decimalToMinor($this->subtotal, $currency, $minorUnit);
+        $taxMinor = $this->tax_amount_minor ?? $this->decimalToMinor($this->tax_amount, $currency, $minorUnit);
+        $totalMinor = $this->total_minor ?? $this->decimalToMinor($this->total, $currency, $minorUnit);
+
         return [
             'id' => $this->id,
             'rfq_id' => $this->rfq_id,
@@ -18,8 +28,14 @@ class QuoteResource extends JsonResource
                 'id' => $this->supplier?->id,
                 'name' => $this->supplier?->name,
             ]),
-            'currency' => $this->currency,
+            'currency' => $currency,
             'unit_price' => (float) $this->unit_price,
+            'subtotal' => $this->formatMinor($subtotalMinor, $currency, $minorUnit),
+            'subtotal_minor' => $subtotalMinor,
+            'tax_amount' => $this->formatMinor($taxMinor, $currency, $minorUnit),
+            'tax_amount_minor' => $taxMinor,
+            'total' => $this->formatMinor($totalMinor, $currency, $minorUnit),
+            'total_minor' => $totalMinor,
             'min_order_qty' => $this->min_order_qty,
             'lead_time_days' => $this->lead_time_days,
             'note' => $this->note,
@@ -41,5 +57,29 @@ class QuoteResource extends JsonResource
                 ->map(fn ($revision) => (new QuoteRevisionResource($revision))->toArray($request))
                 ->all()),
         ];
+    }
+
+    private function minorUnitFor(string $currency): int
+    {
+        if (! array_key_exists($currency, self::$minorUnitCache)) {
+            $record = Currency::query()->where('code', $currency)->first();
+            self::$minorUnitCache[$currency] = $record?->minor_unit ?? 2;
+        }
+
+        return (int) self::$minorUnitCache[$currency];
+    }
+
+    private function formatMinor(int $amountMinor, string $currency, int $minorUnit): string
+    {
+        return number_format($amountMinor / (10 ** $minorUnit), $minorUnit, '.', '');
+    }
+
+    private function decimalToMinor(mixed $value, string $currency, int $minorUnit): int
+    {
+        if ($value === null) {
+            return 0;
+        }
+
+        return (int) round(((float) $value) * (10 ** $minorUnit));
     }
 }

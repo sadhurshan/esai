@@ -31,6 +31,12 @@ class Quote extends Model
         'revision_no',
         'withdrawn_at',
         'withdraw_reason',
+        'subtotal',
+        'tax_amount',
+        'total',
+        'subtotal_minor',
+        'tax_amount_minor',
+        'total_minor',
     ];
 
     protected $casts = [
@@ -39,6 +45,12 @@ class Quote extends Model
         'lead_time_days' => 'integer',
         'revision_no' => 'integer',
         'withdrawn_at' => 'datetime',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'subtotal_minor' => 'integer',
+        'tax_amount_minor' => 'integer',
+        'total_minor' => 'integer',
     ];
 
     public function rfq(): BelongsTo

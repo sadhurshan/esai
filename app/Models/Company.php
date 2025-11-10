@@ -27,6 +27,9 @@ use App\Models\InventorySetting;
 use App\Models\InventoryTxn;
 use App\Models\ReorderSuggestion;
 use App\Models\ForecastSnapshot;
+use App\Models\CompanyMoneySetting;
+use App\Models\TaxCode;
+use App\Models\LineTax;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -255,6 +258,21 @@ class Company extends Model
     public function forecastSnapshots(): HasMany
     {
         return $this->hasMany(ForecastSnapshot::class);
+    }
+
+    public function moneySetting(): HasOne
+    {
+        return $this->hasOne(CompanyMoneySetting::class);
+    }
+
+    public function taxCodes(): HasMany
+    {
+        return $this->hasMany(TaxCode::class);
+    }
+
+    public function lineTaxes(): HasMany
+    {
+        return $this->hasMany(LineTax::class);
     }
 
     public function purchaseRequisitions(): HasMany

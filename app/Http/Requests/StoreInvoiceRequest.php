@@ -29,6 +29,8 @@ class StoreInvoiceRequest extends ApiFormRequest
             'lines.*.quantity' => ['required', 'integer', 'min:1'],
             'lines.*.uom' => ['nullable', 'string', 'max:16'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0.01'],
+            'lines.*.tax_code_ids' => ['nullable', 'array'],
+            'lines.*.tax_code_ids.*' => ['integer'],
         ];
     }
 

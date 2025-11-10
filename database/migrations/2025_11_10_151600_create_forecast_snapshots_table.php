@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('forecast_snapshots')) {
+            return;
+        }
+
         Schema::create('forecast_snapshots', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
@@ -19,7 +23,10 @@ return new class extends Migration
             $table->decimal('alpha', 4, 3)->nullable();
             $table->timestamps();
 
-            $table->unique(['company_id', 'part_id', 'period_start', 'period_end', 'method']);
+            $table->unique(
+                ['company_id', 'part_id', 'period_start', 'period_end', 'method'],
+                'forecast_snapshots_company_part_period_method_unique'
+            );
             $table->index(['part_id', 'method']);
         });
     }

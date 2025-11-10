@@ -21,11 +21,14 @@ class RfqItem extends Model
         'quantity',
         'uom',
         'target_price',
+        'currency',
+        'target_price_minor',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'target_price' => 'decimal:2',
+        'target_price_minor' => 'integer',
     ];
 
     public function rfq(): BelongsTo

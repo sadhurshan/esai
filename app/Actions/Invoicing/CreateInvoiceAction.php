@@ -11,6 +11,9 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Documents\DocumentStorer;
+use App\Support\Money\Money;
+use App\Services\TotalsCalculator;
+use App\Services\LineTaxSyncService;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -23,6 +26,8 @@ class CreateInvoiceAction
         private readonly DocumentStorer $documentStorer,
         private readonly AuditLogger $auditLogger,
         private readonly DatabaseManager $db,
+        private readonly TotalsCalculator $totalsCalculator,
+        private readonly LineTaxSyncService $lineTaxSync,
     ) {}
 
     /**
@@ -52,8 +57,8 @@ class CreateInvoiceAction
             ]);
         }
 
-        /** @var Collection<int, array<string, mixed>> $linesPayload */
-        $linesPayload = collect($payload['lines'] ?? []);
+    /** @var Collection<int, array<string, mixed>> $linesPayload */
+    $linesPayload = collect($payload['lines'] ?? []);
 
         if ($linesPayload->isEmpty()) {
             throw ValidationException::withMessages([
@@ -68,10 +73,20 @@ class CreateInvoiceAction
         /** @var UploadedFile|null $document */
         $document = $payload['document'] ?? null;
 
-    return $this->db->transaction(function () use ($companyId, $user, $purchaseOrder, $supplierId, $invoiceNumber, $currency, $linesPayload, $document): Invoice {
+        return $this->db->transaction(function () use ($companyId, $user, $purchaseOrder, $supplierId, $invoiceNumber, $currency, $linesPayload, $document): Invoice {
             $resolvedLines = $this->resolveLines($purchaseOrder, $linesPayload);
 
-            $totals = $this->calculateTotals($purchaseOrder, $resolvedLines);
+            $calculation = $this->totalsCalculator->calculate(
+                $companyId,
+                $currency,
+                $resolvedLines->map(fn (array $line): array => [
+                    'quantity' => $line['quantity'],
+                    'unit_price' => $line['unit_price'],
+                    'tax_code_ids' => $line['tax_code_ids'],
+                ])->values()->all()
+            );
+
+            $minorUnit = $calculation['minor_unit'];
 
             $invoice = Invoice::create([
                 'company_id' => $companyId,
@@ -79,21 +94,37 @@ class CreateInvoiceAction
                 'supplier_id' => $supplierId,
                 'invoice_number' => $invoiceNumber,
                 'currency' => strtoupper($currency),
-                'subtotal' => $totals['subtotal'],
-                'tax_amount' => $totals['tax'],
-                'total' => $totals['total'],
+                'subtotal' => $this->formatMinor($calculation['totals']['subtotal_minor'], $currency, $minorUnit),
+                'tax_amount' => $this->formatMinor($calculation['totals']['tax_total_minor'], $currency, $minorUnit),
+                'total' => $this->formatMinor($calculation['totals']['grand_total_minor'], $currency, $minorUnit),
                 'status' => 'pending',
             ]);
 
-            $resolvedLines->each(function (array $line) use ($invoice): void {
-                InvoiceLine::create([
+            $lineResults = collect($calculation['lines'])->keyBy('index');
+
+            $resolvedLines->each(function (array $line, int $index) use ($invoice, $currency, $minorUnit, $lineResults, $companyId): void {
+                $result = $lineResults->get($index);
+
+                if ($result === null) {
+                    throw ValidationException::withMessages([
+                        'lines' => ['Unable to calculate totals for one or more lines.'],
+                    ]);
+                }
+
+                $unitPrice = $this->formatMinor($result['unit_price_minor'], $currency, $minorUnit);
+
+                $invoiceLine = InvoiceLine::create([
                     'invoice_id' => $invoice->id,
                     'po_line_id' => $line['po_line_id'],
                     'description' => $line['description'],
                     'quantity' => $line['quantity'],
                     'uom' => $line['uom'],
-                    'unit_price' => $line['unit_price'],
+                    'currency' => strtoupper($currency),
+                    'unit_price' => $unitPrice,
+                    'unit_price_minor' => $result['unit_price_minor'],
                 ]);
+
+                $this->lineTaxSync->sync($invoiceLine, $companyId, $result['taxes']);
             });
 
             if ($document instanceof UploadedFile) {
@@ -124,7 +155,7 @@ class CreateInvoiceAction
                 $company->increment('invoices_monthly_used');
             }
 
-            $invoice->load(['lines', 'document']);
+            $invoice->load(['lines.taxes.taxCode', 'document']);
 
             $this->auditLogger->created($invoice, ['user_id' => $user->id]);
 
@@ -193,28 +224,16 @@ class CreateInvoiceAction
                 'quantity' => $quantity,
                 'uom' => $line['uom'] ?? $poLine->uom,
                 'unit_price' => $unitPrice,
+                'tax_code_ids' => array_values(array_filter(
+                    array_map('intval', $line['tax_code_ids'] ?? []),
+                    static fn (int $value) => $value > 0
+                )),
             ];
         });
     }
 
-    /**
-     * @param Collection<int, array<string, mixed>> $lines
-     * @return array{subtotal: float, tax: float, total: float}
-     */
-    private function calculateTotals(PurchaseOrder $purchaseOrder, Collection $lines): array
+    private function formatMinor(int $amountMinor, string $currency, int $minorUnit): string
     {
-        $subtotal = $lines->reduce(function (float $carry, array $line): float {
-            return $carry + ($line['quantity'] * $line['unit_price']);
-        }, 0.0);
-
-        $taxPercent = (float) ($purchaseOrder->tax_percent ?? 0);
-        $taxAmount = round($subtotal * ($taxPercent / 100), 2);
-        $total = round($subtotal + $taxAmount, 2);
-
-        return [
-            'subtotal' => round($subtotal, 2),
-            'tax' => $taxAmount,
-            'total' => $total,
-        ];
+        return Money::fromMinor($amountMinor, strtoupper($currency))->toDecimal($minorUnit);
     }
 }

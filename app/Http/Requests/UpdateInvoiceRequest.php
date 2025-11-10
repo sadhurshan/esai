@@ -16,6 +16,8 @@ class UpdateInvoiceRequest extends ApiFormRequest
             'lines.*.description' => ['nullable', 'string', 'max:200'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],
             'lines.*.unit_price' => ['nullable', 'numeric', 'min:0.01'],
+            'lines.*.tax_code_ids' => ['nullable', 'array'],
+            'lines.*.tax_code_ids.*' => ['integer'],
         ];
     }
 

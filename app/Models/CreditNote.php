@@ -24,6 +24,7 @@ class CreditNote extends Model
         'credit_number',
         'currency',
         'amount',
+        'amount_minor',
         'reason',
         'status',
         'review_comment',
@@ -32,6 +33,7 @@ class CreditNote extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'amount_minor' => 'integer',
         'status' => CreditNoteStatus::class,
         'approved_at' => 'datetime',
     ];

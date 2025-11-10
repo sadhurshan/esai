@@ -19,6 +19,11 @@ class CreditNoteFactory extends Factory
 
     public function definition(): array
     {
+        $currency = 'USD';
+        $minorUnit = 2;
+        $amountMinor = $this->faker->numberBetween(5_000, 150_000);
+        $amount = number_format($amountMinor / (10 ** $minorUnit), $minorUnit, '.', '');
+
         return [
             'company_id' => Company::factory(),
             'invoice_id' => Invoice::factory(),
@@ -27,8 +32,9 @@ class CreditNoteFactory extends Factory
             'issued_by' => null,
             'approved_by' => null,
             'credit_number' => 'CN-'.$this->faker->unique()->numerify('########'),
-            'currency' => 'USD',
-            'amount' => $this->faker->randomFloat(2, 50, 1000),
+            'currency' => $currency,
+            'amount' => $amount,
+            'amount_minor' => $amountMinor,
             'reason' => $this->faker->sentence(6),
             'status' => CreditNoteStatus::Draft,
             'review_comment' => null,

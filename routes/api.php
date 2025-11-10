@@ -9,10 +9,13 @@ use App\Http\Controllers\Api\SupplierEsgController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\MoneySettingsController;
+use App\Http\Controllers\Api\FxRateController;
 use App\Http\Controllers\Api\CompanyDocumentController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Api\GoodsReceiptNoteController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\TaxCodeController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
 use App\Http\Controllers\Api\PoChangeOrderController;
@@ -35,6 +38,10 @@ use App\Http\Controllers\Api\ApprovalRequestController;
 use App\Http\Controllers\Api\DelegationController;
 use App\Http\Controllers\Api\RmaController;
 use App\Http\Controllers\Api\CreditNoteController;
+use App\Http\Controllers\Api\QuoteTotalsController;
+use App\Http\Controllers\Api\PoTotalsController;
+use App\Http\Controllers\Api\InvoiceTotalsController;
+use App\Http\Controllers\Api\CreditTotalsController;
 use App\Http\Controllers\Api\DigitalTwin\AssetBomController as DigitalTwinAssetBomController;
 use App\Http\Controllers\Api\DigitalTwin\AssetController as DigitalTwinAssetController;
 use App\Http\Controllers\Api\DigitalTwin\AssetMaintenanceController as DigitalTwinAssetMaintenanceController;
@@ -239,6 +246,21 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
         Route::get('/{creditNote}', [CreditNoteController::class, 'show']);
         Route::post('/{creditNote}/issue', [CreditNoteController::class, 'issue']);
         Route::post('/{creditNote}/approve', [CreditNoteController::class, 'approve']);
+    });
+
+    Route::middleware(['ensure.subscribed', 'ensure.money.access'])->group(function (): void {
+        Route::prefix('money')->group(function (): void {
+            Route::get('settings', [MoneySettingsController::class, 'show']);
+            Route::put('settings', [MoneySettingsController::class, 'update']);
+            Route::get('fx', [FxRateController::class, 'index']);
+            Route::post('fx', [FxRateController::class, 'upsert']);
+            Route::apiResource('tax-codes', TaxCodeController::class)->except(['create', 'edit']);
+        });
+
+        Route::post('quotes/{quote}/recalculate', [QuoteTotalsController::class, 'recalculate']);
+        Route::post('purchase-orders/{purchaseOrder}/recalculate', [PoTotalsController::class, 'recalculate']);
+        Route::post('invoices/{invoice}/recalculate', [InvoiceTotalsController::class, 'recalculate']);
+        Route::post('credit-notes/{creditNote}/recalculate', [CreditTotalsController::class, 'recalculate']);
     });
 
     Route::prefix('approvals')

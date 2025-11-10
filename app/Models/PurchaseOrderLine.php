@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\LineTax;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PurchaseOrderLine extends Model
 {
@@ -21,6 +23,8 @@ class PurchaseOrderLine extends Model
         'quantity',
         'uom',
         'unit_price',
+        'currency',
+        'unit_price_minor',
         'delivery_date',
         'received_qty',
         'receiving_status',
@@ -30,6 +34,7 @@ class PurchaseOrderLine extends Model
         'line_no' => 'integer',
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
+        'unit_price_minor' => 'integer',
         'delivery_date' => 'date',
         'received_qty' => 'integer',
         'rfq_item_award_id' => 'integer',
@@ -48,5 +53,10 @@ class PurchaseOrderLine extends Model
     public function award(): BelongsTo
     {
         return $this->belongsTo(RfqItemAward::class, 'rfq_item_award_id');
+    }
+
+    public function taxes(): MorphMany
+    {
+        return $this->morphMany(LineTax::class, 'taxable')->orderBy('sequence');
     }
 }

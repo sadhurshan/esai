@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierApplicationController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
+use App\Http\Controllers\Api\SavedSearchController;
+use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\Admin\SupplierApplicationReviewController;
 use App\Http\Controllers\Api\ApprovalRuleController;
@@ -148,6 +150,15 @@ Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::middleware(['ensure.search.access'])->group(function (): void {
+        Route::get('search', [SearchController::class, 'index']);
+        Route::get('saved-searches', [SavedSearchController::class, 'index']);
+        Route::post('saved-searches', [SavedSearchController::class, 'store']);
+        Route::get('saved-searches/{savedSearch}', [SavedSearchController::class, 'show']);
+        Route::put('saved-searches/{savedSearch}', [SavedSearchController::class, 'update']);
+        Route::delete('saved-searches/{savedSearch}', [SavedSearchController::class, 'destroy']);
+    });
+
     Route::prefix('analytics')->middleware('ensure.analytics.access')->group(function (): void {
         Route::get('overview', [AnalyticsController::class, 'overview']);
         Route::post('generate', [AnalyticsController::class, 'generate']);

@@ -29,6 +29,7 @@ class Plan extends Model
         'rma_monthly_limit',
         'credit_notes_enabled',
         'global_search_enabled',
+        'quote_revisions_enabled',
     ];
 
     protected $casts = [
@@ -43,6 +44,7 @@ class Plan extends Model
         'rma_monthly_limit' => 'integer',
         'credit_notes_enabled' => 'boolean',
         'global_search_enabled' => 'boolean',
+        'quote_revisions_enabled' => 'boolean',
     ];
 
     public function companies(): HasMany

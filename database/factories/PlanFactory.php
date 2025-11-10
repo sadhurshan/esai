@@ -33,6 +33,7 @@ class PlanFactory extends Factory
             'rma_monthly_limit' => 0,
             'credit_notes_enabled' => false,
             'global_search_enabled' => true,
+            'quote_revisions_enabled' => true,
         ];
     }
 }

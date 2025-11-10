@@ -21,6 +21,8 @@ return new class extends Migration
                 'rfq.clarification.question',
                 'rfq.clarification.answer',
                 'rfq.clarification.amendment',
+                'quote.revision.submitted',
+                'quote.withdrawn',
                 'plan_overlimit',
                 'certificate_expiry',
                 'analytics_query',

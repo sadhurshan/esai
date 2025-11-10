@@ -27,6 +27,8 @@ class QuoteResource extends JsonResource
             'revision_no' => $this->revision_no,
             'submitted_by' => $this->submitted_by,
             'submitted_at' => optional($this->created_at)?->toIso8601String(),
+            'withdrawn_at' => optional($this->withdrawn_at)?->toIso8601String(),
+            'withdraw_reason' => $this->withdraw_reason,
             'items' => QuoteItemResource::collection($this->whenLoaded('items')),
             'attachments' => $this->whenLoaded('documents', fn () => $this->documents->map(fn ($document) => [
                 'id' => $document->id,
@@ -35,6 +37,9 @@ class QuoteResource extends JsonResource
                 'mime' => $document->mime,
                 'size_bytes' => $document->size_bytes,
             ])->all()),
+            'revisions' => $this->whenLoaded('revisions', fn () => $this->revisions
+                ->map(fn ($revision) => (new QuoteRevisionResource($revision))->toArray($request))
+                ->all()),
         ];
     }
 }

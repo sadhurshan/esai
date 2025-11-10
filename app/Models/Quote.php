@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Document;
+use App\Models\QuoteRevision;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +29,8 @@ class Quote extends Model
         'note',
         'status',
         'revision_no',
+        'withdrawn_at',
+        'withdraw_reason',
     ];
 
     protected $casts = [
@@ -34,6 +38,7 @@ class Quote extends Model
         'min_order_qty' => 'integer',
         'lead_time_days' => 'integer',
         'revision_no' => 'integer',
+        'withdrawn_at' => 'datetime',
     ];
 
     public function rfq(): BelongsTo
@@ -59,5 +64,15 @@ class Quote extends Model
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(QuoteRevision::class)->orderBy('revision_no');
     }
 }

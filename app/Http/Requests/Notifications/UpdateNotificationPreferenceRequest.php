@@ -15,6 +15,8 @@ class UpdateNotificationPreferenceRequest extends ApiFormRequest
         $eventTypes = [
             'rfq_created',
             'quote_submitted',
+            'quote.revision.submitted',
+            'quote.withdrawn',
             'po_issued',
             'grn_posted',
             'invoice_created',
@@ -22,6 +24,9 @@ class UpdateNotificationPreferenceRequest extends ApiFormRequest
             'plan_overlimit',
             'certificate_expiry',
             'analytics_query',
+            'rfq.clarification.question',
+            'rfq.clarification.answer',
+            'rfq.clarification.amendment',
         ];
 
         return [

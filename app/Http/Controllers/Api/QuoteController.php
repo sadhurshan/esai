@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Quote\SubmitQuoteAction;
+use App\Exceptions\QuoteActionException;
 use App\Http\Requests\StoreQuoteRequest;
+use App\Http\Requests\Quote\WithdrawQuoteRequest;
 use App\Http\Resources\QuoteResource;
 use App\Models\Quote;
 use App\Models\RFQ;
 use App\Models\Supplier;
+use App\Services\QuoteRevisionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class QuoteController extends ApiController
 {
-    public function __construct(private readonly SubmitQuoteAction $submitQuoteAction) {}
+    public function __construct(
+        private readonly SubmitQuoteAction $submitQuoteAction,
+        private readonly QuoteRevisionService $quoteRevisionService
+    ) {}
 
     public function index(RFQ $rfq, Request $request): JsonResponse
     {
@@ -72,5 +78,69 @@ class QuoteController extends ApiController
         $quote->load(['supplier', 'items', 'documents']);
 
         return $this->ok((new QuoteResource($quote))->toArray($request), 'Quote submitted')->setStatusCode(201);
+    }
+
+    public function withdraw(WithdrawQuoteRequest $request, RFQ $rfq, Quote $quote): JsonResponse
+    {
+        if ((int) $quote->rfq_id !== (int) $rfq->id) {
+            return $this->fail('Quote not found.', 404);
+        }
+
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $quote->loadMissing(['supplier', 'company', 'rfq', 'items', 'documents', 'revisions.document']);
+
+        if ($quote->company !== null) {
+            $quote->company->loadMissing('plan');
+        }
+
+        Gate::authorize('withdraw', $quote);
+
+        if (! $this->planAllowsRevisions($quote)) {
+            return $this->fail('Upgrade required', 402, [
+                'code' => 'quote_revisions_disabled',
+                'upgrade_url' => url('/pricing'),
+            ]);
+        }
+
+        $payload = $request->payload();
+
+        try {
+            $updatedQuote = $this->quoteRevisionService->withdrawQuote(
+                $quote,
+                $user,
+                $payload['reason']
+            );
+        } catch (QuoteActionException $exception) {
+            return $this->fail($exception->getMessage(), $exception->getStatus());
+        }
+
+        $updatedQuote->loadMissing(['supplier', 'items', 'documents', 'revisions.document']);
+
+        return $this->ok(
+            (new QuoteResource($updatedQuote))->toArray($request),
+            'Quote withdrawn'
+        );
+    }
+
+    private function planAllowsRevisions(Quote $quote): bool
+    {
+        $company = $quote->company;
+
+        if ($company === null) {
+            return false;
+        }
+
+        $plan = $company->plan;
+
+        if ($plan === null) {
+            return false;
+        }
+
+        return (bool) $plan->quote_revisions_enabled;
     }
 }

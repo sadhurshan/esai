@@ -38,6 +38,8 @@ class CompanyFactory extends Factory
             'owner_user_id' => null,
             'rfqs_monthly_used' => 0,
             'invoices_monthly_used' => 0,
+            'analytics_usage_months' => 0,
+            'analytics_last_generated_at' => null,
             'storage_used_mb' => 0,
             'stripe_id' => null,
             'plan_code' => 'starter',

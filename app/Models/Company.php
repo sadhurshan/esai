@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
 use App\Models\CompanyDocument;
+use App\Models\CopilotPrompt;
 use App\Models\Plan;
 use App\Models\RFQ;
 use App\Models\Subscription;
@@ -57,7 +58,9 @@ class Company extends Model
         'region',
         'owner_user_id',
         'rfqs_monthly_used',
-    'invoices_monthly_used',
+        'invoices_monthly_used',
+        'analytics_usage_months',
+        'analytics_last_generated_at',
         'storage_used_mb',
         'stripe_id',
         'plan_code',
@@ -78,6 +81,8 @@ class Company extends Model
         'verified_at' => 'datetime',
         'supplier_profile_completed_at' => 'datetime',
         'trial_ends_at' => 'datetime',
+        'analytics_usage_months' => 'integer',
+        'analytics_last_generated_at' => 'datetime',
     ];
 
     public function isSupplierApproved(): bool
@@ -105,6 +110,11 @@ class Company extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class, 'plan_code', 'code');
+    }
+
+    public function copilotPrompts(): HasMany
+    {
+        return $this->hasMany(CopilotPrompt::class);
     }
 
     public function subscriptions(): HasMany

@@ -21,6 +21,7 @@ class UpdateNotificationPreferenceRequest extends ApiFormRequest
             'invoice_status_changed',
             'plan_overlimit',
             'certificate_expiry',
+            'analytics_query',
         ];
 
         return [

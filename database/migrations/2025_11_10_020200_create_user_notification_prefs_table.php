@@ -20,6 +20,7 @@ return new class extends Migration
                 'invoice_status_changed',
                 'plan_overlimit',
                 'certificate_expiry',
+                'analytics_query',
             ]);
             $table->enum('channel', ['push', 'email', 'both'])->default('both');
             $table->enum('digest', ['none', 'daily', 'weekly'])->default('none');

@@ -21,6 +21,7 @@ return new class extends Migration
                 'invoice_status_changed',
                 'plan_overlimit',
                 'certificate_expiry',
+                'analytics_query',
             ]);
             $table->string('title', 191);
             $table->text('body');

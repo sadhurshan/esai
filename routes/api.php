@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
+use App\Http\Controllers\Api\CopilotController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
@@ -129,6 +131,13 @@ Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::prefix('analytics')->middleware('ensure.analytics.access')->group(function (): void {
+        Route::get('overview', [AnalyticsController::class, 'overview']);
+        Route::post('generate', [AnalyticsController::class, 'generate']);
+    });
+
+    Route::post('copilot/analytics', [CopilotController::class, 'handle'])->middleware('ensure.analytics.access');
+
     Route::prefix('notifications')->group(function (): void {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post('mark-all-read', [NotificationController::class, 'markAllRead']);

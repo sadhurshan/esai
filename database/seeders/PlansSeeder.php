@@ -18,27 +18,36 @@ class PlansSeeder extends Seeder
                 'name' => 'Starter',
                 'price_usd' => 2400.00,
                 'rfqs_per_month' => 10,
+                'invoices_per_month' => 20,
                 'users_max' => 5,
                 'storage_gb' => 3,
                 'erp_integrations_max' => 0,
+                'analytics_enabled' => false,
+                'analytics_history_months' => 12,
             ],
             [
                 'code' => 'growth',
                 'name' => 'Growth',
                 'price_usd' => 4800.00,
                 'rfqs_per_month' => 100,
+                'invoices_per_month' => 200,
                 'users_max' => 25,
                 'storage_gb' => 25,
                 'erp_integrations_max' => 1,
+                'analytics_enabled' => true,
+                'analytics_history_months' => 24,
             ],
             [
                 'code' => 'enterprise',
                 'name' => 'Enterprise',
                 'price_usd' => null,
                 'rfqs_per_month' => 0,
+                'invoices_per_month' => 0,
                 'users_max' => 0,
                 'storage_gb' => 0,
                 'erp_integrations_max' => null,
+                'analytics_enabled' => true,
+                'analytics_history_months' => 36,
             ],
         ];
 
@@ -52,7 +61,7 @@ class PlansSeeder extends Seeder
         DB::table('plans')->upsert(
             $payload,
             ['code'],
-            ['name', 'price_usd', 'rfqs_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'updated_at']
+            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'updated_at']
         );
     }
 }

@@ -23,6 +23,8 @@ class PlanFactory extends Factory
             'users_max' => 5,
             'storage_gb' => 3,
             'erp_integrations_max' => 0,
+            'analytics_enabled' => true,
+            'analytics_history_months' => 12,
         ];
     }
 }

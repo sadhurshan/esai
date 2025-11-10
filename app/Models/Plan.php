@@ -14,15 +14,19 @@ class Plan extends Model
         'code',
         'name',
         'price_usd',
-        'rfqs_per_month',
-        'invoices_per_month',
+    'rfqs_per_month',
+    'invoices_per_month',
         'users_max',
         'storage_gb',
         'erp_integrations_max',
+        'analytics_enabled',
+        'analytics_history_months',
     ];
 
     protected $casts = [
         'price_usd' => 'decimal:2',
+        'analytics_enabled' => 'boolean',
+        'analytics_history_months' => 'integer',
     ];
 
     public function companies(): HasMany

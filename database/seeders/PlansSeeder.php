@@ -26,6 +26,8 @@ class PlansSeeder extends Seeder
                 'analytics_history_months' => 12,
                 'risk_scores_enabled' => false,
                 'risk_history_months' => 6,
+                'approvals_enabled' => false,
+                'approval_levels_limit' => 0,
             ],
             [
                 'code' => 'growth',
@@ -40,6 +42,8 @@ class PlansSeeder extends Seeder
                 'analytics_history_months' => 24,
                 'risk_scores_enabled' => true,
                 'risk_history_months' => 24,
+                'approvals_enabled' => true,
+                'approval_levels_limit' => 3,
             ],
             [
                 'code' => 'enterprise',
@@ -54,6 +58,8 @@ class PlansSeeder extends Seeder
                 'analytics_history_months' => 36,
                 'risk_scores_enabled' => true,
                 'risk_history_months' => 36,
+                'approvals_enabled' => true,
+                'approval_levels_limit' => 5,
             ],
         ];
 
@@ -67,7 +73,7 @@ class PlansSeeder extends Seeder
         DB::table('plans')->upsert(
             $payload,
             ['code'],
-            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'updated_at']
+            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'approvals_enabled', 'approval_levels_limit', 'updated_at']
         );
     }
 }

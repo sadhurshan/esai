@@ -21,6 +21,7 @@ return new class extends Migration
                 'plan_overlimit',
                 'certificate_expiry',
                 'analytics_query',
+                'approvals.pending',
             ]);
             $table->enum('channel', ['push', 'email', 'both'])->default('both');
             $table->enum('digest', ['none', 'daily', 'weekly'])->default('none');

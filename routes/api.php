@@ -25,6 +25,9 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\Admin\SupplierApplicationReviewController;
+use App\Http\Controllers\Api\ApprovalRuleController;
+use App\Http\Controllers\Api\ApprovalRequestController;
+use App\Http\Controllers\Api\DelegationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
@@ -166,6 +169,25 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
         Route::get('/', [NotificationPreferenceController::class, 'index']);
         Route::put('/', [NotificationPreferenceController::class, 'update']);
     });
+
+    Route::prefix('approvals')
+        ->middleware(['ensure.approvals.access'])
+        ->group(function (): void {
+            Route::get('rules', [ApprovalRuleController::class, 'index']);
+            Route::get('rules/{rule}', [ApprovalRuleController::class, 'show']);
+            Route::post('rules', [ApprovalRuleController::class, 'store'])->middleware('buyer_admin_only');
+            Route::put('rules/{rule}', [ApprovalRuleController::class, 'update'])->middleware('buyer_admin_only');
+            Route::delete('rules/{rule}', [ApprovalRuleController::class, 'destroy'])->middleware('buyer_admin_only');
+
+            Route::get('requests', [ApprovalRequestController::class, 'index']);
+            Route::get('requests/{approval}', [ApprovalRequestController::class, 'show']);
+            Route::post('requests/{approval}/action', [ApprovalRequestController::class, 'action']);
+
+            Route::get('delegations', [DelegationController::class, 'index']);
+            Route::post('delegations', [DelegationController::class, 'store'])->middleware('buyer_admin_only');
+            Route::delete('delegations/{delegation}', [DelegationController::class, 'destroy'])->middleware('buyer_admin_only');
+            Route::put('delegations/{delegation}', [DelegationController::class, 'store'])->middleware('buyer_admin_only');
+        });
 });
 
 Route::prefix('webhooks/stripe')->group(function (): void {

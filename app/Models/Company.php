@@ -14,6 +14,9 @@ use App\Models\SupplierEsgRecord;
 use App\Models\Supplier;
 use App\Models\SupplierApplication;
 use App\Models\User;
+use App\Models\ApprovalRule;
+use App\Models\Approval;
+use App\Models\Delegation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -178,6 +181,21 @@ class Company extends Model
     public function supplierEsgRecords(): HasMany
     {
         return $this->hasMany(SupplierEsgRecord::class);
+    }
+
+    public function approvalRules(): HasMany
+    {
+        return $this->hasMany(ApprovalRule::class);
+    }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(Approval::class);
+    }
+
+    public function delegations(): HasMany
+    {
+        return $this->hasMany(Delegation::class);
     }
 
     public function supplier(): HasOne

@@ -27,6 +27,8 @@ class PlanFactory extends Factory
             'analytics_history_months' => 12,
             'risk_scores_enabled' => true,
             'risk_history_months' => 12,
+            'approvals_enabled' => false,
+            'approval_levels_limit' => 0,
         ];
     }
 }

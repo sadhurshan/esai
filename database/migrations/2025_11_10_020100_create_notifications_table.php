@@ -22,6 +22,7 @@ return new class extends Migration
                 'plan_overlimit',
                 'certificate_expiry',
                 'analytics_query',
+                'approvals.pending',
             ]);
             $table->string('title', 191);
             $table->text('body');

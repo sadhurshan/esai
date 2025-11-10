@@ -36,6 +36,9 @@ class PlanFactory extends Factory
             'quote_revisions_enabled' => true,
             'digital_twin_enabled' => false,
             'maintenance_enabled' => false,
+            'inventory_enabled' => false,
+            'inventory_history_months' => 12,
+            'pr_enabled' => false,
         ];
     }
 }

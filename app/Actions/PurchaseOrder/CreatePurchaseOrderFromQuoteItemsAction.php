@@ -68,7 +68,7 @@ class CreatePurchaseOrderFromQuoteItemsAction
             ]);
         }
 
-        $po->refresh()->loadMissing(['lines.rfqItem', 'quote.supplier', 'rfq']);
+    $po->refresh()->loadMissing(['lines.rfqItem', 'quote.supplier', 'rfq', 'supplier']);
 
         return [
             'po' => $po,
@@ -85,6 +85,18 @@ class CreatePurchaseOrderFromQuoteItemsAction
         $existing = $query->first();
 
         if ($existing !== null) {
+            if ($existing->supplier_id === null && $supplier->id !== null) {
+                $before = $existing->getOriginal();
+                $existing->fill(['supplier_id' => $supplier->id]);
+
+                if ($existing->isDirty('supplier_id')) {
+                    $changes = ['supplier_id' => $existing->supplier_id];
+                    $existing->save();
+
+                    $this->auditLogger->updated($existing, $before, $changes);
+                }
+            }
+
             return $existing;
         }
 
@@ -92,6 +104,7 @@ class CreatePurchaseOrderFromQuoteItemsAction
             'company_id' => $rfq->company_id,
             'rfq_id' => $rfq->id,
             'quote_id' => $quote?->id,
+            'supplier_id' => $supplier->id,
             'po_number' => $this->generatePoNumber(),
             'currency' => $quote?->currency ?? $rfq->currency ?? 'USD',
             'incoterm' => $rfq->incoterm,

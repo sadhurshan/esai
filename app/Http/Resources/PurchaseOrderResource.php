@@ -21,10 +21,33 @@ class PurchaseOrderResource extends JsonResource
             'revision_no' => $this->revision_no,
             'rfq_id' => $this->rfq_id,
             'quote_id' => $this->quote_id,
-            'supplier' => $this->whenLoaded('quote', fn () => [
-                'id' => $this->quote?->supplier_id,
-                'name' => $this->quote?->supplier?->name,
-            ]),
+            'supplier' => $this->when(
+                $this->relationLoaded('supplier') || $this->relationLoaded('quote'),
+                function () {
+                    if ($this->supplier) {
+                        return [
+                            'id' => $this->supplier->id,
+                            'name' => $this->supplier->name,
+                        ];
+                    }
+
+                    if ($this->quote?->supplier) {
+                        return [
+                            'id' => $this->quote->supplier->id,
+                            'name' => $this->quote->supplier->name,
+                        ];
+                    }
+
+                    if ($this->quote?->supplier_id) {
+                        return [
+                            'id' => $this->quote->supplier_id,
+                            'name' => null,
+                        ];
+                    }
+
+                    return null;
+                }
+            ),
             'rfq' => $this->whenLoaded('rfq', fn () => [
                 'id' => $this->rfq?->id,
                 'number' => $this->rfq?->number,

@@ -13,12 +13,20 @@ use App\Models\SupplierRiskScore;
 use App\Models\SupplierEsgRecord;
 use App\Models\Supplier;
 use App\Models\SupplierApplication;
+use App\Models\PurchaseRequisition;
 use App\Models\User;
 use App\Models\ApprovalRule;
 use App\Models\Approval;
 use App\Models\Delegation;
 use App\Models\Rma;
 use App\Models\CreditNote;
+use App\Models\Warehouse;
+use App\Models\Bin;
+use App\Models\Inventory;
+use App\Models\InventorySetting;
+use App\Models\InventoryTxn;
+use App\Models\ReorderSuggestion;
+use App\Models\ForecastSnapshot;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -212,6 +220,46 @@ class Company extends Model
     public function creditNotes(): HasMany
     {
         return $this->hasMany(CreditNote::class);
+    }
+
+    public function warehouses(): HasMany
+    {
+        return $this->hasMany(Warehouse::class);
+    }
+
+    public function bins(): HasMany
+    {
+        return $this->hasMany(Bin::class);
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
+    public function inventorySettings(): HasMany
+    {
+        return $this->hasMany(InventorySetting::class);
+    }
+
+    public function inventoryTransactions(): HasMany
+    {
+        return $this->hasMany(InventoryTxn::class);
+    }
+
+    public function reorderSuggestions(): HasMany
+    {
+        return $this->hasMany(ReorderSuggestion::class);
+    }
+
+    public function forecastSnapshots(): HasMany
+    {
+        return $this->hasMany(ForecastSnapshot::class);
+    }
+
+    public function purchaseRequisitions(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisition::class);
     }
 
     public function supplier(): HasOne

@@ -23,6 +23,7 @@ class CreatePurchaseOrderFromQuoteAction
                 'company_id' => $quote->company_id,
                 'rfq_id' => $quote->rfq_id,
                 'quote_id' => $quote->id,
+                'supplier_id' => $quote->supplier_id,
                 'po_number' => $this->generatePoNumber(),
                 'currency' => $quote->currency,
                 'status' => 'draft',
@@ -60,7 +61,7 @@ class CreatePurchaseOrderFromQuoteAction
                 $this->auditLogger->updated($rfq, $before, $rfq->getChanges());
             }
 
-            return $po->load('lines');
+            return $po->load(['lines', 'supplier', 'quote.supplier']);
         });
     }
 

@@ -17,12 +17,16 @@ class PurchaseOrder extends Model
         'company_id',
         'rfq_id',
         'quote_id',
+        'supplier_id',
         'po_number',
         'currency',
         'incoterm',
         'tax_percent',
         'status',
         'revision_no',
+        'ordered_at',
+        'expected_at',
+        'cancelled_at',
         'pdf_document_id',
     ];
 
@@ -44,6 +48,11 @@ class PurchaseOrder extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function pdfDocument(): BelongsTo

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Part extends Model
@@ -34,5 +35,30 @@ class Part extends Model
     public function bomItems(): HasMany
     {
         return $this->hasMany(AssetBomItem::class);
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
+    public function inventorySetting(): HasOne
+    {
+        return $this->hasOne(InventorySetting::class);
+    }
+
+    public function forecastSnapshots(): HasMany
+    {
+        return $this->hasMany(ForecastSnapshot::class);
+    }
+
+    public function reorderSuggestions(): HasMany
+    {
+        return $this->hasMany(ReorderSuggestion::class);
+    }
+
+    public function purchaseRequisitionLines(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisitionLine::class);
     }
 }

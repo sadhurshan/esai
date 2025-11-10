@@ -351,17 +351,20 @@ class SchemaAlign extends Command
             'rfq_clarifications' => [
                 'columns' => [
                     'id',
+                    'company_id',
                     'rfq_id',
                     'user_id',
-                    'kind',
+                    'type',
                     'message',
-                    'attachment_id',
-                    'rfq_version',
+                    'attachments_json',
+                    'version_increment',
+                    'version_no',
                     'created_at',
                     'updated_at',
+                    'deleted_at',
                 ],
                 'indexes' => [
-                    ['columns' => ['rfq_id', 'kind']],
+                    ['columns' => ['rfq_id', 'created_at']],
                 ],
             ],
             'quotes' => [

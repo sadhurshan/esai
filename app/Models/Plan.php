@@ -32,6 +32,9 @@ class Plan extends Model
         'quote_revisions_enabled',
         'digital_twin_enabled',
         'maintenance_enabled',
+        'inventory_enabled',
+        'inventory_history_months',
+        'pr_enabled',
     ];
 
     protected $casts = [
@@ -49,6 +52,9 @@ class Plan extends Model
         'quote_revisions_enabled' => 'boolean',
         'digital_twin_enabled' => 'boolean',
         'maintenance_enabled' => 'boolean',
+        'inventory_enabled' => 'boolean',
+        'inventory_history_months' => 'integer',
+        'pr_enabled' => 'boolean',
     ];
 
     public function companies(): HasMany

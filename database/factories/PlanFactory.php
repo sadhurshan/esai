@@ -41,6 +41,8 @@ class PlanFactory extends Factory
             'pr_enabled' => false,
             'multi_currency_enabled' => false,
             'tax_engine_enabled' => false,
+            'data_export_enabled' => false,
+            'export_history_days' => 30,
         ];
     }
 }

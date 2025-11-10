@@ -24,6 +24,16 @@ class AuditLogger
         $this->log($model, 'deleted', $before ?: $model->toArray(), null);
     }
 
+    public function custom(Model $model, string $event, ?array $context = null): void
+    {
+        $payload = array_filter([
+            'event' => $event,
+            'context' => $context,
+        ], static fn ($value) => $value !== null && $value !== []);
+
+        $this->log($model, 'updated', $payload, $payload);
+    }
+
     protected function log(Model $model, string $action, ?array $before, ?array $after): void
     {
         $user = Auth::user();

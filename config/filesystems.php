@@ -60,6 +60,13 @@ return [
             'report' => false,
         ],
 
+        'exports' => [
+            'driver' => 'local',
+            'root' => env('EXPORTS_STORAGE_PATH', '/mnt/data/exports'),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

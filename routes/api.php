@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\QuoteTotalsController;
 use App\Http\Controllers\Api\PoTotalsController;
 use App\Http\Controllers\Api\InvoiceTotalsController;
 use App\Http\Controllers\Api\CreditTotalsController;
+use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\DigitalTwin\AssetBomController as DigitalTwinAssetBomController;
 use App\Http\Controllers\Api\DigitalTwin\AssetController as DigitalTwinAssetController;
 use App\Http\Controllers\Api\DigitalTwin\AssetMaintenanceController as DigitalTwinAssetMaintenanceController;
@@ -239,6 +240,15 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
         Route::get('/{rma}', [RmaController::class, 'show']);
         Route::post('/{rma}/review', [RmaController::class, 'review']);
     });
+
+    Route::prefix('exports')
+        ->middleware(['ensure.subscribed', 'ensure.export.access'])
+        ->group(function (): void {
+            Route::get('/', [ExportController::class, 'index']);
+            Route::post('/', [ExportController::class, 'store']);
+            Route::get('/{exportRequest}', [ExportController::class, 'show']);
+            Route::get('/{exportRequest}/download', [ExportController::class, 'download'])->name('exports.download');
+        });
 
     Route::middleware(['ensure.subscribed', 'ensure.credit_notes.access'])->prefix('credit-notes')->group(function (): void {
         Route::get('/', [CreditNoteController::class, 'index']);

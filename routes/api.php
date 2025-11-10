@@ -28,6 +28,8 @@ use App\Http\Controllers\Api\Admin\SupplierApplicationReviewController;
 use App\Http\Controllers\Api\ApprovalRuleController;
 use App\Http\Controllers\Api\ApprovalRequestController;
 use App\Http\Controllers\Api\DelegationController;
+use App\Http\Controllers\Api\RmaController;
+use App\Http\Controllers\Api\CreditNoteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
@@ -168,6 +170,21 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
     Route::prefix('notification-preferences')->group(function (): void {
         Route::get('/', [NotificationPreferenceController::class, 'index']);
         Route::put('/', [NotificationPreferenceController::class, 'update']);
+    });
+
+    Route::middleware(['ensure.subscribed', 'ensure.rma.access'])->prefix('rmas')->group(function (): void {
+        Route::get('/', [RmaController::class, 'index']);
+        Route::post('/purchase-orders/{purchaseOrder}', [RmaController::class, 'store']);
+        Route::get('/{rma}', [RmaController::class, 'show']);
+        Route::post('/{rma}/review', [RmaController::class, 'review']);
+    });
+
+    Route::middleware(['ensure.subscribed', 'ensure.credit_notes.access'])->prefix('credit-notes')->group(function (): void {
+        Route::get('/', [CreditNoteController::class, 'index']);
+        Route::post('/invoices/{invoice}', [CreditNoteController::class, 'store']);
+        Route::get('/{creditNote}', [CreditNoteController::class, 'show']);
+        Route::post('/{creditNote}/issue', [CreditNoteController::class, 'issue']);
+        Route::post('/{creditNote}/approve', [CreditNoteController::class, 'approve']);
     });
 
     Route::prefix('approvals')

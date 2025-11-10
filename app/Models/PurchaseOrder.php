@@ -70,4 +70,9 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
 }

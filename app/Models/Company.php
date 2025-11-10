@@ -17,6 +17,8 @@ use App\Models\User;
 use App\Models\ApprovalRule;
 use App\Models\Approval;
 use App\Models\Delegation;
+use App\Models\Rma;
+use App\Models\CreditNote;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,7 +68,7 @@ class Company extends Model
         'invoices_monthly_used',
         'analytics_usage_months',
         'analytics_last_generated_at',
-    'risk_scores_monthly_used',
+        'risk_scores_monthly_used',
         'storage_used_mb',
         'stripe_id',
         'plan_code',
@@ -78,6 +80,8 @@ class Company extends Model
         'is_verified',
         'verified_at',
         'verified_by',
+        'rma_monthly_used',
+        'credit_notes_monthly_used',
     ];
 
     protected $casts = [
@@ -89,7 +93,9 @@ class Company extends Model
         'trial_ends_at' => 'datetime',
         'analytics_usage_months' => 'integer',
         'analytics_last_generated_at' => 'datetime',
-    'risk_scores_monthly_used' => 'integer',
+        'risk_scores_monthly_used' => 'integer',
+        'rma_monthly_used' => 'integer',
+        'credit_notes_monthly_used' => 'integer',
     ];
 
     public function isSupplierApproved(): bool
@@ -196,6 +202,16 @@ class Company extends Model
     public function delegations(): HasMany
     {
         return $this->hasMany(Delegation::class);
+    }
+
+    public function rmas(): HasMany
+    {
+        return $this->hasMany(Rma::class);
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
     }
 
     public function supplier(): HasOne

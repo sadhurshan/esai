@@ -23,6 +23,9 @@ return new class extends Migration
                 'certificate_expiry',
                 'analytics_query',
                 'approvals.pending',
+                'rma.raised',
+                'rma.reviewed',
+                'rma.closed',
             ]);
             $table->string('title', 191);
             $table->text('body');

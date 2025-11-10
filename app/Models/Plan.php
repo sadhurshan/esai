@@ -25,6 +25,9 @@ class Plan extends Model
         'risk_history_months',
         'approvals_enabled',
         'approval_levels_limit',
+        'rma_enabled',
+        'rma_monthly_limit',
+        'credit_notes_enabled',
     ];
 
     protected $casts = [
@@ -35,6 +38,9 @@ class Plan extends Model
         'risk_history_months' => 'integer',
         'approvals_enabled' => 'boolean',
         'approval_levels_limit' => 'integer',
+        'rma_enabled' => 'boolean',
+        'rma_monthly_limit' => 'integer',
+        'credit_notes_enabled' => 'boolean',
     ];
 
     public function companies(): HasMany

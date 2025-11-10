@@ -22,6 +22,9 @@ return new class extends Migration
                 'certificate_expiry',
                 'analytics_query',
                 'approvals.pending',
+                'rma.raised',
+                'rma.reviewed',
+                'rma.closed',
             ]);
             $table->enum('channel', ['push', 'email', 'both'])->default('both');
             $table->enum('digest', ['none', 'daily', 'weekly'])->default('none');

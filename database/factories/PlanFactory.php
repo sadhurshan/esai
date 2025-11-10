@@ -29,6 +29,9 @@ class PlanFactory extends Factory
             'risk_history_months' => 12,
             'approvals_enabled' => false,
             'approval_levels_limit' => 0,
+            'rma_enabled' => false,
+            'rma_monthly_limit' => 0,
+            'credit_notes_enabled' => false,
         ];
     }
 }

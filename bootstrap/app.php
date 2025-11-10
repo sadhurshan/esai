@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureApprovalsAccess;
 use App\Http\Middleware\EnsureRmaAccess;
 use App\Http\Middleware\EnsureCreditNotesAccess;
 use App\Http\Middleware\EnsureSearchAccess;
+use App\Http\Middleware\EnsureDigitalTwinAccess;
 use App\Http\Middleware\BuyerAdminOnly;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -51,6 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.rma.access' => EnsureRmaAccess::class,
             'ensure.credit_notes.access' => EnsureCreditNotesAccess::class,
             'ensure.search.access' => EnsureSearchAccess::class,
+            'ensure.digital_twin.access' => EnsureDigitalTwinAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
         ]);
     })

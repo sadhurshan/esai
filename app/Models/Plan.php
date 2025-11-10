@@ -30,6 +30,8 @@ class Plan extends Model
         'credit_notes_enabled',
         'global_search_enabled',
         'quote_revisions_enabled',
+        'digital_twin_enabled',
+        'maintenance_enabled',
     ];
 
     protected $casts = [
@@ -45,6 +47,8 @@ class Plan extends Model
         'credit_notes_enabled' => 'boolean',
         'global_search_enabled' => 'boolean',
         'quote_revisions_enabled' => 'boolean',
+        'digital_twin_enabled' => 'boolean',
+        'maintenance_enabled' => 'boolean',
     ];
 
     public function companies(): HasMany

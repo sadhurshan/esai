@@ -32,6 +32,7 @@ return new class extends Migration
                 'rma.raised',
                 'rma.reviewed',
                 'rma.closed',
+                'maintenance_completed',
             ]);
             $table->enum('channel', ['push', 'email', 'both'])->default('both');
             $table->enum('digest', ['none', 'daily', 'weekly'])->default('none');

@@ -35,6 +35,7 @@ return new class extends Migration
             'rma.raised',
             'rma.reviewed',
             'rma.closed',
+            'maintenance_completed',
         ];
 
         $enumList = "'".implode("','", $events)."'";
@@ -70,6 +71,7 @@ return new class extends Migration
             'rma.raised',
             'rma.reviewed',
             'rma.closed',
+            'maintenance_completed',
         ];
 
         $enumList = "'".implode("','", $events)."'";

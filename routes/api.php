@@ -35,6 +35,12 @@ use App\Http\Controllers\Api\ApprovalRequestController;
 use App\Http\Controllers\Api\DelegationController;
 use App\Http\Controllers\Api\RmaController;
 use App\Http\Controllers\Api\CreditNoteController;
+use App\Http\Controllers\Api\DigitalTwin\AssetBomController as DigitalTwinAssetBomController;
+use App\Http\Controllers\Api\DigitalTwin\AssetController as DigitalTwinAssetController;
+use App\Http\Controllers\Api\DigitalTwin\AssetMaintenanceController as DigitalTwinAssetMaintenanceController;
+use App\Http\Controllers\Api\DigitalTwin\LocationController as DigitalTwinLocationController;
+use App\Http\Controllers\Api\DigitalTwin\MaintenanceProcedureController as DigitalTwinMaintenanceProcedureController;
+use App\Http\Controllers\Api\DigitalTwin\SystemController as DigitalTwinSystemController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
@@ -173,6 +179,20 @@ Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::prefix('digital-twin')
+        ->middleware(['ensure.subscribed', 'ensure.digital_twin.access'])
+        ->group(function (): void {
+            Route::apiResource('locations', DigitalTwinLocationController::class)->except(['create', 'edit']);
+            Route::apiResource('systems', DigitalTwinSystemController::class)->except(['create', 'edit']);
+            Route::apiResource('assets', DigitalTwinAssetController::class)->except(['create', 'edit']);
+            Route::patch('assets/{asset}/status', [DigitalTwinAssetController::class, 'setStatus']);
+            Route::put('assets/{asset}/bom', [DigitalTwinAssetBomController::class, 'sync']);
+            Route::put('assets/{asset}/procedures/{procedure}', [DigitalTwinAssetMaintenanceController::class, 'link']);
+            Route::delete('assets/{asset}/procedures/{procedure}', [DigitalTwinAssetMaintenanceController::class, 'detach']);
+            Route::post('assets/{asset}/procedures/{procedure}/complete', [DigitalTwinAssetMaintenanceController::class, 'complete']);
+            Route::apiResource('procedures', DigitalTwinMaintenanceProcedureController::class)->except(['create', 'edit']);
+        });
+
     Route::middleware(['ensure.search.access'])->group(function (): void {
         Route::get('search', [SearchController::class, 'index']);
         Route::get('saved-searches', [SavedSearchController::class, 'index']);

@@ -33,6 +33,7 @@ return new class extends Migration
                 'rma.raised',
                 'rma.reviewed',
                 'rma.closed',
+                'maintenance_completed',
             ]);
             $table->string('title', 191);
             $table->text('body');

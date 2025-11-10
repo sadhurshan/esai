@@ -34,6 +34,8 @@ class PlanFactory extends Factory
             'credit_notes_enabled' => false,
             'global_search_enabled' => true,
             'quote_revisions_enabled' => true,
+            'digital_twin_enabled' => false,
+            'maintenance_enabled' => false,
         ];
     }
 }

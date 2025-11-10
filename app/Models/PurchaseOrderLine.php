@@ -15,6 +15,7 @@ class PurchaseOrderLine extends Model
     protected $fillable = [
         'purchase_order_id',
         'rfq_item_id',
+        'rfq_item_award_id',
         'line_no',
         'description',
         'quantity',
@@ -31,6 +32,7 @@ class PurchaseOrderLine extends Model
         'unit_price' => 'decimal:2',
         'delivery_date' => 'date',
         'received_qty' => 'integer',
+        'rfq_item_award_id' => 'integer',
     ];
 
     public function purchaseOrder(): BelongsTo
@@ -41,5 +43,10 @@ class PurchaseOrderLine extends Model
     public function rfqItem(): BelongsTo
     {
         return $this->belongsTo(RfqItem::class);
+    }
+
+    public function award(): BelongsTo
+    {
+        return $this->belongsTo(RfqItemAward::class, 'rfq_item_award_id');
     }
 }

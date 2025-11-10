@@ -60,6 +60,19 @@ class RfqClarificationPolicy
         return in_array($user->role, [...self::BUYER_ROLES, ...self::PLATFORM_ROLES], true);
     }
 
+    public function awardLines(User $user, RFQ $rfq): bool
+    {
+        if (! $this->belongsToCompany($user, $rfq)) {
+            return false;
+        }
+
+        if (in_array($user->role, ['owner', 'buyer_admin', 'buyer_requester'], true)) {
+            return true;
+        }
+
+        return in_array($user->role, self::PLATFORM_ROLES, true);
+    }
+
     private function belongsToCompany(User $user, RFQ $rfq): bool
     {
         return $user->company_id !== null && (int) $user->company_id === (int) $rfq->company_id;

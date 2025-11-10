@@ -41,7 +41,8 @@ class RFQ extends Model
         'close_at',
         'deadline_at',
         'sent_at',
-        'status',
+    'status',
+    'is_partially_awarded',
     'version',
     'version_no',
     'current_revision_id',
@@ -61,9 +62,10 @@ class RFQ extends Model
         'close_at' => 'datetime',
         'deadline_at' => 'datetime',
         'sent_at' => 'datetime',
-    'version' => 'integer',
-    'version_no' => 'integer',
-    'current_revision_id' => 'integer',
+        'is_partially_awarded' => 'boolean',
+        'version' => 'integer',
+        'version_no' => 'integer',
+        'current_revision_id' => 'integer',
     ];
 
     public function company(): BelongsTo
@@ -79,6 +81,11 @@ class RFQ extends Model
     public function items(): HasMany
     {
         return $this->hasMany(RfqItem::class, 'rfq_id');
+    }
+
+    public function awards(): HasMany
+    {
+        return $this->hasMany(RfqItemAward::class, 'rfq_id');
     }
 
     public function invitations(): HasMany
@@ -109,5 +116,10 @@ class RFQ extends Model
     public function purchaseOrders(): HasMany
     {
         return $this->hasMany(PurchaseOrder::class, 'rfq_id');
+    }
+
+    public function isPartiallyAwarded(): bool
+    {
+        return (bool) ($this->is_partially_awarded ?? false);
     }
 }

@@ -23,6 +23,8 @@ return new class extends Migration
                 'rfq.clarification.amendment',
                 'quote.revision.submitted',
                 'quote.withdrawn',
+                'rfq_line_awarded',
+                'rfq_line_lost',
                 'plan_overlimit',
                 'certificate_expiry',
                 'analytics_query',

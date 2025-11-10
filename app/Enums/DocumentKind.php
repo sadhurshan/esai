@@ -13,6 +13,7 @@ enum DocumentKind: string
     case Cad = 'cad';
     case Manual = 'manual';
     case Certificate = 'certificate';
+    case EsgPack = 'esg_pack';
     case Other = 'other';
 
     /**

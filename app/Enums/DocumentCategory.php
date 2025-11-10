@@ -10,6 +10,7 @@ enum DocumentCategory: string
     case Logistics = 'logistics';
     case Financial = 'financial';
     case Communication = 'communication';
+    case Esg = 'esg';
     case Other = 'other';
 
     /**

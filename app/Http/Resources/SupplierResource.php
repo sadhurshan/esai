@@ -20,6 +20,7 @@ class SupplierResource extends JsonResource
             'capabilities' => $this->capabilities,
             'status' => $this->status,
             'rating_avg' => $this->rating_avg,
+            'risk_grade' => $this->risk_grade?->value,
             'contact' => [
                 'email' => $this->email,
                 'phone' => $this->phone,

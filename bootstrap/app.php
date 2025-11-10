@@ -2,6 +2,7 @@
 
 use App\Console\Commands\DemoReset;
 use App\Http\Middleware\EnsureAnalyticsAccess;
+use App\Http\Middleware\EnsureRiskAccess;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -40,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.company.onboarded' => \App\Http\Middleware\EnsureCompanyOnboarded::class,
             'ensure.supplier.approved' => \App\Http\Middleware\EnsureSupplierApproved::class,
             'ensure.analytics.access' => EnsureAnalyticsAccess::class,
+            'ensure.risk.access' => EnsureRiskAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

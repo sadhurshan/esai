@@ -78,6 +78,7 @@ class SupplierFactory extends Factory
             'lead_time_days' => $this->faker->numberBetween(5, 45),
             'moq' => $this->faker->numberBetween(1, 500),
             'rating_avg' => $this->faker->randomFloat(2, 0, 5),
+            'risk_grade' => null,
         ];
     }
 }

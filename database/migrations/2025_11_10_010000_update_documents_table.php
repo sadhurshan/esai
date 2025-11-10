@@ -17,6 +17,7 @@ return new class extends Migration
                 'logistics',
                 'financial',
                 'communication',
+                'esg',
                 'other',
             ])->default('other')->after('documentable_id');
 
@@ -62,7 +63,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'mysql') {
             DB::statement(
-                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','po','invoice','supplier','part','cad','manual','certificate','other') NOT NULL DEFAULT 'other'"
+                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','po','invoice','supplier','part','cad','manual','certificate','esg_pack','other') NOT NULL DEFAULT 'other'"
             );
         }
 

@@ -13,7 +13,19 @@ return new class extends Migration
             $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
             $table->string('documentable_type', 160);
             $table->unsignedBigInteger('documentable_id');
-            $table->enum('kind', ['rfq', 'quote', 'po', 'invoice', 'grn', 'ncr', 'supplier', 'template', 'other']);
+            $table->enum('kind', [
+                'rfq',
+                'quote',
+                'po',
+                'invoice',
+                'supplier',
+                'part',
+                'cad',
+                'manual',
+                'certificate',
+                'esg_pack',
+                'other',
+            ]);
             $table->string('path', 255);
             $table->string('filename', 191);
             $table->string('mime', 120);

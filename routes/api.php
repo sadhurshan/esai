@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
 use App\Http\Controllers\Api\CopilotController;
+use App\Http\Controllers\Api\SupplierRiskController;
+use App\Http\Controllers\Api\SupplierEsgController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
@@ -35,6 +37,16 @@ Route::prefix('files')->group(function (): void {
 Route::prefix('suppliers')->group(function (): void {
     Route::get('/', [SupplierController::class, 'index']);
     Route::get('{supplier}', [SupplierController::class, 'show']);
+
+    Route::prefix('{supplier}/esg')
+        ->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'ensure.risk.access'])
+        ->group(function (): void {
+            Route::get('/', [SupplierEsgController::class, 'index']);
+            Route::post('/', [SupplierEsgController::class, 'store']);
+            Route::post('export', [SupplierEsgController::class, 'export']);
+            Route::put('{record}', [SupplierEsgController::class, 'update']);
+            Route::delete('{record}', [SupplierEsgController::class, 'destroy']);
+        });
 });
 
 Route::prefix('supplier-applications')->group(function (): void {
@@ -137,6 +149,12 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
     });
 
     Route::post('copilot/analytics', [CopilotController::class, 'handle'])->middleware('ensure.analytics.access');
+
+    Route::prefix('risk')->middleware(['ensure.subscribed', 'ensure.risk.access'])->group(function (): void {
+        Route::get('/', [SupplierRiskController::class, 'index']);
+        Route::get('{supplier}', [SupplierRiskController::class, 'show']);
+        Route::post('generate', [SupplierRiskController::class, 'generate']);
+    });
 
     Route::prefix('notifications')->group(function (): void {
         Route::get('/', [NotificationController::class, 'index']);

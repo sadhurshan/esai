@@ -25,6 +25,8 @@ class PlanFactory extends Factory
             'erp_integrations_max' => 0,
             'analytics_enabled' => true,
             'analytics_history_months' => 12,
+            'risk_scores_enabled' => true,
+            'risk_history_months' => 12,
         ];
     }
 }

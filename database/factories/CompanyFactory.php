@@ -40,6 +40,7 @@ class CompanyFactory extends Factory
             'invoices_monthly_used' => 0,
             'analytics_usage_months' => 0,
             'analytics_last_generated_at' => null,
+            'risk_scores_monthly_used' => 0,
             'storage_used_mb' => 0,
             'stripe_id' => null,
             'plan_code' => 'starter',

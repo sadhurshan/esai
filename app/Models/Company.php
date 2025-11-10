@@ -9,6 +9,8 @@ use App\Models\CopilotPrompt;
 use App\Models\Plan;
 use App\Models\RFQ;
 use App\Models\Subscription;
+use App\Models\SupplierRiskScore;
+use App\Models\SupplierEsgRecord;
 use App\Models\Supplier;
 use App\Models\SupplierApplication;
 use App\Models\User;
@@ -61,6 +63,7 @@ class Company extends Model
         'invoices_monthly_used',
         'analytics_usage_months',
         'analytics_last_generated_at',
+    'risk_scores_monthly_used',
         'storage_used_mb',
         'stripe_id',
         'plan_code',
@@ -83,6 +86,7 @@ class Company extends Model
         'trial_ends_at' => 'datetime',
         'analytics_usage_months' => 'integer',
         'analytics_last_generated_at' => 'datetime',
+    'risk_scores_monthly_used' => 'integer',
     ];
 
     public function isSupplierApproved(): bool
@@ -164,6 +168,16 @@ class Company extends Model
     public function suppliers(): HasMany
     {
         return $this->hasMany(Supplier::class);
+    }
+
+    public function supplierRiskScores(): HasMany
+    {
+        return $this->hasMany(SupplierRiskScore::class);
+    }
+
+    public function supplierEsgRecords(): HasMany
+    {
+        return $this->hasMany(SupplierEsgRecord::class);
     }
 
     public function supplier(): HasOne

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\RiskGrade;
+use App\Models\SupplierRiskScore;
+use App\Models\SupplierEsgRecord;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Supplier extends Model
@@ -29,8 +33,9 @@ class Supplier extends Model
         'geo_lng',
         'lead_time_days',
         'moq',
-        'rating_avg',
-        'verified_at',
+    'rating_avg',
+    'verified_at',
+    'risk_grade',
     ];
 
     protected $casts = [
@@ -41,6 +46,7 @@ class Supplier extends Model
         'moq' => 'integer',
         'rating_avg' => 'decimal:2',
         'verified_at' => 'datetime',
+        'risk_grade' => RiskGrade::class,
     ];
 
     public function company(): BelongsTo
@@ -56,5 +62,15 @@ class Supplier extends Model
     public function quotes(): HasMany
     {
         return $this->hasMany(Quote::class);
+    }
+
+    public function riskScore(): HasOne
+    {
+        return $this->hasOne(SupplierRiskScore::class);
+    }
+
+    public function esgRecords(): HasMany
+    {
+        return $this->hasMany(SupplierEsgRecord::class);
     }
 }

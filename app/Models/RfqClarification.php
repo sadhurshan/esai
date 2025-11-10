@@ -2,35 +2,78 @@
 
 namespace App\Models;
 
+use App\Enums\RfqClarificationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RfqClarification extends Model
 {
+    /** @use HasFactory<\Database\Factories\RfqClarificationFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
+        'company_id',
         'rfq_id',
         'user_id',
-        'kind',
+        'type',
         'message',
-        'attachment_id',
-        'rfq_version',
+        'attachments_json',
+        'version_increment',
+        'version_no',
     ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'type' => RfqClarificationType::class,
+        'attachments_json' => 'array',
+        'version_increment' => 'boolean',
+        'version_no' => 'integer',
+    ];
+
+    protected $attributes = [
+        'attachments_json' => '[]',
+        'version_increment' => false,
+    ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function rfq(): BelongsTo
     {
-        return $this->belongsTo(RFQ::class);
+        return $this->belongsTo(RFQ::class, 'rfq_id');
     }
 
-    public function author(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
-    public function attachment(): BelongsTo
+    /**
+     * @return list<int>
+     */
+    public function attachmentIds(): array
     {
-        return $this->belongsTo(Document::class, 'attachment_id');
+        $attachments = $this->attachments_json;
+
+        if (! is_array($attachments)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (mixed $value): ?int => is_numeric($value) ? (int) $value : null,
+            $attachments
+        )));
+    }
+
+    public function isAmendment(): bool
+    {
+        return $this->type === RfqClarificationType::Amendment;
     }
 }

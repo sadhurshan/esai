@@ -42,7 +42,9 @@ class RFQ extends Model
         'deadline_at',
         'sent_at',
         'status',
-        'version',
+    'version',
+    'version_no',
+    'current_revision_id',
         'notes',
         'cad_path',
         'client_company',
@@ -59,7 +61,9 @@ class RFQ extends Model
         'close_at' => 'datetime',
         'deadline_at' => 'datetime',
         'sent_at' => 'datetime',
-        'version' => 'integer',
+    'version' => 'integer',
+    'version_no' => 'integer',
+    'current_revision_id' => 'integer',
     ];
 
     public function company(): BelongsTo
@@ -84,7 +88,17 @@ class RFQ extends Model
 
     public function clarifications(): HasMany
     {
-        return $this->hasMany(RfqClarification::class, 'rfq_id');
+        return $this->hasMany(RfqClarification::class, 'rfq_id')->orderBy('created_at');
+    }
+
+    public function incrementVersion(?int $revisionId = null): void
+    {
+        $nextVersion = ($this->version_no ?? $this->version ?? 1) + 1;
+
+        $this->version_no = $nextVersion;
+        $this->version = $nextVersion;
+        $this->current_revision_id = $revisionId;
+        $this->save();
     }
 
     public function quotes(): HasMany

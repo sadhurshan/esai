@@ -68,6 +68,8 @@ class RFQFactory extends Factory
                 'cad/assembly-v1.igs',
                 'cad/demo-plate.stp',
             ]),
+            'version_no' => 1,
+            'version' => 1,
         ];
     }
 }

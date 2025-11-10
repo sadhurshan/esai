@@ -10,7 +10,11 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { home, orders, rfq, suppliers, purchaseOrders } from '@/routes';
+import { home } from '@/routes';
+import rfq from '@/routes/rfq';
+import suppliers from '@/routes/suppliers';
+import purchaseOrders from '@/routes/purchase-orders';
+import orders  from '@/routes/orders';
 import { registration as companyRegistration } from '@/routes/company';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';

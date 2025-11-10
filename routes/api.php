@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
 use App\Http\Controllers\Api\PoChangeOrderController;
 use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\RfqClarificationController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
@@ -77,6 +78,15 @@ Route::prefix('rfqs')->group(function (): void {
     Route::get('{rfq}/quotes', [QuoteController::class, 'index']);
 
     Route::post('{rfq}/award', [AwardController::class, 'store'])->middleware('ensure.company.onboarded');
+
+    Route::prefix('{rfq}/clarifications')
+        ->middleware(['ensure.company.onboarded', 'ensure.subscribed'])
+        ->group(function (): void {
+            Route::get('/', [RfqClarificationController::class, 'index']);
+            Route::post('/question', [RfqClarificationController::class, 'storeQuestion']);
+            Route::post('/answer', [RfqClarificationController::class, 'storeAnswer']);
+            Route::post('/amendment', [RfqClarificationController::class, 'storeAmendment']);
+        });
 });
 
 Route::prefix('orders')->group(function (): void {

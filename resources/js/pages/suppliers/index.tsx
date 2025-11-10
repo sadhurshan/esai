@@ -4,7 +4,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
-import { home, rfq, suppliers as supplierRoutes } from '@/routes';
+import { home } from '@/routes';
+import rfq from '@/routes/rfq';
+import suppliers from '@/routes/suppliers';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Building2, Clock, Factory, MapPin } from 'lucide-react';
@@ -15,7 +17,7 @@ import type { Supplier } from '@/types/sourcing';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Home', href: home().url },
-    { title: 'Supplier Directory', href: supplierRoutes.index().url },
+    { title: 'Supplier Directory', href: suppliers.index().url },
 ];
 
 export default function SuppliersIndex() {

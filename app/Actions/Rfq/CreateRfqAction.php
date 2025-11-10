@@ -46,6 +46,7 @@ class CreateRfqAction
                 'close_at' => $data['close_at'] ?? null,
                 'status' => 'draft',
                 'version' => 1,
+                'version_no' => 1,
             ]);
 
             $lineNo = 1;

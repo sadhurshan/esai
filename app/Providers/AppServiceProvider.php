@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Notification;
 use App\Models\NotificationPreference;
 use App\Models\Quote;
+use App\Models\RFQ;
 use App\Models\SupplierApplication;
 use App\Policies\DocumentPolicy;
 use App\Policies\GoodsReceiptNotePolicy;
@@ -15,6 +16,7 @@ use App\Policies\InvoicePolicy;
 use App\Policies\NotificationPolicy;
 use App\Policies\NotificationPreferencePolicy;
 use App\Policies\QuotePolicy;
+use App\Policies\RfqClarificationPolicy;
 use App\Policies\SupplierApplicationPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -41,5 +43,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(Notification::class, NotificationPolicy::class);
         Gate::policy(NotificationPreference::class, NotificationPreferencePolicy::class);
+        Gate::policy(RFQ::class, RfqClarificationPolicy::class);
     }
 }

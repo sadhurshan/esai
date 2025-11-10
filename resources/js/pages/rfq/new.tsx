@@ -11,7 +11,8 @@ import { useCreateRFQ, type CreateRFQItemInput } from '@/hooks/api/useCreateRFQ'
 import { useSuppliers } from '@/hooks/api/useSuppliers';
 import AppLayout from '@/layouts/app-layout';
 import { ApiError, api } from '@/lib/api';
-import { home, rfq as rfqRoutes } from '@/routes';
+import { home } from '@/routes';
+import rfq  from '@/routes/rfq';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -19,8 +20,8 @@ import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'rea
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Home', href: home().url },
-    { title: 'RFQ', href: rfqRoutes.index().url },
-    { title: 'New RFQ', href: rfqRoutes.new().url },
+    { title: 'RFQ', href: rfq.index().url },
+    { title: 'New RFQ', href: rfq.new().url },
 ];
 
 const cadAcceptTypes = [
@@ -233,7 +234,7 @@ export default function RfqNew() {
         }
 
         try {
-            const rfq = await createRfq({
+            const createdRfq = await createRfq({
                 type: 'manufacture',
                 itemName: form.itemName.trim(),
                 quantity: headerQuantity,
@@ -253,7 +254,7 @@ export default function RfqNew() {
 
             if (selectedSupplierIds.length > 0) {
                 setIsInviting(true);
-                await api.post(`/rfqs/${rfq.id}/invitations`, {
+                await api.post(`/rfqs/${createdRfq.id}/invitations`, {
                     supplier_ids: selectedSupplierIds,
                 });
                 setIsInviting(false);
@@ -267,7 +268,7 @@ export default function RfqNew() {
                 variant: 'success',
             });
 
-            router.visit(rfqRoutes.show({ id: rfq.id }).url);
+            router.visit(rfq.show({ id: createdRfq.id }).url);
         } catch (error) {
             setIsInviting(false);
             const message = error instanceof ApiError ? error.message : 'Unable to publish the RFQ. Please try again.';

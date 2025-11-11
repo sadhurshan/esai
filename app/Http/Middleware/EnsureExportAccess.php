@@ -34,7 +34,7 @@ class EnsureExportAccess
 
         $plan = $company->plan;
 
-        if ($plan === null || ! $plan->data_export_enabled) {
+        if ($plan === null || ! $plan->exports_enabled) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Upgrade required to access data exports.',

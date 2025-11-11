@@ -33,6 +33,7 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
     ]);
 

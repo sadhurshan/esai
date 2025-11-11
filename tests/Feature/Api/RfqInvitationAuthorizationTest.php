@@ -27,6 +27,7 @@ function createSubscribedCompany(array $overrides = []): Company
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::Pending->value,
         'is_verified' => false,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,

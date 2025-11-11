@@ -28,6 +28,7 @@ function prepareSearchContext(array $planOverrides = [], array $companyOverrides
     ], $planOverrides));
 
     $company = Company::factory()->create(array_merge([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
     ], $companyOverrides));

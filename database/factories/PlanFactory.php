@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Plan;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Plan>
@@ -15,8 +16,8 @@ class PlanFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => 'starter',
-            'name' => 'Starter',
+            'code' => 'plan-'.Str::lower(Str::random(8)),
+            'name' => $this->faker->company().' Plan',
             'price_usd' => 2400.00,
             'rfqs_per_month' => 10,
             'invoices_per_month' => 20,
@@ -41,6 +42,9 @@ class PlanFactory extends Factory
             'pr_enabled' => false,
             'multi_currency_enabled' => false,
             'tax_engine_enabled' => false,
+            'localization_enabled' => false,
+            'exports_enabled' => false,
+            'export_row_limit' => 50000,
             'data_export_enabled' => false,
             'export_history_days' => 30,
         ];

@@ -15,7 +15,7 @@ uses(TestCase::class, RefreshDatabase::class);
 
 test('middleware allows request when within limits and active', function (): void {
 
-    Plan::factory()->create([
+    $plan = Plan::factory()->create([
         'code' => 'starter',
         'rfqs_per_month' => 10,
         'users_max' => 5,
@@ -23,7 +23,8 @@ test('middleware allows request when within limits and active', function (): voi
     ]);
 
     $company = Company::factory()->create([
-        'plan_code' => 'starter',
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
         'rfqs_monthly_used' => 5,
         'storage_used_mb' => 500,
     ]);
@@ -52,7 +53,7 @@ test('middleware allows request when within limits and active', function (): voi
 
 test('middleware blocks when rfq limit exceeded', function (): void {
 
-    Plan::factory()->create([
+    $plan = Plan::factory()->create([
         'code' => 'starter',
         'rfqs_per_month' => 10,
         'users_max' => 5,
@@ -60,7 +61,8 @@ test('middleware blocks when rfq limit exceeded', function (): void {
     ]);
 
     $company = Company::factory()->create([
-        'plan_code' => 'starter',
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
         'rfqs_monthly_used' => 11,
         'storage_used_mb' => 100,
     ]);

@@ -35,6 +35,7 @@ function prepareEsgEnvironment(array $planOverrides = []): array
     $plan = Plan::factory()->create(array_merge($defaultPlan, $planOverrides));
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
         'registration_no' => 'REG-2001',

@@ -110,7 +110,7 @@ it('requires enabled plan for export requests', function (): void {
     Bus::fake();
 
     $user = createExportFeatureUser([
-        'data_export_enabled' => false,
+        'exports_enabled' => false,
     ]);
 
     $response = $this->postJson('/api/exports', [

@@ -12,7 +12,7 @@ use function Pest\Laravel\postJson;
 uses(RefreshDatabase::class);
 
 it('blocks rfq creation when monthly limit exceeded', function (): void {
-    Plan::factory()->create([
+    $plan = Plan::factory()->create([
         'code' => 'starter',
         'rfqs_per_month' => 5,
         'users_max' => 5,
@@ -20,7 +20,8 @@ it('blocks rfq creation when monthly limit exceeded', function (): void {
     ]);
 
     $company = Company::factory()->create([
-        'plan_code' => 'starter',
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
         'rfqs_monthly_used' => 5,
     ]);
 

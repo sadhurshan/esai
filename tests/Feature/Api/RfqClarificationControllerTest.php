@@ -29,6 +29,7 @@ function rfqClarificationContext(): array
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'trial_ends_at' => now()->addWeeks(2),
         'rfqs_monthly_used' => 0,

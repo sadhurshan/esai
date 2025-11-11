@@ -1,5 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\ApiKeyController as AdminApiKeyController;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\CompanyFeatureFlagController as AdminCompanyFeatureFlagController;
+use App\Http\Controllers\Admin\EmailTemplateController as AdminEmailTemplateController;
+use App\Http\Controllers\Admin\HealthController as AdminHealthController;
+use App\Http\Controllers\Admin\PlanController as AdminPlanController;
+use App\Http\Controllers\Admin\RateLimitController as AdminRateLimitController;
+use App\Http\Controllers\Admin\WebhookDeliveryController as AdminWebhookDeliveryController;
+use App\Http\Controllers\Admin\WebhookSubscriptionController as AdminWebhookSubscriptionController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
@@ -55,6 +64,28 @@ use App\Http\Controllers\Api\DigitalTwin\SystemController as DigitalTwinSystemCo
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
+
+Route::middleware(['auth', 'admin.guard'])->prefix('admin')->group(function (): void {
+    Route::apiResource('plans', AdminPlanController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::post('companies/{company}/assign-plan', [AdminCompanyController::class, 'assignPlan']);
+    Route::put('companies/{company}/status', [AdminCompanyController::class, 'updateStatus']);
+    Route::get('companies/{company}/feature-flags', [AdminCompanyFeatureFlagController::class, 'index']);
+    Route::post('companies/{company}/feature-flags', [AdminCompanyFeatureFlagController::class, 'store']);
+    Route::put('companies/{company}/feature-flags/{flag}', [AdminCompanyFeatureFlagController::class, 'update']);
+    Route::delete('companies/{company}/feature-flags/{flag}', [AdminCompanyFeatureFlagController::class, 'destroy']);
+    Route::apiResource('email-templates', AdminEmailTemplateController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::post('email-templates/{email_template}/preview', [AdminEmailTemplateController::class, 'preview']);
+    Route::get('api-keys', [AdminApiKeyController::class, 'index']);
+    Route::post('api-keys', [AdminApiKeyController::class, 'store']);
+    Route::post('api-keys/{key}/rotate', [AdminApiKeyController::class, 'rotate']);
+    Route::post('api-keys/{key}/toggle', [AdminApiKeyController::class, 'toggle']);
+    Route::delete('api-keys/{key}', [AdminApiKeyController::class, 'destroy']);
+    Route::apiResource('rate-limits', AdminRateLimitController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::apiResource('webhook-subscriptions', AdminWebhookSubscriptionController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::get('webhook-deliveries', [AdminWebhookDeliveryController::class, 'index']);
+    Route::post('webhook-deliveries/{delivery}/retry', [AdminWebhookDeliveryController::class, 'retry']);
+    Route::get('health', [AdminHealthController::class, 'show']);
+});
 
 Route::prefix('files')->group(function (): void {
     Route::get('cad/{rfq}', [FileController::class, 'cad']);

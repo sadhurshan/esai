@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Company;
+use App\Models\Plan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -45,8 +46,10 @@ class CompanyFactory extends Factory
             'credit_notes_monthly_used' => 0,
             'storage_used_mb' => 0,
             'stripe_id' => null,
-            'plan_code' => 'starter',
+            'plan_id' => Plan::factory(),
+            'plan_code' => null,
             'trial_ends_at' => null,
+            'notes' => null,
         ];
     }
 }

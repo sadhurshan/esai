@@ -38,6 +38,8 @@ class Plan extends Model
         'multi_currency_enabled',
         'tax_engine_enabled',
         'localization_enabled',
+        'exports_enabled',
+        'export_row_limit',
         'data_export_enabled',
         'export_history_days',
     ];
@@ -63,12 +65,14 @@ class Plan extends Model
         'multi_currency_enabled' => 'boolean',
         'tax_engine_enabled' => 'boolean',
         'localization_enabled' => 'boolean',
+        'exports_enabled' => 'boolean',
+        'export_row_limit' => 'integer',
         'data_export_enabled' => 'boolean',
         'export_history_days' => 'integer',
     ];
 
     public function companies(): HasMany
     {
-        return $this->hasMany(Company::class, 'plan_code', 'code');
+        return $this->hasMany(Company::class, 'plan_id');
     }
 }

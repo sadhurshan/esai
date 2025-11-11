@@ -8,5 +8,7 @@ enum CompanyStatus: string
     case PendingVerification = 'pending_verification';
     case Active = 'active';
     case Suspended = 'suspended';
+    case Trial = 'trial';
+    case Closed = 'closed';
     case Rejected = 'rejected';
 }

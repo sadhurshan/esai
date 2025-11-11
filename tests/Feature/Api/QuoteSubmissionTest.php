@@ -35,6 +35,7 @@ it('allows an approved supplier to submit a quote to another company\'s rfq', fu
     $buyerCompany = Company::factory()->create([
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::None->value,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,
@@ -67,6 +68,7 @@ it('allows an approved supplier to submit a quote to another company\'s rfq', fu
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::Approved->value,
         'is_verified' => true,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,
@@ -166,6 +168,7 @@ it('forbids quote submission when the supplier company is not approved even if i
     $buyerCompany = Company::factory()->create([
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::None->value,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,
@@ -198,6 +201,7 @@ it('forbids quote submission when the supplier company is not approved even if i
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::Pending->value,
         'is_verified' => false,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,
@@ -286,6 +290,7 @@ it('requires an invitation when rfq is not open bidding', function (): void {
     $buyerCompany = Company::factory()->create([
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::None->value,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
     ]);
 
@@ -316,6 +321,7 @@ it('requires an invitation when rfq is not open bidding', function (): void {
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::Approved->value,
         'is_verified' => true,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
     ]);
 

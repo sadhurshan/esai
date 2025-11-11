@@ -40,6 +40,7 @@ it('generates risk scores and updates supplier grade', function (): void {
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
         'rfqs_monthly_used' => 0,
@@ -236,6 +237,7 @@ it('enforces risk history limits when usage exceeded', function (): void {
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'risk_scores_monthly_used' => 1,
     ]);
@@ -268,6 +270,7 @@ it('filters risk scores by grade', function (): void {
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
     ]);
 

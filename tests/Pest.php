@@ -61,6 +61,7 @@ function createMoneyFeatureUser(array $planOverrides = [], array $companyOverrid
     ], $planOverrides));
 
     $company = Company::factory()->create(array_merge([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
     ], $companyOverrides));
@@ -82,7 +83,8 @@ function createExportFeatureUser(array $planOverrides = [], array $companyOverri
 {
     $plan = Plan::factory()->create(array_merge([
         'code' => 'export-'.Str::lower(Str::random(8)),
-        'data_export_enabled' => true,
+        'exports_enabled' => true,
+        'export_row_limit' => 50000,
         'export_history_days' => 30,
         'rfqs_per_month' => 50,
         'invoices_per_month' => 50,
@@ -91,6 +93,7 @@ function createExportFeatureUser(array $planOverrides = [], array $companyOverri
     ], $planOverrides));
 
     $company = Company::factory()->create(array_merge([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
     ], $companyOverrides));
@@ -120,6 +123,7 @@ function createLocalizationFeatureUser(array $planOverrides = [], array $company
     ], $planOverrides));
 
     $company = Company::factory()->create(array_merge([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
     ], $companyOverrides));

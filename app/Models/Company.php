@@ -31,11 +31,17 @@ use App\Models\CompanyLocaleSetting;
 use App\Models\CompanyMoneySetting;
 use App\Models\TaxCode;
 use App\Models\LineTax;
+use App\Models\CompanyFeatureFlag;
+use App\Models\ApiKey;
+use App\Models\RateLimit;
+use App\Models\WebhookSubscription;
+use App\Models\WebhookDelivery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -83,8 +89,10 @@ class Company extends Model
         'risk_scores_monthly_used',
         'storage_used_mb',
         'stripe_id',
+    'plan_id',
         'plan_code',
         'trial_ends_at',
+    'notes',
         'rejection_reason',
         'supplier_status',
         'directory_visibility',
@@ -134,7 +142,7 @@ class Company extends Model
 
     public function plan(): BelongsTo
     {
-        return $this->belongsTo(Plan::class, 'plan_code', 'code');
+        return $this->belongsTo(Plan::class, 'plan_id');
     }
 
     public function copilotPrompts(): HasMany
@@ -279,6 +287,36 @@ class Company extends Model
     public function lineTaxes(): HasMany
     {
         return $this->hasMany(LineTax::class);
+    }
+
+    public function featureFlags(): HasMany
+    {
+        return $this->hasMany(CompanyFeatureFlag::class);
+    }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
+
+    public function rateLimits(): HasMany
+    {
+        return $this->hasMany(RateLimit::class);
+    }
+
+    public function webhookSubscriptions(): HasMany
+    {
+        return $this->hasMany(WebhookSubscription::class);
+    }
+
+    public function webhookDeliveries(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            WebhookDelivery::class,
+            WebhookSubscription::class,
+            'company_id',
+            'subscription_id'
+        );
     }
 
     public function purchaseRequisitions(): HasMany

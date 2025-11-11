@@ -88,7 +88,7 @@ class ExportService
 
         $plan = $company->plan;
 
-        if (! $plan instanceof Plan || ! $plan->data_export_enabled) {
+        if (! $plan instanceof Plan || ! $plan->exports_enabled) {
             throw ValidationException::withMessages([
                 'plan' => ['Current plan does not allow data exports.'],
             ]);

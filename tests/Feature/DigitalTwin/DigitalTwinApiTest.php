@@ -30,6 +30,7 @@ function createDigitalTwinUser(bool $maintenanceEnabled = true): User
     ]);
 
     $company = Company::factory()->create([
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'status' => 'active',
         'registration_no' => 'REG-12345',

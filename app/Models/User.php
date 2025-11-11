@@ -3,11 +3,15 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\PlatformAdminRole;
+use App\Models\ApiKey;
 use App\Models\CopilotPrompt;
+use App\Models\PlatformAdmin;
 use App\Models\PurchaseRequisition;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -76,6 +80,40 @@ class User extends Authenticatable
     {
         return $this->hasMany(CopilotPrompt::class);
     }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class, 'owner_user_id');
+    }
+
+    public function platformAdmin(): HasOne
+    {
+        return $this->hasOne(PlatformAdmin::class);
+    }
+
+    public function isPlatformAdmin(?PlatformAdminRole $role = null): bool
+    {
+        $admin = $this->getRelationValue('platformAdmin');
+
+        if ($admin === null) {
+            $admin = $this->platformAdmin()->first();
+        }
+
+        if ($admin === null || ! $admin->enabled) {
+            return false;
+        }
+
+        if ($role === null) {
+            return true;
+        }
+
+        if ($admin->role === PlatformAdminRole::Super) {
+            return true;
+        }
+
+        return $admin->role === $role;
+    }
+
 
     public function getRequiresCompanyOnboardingAttribute(): bool
     {

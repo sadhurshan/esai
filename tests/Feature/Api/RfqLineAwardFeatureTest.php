@@ -50,6 +50,7 @@ function buildRfqAwardScenario(int $rfqItemCount = 3, int $supplierCount = 3): a
     $buyerCompany = Company::factory()->create([
         'status' => CompanyStatus::Active->value,
         'supplier_status' => CompanySupplierStatus::None->value,
+        'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 0,
         'storage_used_mb' => 0,
@@ -105,10 +106,13 @@ function buildRfqAwardScenario(int $rfqItemCount = 3, int $supplierCount = 3): a
     $suppliers = [];
 
     for ($i = 0; $i < $supplierCount; $i++) {
+        $supplierPlan = Plan::factory()->create();
+
         $supplierCompany = Company::factory()->create([
             'status' => CompanyStatus::Active->value,
             'supplier_status' => CompanySupplierStatus::Approved->value,
-            'plan_code' => 'starter',
+            'plan_id' => $supplierPlan->id,
+            'plan_code' => $supplierPlan->code,
         ]);
 
         $supplier = Supplier::factory()

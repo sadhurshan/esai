@@ -2,6 +2,8 @@
 
 use App\Console\Commands\CleanupExpiredExportsCommand;
 use App\Console\Commands\DemoReset;
+use App\Http\Middleware\AdminGuard;
+use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
 use App\Http\Middleware\EnsureRiskAccess;
@@ -14,6 +16,7 @@ use App\Http\Middleware\EnsurePrAccess;
 use App\Http\Middleware\EnsureMoneyAccess;
 use App\Http\Middleware\EnsureLocalizationAccess;
 use App\Http\Middleware\EnsureExportAccess;
+use App\Http\Middleware\RateLimitEnforcer;
 use App\Http\Middleware\BuyerAdminOnly;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -66,6 +69,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.export.access' => EnsureExportAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
             'apply.company.locale' => ApplyCompanyLocale::class,
+            'admin.guard' => AdminGuard::class,
+            'api.key.auth' => ApiKeyAuth::class,
+            'rate.limit.enforcer' => RateLimitEnforcer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

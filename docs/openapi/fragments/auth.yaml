@@ -1,0 +1,148 @@
+paths:
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: API health check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Current API health information.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    required:
+                      - data
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - healthy
+                          - app
+                          - env
+                          - debug
+                        properties:
+                          healthy:
+                            type: boolean
+                          app:
+                            type: string
+                          env:
+                            type: string
+                          debug:
+                            type: boolean
+              examples:
+                default:
+                  summary: Healthy response
+                  value:
+                    status: success
+                    message: null
+                    data:
+                      healthy: true
+                      app: Elements Supply
+                      env: staging
+                      debug: false
+  /api/docs/openapi.json:
+    get:
+      tags:
+        - Health
+      summary: Download compiled OpenAPI document
+      description: Returns the compiled OpenAPI JSON artifact produced by the `api:spec:build` command.
+      operationId: downloadOpenApi
+      security: []
+      responses:
+        '200':
+          description: OpenAPI document.
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                reference:
+                  summary: Fragment of the OpenAPI document
+                  value:
+                    openapi: 3.1.0
+                    info:
+                      title: Elements Supply API
+                      version: "2025.11.0"
+        '404':
+          description: No compiled document found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/docs/postman.json:
+    get:
+      tags:
+        - Health
+      summary: Download Postman collection
+      description: Returns the Postman collection generated from the compiled OpenAPI document.
+      operationId: downloadPostmanCollection
+      security: []
+      responses:
+        '200':
+          description: Postman v2.1 collection file.
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                metadata:
+                  summary: Example collection info
+                  value:
+                    info:
+                      name: Elements Supply API
+                      schema: https://schema.getpostman.com/json/collection/v2.1.0/collection.json
+        '404':
+          description: No generated Postman collection found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+components:
+  schemas:
+    AuthToken:
+      type: object
+      required:
+        - token
+        - type
+        - expires_at
+      properties:
+        token:
+          type: string
+          description: Personal access token value. Store securely.
+        type:
+          type: string
+          description: Token type indicator (always `Bearer`).
+          enum: [Bearer]
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    ApiKeyPreview:
+      type: object
+      required:
+        - id
+        - prefix
+        - created_at
+        - last_used_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        prefix:
+          type: string
+          description: Safe-to-log key prefix (first 6 characters).
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true

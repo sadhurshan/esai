@@ -1,0 +1,478 @@
+components:
+  schemas:
+    MoneySettings:
+      type: object
+      required:
+        - base_currency
+        - pricing_currency
+        - fx_source
+        - price_round_rule
+        - tax_regime
+        - defaults
+      properties:
+        id:
+          type: integer
+          nullable: true
+        company_id:
+          type: integer
+        base_currency:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            name:
+              type: string
+              nullable: true
+            minor_unit:
+              type: integer
+              nullable: true
+            symbol:
+              type: string
+              nullable: true
+        pricing_currency:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            name:
+              type: string
+              nullable: true
+            minor_unit:
+              type: integer
+              nullable: true
+            symbol:
+              type: string
+              nullable: true
+        fx_source:
+          type: string
+          enum: [manual, fixer, openexchangerates]
+        price_round_rule:
+          type: string
+        tax_regime:
+          type: string
+          enum: [exclusive, inclusive]
+        defaults:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    FxRate:
+      type: object
+      required:
+        - id
+        - base_code
+        - quote_code
+        - rate
+        - as_of
+      properties:
+        id:
+          type: integer
+        base_code:
+          type: string
+        quote_code:
+          type: string
+        rate:
+          type: string
+        as_of:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TaxCode:
+      type: object
+      required:
+        - id
+        - company_id
+        - code
+        - name
+        - type
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [vat, gst, sales, withholding, custom]
+        rate_percent:
+          type: number
+          nullable: true
+        is_compound:
+          type: boolean
+        active:
+          type: boolean
+        meta:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+paths:
+  /api/money/settings:
+    get:
+      tags:
+        - Money
+      summary: Retrieve money settings
+      operationId: showMoneySettings
+      responses:
+        '200':
+          description: Money settings for the company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MoneySettings'
+    put:
+      tags:
+        - Money
+      summary: Update money settings
+      operationId: updateMoneySettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base_currency:
+                  type: string
+                pricing_currency:
+                  type: string
+                fx_source:
+                  type: string
+                price_round_rule:
+                  type: string
+                tax_regime:
+                  type: string
+                defaults:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Money settings updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/money/fx:
+    get:
+      tags:
+        - Money
+      summary: List FX rates
+      operationId: listFxRates
+      parameters:
+        - name: base_code
+          in: query
+          schema:
+            type: string
+        - name: quote_code
+          in: query
+          schema:
+            type: string
+        - name: as_of
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Paginated FX rates.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/FxRate'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+    post:
+      tags:
+        - Money
+      summary: Upsert FX rates
+      operationId: upsertFxRates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rows
+              properties:
+                rows:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - base_code
+                      - quote_code
+                      - rate
+                      - as_of
+                    properties:
+                      base_code:
+                        type: string
+                      quote_code:
+                        type: string
+                      rate:
+                        type: number
+                      as_of:
+                        type: string
+                        format: date
+      responses:
+        '200':
+          description: FX rates updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/money/tax-codes:
+    get:
+      tags:
+        - Money
+      summary: List tax codes
+      operationId: listTaxCodes
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cursor paginated tax codes.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/TaxCode'
+                      meta:
+                        $ref: '#/components/schemas/CursorMeta'
+    post:
+      tags:
+        - Money
+      summary: Create tax code
+      operationId: createTaxCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - name
+                - type
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+                type:
+                  type: string
+                rate_percent:
+                  type: number
+                  nullable: true
+                is_compound:
+                  type: boolean
+                active:
+                  type: boolean
+      responses:
+        '201':
+          description: Tax code created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/money/tax-codes/{taxCodeId}:
+    parameters:
+      - name: taxCodeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Money
+      summary: Retrieve tax code
+      operationId: showTaxCode
+      responses:
+        '200':
+          description: Tax code details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaxCode'
+    put:
+      tags:
+        - Money
+      summary: Update tax code
+      operationId: updateTaxCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                rate_percent:
+                  type: number
+                  nullable: true
+                is_compound:
+                  type: boolean
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Tax code updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Money
+      summary: Delete tax code
+      operationId: deleteTaxCode
+      responses:
+        '200':
+          description: Tax code removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/quotes/{quoteId}/recalculate:
+    post:
+      tags:
+        - Money
+      summary: Recalculate quote totals
+      operationId: recalcQuoteTotals
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Quote totals recalculated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/purchase-orders/{purchaseOrderId}/recalculate:
+    post:
+      tags:
+        - Money
+      summary: Recalculate purchase order totals
+      operationId: recalcPurchaseOrderTotals
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Purchase order totals recalculated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invoices/{invoiceId}/recalculate:
+    post:
+      tags:
+        - Money
+      summary: Recalculate invoice totals
+      operationId: recalcInvoiceTotals
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice totals recalculated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/credit-notes/{creditNoteId}/recalculate:
+    post:
+      tags:
+        - Money
+      summary: Recalculate credit note totals
+      operationId: recalcCreditNoteTotals
+      parameters:
+        - name: creditNoteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Credit note totals recalculated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

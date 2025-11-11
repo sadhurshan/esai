@@ -1,5 +1,8 @@
 <?php
 
+use App\Console\Commands\ApiSpecBuildCommand;
+use App\Console\Commands\ApiSpecPostmanCommand;
+use App\Console\Commands\ApiSpecSdkTypescriptCommand;
 use App\Console\Commands\CleanupExpiredExportsCommand;
 use App\Console\Commands\DemoReset;
 use App\Http\Middleware\AdminGuard;
@@ -35,6 +38,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         DemoReset::class,
         CleanupExpiredExportsCommand::class,
+        ApiSpecBuildCommand::class,
+        ApiSpecPostmanCommand::class,
+        ApiSpecSdkTypescriptCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

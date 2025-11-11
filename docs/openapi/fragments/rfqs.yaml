@@ -1,0 +1,740 @@
+components:
+  schemas:
+    Rfq:
+      type: object
+      required:
+        - id
+        - number
+        - item_name
+        - type
+        - quantity
+        - material
+        - method
+        - status
+        - is_open_bidding
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        item_name:
+          type: string
+        type:
+          type: string
+          enum: [ready_made, manufacture]
+        quantity:
+          type: integer
+          minimum: 1
+        material:
+          type: string
+        method:
+          type: string
+        tolerance:
+          type: string
+          nullable: true
+        finish:
+          type: string
+          nullable: true
+        client_company:
+          type: string
+        status:
+          type: string
+          enum: [awaiting, open, closed, awarded, cancelled]
+        deadline_at:
+          type: string
+          format: date-time
+          nullable: true
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_open_bidding:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+        cad_path:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RfqItem'
+        quotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteSummary'
+    RfqItem:
+      type: object
+      required:
+        - id
+        - line_no
+        - part_name
+        - quantity
+      properties:
+        id:
+          type: string
+          format: uuid
+        line_no:
+          type: integer
+        part_name:
+          type: string
+        spec:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+          minimum: 1
+        uom:
+          type: string
+          nullable: true
+        target_price:
+          type: number
+          format: float
+          nullable: true
+    QuoteSummary:
+      type: object
+      required:
+        - id
+        - rfq_id
+        - supplier_id
+        - status
+        - total_minor
+      properties:
+        id:
+          type: string
+          format: uuid
+        rfq_id:
+          type: string
+          format: uuid
+        supplier_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        total:
+          type: string
+        total_minor:
+          type: integer
+        currency:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfqCollection:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rfq'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    RfqInvitation:
+      type: object
+      required:
+        - id
+        - supplier_id
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        supplier_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        invited_at:
+          type: string
+          format: date-time
+        responded_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfqClarification:
+      type: object
+      required:
+        - id
+        - rfq_id
+        - type
+        - body
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        rfq_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [question, answer, amendment]
+        body:
+          type: string
+        author:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              filename:
+                type: string
+              url:
+                type: string
+    AwardLinesRequest:
+      type: object
+      required:
+        - lines
+      properties:
+        lines:
+          type: array
+          items:
+            type: object
+            required:
+              - rfq_item_id
+              - quote_id
+              - quantity
+            properties:
+              rfq_item_id:
+                type: string
+                format: uuid
+              quote_id:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+paths:
+  /api/rfqs:
+    get:
+      tags:
+        - RFQs
+      summary: List RFQs
+      operationId: listRfqs
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - name: tab
+          in: query
+          schema:
+            type: string
+            enum: [all, open, received, sent]
+          required: false
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [sent_at, deadline_at]
+        - name: sort_direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Collection of RFQs visible to the current tenant.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqCollection'
+              examples:
+                default:
+                  summary: RFQ listing
+                  value:
+                    status: success
+                    message: null
+                    data:
+                      items:
+                        - id: 3c3f9b08-8a89-4a5f-9074-828840fe3f4f
+                          number: "00421"
+                          item_name: Precision Bracket
+                          type: manufacture
+                          quantity: 250
+                          material: Aluminum 6061
+                          method: CNC Milling
+                          status: open
+                          is_open_bidding: true
+                          deadline_at: 2025-11-30T23:59:59Z
+                          sent_at: 2025-11-01T16:30:12Z
+                          notes: Supplier must certify ISO 9001.
+                          created_at: 2025-10-28T13:01:45Z
+                          updated_at: 2025-10-28T13:05:12Z
+                      meta:
+                        total: 1
+                        per_page: 15
+                        current_page: 1
+                        last_page: 1
+    post:
+      tags:
+        - RFQs
+      summary: Create RFQ
+      operationId: createRfq
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - item_name
+                - type
+                - quantity
+                - material
+                - method
+                - client_company
+                - status
+                - items
+              properties:
+                item_name:
+                  type: string
+                type:
+                  type: string
+                  enum: [ready_made, manufacture]
+                quantity:
+                  type: integer
+                material:
+                  type: string
+                method:
+                  type: string
+                tolerance:
+                  type: string
+                  nullable: true
+                finish:
+                  type: string
+                  nullable: true
+                client_company:
+                  type: string
+                status:
+                  type: string
+                  enum: [awaiting, open, closed, awarded, cancelled]
+                deadline_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                is_open_bidding:
+                  type: boolean
+                notes:
+                  type: string
+                  nullable: true
+                cad:
+                  type: string
+                  format: binary
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - part_name
+                      - quantity
+                    properties:
+                      part_name:
+                        type: string
+                      spec:
+                        type: string
+                        nullable: true
+                      quantity:
+                        type: integer
+                        minimum: 1
+                      uom:
+                        type: string
+                        nullable: true
+                      target_price:
+                        type: number
+                        format: float
+                        nullable: true
+      responses:
+        '201':
+          description: RFQ created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: Retrieve RFQ
+      operationId: showRfq
+      responses:
+        '200':
+          description: RFQ details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - RFQs
+      summary: Update RFQ
+      operationId: updateRfq
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                item_name:
+                  type: string
+                type:
+                  type: string
+                quantity:
+                  type: integer
+                material:
+                  type: string
+                method:
+                  type: string
+                tolerance:
+                  type: string
+                  nullable: true
+                finish:
+                  type: string
+                  nullable: true
+                status:
+                  type: string
+                  enum: [awaiting, open, closed, awarded, cancelled]
+                is_open_bidding:
+                  type: boolean
+                notes:
+                  type: string
+                  nullable: true
+                deadline_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                cad:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: RFQ updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - RFQs
+      summary: Delete RFQ
+      operationId: deleteRfq
+      responses:
+        '200':
+          description: RFQ deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfqs/{rfqId}/invitations:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: List RFQ invitations
+      operationId: listRfqInvitations
+      responses:
+        '200':
+          description: Invitations for the given RFQ.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqInvitation'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+    post:
+      tags:
+        - RFQs
+      summary: Invite supplier to RFQ
+      operationId: inviteSupplierToRfq
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - supplier_id
+              properties:
+                supplier_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Invitation created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/clarifications:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: List clarifications
+      operationId: listRfqClarifications
+      responses:
+        '200':
+          description: Clarifications for the RFQ.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqClarification'
+  /api/rfqs/{rfqId}/clarifications/question:
+    post:
+      tags:
+        - RFQs
+      summary: Submit clarification question
+      operationId: createRfqClarificationQuestion
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+      responses:
+        '201':
+          description: Question submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/clarifications/answer:
+    post:
+      tags:
+        - RFQs
+      summary: Submit clarification answer
+      operationId: createRfqClarificationAnswer
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+      responses:
+        '201':
+          description: Answer submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/clarifications/amendment:
+    post:
+      tags:
+        - RFQs
+      summary: Publish amendment
+      operationId: createRfqAmendment
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - body
+              properties:
+                body:
+                  type: string
+      responses:
+        '201':
+          description: Amendment published.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/award:
+    post:
+      tags:
+        - RFQs
+      summary: Award RFQ
+      operationId: awardRfq
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quote_id
+              properties:
+                quote_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Award created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+    
+  /api/rfqs/{rfqId}/award-lines:
+    post:
+      tags:
+        - RFQs
+      summary: Award specific RFQ lines
+      operationId: awardRfqLines
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AwardLinesRequest'
+      responses:
+        '200':
+          description: Award lines processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

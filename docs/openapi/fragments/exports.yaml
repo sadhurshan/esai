@@ -1,0 +1,179 @@
+components:
+  schemas:
+    ExportRequest:
+      type: object
+      required:
+        - id
+        - type
+        - status
+        - filters
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          description: Export payload type identifier.
+        status:
+          type: string
+          enum: [queued, processing, completed, failed, expired]
+        filters:
+          type: object
+          additionalProperties: true
+        requested_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        download_url:
+          type: string
+          format: uri
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+paths:
+  /api/exports:
+    get:
+      tags:
+        - Exports
+      summary: List export requests
+      operationId: listExportRequests
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+      responses:
+        '200':
+          description: Paginated export requests for the current company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ExportRequest'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+    post:
+      tags:
+        - Exports
+      summary: Queue export request
+      operationId: createExportRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  description: Export type key (e.g. `orders`, `invoices`).
+                filters:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Export request queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExportRequest'
+  /api/exports/{exportRequestId}:
+    parameters:
+      - name: exportRequestId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Exports
+      summary: Retrieve export request
+      operationId: showExportRequest
+      responses:
+        '200':
+          description: Export request details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExportRequest'
+  /api/exports/{exportRequestId}/download:
+    parameters:
+      - name: exportRequestId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Exports
+      summary: Download export artifact
+      operationId: downloadExport
+      parameters:
+        - name: signature
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Export zip archive.
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '409':
+          description: Export not ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '410':
+          description: Export has expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'

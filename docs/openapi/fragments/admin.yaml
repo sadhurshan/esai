@@ -1,0 +1,133 @@
+components:
+  schemas:
+    AdminPlan:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - price_usd
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        price_usd:
+          type: number
+        rfqs_per_month:
+          type: integer
+          nullable: true
+        invoices_per_month:
+          type: integer
+          nullable: true
+        users_max:
+          type: integer
+          nullable: true
+        storage_gb:
+          type: integer
+          nullable: true
+        analytics_enabled:
+          type: boolean
+        risk_scores_enabled:
+          type: boolean
+        approvals_enabled:
+          type: boolean
+        inventory_enabled:
+          type: boolean
+        multi_currency_enabled:
+          type: boolean
+        tax_engine_enabled:
+          type: boolean
+        localization_enabled:
+          type: boolean
+        exports_enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AdminHealth:
+      type: object
+      properties:
+        app_version:
+          type: string
+        php_version:
+          type: string
+        queue_connection:
+          type: string
+        database_connected:
+          type: boolean
+        pending_webhook_deliveries:
+          type: integer
+paths:
+  /api/admin/plans:
+    get:
+      tags:
+        - Admin
+      summary: List subscription plans
+      operationId: adminListPlans
+      responses:
+        '200':
+          description: Available subscription plans.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AdminPlan'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+  /api/admin/plans/{planId}:
+    parameters:
+      - name: planId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Admin
+      summary: Show subscription plan
+      operationId: adminShowPlan
+      responses:
+        '200':
+          description: Plan details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminPlan'
+  /api/admin/health:
+    get:
+      tags:
+        - Admin
+      summary: Platform health summary
+      operationId: adminHealthSummary
+      responses:
+        '200':
+          description: Platform health metrics.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminHealth'

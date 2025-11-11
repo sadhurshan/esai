@@ -1,0 +1,262 @@
+components:
+  schemas:
+    WebhookSubscription:
+      type: object
+      required:
+        - id
+        - company_id
+        - url
+        - events
+        - active
+      properties:
+        id:
+          type: string
+          format: uuid
+        company_id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        secret_hint:
+          type: string
+          nullable: true
+        events:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        retry_policy:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WebhookDelivery:
+      type: object
+      required:
+        - id
+        - subscription_id
+        - event
+        - status
+        - attempts
+      properties:
+        id:
+          type: string
+          format: uuid
+        subscription_id:
+          type: string
+          format: uuid
+        company_id:
+          type: integer
+          nullable: true
+        event:
+          type: string
+        status:
+          type: string
+          enum: [pending, dispatched, delivered, failed, dead_letter]
+        attempts:
+          type: integer
+        last_error:
+          type: string
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+paths:
+  /api/admin/webhook-subscriptions:
+    get:
+      tags:
+        - Webhooks
+      summary: List webhook subscriptions
+      operationId: adminListWebhookSubscriptions
+      responses:
+        '200':
+          description: Paginated webhook subscriptions.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/WebhookSubscription'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+    post:
+      tags:
+        - Webhooks
+      summary: Create webhook subscription
+      operationId: adminCreateWebhookSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - company_id
+                - url
+                - events
+              properties:
+                company_id:
+                  type: integer
+                url:
+                  type: string
+                  format: uri
+                secret:
+                  type: string
+                events:
+                  type: array
+                  items:
+                    type: string
+                active:
+                  type: boolean
+                retry_policy:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Webhook subscription created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/admin/webhook-subscriptions/{subscriptionId}:
+    parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Webhooks
+      summary: Retrieve webhook subscription
+      operationId: adminShowWebhookSubscription
+      responses:
+        '200':
+          description: Webhook subscription detail.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WebhookSubscription'
+    put:
+      tags:
+        - Webhooks
+      summary: Update webhook subscription
+      operationId: adminUpdateWebhookSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                active:
+                  type: boolean
+                retry_policy:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Webhook subscription updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Webhooks
+      summary: Remove webhook subscription
+      operationId: adminDeleteWebhookSubscription
+      responses:
+        '200':
+          description: Webhook subscription removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/admin/webhook-deliveries:
+    get:
+      tags:
+        - Webhooks
+      summary: List webhook deliveries
+      operationId: adminListWebhookDeliveries
+      parameters:
+        - name: subscription_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+      responses:
+        '200':
+          description: Paginated history of webhook delivery attempts.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/WebhookDelivery'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+  /api/admin/webhook-deliveries/{deliveryId}/retry:
+    post:
+      tags:
+        - Webhooks
+      summary: Retry failed webhook delivery
+      operationId: adminRetryWebhookDelivery
+      parameters:
+        - name: deliveryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: Delivery queued for retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

@@ -1,0 +1,359 @@
+components:
+  schemas:
+    LocaleSetting:
+      type: object
+      required:
+        - locale
+        - timezone
+        - number_format
+        - date_format
+        - first_day_of_week
+        - weekend_days
+      properties:
+        locale:
+          type: string
+        timezone:
+          type: string
+        number_format:
+          type: string
+        date_format:
+          type: string
+        first_day_of_week:
+          type: integer
+          minimum: 0
+          maximum: 6
+        weekend_days:
+          type: array
+          items:
+            type: integer
+    Uom:
+      type: object
+      required:
+        - code
+        - name
+        - dimension
+        - symbol
+        - si_base
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        dimension:
+          type: string
+        symbol:
+          type: string
+          nullable: true
+        si_base:
+          type: boolean
+    UomConversion:
+      type: object
+      required:
+        - from_code
+        - to_code
+        - factor
+      properties:
+        from_code:
+          type: string
+        to_code:
+          type: string
+        factor:
+          type: number
+          format: float
+        offset:
+          type: number
+          format: float
+          nullable: true
+paths:
+  /api/localization/settings:
+    get:
+      tags:
+        - Localization
+      summary: Retrieve locale settings
+      operationId: showLocaleSettings
+      responses:
+        '200':
+          description: Current locale configuration for the company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocaleSetting'
+    put:
+      tags:
+        - Localization
+      summary: Update locale settings
+      operationId: updateLocaleSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocaleSetting'
+      responses:
+        '200':
+          description: Locale settings updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/localization/uoms:
+    get:
+      tags:
+        - Localization
+      summary: List units of measure
+      operationId: listUoms
+      parameters:
+        - name: dimension
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Available units of measure.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Uom'
+                          meta:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+    post:
+      tags:
+        - Localization
+      summary: Create unit of measure
+      operationId: createUom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Uom'
+      responses:
+        '200':
+          description: Unit created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/localization/uoms/{uomCode}:
+    parameters:
+      - name: uomCode
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Localization
+      summary: Update unit of measure
+      operationId: updateUom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Uom'
+      responses:
+        '200':
+          description: Unit updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Localization
+      summary: Delete unit of measure
+      operationId: deleteUom
+      responses:
+        '200':
+          description: Unit deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/localization/uoms/conversions:
+    get:
+      tags:
+        - Localization
+      summary: List unit conversions
+      operationId: listUomConversions
+      parameters:
+        - name: from_code
+          in: query
+          schema:
+            type: string
+        - name: to_code
+          in: query
+          schema:
+            type: string
+        - name: dimension
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mapping of conversions.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/UomConversion'
+                          meta:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+    post:
+      tags:
+        - Localization
+      summary: Upsert unit conversion
+      operationId: upsertUomConversion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from_code
+                - to_code
+                - factor
+              properties:
+                from_code:
+                  type: string
+                to_code:
+                  type: string
+                factor:
+                  type: number
+                offset:
+                  type: number
+                  nullable: true
+      responses:
+        '200':
+          description: Conversion saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/localization/uom/convert:
+    post:
+      tags:
+        - Localization
+      summary: Convert quantity between units
+      operationId: convertQuantity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - qty
+                - from_code
+                - to_code
+              properties:
+                qty:
+                  type: number
+                from_code:
+                  type: string
+                to_code:
+                  type: string
+      responses:
+        '200':
+          description: Converted quantity.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - qty_converted
+                        properties:
+                          qty_converted:
+                            type: string
+  /api/localization/parts/{partId}/convert:
+    get:
+      tags:
+        - Localization
+      summary: Convert quantity using part base unit
+      operationId: convertQuantityForPart
+      parameters:
+        - name: partId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: qty
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conversion result for part.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - qty_converted
+                          - base_qty
+                          - base_uom
+                        properties:
+                          qty_converted:
+                            type: string
+                          base_qty:
+                            type: string
+                          base_uom:
+                            type: string

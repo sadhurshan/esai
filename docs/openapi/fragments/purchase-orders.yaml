@@ -1,0 +1,422 @@
+components:
+  schemas:
+    PurchaseOrder:
+      type: object
+      required:
+        - id
+        - company_id
+        - po_number
+        - status
+        - currency
+        - total_minor
+      properties:
+        id:
+          type: string
+          format: uuid
+        company_id:
+          type: integer
+        po_number:
+          type: string
+        status:
+          type: string
+          enum: [draft, sent, acknowledged, fulfilled, closed, cancelled]
+        currency:
+          type: string
+        incoterm:
+          type: string
+          nullable: true
+        tax_percent:
+          type: number
+          format: float
+          nullable: true
+        subtotal:
+          type: string
+        subtotal_minor:
+          type: integer
+        tax_amount:
+          type: string
+        tax_amount_minor:
+          type: integer
+        total:
+          type: string
+        total_minor:
+          type: integer
+        revision_no:
+          type: integer
+        rfq_id:
+          type: string
+          format: uuid
+          nullable: true
+        quote_id:
+          type: string
+          format: uuid
+          nullable: true
+        supplier:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+        rfq:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            number:
+              type: string
+            title:
+              type: string
+              nullable: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderLine'
+        change_orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoChangeOrder'
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    PurchaseOrderLine:
+      type: object
+      required:
+        - id
+        - line_no
+        - quantity
+        - unit_price_minor
+        - line_total_minor
+      properties:
+        id:
+          type: string
+          format: uuid
+        line_no:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        quantity:
+          type: number
+        uom:
+          type: string
+          nullable: true
+        currency:
+          type: string
+        unit_price:
+          type: number
+          format: float
+        unit_price_minor:
+          type: integer
+        line_subtotal:
+          type: number
+          format: float
+        line_subtotal_minor:
+          type: integer
+        tax_total:
+          type: number
+          format: float
+        tax_total_minor:
+          type: integer
+        line_total:
+          type: number
+          format: float
+        line_total_minor:
+          type: integer
+        delivery_date:
+          type: string
+          format: date
+          nullable: true
+        taxes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              tax_code_id:
+                type: integer
+              rate_percent:
+                type: number
+              amount_minor:
+                type: integer
+              amount:
+                type: number
+                format: float
+              sequence:
+                type: integer
+    PoChangeOrder:
+      type: object
+      required:
+        - id
+        - purchase_order_id
+        - status
+        - reason
+      properties:
+        id:
+          type: string
+          format: uuid
+        purchase_order_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [proposed, accepted, rejected]
+        reason:
+          type: string
+        po_revision_no:
+          type: integer
+          nullable: true
+        proposed_by_user_id:
+          type: integer
+        proposed_at:
+          type: string
+          format: date-time
+          nullable: true
+        changes_json:
+          type: object
+          additionalProperties: true
+        proposed_by_user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+paths:
+  /api/purchase-orders:
+    get:
+      tags:
+        - Purchase Orders
+      summary: List purchase orders
+      operationId: listPurchaseOrders
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - name: supplier
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: status
+          in: query
+          required: false
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+      responses:
+        '200':
+          description: Paginated list of purchase orders.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PurchaseOrder'
+                          meta:
+                            $ref: '#/components/schemas/PageMeta'
+  /api/purchase-orders/{purchaseOrderId}:
+    parameters:
+      - name: purchaseOrderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Purchase Orders
+      summary: Retrieve purchase order
+      operationId: showPurchaseOrder
+      responses:
+        '200':
+          description: Purchase order detail view.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseOrder'
+  /api/purchase-orders/{purchaseOrderId}/send:
+    post:
+      tags:
+        - Purchase Orders
+      summary: Issue purchase order to supplier
+      operationId: sendPurchaseOrder
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Purchase order issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/purchase-orders/{purchaseOrderId}/acknowledge:
+    post:
+      tags:
+        - Purchase Orders
+      summary: Supplier acknowledges purchase order
+      operationId: acknowledgePurchaseOrder
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum: [accept, reject]
+      responses:
+        '200':
+          description: Purchase order acknowledgement recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/purchase-orders/{purchaseOrderId}/change-orders:
+    parameters:
+      - name: purchaseOrderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Purchase Orders
+      summary: List change orders for purchase order
+      operationId: listPurchaseOrderChangeOrders
+      responses:
+        '200':
+          description: Current change orders for the PO.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PoChangeOrder'
+    post:
+      tags:
+        - Purchase Orders
+      summary: Propose change order
+      operationId: createPurchaseOrderChangeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+                - changes_json
+              properties:
+                reason:
+                  type: string
+                  maxLength: 255
+                changes_json:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Change order proposed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/change-orders/{changeOrderId}/approve:
+    put:
+      tags:
+        - Purchase Orders
+      summary: Approve change order
+      operationId: approvePurchaseOrderChangeOrder
+      parameters:
+        - name: changeOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Change order approved and applied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/change-orders/{changeOrderId}/reject:
+    put:
+      tags:
+        - Purchase Orders
+      summary: Reject change order
+      operationId: rejectPurchaseOrderChangeOrder
+      parameters:
+        - name: changeOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Change order rejected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

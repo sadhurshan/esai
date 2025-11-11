@@ -1,7 +1,8 @@
 import { DataTable, EmptyState, StatusBadge } from '@/components/app';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { home, orders as orderRoutes } from '@/routes';
+import { home } from '@/routes';
+import ordersRoutes from '@/routes/orders';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
@@ -9,7 +10,7 @@ import { type Order } from '@/types/sourcing';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Home', href: home().url },
-    { title: 'Orders', href: orderRoutes.index().url },
+    { title: 'Orders', href: ordersRoutes.index().url },
 ];
 
 const requestedOrders: Order[] = [

@@ -27,6 +27,7 @@ use App\Models\InventorySetting;
 use App\Models\InventoryTxn;
 use App\Models\ReorderSuggestion;
 use App\Models\ForecastSnapshot;
+use App\Models\CompanyLocaleSetting;
 use App\Models\CompanyMoneySetting;
 use App\Models\TaxCode;
 use App\Models\LineTax;
@@ -263,6 +264,11 @@ class Company extends Model
     public function moneySetting(): HasOne
     {
         return $this->hasOne(CompanyMoneySetting::class);
+    }
+
+    public function localeSetting(): HasOne
+    {
+        return $this->hasOne(CompanyLocaleSetting::class);
     }
 
     public function taxCodes(): HasMany

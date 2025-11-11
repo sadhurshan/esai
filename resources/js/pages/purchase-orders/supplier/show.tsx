@@ -15,7 +15,8 @@ import { useProposeChangeOrder } from '@/hooks/api/useProposeChangeOrder';
 import { usePurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 import { ApiError } from '@/lib/api';
 import { formatCurrencyUSD, formatDate } from '@/lib/format';
-import { home, purchaseOrders as purchaseOrderRoutes } from '@/routes';
+import { home } from '@/routes';
+import purchaseOrderRoutes from '@/routes/purchase-orders';
 import type { BreadcrumbItem } from '@/types';
 import type { PurchaseOrderChangeOrder, PurchaseOrderDetail, PurchaseOrderLine } from '@/types/sourcing';
 

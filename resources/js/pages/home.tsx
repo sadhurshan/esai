@@ -1,7 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { home, rfq, suppliers } from '@/routes';
+import { home } from '@/routes';
+import rfq from '@/routes/rfq';
+import suppliers from '@/routes/suppliers';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 

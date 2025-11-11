@@ -6,7 +6,8 @@ import { useMemo, useState } from 'react';
 
 import { usePurchaseOrders } from '@/hooks/api/usePurchaseOrders';
 import { formatCurrencyUSD, formatDate } from '@/lib/format';
-import { home, purchaseOrders as purchaseOrderRoutes } from '@/routes';
+import { home } from '@/routes';
+import purchaseOrderRoutes from '@/routes/purchase-orders';
 import type { BreadcrumbItem } from '@/types';
 import type { PurchaseOrderLine, PurchaseOrderSummary } from '@/types/sourcing';
 

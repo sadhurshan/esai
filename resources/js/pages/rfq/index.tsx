@@ -1,7 +1,8 @@
 import { DataTable, EmptyState, Pagination, StatusBadge, FilterBar } from '@/components/app';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { home, rfq as rfqRoutes } from '@/routes';
+import { home } from '@/routes';
+import rfqRoutes from '@/routes/rfq';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useCallback, useMemo, useState } from 'react';

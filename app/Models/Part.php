@@ -19,6 +19,7 @@ class Part extends Model
         'part_number',
         'name',
         'uom',
+        'base_uom_id',
         'spec',
         'meta',
     ];
@@ -30,6 +31,11 @@ class Part extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function baseUom(): BelongsTo
+    {
+        return $this->belongsTo(Uom::class, 'base_uom_id');
     }
 
     public function bomItems(): HasMany
@@ -60,5 +66,18 @@ class Part extends Model
     public function purchaseRequisitionLines(): HasMany
     {
         return $this->hasMany(PurchaseRequisitionLine::class);
+    }
+
+    public function getBaseUomCodeAttribute(): ?string
+    {
+        if ($this->relationLoaded('baseUom') && $this->baseUom !== null) {
+            return $this->baseUom->code;
+        }
+
+        if ($this->base_uom_id === null) {
+            return null;
+        }
+
+        return $this->baseUom?->code;
     }
 }

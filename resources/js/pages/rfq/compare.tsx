@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
-import { home, purchaseOrders, rfq as rfqRoutes } from '@/routes';
+import { home } from '@/routes';
+import purchaseOrderRoutes from '@/routes/purchase-orders';
+import rfqRoutes from '@/routes/rfq';
 import { formatCurrencyUSD } from '@/lib/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useCallback, useMemo, useState } from 'react';
@@ -145,7 +147,7 @@ export default function RfqCompare() {
                 const result = await awardMutation.mutateAsync({ quoteId });
                 const poLabel = result.poNumber ? `PO ${result.poNumber}` : `PO #${result.id}`;
                 successToast('Purchase order created', poLabel);
-                router.visit(purchaseOrders.show({ id: result.id }).url);
+                router.visit(purchaseOrderRoutes.show({ id: result.id }).url);
             } catch (error) {
                 errorToast('Unable to award quote', (error as Error)?.message ?? 'Please try again.');
             } finally {

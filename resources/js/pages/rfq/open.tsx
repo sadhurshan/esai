@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { home, rfq as rfqRoutes } from '@/routes';
+import { home } from '@/routes';
+import rfqRoutes from '@/routes/rfq';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 

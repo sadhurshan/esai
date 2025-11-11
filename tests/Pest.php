@@ -107,3 +107,32 @@ function createExportFeatureUser(array $planOverrides = [], array $companyOverri
 
     return $user;
 }
+
+function createLocalizationFeatureUser(array $planOverrides = [], array $companyOverrides = [], string $role = 'buyer_admin'): User
+{
+    $plan = Plan::factory()->create(array_merge([
+        'code' => 'locale-'.Str::lower(Str::random(8)),
+        'localization_enabled' => true,
+        'rfqs_per_month' => 50,
+        'invoices_per_month' => 50,
+        'users_max' => 10,
+        'storage_gb' => 10,
+    ], $planOverrides));
+
+    $company = Company::factory()->create(array_merge([
+        'plan_code' => $plan->code,
+        'status' => 'active',
+    ], $companyOverrides));
+
+    Subscription::factory()->for($company)->create([
+        'stripe_status' => 'active',
+    ]);
+
+    $user = User::factory()->for($company)->create([
+        'role' => $role,
+    ]);
+
+    actingAs($user);
+
+    return $user;
+}

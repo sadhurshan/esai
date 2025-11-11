@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MoneySettingsController;
 use App\Http\Controllers\Api\FxRateController;
+use App\Http\Controllers\Api\Localization\LocaleSettingsController;
+use App\Http\Controllers\Api\Localization\UomController;
+use App\Http\Controllers\Api\Localization\UomConversionController;
 use App\Http\Controllers\Api\CompanyDocumentController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Api\GoodsReceiptNoteController;
@@ -187,6 +190,19 @@ Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::middleware(['ensure.localization.access', 'apply.company.locale'])->prefix('localization')->group(function (): void {
+        Route::get('settings', [LocaleSettingsController::class, 'show']);
+        Route::put('settings', [LocaleSettingsController::class, 'update']);
+        Route::get('uoms', [UomController::class, 'index']);
+        Route::post('uoms', [UomController::class, 'store'])->middleware('buyer_admin_only');
+        Route::put('uoms/{uom}', [UomController::class, 'update'])->middleware('buyer_admin_only');
+        Route::delete('uoms/{uom}', [UomController::class, 'destroy'])->middleware('buyer_admin_only');
+        Route::get('uoms/conversions', [UomConversionController::class, 'index']);
+        Route::post('uoms/conversions', [UomConversionController::class, 'upsert'])->middleware('buyer_admin_only');
+        Route::post('uom/convert', [UomConversionController::class, 'convert']);
+        Route::get('parts/{part}/convert', [UomConversionController::class, 'convertForPart']);
+    });
+
     Route::prefix('digital-twin')
         ->middleware(['ensure.subscribed', 'ensure.digital_twin.access'])
         ->group(function (): void {

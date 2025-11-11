@@ -37,8 +37,9 @@ class Plan extends Model
         'pr_enabled',
         'multi_currency_enabled',
         'tax_engine_enabled',
-    'data_export_enabled',
-    'export_history_days',
+        'localization_enabled',
+        'data_export_enabled',
+        'export_history_days',
     ];
 
     protected $casts = [
@@ -61,6 +62,7 @@ class Plan extends Model
         'pr_enabled' => 'boolean',
         'multi_currency_enabled' => 'boolean',
         'tax_engine_enabled' => 'boolean',
+        'localization_enabled' => 'boolean',
         'data_export_enabled' => 'boolean',
         'export_history_days' => 'integer',
     ];

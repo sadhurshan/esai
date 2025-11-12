@@ -29,7 +29,10 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
-import { home, orders, rfq, suppliers } from '@/routes';
+import { home } from '@/routes';
+import orders from '@/routes/orders';
+import rfq from '@/routes/rfq';
+import suppliers from '@/routes/suppliers';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {

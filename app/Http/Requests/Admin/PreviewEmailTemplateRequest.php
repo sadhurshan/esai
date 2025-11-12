@@ -9,7 +9,7 @@ class PreviewEmailTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $template = $this->route('template');
+        $template = $this->route('email_template') ?? $this->route('template');
 
         return $template instanceof EmailTemplate
             ? ($this->user()?->can('preview', $template) ?? false)

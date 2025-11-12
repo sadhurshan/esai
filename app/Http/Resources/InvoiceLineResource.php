@@ -37,9 +37,9 @@ class InvoiceLineResource extends JsonResource
         $grossLineTotal = round($netLineTotal + $taxTotal, $minorUnit);
 
         return [
-            'id' => $this->id,
-            'invoice_id' => $this->invoice_id,
-            'po_line_id' => $this->po_line_id,
+            'id' => (string) $this->getRouteKey(),
+            'invoice_id' => $this->invoice_id !== null ? (string) $this->invoice_id : null,
+            'po_line_id' => $this->po_line_id !== null ? (string) $this->po_line_id : null,
             'description' => $this->description,
             'quantity' => $quantity,
             'uom' => $this->uom,

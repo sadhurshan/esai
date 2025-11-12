@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\SupplierEsgController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\DocsController;
 use App\Http\Controllers\Api\MoneySettingsController;
 use App\Http\Controllers\Api\FxRateController;
 use App\Http\Controllers\Api\Localization\LocaleSettingsController;
@@ -64,6 +65,8 @@ use App\Http\Controllers\Api\DigitalTwin\SystemController as DigitalTwinSystemCo
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', [HealthController::class, '__invoke']);
+Route::get('docs/openapi.json', [DocsController::class, 'openApi']);
+Route::get('docs/postman.json', [DocsController::class, 'postman']);
 
 Route::middleware(['auth', 'admin.guard'])->prefix('admin')->group(function (): void {
     Route::apiResource('plans', AdminPlanController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
@@ -170,16 +173,15 @@ Route::middleware('web')->group(function (): void {
             ->middleware('ensure.company.onboarded');
         Route::post('{purchaseOrder}/invoices', [InvoiceController::class, 'store'])
             ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
-        Route::get('{purchaseOrder}/grns', [GoodsReceiptNoteController::class, 'index'])
-            ->middleware('ensure.company.onboarded');
-        Route::post('{purchaseOrder}/grns', [GoodsReceiptNoteController::class, 'store'])
-            ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
-        Route::get('{purchaseOrder}/grns/{note}', [GoodsReceiptNoteController::class, 'show'])
-            ->middleware('ensure.company.onboarded');
-        Route::put('{purchaseOrder}/grns/{note}', [GoodsReceiptNoteController::class, 'update'])
-            ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
-        Route::delete('{purchaseOrder}/grns/{note}', [GoodsReceiptNoteController::class, 'destroy'])
-            ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        Route::prefix('{purchaseOrder}/grns')
+            ->middleware(['ensure.company.onboarded', 'ensure.inventory.access'])
+            ->group(function (): void {
+                Route::get('/', [GoodsReceiptNoteController::class, 'index']);
+                Route::get('{note}', [GoodsReceiptNoteController::class, 'show']);
+                Route::post('/', [GoodsReceiptNoteController::class, 'store'])->middleware('ensure.subscribed');
+                Route::put('{note}', [GoodsReceiptNoteController::class, 'update'])->middleware('ensure.subscribed');
+                Route::delete('{note}', [GoodsReceiptNoteController::class, 'destroy'])->middleware('ensure.subscribed');
+            });
         Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
     });
 

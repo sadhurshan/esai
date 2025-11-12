@@ -10,10 +10,10 @@ info:
     the schemas defined in this spec. Unless noted otherwise, every path requires either a
     bearer token (Sanctum personal access token) or an API key issued by the platform admin
     console.
-contact:
-  name: Elements Supply Team
-  url: https://elements-supply.ai
-  email: support@elements-supply.ai
+  contact:
+    name: Elements Supply Team
+    url: https://elements-supply.ai
+    email: support@elements-supply.ai
 servers:
   - url: https://api.elements-supply.ai
     description: Production API endpoint
@@ -39,16 +39,36 @@ tags:
     description: Quote submission, revision, and award workflows
   - name: Purchase Orders
     description: Purchase order lifecycle, change orders, and totals
+  - name: Orders
+    description: Supplier-facing order visibility endpoints
   - name: Invoices
     description: Invoicing, credit notes, and financial reconciliation
   - name: Inventory
     description: Goods receipt, issues, and warehouse movements
   - name: Exports
     description: Bulk data export creation and download
+  - name: CRM
+    description: Customer relationship data exports and insights
+  - name: Suppliers
+    description: Supplier directory, segments, and applications
+  - name: Notifications
+    description: In-app notification feeds and read state management
+  - name: Risk
+    description: Supplier risk scoring and refresh workflows
+  - name: Digital Twin
+    description: Asset telemetry, synchronization, and work orders
+  - name: Analytics
+    description: Self-serve analytics reports and scheduled runs
+  - name: Copilot
+    description: AI-assisted workflows and prompt catalogues
+  - name: Documents
+    description: File uploads and document staging APIs
   - name: Localization
     description: Localization settings, units of measure, and conversions
   - name: Money
     description: Monetary settings, FX rates, and tax configuration
+  - name: Approvals
+    description: Purchase order approval rules, requests, and delegations
   - name: Admin
     description: Platform administration (plans, health, read-only reference data)
   - name: Webhooks
@@ -57,16 +77,30 @@ x-fragments:
   description: Ordered list of YAML fragments that are merged into the root spec when built.
   order:
     - auth.yaml
+    - companies_plans.yaml
+    - invitations.yaml
+    - suppliers.yaml
+    - crm.yaml
     - rfqs.yaml
     - quotes.yaml
-    - purchase-orders.yaml
+    - purchase_orders.yaml
+    - orders.yaml
     - invoices.yaml
+    - credit_notes.yaml
     - inventory.yaml
     - exports.yaml
+    - analytics.yaml
+    - risk.yaml
+    - digital_twin.yaml
+    - notifications.yaml
+    - copilot.yaml
+    - files.yaml
     - localization.yaml
-    - money.yaml
+    - money_tax.yaml
+    - approvals.yaml
     - admin.yaml
     - webhooks.yaml
+    - search.yaml
 security:
   - bearerAuth: []
   - apiKeyAuth: []
@@ -145,7 +179,7 @@ components:
       schema:
         type: string
   schemas:
-    ApiSuccessResponse:
+    SuccessEnvelope:
       type: object
       required:
         - status
@@ -160,9 +194,10 @@ components:
         data:
           description: Module-specific payload.
         meta:
-          $ref: '#/components/schemas/PageMeta'
+          $ref: '#/components/schemas/RequestMeta'
       additionalProperties: false
-    ApiErrorResponse:
+      description: Wrapper for all successful responses. `meta.request_id` always echoes the inbound `X-Request-Id` or an internally generated UUID.
+    ErrorEnvelope:
       type: object
       required:
         - status
@@ -187,13 +222,37 @@ components:
           nullable: true
           description: Always null for error responses.
       additionalProperties: false
+    ApiSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+    ApiErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorEnvelope'
+    RequestMeta:
+      type: object
+      description: Metadata applied to every successful response. Includes request correlation identifiers and pagination cursors.
+      required:
+        - request_id
+      properties:
+        request_id:
+          type: string
+          description: UUID assigned to the request (matches `X-Request-Id`).
+        pagination:
+          $ref: '#/components/schemas/PageMeta'
+        cursor:
+          $ref: '#/components/schemas/CursorMeta'
+      additionalProperties: false
+    EnvelopeMeta:
+      allOf:
+        - $ref: '#/components/schemas/RequestMeta'
+      description: Legacy alias for response metadata. # TODO: clarify if consumers should migrate to RequestMeta directly.
     PageMeta:
       type: object
-      description: Pagination metadata for page/offset endpoints.
+      description: Page/offset pagination metadata.
       required:
-        - total
-        - per_page
         - current_page
+        - per_page
+        - total
         - last_page
       properties:
         total:
@@ -208,6 +267,11 @@ components:
         last_page:
           type: integer
           minimum: 1
+        page:
+          type: integer
+          minimum: 1
+          readOnly: true
+          description: Alias provided for SDK ergonomics. Mirrors `current_page`.
     CursorMeta:
       type: object
       description: Pagination metadata for cursor endpoints.
@@ -226,34 +290,38 @@ components:
           type: boolean
     Money:
       type: object
-      description: Monetary amount with major/minor units.
+      description: Monetary amount expressed in minor units. `amount` is derived from `amount_minor` and `currency` using the company rounding rules.
       required:
-        - amount
-        - currency
         - amount_minor
+        - currency
+        - amount
       properties:
-        amount:
-          type: string
-          pattern: ^-?\d+\.\d{2}$
         amount_minor:
           type: integer
         currency:
           type: string
           minLength: 3
           maxLength: 3
+        amount:
+          type: number
+          format: float
+          description: Derived major-unit representation. Submitters may omit; backend recalculates using company precision.
     Timeline:
       type: object
       properties:
         created_at:
           type: string
           format: date-time
+          description: ISO 8601 timestamp in the tenant's configured timezone.
         updated_at:
           type: string
           format: date-time
+          description: ISO 8601 timestamp in the tenant's configured timezone.
         deleted_at:
           type: string
           format: date-time
           nullable: true
+          description: ISO 8601 timestamp in the tenant's configured timezone.
   responses:
     Unauthorized:
       description: Missing or invalid credentials.
@@ -309,5 +377,38 @@ components:
             errors:
               item_name:
                 - The item name field is required.
+            data: null
+    TooManyRequests:
+      description: Rate limit exceeded for the current identity.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/XRateLimitLimit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/XRateLimitRemaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/XRateLimitReset'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            status: error
+            message: Request limit exceeded, retry later.
+            code: RATE_LIMIT_EXCEEDED
+            data: null
+    ServerError:
+      description: Unexpected server error. Contact support with the supplied request identifier.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            status: error
+            message: Unexpected error occurred.
             data: null
 paths: {}

@@ -62,7 +62,8 @@ return [
 
         'exports' => [
             'driver' => 'local',
-            'root' => env('EXPORTS_STORAGE_PATH', '/mnt/data/exports'),
+            'root' => env('EXPORTS_STORAGE_PATH', storage_path('app/private/exports')),
+            'visibility' => 'private',
             'throw' => false,
             'report' => false,
         ],

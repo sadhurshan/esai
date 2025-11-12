@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCreditNotesAccess
 {
-    public function handle(Request $request, Closure $next): Response
+    use RespondsWithPlanUpgrade;
+
+    public function handle(Request $request, Closure $next): JsonResponse|Response
     {
         $user = $request->user();
 
@@ -35,11 +39,9 @@ class EnsureCreditNotesAccess
         $plan = $company->plan;
 
         if ($plan === null || ! $plan->credit_notes_enabled) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Upgrade required to access credit notes.',
-                'data' => null,
-            ], Response::HTTP_PAYMENT_REQUIRED);
+            return $this->upgradeRequiredResponse([
+                'code' => 'credit_notes_disabled',
+            ], 'Upgrade required to access credit notes.');
         }
 
         return $next($request);

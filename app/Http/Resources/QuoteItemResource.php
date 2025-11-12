@@ -31,8 +31,9 @@ class QuoteItemResource extends JsonResource
         $lineTotalMoney = $lineSubtotalMoney->add($taxMoney);
 
         return [
-            'id' => $this->id,
-            'rfq_item_id' => $this->rfq_item_id,
+            'id' => (string) $this->getRouteKey(),
+            'quote_id' => $this->quote_id !== null ? (string) $this->quote_id : null,
+            'rfq_item_id' => $this->rfq_item_id !== null ? (string) $this->rfq_item_id : null,
             'currency' => $currency,
             'unit_price' => (float) $unitMoney->toDecimal($minorUnit),
             'unit_price_minor' => $unitPriceMinor,
@@ -47,7 +48,7 @@ class QuoteItemResource extends JsonResource
             'note' => $this->note,
             'status' => $this->status,
             'taxes' => $this->whenLoaded('taxes', fn () => $taxes->map(fn (LineTax $tax): array => [
-                'id' => $tax->id,
+                'id' => (string) $tax->getRouteKey(),
                 'tax_code_id' => $tax->tax_code_id,
                 'rate_percent' => (float) $tax->rate_percent,
                 'amount_minor' => (int) $tax->amount_minor,

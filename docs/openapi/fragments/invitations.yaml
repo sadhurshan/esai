@@ -1,0 +1,64 @@
+paths:
+  /api/invitations:
+    get:
+      tags:
+        - Companies
+      summary: List pending invitations for current company
+      operationId: listInvitations
+      responses:
+        '200':
+          description: Invitations collection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Companies
+      summary: Invite user to company
+      operationId: createInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Invitation created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invitations/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Companies
+      summary: Show invitation by token
+      operationId: showInvitation
+      responses:
+        '200':
+          description: Invitation details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Companies
+      summary: Revoke invitation by token
+      operationId: deleteInvitation
+      responses:
+        '200':
+          description: Invitation revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

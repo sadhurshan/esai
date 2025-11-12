@@ -18,6 +18,7 @@ use App\Http\Middleware\EnsureDigitalTwinAccess;
 use App\Http\Middleware\EnsurePrAccess;
 use App\Http\Middleware\EnsureMoneyAccess;
 use App\Http\Middleware\EnsureLocalizationAccess;
+use App\Http\Middleware\EnsureInventoryAccess;
 use App\Http\Middleware\EnsureExportAccess;
 use App\Http\Middleware\RateLimitEnforcer;
 use App\Http\Middleware\BuyerAdminOnly;
@@ -72,6 +73,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.pr.access' => EnsurePrAccess::class,
             'ensure.money.access' => EnsureMoneyAccess::class,
             'ensure.localization.access' => EnsureLocalizationAccess::class,
+            'ensure.inventory.access' => EnsureInventoryAccess::class,
             'ensure.export.access' => EnsureExportAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
             'apply.company.locale' => ApplyCompanyLocale::class,

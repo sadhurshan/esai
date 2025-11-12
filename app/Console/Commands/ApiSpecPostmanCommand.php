@@ -45,7 +45,7 @@ class ApiSpecPostmanCommand extends Command
             return self::FAILURE;
         }
 
-    $collection = $this->collectionBuilder->build($spec);
+        $collection = $this->collectionBuilder->build($spec);
 
         $destination = $this->option('output') ?: storage_path('api/postman.json');
         $this->files->ensureDirectoryExists(dirname($destination));

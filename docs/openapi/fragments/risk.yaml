@@ -1,0 +1,53 @@
+paths:
+  /api/risk:
+    get:
+      tags:
+        - Risk
+      summary: List supplier risk scores
+      operationId: listRiskScores
+      responses:
+        '200':
+          description: Current risk scores for suppliers in tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/risk/{supplierId}:
+    parameters:
+      - name: supplierId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Risk
+      summary: Retrieve supplier risk score
+      operationId: showRiskScore
+      responses:
+        '200':
+          description: Supplier risk score snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/risk/generate:
+    post:
+      tags:
+        - Risk
+      summary: Generate new risk scores for suppliers
+      operationId: generateRiskScores
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Risk generation queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

@@ -1,0 +1,983 @@
+components:
+    schemas:
+        CompanyProfile:
+            type: object
+            required:
+                - id
+                - name
+                - status
+            properties:
+                id:
+                    type: integer
+                name:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                    description: Buyer account status (pending, active, suspended, archived).
+                supplier_status:
+                    type: string
+                    nullable: true
+                email_domain:
+                    type: string
+                    nullable: true
+                primary_contact_name:
+                    type: string
+                    nullable: true
+                primary_contact_email:
+                    type: string
+                    format: email
+                    nullable: true
+                country:
+                    type: string
+                    nullable: true
+                website:
+                    type: string
+                    format: uri
+                    nullable: true
+                has_completed_onboarding:
+                    type: boolean
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+        Plan:
+            type: object
+            required:
+                - id
+                - code
+                - name
+                - price_usd
+            properties:
+                id:
+                    type: integer
+                code:
+                    type: string
+                name:
+                    type: string
+                price_usd:
+                    type: number
+                    format: float
+                rfqs_per_month:
+                    type: integer
+                    nullable: true
+                users_max:
+                    type: integer
+                    nullable: true
+                analytics_enabled:
+                    type: boolean
+                inventory_enabled:
+                    type: boolean
+                multi_currency_enabled:
+                    type: boolean
+                tax_engine_enabled:
+                    type: boolean
+                localization_enabled:
+                    type: boolean
+                exports_enabled:
+                    type: boolean
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+        FeatureFlag:
+            type: object
+            required:
+                - id
+                - company_id
+                - key
+                - value
+            properties:
+                id:
+                    type: integer
+                company_id:
+                    type: integer
+                key:
+                    type: string
+                value:
+                    type: boolean
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+        ApiKey:
+            type: object
+            required:
+                - id
+                - company_id
+                - name
+                - token_prefix
+            properties:
+                id:
+                    type: integer
+                company_id:
+                    type: integer
+                owner_user_id:
+                    type: integer
+                    nullable: true
+                name:
+                    type: string
+                token_prefix:
+                    type: string
+                    description: First six characters of the secret for display.
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                active:
+                    type: boolean
+                last_used_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                expires_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+        RateLimitRule:
+            type: object
+            required:
+                - id
+                - scope
+                - window_seconds
+                - max_requests
+            properties:
+                id:
+                    type: integer
+                company_id:
+                    type: integer
+                    nullable: true
+                scope:
+                    type: string
+                    description: Logical grouping (e.g. `tenant`, `api_key`).
+                window_seconds:
+                    type: integer
+                max_requests:
+                    type: integer
+                active:
+                    type: boolean
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+paths:
+    /api/companies:
+        post:
+            tags:
+                - Companies
+            summary: Register company and request onboarding
+            operationId: registerCompany
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - name
+                                - country
+                                - primary_contact_name
+                                - primary_contact_email
+                            properties:
+                                name:
+                                    type: string
+                                country:
+                                    type: string
+                                primary_contact_name:
+                                    type: string
+                                primary_contact_email:
+                                    type: string
+                                    format: email
+                                primary_contact_phone:
+                                    type: string
+                                    nullable: true
+                                website:
+                                    type: string
+                                    format: uri
+                                    nullable: true
+            responses:
+                '201':
+                    description: Company onboarding request accepted.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  company:
+                                                      $ref: '#/components/schemas/CompanyProfile'
+    /api/companies/current:
+        get:
+            tags:
+                - Companies
+            summary: Retrieve profile for authenticated company
+            operationId: showCurrentCompany
+            responses:
+                '200':
+                    description: Current tenant company profile.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  company:
+                                                      $ref: '#/components/schemas/CompanyProfile'
+        patch:
+            tags:
+                - Companies
+            summary: Update profile for authenticated company
+            operationId: updateCurrentCompany
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: true
+            responses:
+                '200':
+                    description: Current company updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/companies/{companyId}:
+        parameters:
+            - name: companyId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        get:
+            tags:
+                - Companies
+            summary: Retrieve company profile
+            operationId: showCompany
+            responses:
+                '200':
+                    description: Company profile visible to the authenticated tenant.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  company:
+                                                      $ref: '#/components/schemas/CompanyProfile'
+        put:
+            tags:
+                - Companies
+            summary: Update company profile
+            operationId: updateCompany
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                registration_no:
+                                    type: string
+                                tax_id:
+                                    type: string
+                                country:
+                                    type: string
+                                email_domain:
+                                    type: string
+                                primary_contact_name:
+                                    type: string
+                                primary_contact_email:
+                                    type: string
+                                    format: email
+                                primary_contact_phone:
+                                    type: string
+                                address:
+                                    type: string
+                                phone:
+                                    type: string
+                                website:
+                                    type: string
+                                    format: uri
+                                region:
+                                    type: string
+            responses:
+                '200':
+                    description: Company profile updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/companies/{companyId}/documents:
+        parameters:
+            - name: companyId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        get:
+            tags:
+                - Companies
+            summary: List company documents
+            operationId: listCompanyDocuments
+            responses:
+                '200':
+                    description: Documents associated with the company.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+        post:
+            tags:
+                - Companies
+            summary: Upload company document
+            operationId: createCompanyDocument
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            required:
+                                - file
+                            properties:
+                                file:
+                                    type: string
+                                    format: binary
+                                label:
+                                    type: string
+            responses:
+                '201':
+                    description: Company document stored.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/companies/{companyId}/documents/{documentId}:
+        parameters:
+            - name: companyId
+              in: path
+              required: true
+              schema:
+                  type: integer
+            - name: documentId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        delete:
+            tags:
+                - Companies
+            summary: Delete company document
+            operationId: deleteCompanyDocument
+            responses:
+                '200':
+                    description: Company document removed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/plans:
+        get:
+            tags:
+                - Admin
+            summary: List subscription plans
+            operationId: adminPlansIndex
+            responses:
+                '200':
+                    description: Paginated plans configured in the platform.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/Plan'
+                                                  meta:
+                                                      $ref: '#/components/schemas/PageMeta'
+        post:
+            tags:
+                - Admin
+            summary: Create subscription plan
+            operationId: adminPlansStore
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - code
+                                - name
+                                - price_usd
+                            properties:
+                                code:
+                                    type: string
+                                name:
+                                    type: string
+                                price_usd:
+                                    type: number
+                                    format: float
+                                rfqs_per_month:
+                                    type: integer
+                                    nullable: true
+                                users_max:
+                                    type: integer
+                                    nullable: true
+                                analytics_enabled:
+                                    type: boolean
+                                inventory_enabled:
+                                    type: boolean
+                                multi_currency_enabled:
+                                    type: boolean
+            responses:
+                '201':
+                    description: Plan created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/plans/{planId}:
+        parameters:
+            - name: planId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        get:
+            tags:
+                - Admin
+            summary: Retrieve subscription plan
+            operationId: adminPlansShow
+            responses:
+                '200':
+                    description: Subscription plan details.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/Plan'
+        put:
+            tags:
+                - Admin
+            summary: Update subscription plan
+            operationId: adminPlansUpdate
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                price_usd:
+                                    type: number
+                                    format: float
+                                analytics_enabled:
+                                    type: boolean
+                                inventory_enabled:
+                                    type: boolean
+                                multi_currency_enabled:
+                                    type: boolean
+            responses:
+                '200':
+                    description: Plan updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+        delete:
+            tags:
+                - Admin
+            summary: Archive subscription plan
+            operationId: adminPlansDestroy
+            responses:
+                '204':
+                    description: Plan archived. Response body omitted.
+    /api/admin/companies/{companyId}/assign-plan:
+        post:
+            tags:
+                - Admin
+            summary: Assign plan to company
+            operationId: adminAssignPlan
+            parameters:
+                - name: companyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - plan_id
+                            properties:
+                                plan_id:
+                                    type: integer
+                                trial_ends_at:
+                                    type: string
+                                    format: date-time
+                                    nullable: true
+                                seats_purchased:
+                                    type: integer
+                                    nullable: true
+            responses:
+                '202':
+                    description: Plan assignment queued.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/companies/{companyId}/status:
+        put:
+            tags:
+                - Admin
+            summary: Update company lifecycle status
+            operationId: adminUpdateCompanyStatus
+            parameters:
+                - name: companyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - status
+                            properties:
+                                status:
+                                    type: string
+                                    enum: [pending, active, suspended, archived]
+                                note:
+                                    type: string
+                                    nullable: true
+            responses:
+                '200':
+                    description: Company status updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/companies/{companyId}/feature-flags:
+        get:
+            tags:
+                - Admin
+            summary: List company feature flags
+            operationId: adminListFeatureFlags
+            parameters:
+                - name: companyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Collection of company-scoped feature toggles.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/FeatureFlag'
+        post:
+            tags:
+                - Admin
+            summary: Create feature flag override
+            operationId: adminCreateFeatureFlag
+            parameters:
+                - name: companyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - key
+                                - value
+                            properties:
+                                key:
+                                    type: string
+                                value:
+                                    type: boolean
+            responses:
+                '201':
+                    description: Feature flag created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/companies/{companyId}/feature-flags/{flagId}:
+        parameters:
+            - name: companyId
+              in: path
+              required: true
+              schema:
+                  type: integer
+            - name: flagId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        put:
+            tags:
+                - Admin
+            summary: Update feature flag override
+            operationId: adminUpdateFeatureFlag
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                value:
+                                    type: boolean
+            responses:
+                '200':
+                    description: Feature flag updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+        delete:
+            tags:
+                - Admin
+            summary: Remove feature flag override
+            operationId: adminDeleteFeatureFlag
+            responses:
+                '200':
+                    description: Feature flag removed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/api-keys:
+        get:
+            tags:
+                - Admin
+            summary: List API keys
+            operationId: adminListApiKeys
+            parameters:
+                - name: company_id
+                  in: query
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Paginated API keys filtered by company when provided.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/ApiKey'
+                                                  meta:
+                                                      $ref: '#/components/schemas/PageMeta'
+        post:
+            tags:
+                - Admin
+            summary: Issue API key for company
+            operationId: adminCreateApiKey
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - company_id
+                                - name
+                            properties:
+                                company_id:
+                                    type: integer
+                                name:
+                                    type: string
+                                scopes:
+                                    type: array
+                                    items:
+                                        type: string
+                                expires_at:
+                                    type: string
+                                    format: date-time
+                                    nullable: true
+            responses:
+                '201':
+                    description: API key created. Plaintext secret returned once.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  api_key:
+                                                      $ref: '#/components/schemas/ApiKey'
+                                                  token:
+                                                      type: string
+                                                      description: Plaintext API key value. Display once.
+    /api/admin/api-keys/{keyId}/rotate:
+        post:
+            tags:
+                - Admin
+            summary: Rotate API key secret
+            operationId: adminRotateApiKey
+            parameters:
+                - name: keyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                '201':
+                    description: API key secret rotated. Returns new token.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  api_key:
+                                                      $ref: '#/components/schemas/ApiKey'
+                                                  token:
+                                                      type: string
+    /api/admin/api-keys/{keyId}/toggle:
+        post:
+            tags:
+                - Admin
+            summary: Toggle API key activation
+            operationId: adminToggleApiKey
+            parameters:
+                - name: keyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: API key status toggled.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/api-keys/{keyId}:
+        delete:
+            tags:
+                - Admin
+            summary: Delete API key
+            operationId: adminDeleteApiKey
+            parameters:
+                - name: keyId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: API key deleted.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/rate-limits:
+        get:
+            tags:
+                - Admin
+            summary: List rate limit rules
+            operationId: adminListRateLimits
+            parameters:
+                - name: company_id
+                  in: query
+                  schema:
+                      type: integer
+                - $ref: '#/components/parameters/PageQuery'
+                - $ref: '#/components/parameters/PerPageQuery'
+            responses:
+                '200':
+                    description: Paginated rate limit definitions.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/RateLimitRule'
+                                                  meta:
+                                                      $ref: '#/components/schemas/PageMeta'
+        post:
+            tags:
+                - Admin
+            summary: Create rate limit rule
+            operationId: adminCreateRateLimit
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - scope
+                                - window_seconds
+                                - max_requests
+                            properties:
+                                company_id:
+                                    type: integer
+                                    nullable: true
+                                scope:
+                                    type: string
+                                window_seconds:
+                                    type: integer
+                                max_requests:
+                                    type: integer
+                                active:
+                                    type: boolean
+            responses:
+                '201':
+                    description: Rate limit created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/admin/rate-limits/{rateLimitId}:
+        parameters:
+            - name: rateLimitId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        get:
+            tags:
+                - Admin
+            summary: Show rate limit rule
+            operationId: adminShowRateLimit
+            responses:
+                '200':
+                    description: Rate limit rule detail.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/RateLimitRule'
+        put:
+            tags:
+                - Admin
+            summary: Update rate limit rule
+            operationId: adminUpdateRateLimit
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                window_seconds:
+                                    type: integer
+                                max_requests:
+                                    type: integer
+                                active:
+                                    type: boolean
+            responses:
+                '200':
+                    description: Rate limit updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+        delete:
+            tags:
+                - Admin
+            summary: Delete rate limit rule
+            operationId: adminDeleteRateLimit
+            responses:
+                '200':
+                    description: Rate limit removed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'

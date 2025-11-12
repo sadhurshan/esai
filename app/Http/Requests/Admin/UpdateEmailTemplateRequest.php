@@ -9,7 +9,7 @@ class UpdateEmailTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $template = $this->route('template');
+    $template = $this->route('email_template') ?? $this->route('template');
 
         return $template instanceof EmailTemplate
             ? ($this->user()?->can('update', $template) ?? false)
@@ -21,7 +21,7 @@ class UpdateEmailTemplateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $template = $this->route('template');
+    $template = $this->route('email_template') ?? $this->route('template');
 
         return [
             'key' => ['sometimes', 'string', 'max:120', 'alpha_dash', 'unique:email_templates,key,'.$template?->id],

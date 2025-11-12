@@ -207,6 +207,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/webhooks/stripe/invoice/payment-succeeded:
+    post:
+      tags:
+        - Webhooks
+      summary: Stripe invoice payment succeeded event hook
+      operationId: stripeInvoicePaymentSucceeded
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/webhooks/stripe/invoice/payment-failed:
+    post:
+      tags:
+        - Webhooks
+      summary: Stripe invoice payment failed event hook
+      operationId: stripeInvoicePaymentFailed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/webhooks/stripe/customer/subscription-updated:
+    post:
+      tags:
+        - Webhooks
+      summary: Stripe subscription updated webhook
+      operationId: stripeSubscriptionUpdated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
   /api/admin/webhook-deliveries:
     get:
       tags:

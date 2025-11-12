@@ -9,6 +9,16 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin \App\Models\GoodsReceiptNote */
 class GoodsReceiptNoteResource extends JsonResource
 {
+    private const STATUS_MAP = [
+        'pending' => 'draft',
+        'draft' => 'draft',
+        'inspecting' => 'inspecting',
+        'complete' => 'accepted',
+        'accepted' => 'accepted',
+        'ncr_raised' => 'ncr_raised',
+        'rejected' => 'rejected',
+    ];
+
     /**
      * @param array<int, Document> $attachmentMap
      */
@@ -20,11 +30,11 @@ class GoodsReceiptNoteResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->getKey(),
             'company_id' => $this->company_id,
             'purchase_order_id' => $this->purchase_order_id,
             'number' => $this->number,
-            'status' => $this->status,
+            'status' => self::STATUS_MAP[$this->status] ?? $this->status,
             'inspected_by_id' => $this->inspected_by_id,
             'inspected_at' => optional($this->inspected_at)?->toIso8601String(),
             'inspector' => $this->whenLoaded('inspector', fn () => [
@@ -34,8 +44,8 @@ class GoodsReceiptNoteResource extends JsonResource
             'lines' => $this->when($this->relationLoaded('lines'), function () use ($request) {
                 return $this->lines->map(function ($line) use ($request) {
                     return (new GoodsReceiptLineResource($line, $this->attachmentMap))->toArray($request);
-                })->all();
-            }),
+                })->values()->all();
+            }, []),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

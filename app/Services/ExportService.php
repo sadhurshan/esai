@@ -94,6 +94,24 @@ class ExportService
             ]);
         }
 
+        if ($plan->data_export_enabled === false) {
+            throw ValidationException::withMessages([
+                'plan' => ['Data exports are disabled for the current plan.'],
+            ]);
+        }
+
+        $activeRequests = ExportRequest::query()
+            ->where('company_id', $company->id)
+            ->where('requested_by', $user->id)
+            ->whereIn('status', [ExportRequestStatus::Pending, ExportRequestStatus::Processing])
+            ->count();
+
+        if ($activeRequests > 0) {
+            throw ValidationException::withMessages([
+                'concurrency' => ['An export is already processing for this user. Wait for it to finish before requesting another.'],
+            ]);
+        }
+
         $normalizedFilters = $this->normalizeFilters($typeEnum, $filters, (int) $plan->export_history_days);
 
         $exportRequest = ExportRequest::create([
@@ -182,6 +200,33 @@ class ExportService
             now()->addMinutes(10),
             ['exportRequest' => $request->getKey()]
         );
+    }
+
+    public function purgeExpiredExports(): int
+    {
+        $disk = Storage::disk('exports');
+        $removed = 0;
+
+        ExportRequest::query()
+            ->whereNotNull('file_path')
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<', now())
+            ->orderBy('expires_at')
+            ->chunkById(100, function ($exports) use ($disk, &$removed): void {
+                foreach ($exports as $export) {
+                    if ($export->file_path !== null && $disk->exists($export->file_path)) {
+                        $disk->delete($export->file_path);
+                    }
+
+                    $export->forceFill([
+                        'file_path' => null,
+                    ])->save();
+
+                    $removed++;
+                }
+            });
+
+        return $removed;
     }
 
     /**

@@ -21,7 +21,7 @@ class PurchaseOrderResource extends JsonResource
         $totalMinor = $this->total_minor ?? $this->decimalToMinor($this->total, $minorUnit);
 
         return [
-            'id' => $this->id,
+            'id' => $this->getKey(),
             'company_id' => $this->company_id,
             'po_number' => $this->po_number,
             'status' => $this->status,
@@ -42,14 +42,14 @@ class PurchaseOrderResource extends JsonResource
                 function () {
                     if ($this->supplier) {
                         return [
-                            'id' => $this->supplier->id,
+                            'id' => $this->supplier->getKey(),
                             'name' => $this->supplier->name,
                         ];
                     }
 
                     if ($this->quote?->supplier) {
                         return [
-                            'id' => $this->quote->supplier->id,
+                            'id' => $this->quote->supplier->getKey(),
                             'name' => $this->quote->supplier->name,
                         ];
                     }
@@ -65,12 +65,18 @@ class PurchaseOrderResource extends JsonResource
                 }
             ),
             'rfq' => $this->whenLoaded('rfq', fn () => [
-                'id' => $this->rfq?->id,
+                'id' => $this->rfq?->getKey(),
                 'number' => $this->rfq?->number,
                 'title' => $this->rfq?->title,
             ]),
-            'lines' => PurchaseOrderLineResource::collection($this->whenLoaded('lines')),
-            'change_orders' => PoChangeOrderResource::collection($this->whenLoaded('changeOrders')),
+            'lines' => $this->whenLoaded('lines', fn () => $this->lines
+                ->map(fn ($line) => (new PurchaseOrderLineResource($line))->toArray($request))
+                ->values()
+                ->all(), []),
+            'change_orders' => $this->whenLoaded('changeOrders', fn () => $this->changeOrders
+                ->map(fn ($changeOrder) => (new PoChangeOrderResource($changeOrder))->toArray($request))
+                ->values()
+                ->all(), []),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

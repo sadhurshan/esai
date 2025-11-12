@@ -52,4 +52,46 @@ class CompanyFactory extends Factory
             'notes' => null,
         ];
     }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Company $company): void {
+            $this->syncPlanAttributes($company, false);
+        })->afterCreating(function (Company $company): void {
+            $this->syncPlanAttributes($company, true);
+        });
+    }
+
+    private function syncPlanAttributes(Company $company, bool $persist): void
+    {
+        $originalPlanId = $company->plan_id;
+        $originalPlanCode = $company->plan_code;
+
+        if ($company->plan_code !== null) {
+            $plan = Plan::query()->firstWhere('code', $company->plan_code);
+
+            if ($plan instanceof Plan) {
+                $company->plan_id = $plan->id;
+                $company->plan_code = $plan->code;
+
+                if ($persist && ($company->plan_id !== $originalPlanId || $company->plan_code !== $originalPlanCode)) {
+                    $company->save();
+                }
+
+                return;
+            }
+        }
+
+        if ($company->plan_id !== null) {
+            $plan = Plan::query()->find($company->plan_id);
+
+            if ($plan instanceof Plan && $company->plan_code !== $plan->code) {
+                $company->plan_code = $plan->code;
+
+                if ($persist && $company->plan_code !== $originalPlanCode) {
+                    $company->save();
+                }
+            }
+        }
+    }
 }

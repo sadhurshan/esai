@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureDigitalTwinAccess
 {
+    use RespondsWithPlanUpgrade;
+
     public function handle(Request $request, Closure $next): JsonResponse|Response
     {
         $user = $request->user();
@@ -30,11 +33,15 @@ class EnsureDigitalTwinAccess
         $plan = $company->plan;
 
         if ($plan === null || ! $plan->digital_twin_enabled) {
-            return $this->upgradeRequired('digital_twin_disabled');
+            return $this->upgradeRequiredResponse([
+                'code' => 'digital_twin_disabled',
+            ]);
         }
 
         if ($this->requiresMaintenance($request) && (! $plan->maintenance_enabled)) {
-            return $this->upgradeRequired('maintenance_disabled');
+            return $this->upgradeRequiredResponse([
+                'code' => 'maintenance_disabled',
+            ]);
         }
 
         return $next($request);
@@ -53,19 +60,6 @@ class EnsureDigitalTwinAccess
         }
 
         return Str::contains($path, 'procedures') && Str::contains($path, 'complete');
-    }
-
-    private function upgradeRequired(string $code): JsonResponse
-    {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Upgrade required',
-            'data' => null,
-            'errors' => [
-                'code' => $code,
-                'upgrade_url' => url('/pricing'),
-            ],
-        ], 402);
     }
 
     private function errorResponse(string $message, int $status): JsonResponse

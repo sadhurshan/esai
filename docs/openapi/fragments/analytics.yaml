@@ -1,0 +1,92 @@
+paths:
+  /api/analytics/overview:
+    get:
+      tags:
+        - Analytics
+      summary: Fetch analytics overview dashboard
+      operationId: analyticsOverview
+      responses:
+        '200':
+          description: Aggregate metrics for the analytics overview screen.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/analytics/generate:
+    post:
+      tags:
+        - Analytics
+      summary: Generate ad-hoc analytics export
+      operationId: analyticsGenerate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Analytics generation queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/analytics/reports:
+    get:
+      tags:
+        - Analytics
+      summary: List analytics reports
+      operationId: listAnalyticsReports
+      responses:
+        '200':
+          description: Available analytics reports for the current plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/analytics/reports/{reportKey}:
+    parameters:
+      - name: reportKey
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Analytics
+      summary: Show report configuration
+      operationId: showAnalyticsReport
+      responses:
+        '200':
+          description: Report definition including filters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/analytics/reports/{reportKey}/run:
+    parameters:
+      - name: reportKey
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Analytics
+      summary: Run analytics report
+      operationId: runAnalyticsReport
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Report execution queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

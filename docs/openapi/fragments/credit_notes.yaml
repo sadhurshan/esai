@@ -1,0 +1,238 @@
+components:
+    schemas:
+        CreditNote:
+            type: object
+            required:
+                - id
+                - company_id
+                - invoice_id
+                - credit_number
+                - status
+                - total
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                company_id:
+                    type: integer
+                invoice_id:
+                    type: integer
+                purchase_order_id:
+                    type: integer
+                    nullable: true
+                credit_number:
+                    type: string
+                status:
+                    type: string
+                    enum: [draft, pending_review, issued, approved, rejected]
+                reason:
+                    type: string
+                total:
+                    $ref: '#/components/schemas/Money'
+                balance_remaining:
+                    $ref: '#/components/schemas/Money'
+                review_comment:
+                    type: string
+                    nullable: true
+                issued_by:
+                    type: integer
+                    nullable: true
+                approved_by:
+                    type: integer
+                    nullable: true
+                issued_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                approved_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+                invoice:
+                    type: object
+                    nullable: true
+                    properties:
+                        id:
+                            type: string
+                            format: uuid
+                        invoice_number:
+                            type: string
+        CreditNoteCollection:
+            type: object
+            required:
+                - items
+                - meta
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CreditNote'
+                meta:
+                    $ref: '#/components/schemas/PageMeta'
+paths:
+    /api/credit-notes:
+        get:
+            tags:
+                - Credit Notes
+            summary: List credit notes for tenant
+            operationId: listCreditNotes
+            parameters:
+                - $ref: '#/components/parameters/PageQuery'
+                - $ref: '#/components/parameters/PerPageQuery'
+                - name: status
+                  in: query
+                  schema:
+                      type: string
+                      enum: [draft, pending_review, issued, approved, rejected]
+                - name: invoice_id
+                  in: query
+                  schema:
+                      type: integer
+                - name: created_from
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+                - name: created_to
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+            responses:
+                '200':
+                    description: Paginated credit notes scoped to the current company.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/CreditNoteCollection'
+    /api/credit-notes/invoices/{invoiceId}:
+        post:
+            tags:
+                - Credit Notes
+            summary: Draft credit note from invoice
+            operationId: createCreditNote
+            parameters:
+                - name: invoiceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            required:
+                                - reason
+                                - amount_minor
+                            properties:
+                                reason:
+                                    type: string
+                                amount_minor:
+                                    type: integer
+                                attachments:
+                                    type: array
+                                    items:
+                                        type: string
+                                        format: binary
+            responses:
+                '201':
+                    description: Credit note created in draft state.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/credit-notes/{creditNoteId}:
+        parameters:
+            - name: creditNoteId
+              in: path
+              required: true
+              schema:
+                  type: string
+                  format: uuid
+        get:
+            tags:
+                - Credit Notes
+            summary: Retrieve credit note
+            operationId: showCreditNote
+            responses:
+                '200':
+                    description: Credit note detail with invoice linkage.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/CreditNote'
+    /api/credit-notes/{creditNoteId}/issue:
+        post:
+            tags:
+                - Credit Notes
+            summary: Issue credit note to supplier
+            operationId: issueCreditNote
+            parameters:
+                - name: creditNoteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                '200':
+                    description: Credit note marked as issued.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/credit-notes/{creditNoteId}/approve:
+        post:
+            tags:
+                - Credit Notes
+            summary: Approve or reject credit note
+            operationId: approveCreditNote
+            parameters:
+                - name: creditNoteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - decision
+                            properties:
+                                decision:
+                                    type: string
+                                    enum: [approve, reject]
+                                comment:
+                                    type: string
+                                    nullable: true
+            responses:
+                '200':
+                    description: Credit note review captured.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    # TODO: clarify with spec whether /apply and /reverse endpoints are exposed for credit note settlement workflows.

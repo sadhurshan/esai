@@ -1,0 +1,33 @@
+paths:
+  /api/orders:
+    get:
+      tags:
+        - Orders
+      summary: List public supplier orders
+      operationId: listOrders
+      responses:
+        '200':
+          description: Orders visible to the authenticated supplier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/orders/{orderId}:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Orders
+      summary: Show supplier order detail
+      operationId: showOrder
+      responses:
+        '200':
+          description: Order details for supplier view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

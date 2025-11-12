@@ -1,0 +1,212 @@
+components:
+    schemas:
+        SearchResult:
+            type: object
+            required:
+                - id
+                - type
+                - title
+                - url
+            properties:
+                id:
+                    type: string
+                type:
+                    type: string
+                    description: Result type identifier (rfq, quote, supplier, purchase_order, etc.).
+                title:
+                    type: string
+                subtitle:
+                    type: string
+                    nullable: true
+                snippet:
+                    type: string
+                    nullable: true
+                url:
+                    type: string
+                    format: uri
+        SavedSearch:
+            type: object
+            required:
+                - id
+                - name
+                - query
+            properties:
+                id:
+                    type: integer
+                name:
+                    type: string
+                query:
+                    type: object
+                    additionalProperties: true
+                shared:
+                    type: boolean
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+paths:
+    /api/search:
+        get:
+            tags:
+                - Search
+            summary: Perform global search across tenant resources
+            operationId: searchGlobal
+            parameters:
+                - name: q
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                - name: types
+                  in: query
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                  description: Optional filters limiting domain (comma separated).
+                - name: date_from
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+                - name: date_to
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+            responses:
+                '200':
+                    description: Aggregated search results ordered by relevance.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  results:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/SearchResult'
+                                                  meta:
+                                                      $ref: '#/components/schemas/RequestMeta'
+    /api/saved-searches:
+        get:
+            tags:
+                - Search
+            summary: List saved searches
+            operationId: listSavedSearches
+            responses:
+                '200':
+                    description: Saved searches for the authenticated user.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/SavedSearch'
+        post:
+            tags:
+                - Search
+            summary: Create saved search
+            operationId: createSavedSearch
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - name
+                                - query
+                            properties:
+                                name:
+                                    type: string
+                                query:
+                                    type: object
+                                    additionalProperties: true
+                                shared:
+                                    type: boolean
+                                    default: false
+            responses:
+                '201':
+                    description: Saved search created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/saved-searches/{savedSearchId}:
+        parameters:
+            - name: savedSearchId
+              in: path
+              required: true
+              schema:
+                  type: integer
+        get:
+            tags:
+                - Search
+            summary: Show saved search
+            operationId: showSavedSearch
+            responses:
+                '200':
+                    description: Saved search detail.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/SavedSearch'
+        put:
+            tags:
+                - Search
+            summary: Update saved search
+            operationId: updateSavedSearch
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                query:
+                                    type: object
+                                    additionalProperties: true
+                                shared:
+                                    type: boolean
+            responses:
+                '200':
+                    description: Saved search updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+        delete:
+            tags:
+                - Search
+            summary: Delete saved search
+            operationId: deleteSavedSearch
+            responses:
+                '200':
+                    description: Saved search removed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'

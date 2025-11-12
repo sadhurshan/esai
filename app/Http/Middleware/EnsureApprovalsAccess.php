@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureApprovalsAccess
 {
-    public function handle(Request $request, Closure $next): Response
+    use RespondsWithPlanUpgrade;
+
+    public function handle(Request $request, Closure $next): JsonResponse|Response
     {
         $user = $request->user();
 
@@ -35,21 +39,19 @@ class EnsureApprovalsAccess
         $plan = $company->plan;
 
         if ($plan === null || ! $plan->approvals_enabled || $plan->approval_levels_limit === 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Upgrade required to access approvals.',
-                'data' => null,
-            ], Response::HTTP_PAYMENT_REQUIRED);
+            return $this->upgradeRequiredResponse([
+                'code' => 'approvals_disabled',
+            ], 'Upgrade required to use approvals.');
         }
 
         $levels = $request->input('levels_json');
 
         if (is_array($levels) && count($levels) > $plan->approval_levels_limit) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Upgrade required for the requested approval depth.',
-                'data' => null,
-            ], Response::HTTP_PAYMENT_REQUIRED);
+            return $this->upgradeRequiredResponse([
+                'code' => 'approval_depth_limit',
+                'limit' => $plan->approval_levels_limit,
+                'requested' => count($levels),
+            ], 'Upgrade required to use approvals.');
         }
 
         return $next($request);

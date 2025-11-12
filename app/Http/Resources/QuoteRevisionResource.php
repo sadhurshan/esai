@@ -15,8 +15,8 @@ class QuoteRevisionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'quote_id' => $this->quote_id,
+            'id' => (string) $this->getRouteKey(),
+            'quote_id' => (string) $this->quote_id,
             'revision_no' => $this->revision_no,
             'data' => $this->data_json ?? [],
             'document' => $this->whenLoaded('document', fn () => (new DocumentResource($this->document))->toArray($request)),

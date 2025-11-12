@@ -9,23 +9,39 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin \App\Models\Invoice */
 class InvoiceResource extends JsonResource
 {
+    private const STATUS_MAP = [
+        'pending' => 'draft',
+        'draft' => 'draft',
+        'paid' => 'paid',
+        'approved' => 'approved',
+        'submitted' => 'submitted',
+        'overdue' => 'rejected',
+        'disputed' => 'rejected',
+    ];
+
     public function toArray(Request $request): array
     {
         $matchSummary = $this->buildMatchSummary();
 
         return [
-            'id' => $this->id,
+            'id' => (string) $this->getRouteKey(),
             'company_id' => $this->company_id,
             'purchase_order_id' => $this->purchase_order_id,
             'supplier_id' => $this->supplier_id,
             'invoice_number' => $this->invoice_number,
             'currency' => $this->currency,
-            'status' => $this->status,
+            'status' => self::STATUS_MAP[$this->status] ?? $this->status,
             'subtotal' => (float) $this->subtotal,
             'tax_amount' => (float) $this->tax_amount,
             'total' => (float) $this->total,
-            'lines' => $this->when($this->relationLoaded('lines'), fn () => InvoiceLineResource::collection($this->lines)->toArray($request)),
-            'matches' => $this->when($this->relationLoaded('matches'), fn () => InvoiceMatchResource::collection($this->matches)->toArray($request)),
+            'lines' => $this->when($this->relationLoaded('lines'), fn () => $this->lines
+                ->map(fn ($line) => (new InvoiceLineResource($line))->toArray($request))
+                ->values()
+                ->all(), []),
+            'matches' => $this->when($this->relationLoaded('matches'), fn () => $this->matches
+                ->map(fn ($match) => (new InvoiceMatchResource($match))->toArray($request))
+                ->values()
+                ->all(), []),
             'match_summary' => $matchSummary,
             'document' => $this->whenLoaded('document', fn () => $this->formatDocument($this->document)),
             'created_at' => optional($this->created_at)?->toIso8601String(),

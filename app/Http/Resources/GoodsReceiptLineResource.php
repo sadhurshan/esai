@@ -32,12 +32,10 @@ class GoodsReceiptLineResource extends JsonResource
                 }
 
                 return [
-                    'id' => $document->id,
+                    'id' => (string) $document->getRouteKey(),
                     'filename' => $document->filename,
-                    'kind' => $document->kind,
                     'mime' => $document->mime,
                     'size_bytes' => $document->size_bytes,
-                    'created_at' => optional($document->created_at)?->toIso8601String(),
                 ];
             })
             ->filter()
@@ -45,17 +43,14 @@ class GoodsReceiptLineResource extends JsonResource
             ->all();
 
         return [
-            'id' => $this->id,
+            'id' => $this->getKey(),
             'goods_receipt_note_id' => $this->goods_receipt_note_id,
             'purchase_order_line_id' => $this->purchase_order_line_id,
-            'received_qty' => (int) $this->received_qty,
-            'accepted_qty' => (int) $this->accepted_qty,
-            'rejected_qty' => (int) $this->rejected_qty,
+            'received_qty' => $this->received_qty !== null ? (float) $this->received_qty : null,
+            'accepted_qty' => $this->accepted_qty !== null ? (float) $this->accepted_qty : null,
+            'rejected_qty' => $this->rejected_qty !== null ? (float) $this->rejected_qty : null,
             'defect_notes' => $this->defect_notes,
-            'attachment_ids' => $attachmentIds->values()->all(),
             'attachments' => $attachments,
-            'created_at' => optional($this->created_at)?->toIso8601String(),
-            'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];
     }
 }

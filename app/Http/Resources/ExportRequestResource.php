@@ -19,7 +19,7 @@ class ExportRequestResource extends JsonResource
         $downloadUrl = app(ExportService::class)->generateSignedUrl($this->resource);
 
         return [
-            'id' => $this->id,
+            'id' => $this->getKey(),
             'type' => $this->type instanceof ExportRequestType ? $this->type->value : $this->type,
             'status' => $this->status instanceof ExportRequestStatus ? $this->status->value : $this->status,
             'filters' => $this->filters ?? [],

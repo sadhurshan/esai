@@ -31,7 +31,7 @@ class PurchaseOrderLineResource extends JsonResource
         $lineTotalMoney = $lineSubtotalMoney->add($taxMoney);
 
         return [
-            'id' => $this->id,
+            'id' => $this->getKey(),
             'line_no' => $this->line_no,
             'description' => $this->description,
             'quantity' => $quantity,
@@ -47,7 +47,7 @@ class PurchaseOrderLineResource extends JsonResource
             'line_total_minor' => $lineTotalMoney->amountMinor(),
             'delivery_date' => optional($this->delivery_date)?->toDateString(),
             'taxes' => $this->whenLoaded('taxes', fn () => $taxes->map(fn (LineTax $tax): array => [
-                'id' => $tax->id,
+                'id' => $tax->getKey(),
                 'tax_code_id' => $tax->tax_code_id,
                 'rate_percent' => (float) $tax->rate_percent,
                 'amount_minor' => (int) $tax->amount_minor,

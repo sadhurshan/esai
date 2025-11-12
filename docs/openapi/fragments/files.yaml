@@ -1,0 +1,99 @@
+paths:
+  /api/files/cad/{rfqId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Documents
+      summary: Download RFQ CAD package
+      operationId: downloadRfqCad
+      responses:
+        '200':
+          description: CAD archive for the RFQ.
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+  /api/files/attachments/{quoteId}:
+    parameters:
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Documents
+      summary: Download quote attachments archive
+      operationId: downloadQuoteAttachments
+      responses:
+        '200':
+          description: Consolidated quote attachments.
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+  /api/files/upload:
+    post:
+      tags:
+        - Documents
+      summary: Upload file to temporary storage
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: File uploaded and staged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/documents:
+    post:
+      tags:
+        - Documents
+      summary: Persist document to entity
+      operationId: storeDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - documentable_type
+                - documentable_id
+              properties:
+                file:
+                  type: string
+                  format: binary
+                documentable_type:
+                  type: string
+                documentable_id:
+                  type: integer
+                label:
+                  type: string
+      responses:
+        '201':
+          description: Document stored and linked to record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

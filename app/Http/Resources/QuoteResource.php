@@ -21,11 +21,11 @@ class QuoteResource extends JsonResource
         $totalMinor = $this->total_minor ?? $this->decimalToMinor($this->total, $currency, $minorUnit);
 
         return [
-            'id' => $this->id,
-            'rfq_id' => $this->rfq_id,
-            'supplier_id' => $this->supplier_id,
+            'id' => (string) $this->getRouteKey(),
+            'rfq_id' => $this->rfq_id !== null ? (int) $this->rfq_id : null,
+            'supplier_id' => $this->supplier_id !== null ? (int) $this->supplier_id : null,
             'supplier' => $this->whenLoaded('supplier', fn () => [
-                'id' => $this->supplier?->id,
+                'id' => $this->supplier?->getKey(),
                 'name' => $this->supplier?->name,
             ]),
             'currency' => $currency,
@@ -45,9 +45,12 @@ class QuoteResource extends JsonResource
             'submitted_at' => optional($this->created_at)?->toIso8601String(),
             'withdrawn_at' => optional($this->withdrawn_at)?->toIso8601String(),
             'withdraw_reason' => $this->withdraw_reason,
-            'items' => QuoteItemResource::collection($this->whenLoaded('items')),
+            'items' => $this->whenLoaded('items', fn () => $this->items
+                ->map(fn ($item) => (new QuoteItemResource($item))->toArray($request))
+                ->values()
+                ->all(), []),
             'attachments' => $this->whenLoaded('documents', fn () => $this->documents->map(fn ($document) => [
-                'id' => $document->id,
+                'id' => (string) $document->getRouteKey(),
                 'filename' => $document->filename,
                 'path' => $document->path,
                 'mime' => $document->mime,
@@ -55,7 +58,8 @@ class QuoteResource extends JsonResource
             ])->all()),
             'revisions' => $this->whenLoaded('revisions', fn () => $this->revisions
                 ->map(fn ($revision) => (new QuoteRevisionResource($revision))->toArray($request))
-                ->all()),
+                ->values()
+                ->all(), []),
         ];
     }
 

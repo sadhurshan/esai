@@ -33,7 +33,15 @@ class ApprovalWorkflowService
         $company = $this->resolveCompany($entity);
         $company->loadMissing('plan');
 
-        if ($company->plan === null || ! $company->plan->approvals_enabled) {
+        $plan = $company->plan;
+
+        if ($plan === null || ! $plan->approvals_enabled) {
+            throw ValidationException::withMessages([
+                'approvals' => ['Upgrade required to use approvals.'],
+            ]);
+        }
+
+        if ($plan->approval_levels_limit !== null && $plan->approval_levels_limit === 0) {
             throw ValidationException::withMessages([
                 'approvals' => ['Upgrade required to use approvals.'],
             ]);
@@ -57,7 +65,7 @@ class ApprovalWorkflowService
             return null;
         }
 
-        if ($company->plan->approval_levels_limit > 0 && $rule->levelsCount() > $company->plan->approval_levels_limit) {
+        if ($plan->approval_levels_limit > 0 && $rule->levelsCount() > $plan->approval_levels_limit) {
             throw ValidationException::withMessages([
                 'levels_json' => ['Current plan cannot support the configured approval levels.'],
             ]);

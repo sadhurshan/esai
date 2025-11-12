@@ -1,0 +1,211 @@
+paths:
+  /api/approvals/rules:
+    get:
+      tags:
+        - Approvals
+      summary: List approval rules
+      operationId: listApprovalRules
+      responses:
+        '200':
+          description: Approval rules configured for the tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Approvals
+      summary: Create approval rule
+      operationId: createApprovalRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Approval rule created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/rules/{ruleId}:
+    parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Approvals
+      summary: Show approval rule
+      operationId: showApprovalRule
+      responses:
+        '200':
+          description: Approval rule detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Approvals
+      summary: Update approval rule
+      operationId: updateApprovalRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Approval rule updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Approvals
+      summary: Delete approval rule
+      operationId: deleteApprovalRule
+      responses:
+        '200':
+          description: Approval rule removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/requests:
+    get:
+      tags:
+        - Approvals
+      summary: List approval requests
+      operationId: listApprovalRequests
+      responses:
+        '200':
+          description: Pending approval requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/requests/{approvalId}:
+    parameters:
+      - name: approvalId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Approvals
+      summary: Show approval request
+      operationId: showApprovalRequest
+      responses:
+        '200':
+          description: Approval request detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/requests/{approvalId}/action:
+    parameters:
+      - name: approvalId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Approvals
+      summary: Take action on approval request
+      operationId: actOnApprovalRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Approval decision recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/delegations:
+    get:
+      tags:
+        - Approvals
+      summary: List approval delegations
+      operationId: listApprovalDelegations
+      responses:
+        '200':
+          description: Active approval delegation rules.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Approvals
+      summary: Create approval delegation
+      operationId: createApprovalDelegation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Approval delegation created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/approvals/delegations/{delegationId}:
+    parameters:
+      - name: delegationId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Approvals
+      summary: Delete approval delegation
+      operationId: deleteApprovalDelegation
+      responses:
+        '200':
+          description: Approval delegation removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Approvals
+      summary: Update approval delegation
+      operationId: updateApprovalDelegation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Approval delegation updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

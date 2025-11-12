@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureLocalizationAccess
 {
-    public function handle(Request $request, Closure $next): Response
+    use RespondsWithPlanUpgrade;
+
+    public function handle(Request $request, Closure $next): JsonResponse|Response
     {
         $user = $request->user();
 
@@ -35,11 +39,7 @@ class EnsureLocalizationAccess
         $plan = $company->plan;
 
         if ($plan === null || ! $plan->localization_enabled) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Upgrade required.',
-                'data' => null,
-            ], Response::HTTP_PAYMENT_REQUIRED);
+            return $this->upgradeRequiredResponse();
         }
 
         return $next($request);

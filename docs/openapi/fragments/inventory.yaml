@@ -9,8 +9,7 @@ components:
         - status
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         company_id:
           type: integer
         purchase_order_id:
@@ -53,11 +52,9 @@ components:
         - quantity_received
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         purchase_order_line_id:
-          type: string
-          format: uuid
+          type: integer
         quantity_received:
           type: number
         quantity_accepted:
@@ -116,8 +113,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+            type: integer
     get:
       tags:
         - Inventory
@@ -168,8 +164,7 @@ paths:
                       - quantity_received
                     properties:
                       purchase_order_line_id:
-                        type: string
-                        format: uuid
+                        type: integer
                       quantity_received:
                         type: number
                       quantity_accepted:
@@ -198,14 +193,12 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
       - name: grnId
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
     get:
       tags:
         - Inventory
@@ -244,8 +237,7 @@ paths:
                     type: object
                     properties:
                       id:
-                        type: string
-                        format: uuid
+                        type: integer
                       quantity_accepted:
                         type: number
                       quantity_rejected:
@@ -310,8 +302,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:

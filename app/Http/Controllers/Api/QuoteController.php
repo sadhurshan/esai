@@ -85,6 +85,10 @@ class QuoteController extends ApiController
 
         $quote->load(['supplier', 'items.taxes.taxCode', 'items.rfqItem', 'documents']);
 
+        if ($quote->supplier?->company instanceof \App\Models\Company) {
+            $quote->supplier->company->loadMissing('plan');
+        }
+
         return $this->ok((new QuoteResource($quote))->toArray($request), 'Quote submitted')->setStatusCode(201);
     }
 

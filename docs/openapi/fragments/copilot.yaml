@@ -1,0 +1,54 @@
+paths:
+  /api/copilot/analytics:
+    post:
+      tags:
+        - Copilot
+      summary: Generate analytics insight via Copilot
+      operationId: copilotAnalytics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Analytics insight with supporting narrative.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/copilot/chat/completions:
+    post:
+      tags:
+        - Copilot
+      summary: Stream structured copilot response
+      operationId: copilotChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Copilot generated completion payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/copilot/prompts:
+    get:
+      tags:
+        - Copilot
+      summary: List available copilot prompts
+      operationId: listCopilotPrompts
+      responses:
+        '200':
+          description: Copilot prompt catalog.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

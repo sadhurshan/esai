@@ -1,0 +1,33 @@
+paths:
+  /api/crm/export-preview:
+    get:
+      tags:
+        - CRM
+      summary: Preview CRM export payload
+      operationId: crmExportPreview
+      responses:
+        '200':
+          description: Preview of CRM export in JSON form.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - CRM
+      summary: Generate CRM export preview with filters
+      operationId: crmExportPreviewFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Filtered CRM export preview.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

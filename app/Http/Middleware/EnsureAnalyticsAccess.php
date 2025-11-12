@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAnalyticsAccess
 {
-    public function handle(Request $request, Closure $next): Response
+    use RespondsWithPlanUpgrade;
+
+    public function handle(Request $request, Closure $next): JsonResponse|Response
     {
         $user = $request->user();
 
@@ -35,11 +39,7 @@ class EnsureAnalyticsAccess
         $plan = $company->plan;
 
         if ($plan === null || ! $plan->analytics_enabled) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Analytics not available on current plan.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return $this->upgradeRequiredResponse();
         }
 
         return $next($request);

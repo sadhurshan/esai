@@ -1,0 +1,299 @@
+components:
+  schemas:
+    Supplier:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          description: Supplier onboarding status.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SupplierApplication:
+      type: object
+      required:
+        - id
+        - supplier_name
+        - status
+      properties:
+        id:
+          type: integer
+        supplier_name:
+          type: string
+        status:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+paths:
+  /api/suppliers:
+    get:
+      tags:
+        - Suppliers
+      summary: List suppliers for current company
+      operationId: listSuppliers
+      responses:
+        '200':
+          description: Paginated suppliers.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Supplier'
+  /api/suppliers/{supplierId}:
+    parameters:
+      - name: supplierId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Suppliers
+      summary: Show supplier
+      operationId: showSupplier
+      responses:
+        '200':
+          description: Supplier details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Supplier'
+  /api/suppliers/{supplierId}/esg:
+    parameters:
+      - name: supplierId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Suppliers
+      summary: List ESG records for supplier
+      operationId: listSupplierEsg
+      responses:
+        '200':
+          description: Environmental, social, and governance records for the supplier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Suppliers
+      summary: Store ESG record for supplier
+      operationId: createSupplierEsg
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: ESG record created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/suppliers/{supplierId}/esg/export:
+    parameters:
+      - name: supplierId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Suppliers
+      summary: Queue ESG export for supplier
+      operationId: exportSupplierEsg
+      responses:
+        '202':
+          description: ESG export queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/suppliers/{supplierId}/esg/{recordId}:
+    parameters:
+      - name: supplierId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: recordId
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Suppliers
+      summary: Update ESG record
+      operationId: updateSupplierEsg
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: ESG record updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Suppliers
+      summary: Delete ESG record
+      operationId: deleteSupplierEsg
+      responses:
+        '200':
+          description: ESG record deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier-applications:
+    get:
+      tags:
+        - Suppliers
+      summary: List supplier applications
+      operationId: listSupplierApplications
+      responses:
+        '200':
+          description: Paginated supplier applications.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/SupplierApplication'
+    post:
+      tags:
+        - Suppliers
+      summary: Submit supplier application
+      operationId: createSupplierApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Supplier application submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier-applications/{applicationId}:
+    parameters:
+      - name: applicationId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Suppliers
+      summary: Show supplier application
+      operationId: showSupplierApplication
+      responses:
+        '200':
+          description: Supplier application details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SupplierApplication'
+    delete:
+      tags:
+        - Suppliers
+      summary: Delete supplier application
+      operationId: deleteSupplierApplication
+      responses:
+        '200':
+          description: Supplier application deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/me/supplier-application/status:
+    get:
+      tags:
+        - Suppliers
+      summary: Get supplier self-service application status
+      operationId: showSelfServiceSupplierApplicationStatus
+      responses:
+        '200':
+          description: Current status for the authenticated user's company application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/me/supplier/visibility:
+    put:
+      tags:
+        - Suppliers
+      summary: Update supplier directory visibility
+      operationId: updateSupplierVisibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Visibility updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

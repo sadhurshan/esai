@@ -11,9 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiKeyAuth
 {
-    public function handle(Request $request, Closure $next, ?string $requiredScope = null): Response
+    public function handle(Request $request, Closure $next, string ...$requiredScopes): Response
     {
-        $token = $this->extractBearerToken($request);
+        $token = $this->extractToken($request);
 
         if ($token === null) {
             return $this->deny(Response::HTTP_UNAUTHORIZED, 'API key missing.');
@@ -42,9 +42,11 @@ class ApiKeyAuth
             return $this->deny(Response::HTTP_UNAUTHORIZED, 'API key invalid.');
         }
 
-        $scopes = Arr::wrap($apiKey->scopes ?? []);
+        $scopes = array_values(array_filter(Arr::wrap($apiKey->scopes ?? []), static fn ($scope): bool => is_string($scope) && $scope !== ''));
 
-        if ($requiredScope !== null && ! in_array($requiredScope, $scopes, true)) {
+        $normalizedRequiredScopes = $this->normalizeScopes($requiredScopes);
+
+        if ($normalizedRequiredScopes !== [] && ! $this->scopesSatisfied($normalizedRequiredScopes, $scopes)) {
             return $this->deny(Response::HTTP_FORBIDDEN, 'API key scope missing.');
         }
 
@@ -58,19 +60,29 @@ class ApiKeyAuth
         return $next($request);
     }
 
-    private function extractBearerToken(Request $request): ?string
+    private function extractToken(Request $request): ?string
     {
         $authorization = $request->headers->get('Authorization');
 
-        if (! is_string($authorization)) {
-            return null;
+        if (is_string($authorization) && preg_match('/^Bearer\s+(.*)$/i', $authorization, $matches)) {
+            $token = trim($matches[1]);
+
+            if ($token !== '') {
+                return $token;
+            }
         }
 
-        if (! preg_match('/^Bearer\s+(.*)$/i', $authorization, $matches)) {
-            return null;
+        $headerToken = $request->headers->get('X-API-Key');
+
+        if (is_string($headerToken)) {
+            $value = trim($headerToken);
+
+            if ($value !== '') {
+                return $value;
+            }
         }
 
-        return trim($matches[1]);
+        return null;
     }
 
     /**
@@ -90,6 +102,52 @@ class ApiKeyAuth
     private function hashToken(string $token): string
     {
         return hash_hmac('sha256', $token, config('app.key'));
+    }
+
+    /**
+     * @param  array<int, string>  $scopes
+     * @return array<int, string>
+     */
+    private function normalizeScopes(array $scopes): array
+    {
+        $normalized = [];
+
+        foreach ($scopes as $scopeGroup) {
+            $chunks = preg_split('/[\|,]/', $scopeGroup) ?: [];
+
+            foreach ($chunks as $chunk) {
+                $value = trim($chunk);
+
+                if ($value === '') {
+                    continue;
+                }
+
+                $normalized[$value] = true;
+            }
+        }
+
+        return array_keys($normalized);
+    }
+
+    /**
+     * @param  array<int, string>  $required
+     * @param  array<int, string>  $granted
+     */
+    private function scopesSatisfied(array $required, array $granted): bool
+    {
+        $grantedLookup = [];
+
+        foreach ($granted as $scope) {
+            $grantedLookup[$scope] = true;
+        }
+
+        foreach ($required as $scope) {
+            if (! isset($grantedLookup[$scope])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function deny(int $status, string $message): JsonResponse

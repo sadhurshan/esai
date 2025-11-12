@@ -18,6 +18,7 @@ return new class extends Migration
                 $table->enum('role', [
                     'owner',
                     'buyer_admin',
+                    'buyer_member',
                     'buyer_requester',
                     'supplier_admin',
                     'supplier_estimator',

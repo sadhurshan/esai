@@ -10,8 +10,7 @@ components:
         - created_at
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
         type:
           type: string
           description: Export payload type identifier.
@@ -42,6 +41,7 @@ components:
           type: string
           format: date-time
           nullable: true
+          description: Timestamp when the export artifact is purged from storage. Clients must requeue after expiry.
         download_url:
           type: string
           format: uri
@@ -119,8 +119,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
     get:
       tags:
         - Exports
@@ -144,8 +143,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          format: uuid
+          type: integer
     get:
       tags:
         - Exports

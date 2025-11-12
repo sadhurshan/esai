@@ -32,9 +32,19 @@ class PlansSeeder extends Seeder
                 'rma_monthly_limit' => 0,
                 'credit_notes_enabled' => false,
                 'global_search_enabled' => false,
+                'quote_revisions_enabled' => false,
+                'digital_twin_enabled' => false,
+                'maintenance_enabled' => false,
+                'inventory_enabled' => false,
+                'inventory_history_months' => 6,
+                'pr_enabled' => false,
                 'multi_currency_enabled' => false,
                 'tax_engine_enabled' => false,
                 'localization_enabled' => false,
+                'exports_enabled' => false,
+                'export_row_limit' => 0,
+                'data_export_enabled' => false,
+                'export_history_days' => 0,
             ],
             [
                 'code' => 'growth',
@@ -55,9 +65,19 @@ class PlansSeeder extends Seeder
                 'rma_monthly_limit' => 20,
                 'credit_notes_enabled' => true,
                 'global_search_enabled' => true,
+                'quote_revisions_enabled' => true,
+                'digital_twin_enabled' => false,
+                'maintenance_enabled' => false,
+                'inventory_enabled' => true,
+                'inventory_history_months' => 12,
+                'pr_enabled' => true,
                 'multi_currency_enabled' => true,
                 'tax_engine_enabled' => true,
                 'localization_enabled' => true,
+                'exports_enabled' => true,
+                'export_row_limit' => 50000,
+                'data_export_enabled' => true,
+                'export_history_days' => 30,
             ],
             [
                 'code' => 'enterprise',
@@ -78,9 +98,19 @@ class PlansSeeder extends Seeder
                 'rma_monthly_limit' => 0,
                 'credit_notes_enabled' => true,
                 'global_search_enabled' => true,
+                'quote_revisions_enabled' => true,
+                'digital_twin_enabled' => true,
+                'maintenance_enabled' => true,
+                'inventory_enabled' => true,
+                'inventory_history_months' => 36,
+                'pr_enabled' => true,
                 'multi_currency_enabled' => true,
                 'tax_engine_enabled' => true,
                 'localization_enabled' => true,
+                'exports_enabled' => true,
+                'export_row_limit' => 0,
+                'data_export_enabled' => true,
+                'export_history_days' => 180,
             ],
         ];
 
@@ -94,7 +124,7 @@ class PlansSeeder extends Seeder
         DB::table('plans')->upsert(
             $payload,
             ['code'],
-            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'approvals_enabled', 'approval_levels_limit', 'rma_enabled', 'rma_monthly_limit', 'credit_notes_enabled', 'global_search_enabled', 'multi_currency_enabled', 'tax_engine_enabled', 'localization_enabled', 'updated_at']
+            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'approvals_enabled', 'approval_levels_limit', 'rma_enabled', 'rma_monthly_limit', 'credit_notes_enabled', 'global_search_enabled', 'quote_revisions_enabled', 'digital_twin_enabled', 'maintenance_enabled', 'inventory_enabled', 'inventory_history_months', 'pr_enabled', 'multi_currency_enabled', 'tax_engine_enabled', 'localization_enabled', 'exports_enabled', 'export_row_limit', 'data_export_enabled', 'export_history_days', 'updated_at']
         );
     }
 }

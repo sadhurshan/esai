@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
 class ApiSpecSdkTypescriptCommand extends Command
@@ -29,16 +30,28 @@ class ApiSpecSdkTypescriptCommand extends Command
             return self::FAILURE;
         }
 
+        $skipGenerator = (bool) $this->option('skip-generator');
+        $skipReason = $skipGenerator ? 'Skipping openapi-generator-cli (per --skip-generator option).' : null;
+
+        if (! $skipGenerator && ! $this->javaAvailable()) {
+            $skipGenerator = true;
+            $skipReason = 'Java runtime not detected. Skipping openapi-generator-cli. Install Java 17+ then rerun without --skip-generator.';
+            $this->warn($skipReason);
+            $skipReason = null;
+        }
+
         if (! $this->runOpenapiTypescript($specPath)) {
             return self::FAILURE;
         }
 
-        if (! $this->option('skip-generator')) {
+        if (! $skipGenerator) {
             if (! $this->runOpenapiGenerator($specPath)) {
                 return self::FAILURE;
             }
         } else {
-            $this->info('Skipping openapi-generator-cli (per --skip-generator option).');
+            if ($skipReason !== null) {
+                $this->info($skipReason);
+            }
         }
 
         $this->info('TypeScript SDK artifacts generated successfully.');
@@ -58,9 +71,9 @@ class ApiSpecSdkTypescriptCommand extends Command
             'exec',
             '--',
             'openapi-typescript',
-            $specPath,
+            $this->preparePathArgument($specPath),
             '--output',
-            $destination,
+            $this->preparePathArgument($destination),
         ], base_path());
 
         $process->setTimeout(null);
@@ -99,9 +112,9 @@ class ApiSpecSdkTypescriptCommand extends Command
             '-g',
             'typescript-fetch',
             '-i',
-            $specPath,
+            $this->preparePathArgument($specPath),
             '-o',
-            $outputDir,
+            $this->preparePathArgument($outputDir),
             '--additional-properties=useSingleRequestParameter=true,supportsES6=true,withInterfaces=true',
         ], base_path());
 
@@ -118,5 +131,36 @@ class ApiSpecSdkTypescriptCommand extends Command
         }
 
         return true;
+    }
+
+    private function javaAvailable(): bool
+    {
+        $process = Process::fromShellCommandline('java -version');
+        $process->run();
+
+        return $process->isSuccessful();
+    }
+
+    private function preparePathArgument(string $path): string
+    {
+        $resolved = realpath($path) ?: $path;
+        $base = realpath(base_path());
+
+        if ($base !== false) {
+            $baseWithSeparator = $base . DIRECTORY_SEPARATOR;
+            if (Str::startsWith($resolved, $baseWithSeparator)) {
+                $relative = substr($resolved, strlen($baseWithSeparator));
+
+                return str_replace('\\', '/', $relative);
+            }
+        }
+
+        $normalized = str_replace('\\', '/', $resolved);
+
+        if (DIRECTORY_SEPARATOR === '\\' && preg_match('#^[A-Za-z]:/#', $normalized) === 1) {
+            return 'file:///' . $normalized;
+        }
+
+        return $normalized;
     }
 }

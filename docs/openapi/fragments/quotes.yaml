@@ -14,11 +14,9 @@ components:
           type: string
           format: uuid
         rfq_id:
-          type: string
-          format: uuid
+          type: integer
         supplier_id:
-          type: string
-          format: uuid
+          type: integer
         status:
           type: string
           enum: [draft, submitted, awarded, withdrawn, expired]
@@ -69,8 +67,7 @@ components:
           nullable: true
           properties:
             id:
-              type: string
-              format: uuid
+              type: integer
             name:
               type: string
         items:

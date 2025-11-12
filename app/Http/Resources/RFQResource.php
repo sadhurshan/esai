@@ -15,7 +15,7 @@ class RFQResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string) $this->getRouteKey(),
             'number' => $this->number,
             'item_name' => $this->item_name,
             'type' => $this->type,
@@ -35,7 +35,7 @@ class RFQResource extends JsonResource
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
             'items' => $this->when($this->relationLoaded('items'), function (): array {
                 return $this->items->map(static fn ($item) => [
-                    'id' => $item->id,
+                    'id' => (string) $item->getRouteKey(),
                     'line_no' => $item->line_no,
                     'part_name' => $item->part_name,
                     'spec' => $item->spec,

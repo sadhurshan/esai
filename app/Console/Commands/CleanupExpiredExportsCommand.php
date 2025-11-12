@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ExportRequest;
+use App\Services\ExportService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class CleanupExpiredExportsCommand extends Command
 {
@@ -12,28 +11,20 @@ class CleanupExpiredExportsCommand extends Command
 
     protected $description = 'Remove expired export archives and clear file references.';
 
+    public function __construct(private readonly ExportService $exportService)
+    {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
-        $disk = Storage::disk('exports');
+        $removed = $this->exportService->purgeExpiredExports();
 
-        ExportRequest::query()
-            ->whereNotNull('file_path')
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '<', now())
-            ->orderBy('expires_at')
-            ->chunkById(100, function ($exports) use ($disk): void {
-                foreach ($exports as $export) {
-                    if ($disk->exists($export->file_path)) {
-                        $disk->delete($export->file_path);
-                    }
-
-                    $export->forceFill([
-                        'file_path' => null,
-                    ])->save();
-
-                    $this->info(sprintf('Cleaned export %d', $export->id));
-                }
-            });
+        if ($removed > 0) {
+            $this->info(sprintf('Cleaned %d expired export%s.', $removed, $removed === 1 ? '' : 's'));
+        } else {
+            $this->info('No expired exports to clean.');
+        }
 
         return self::SUCCESS;
     }

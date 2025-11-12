@@ -1,0 +1,562 @@
+paths:
+  /api/digital-twin/locations:
+    get:
+      tags:
+        - Digital Twin
+      summary: List digital twin locations
+      operationId: listDigitalTwinLocations
+      responses:
+        '200':
+          description: Locations in the digital twin module.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Digital Twin
+      summary: Create digital twin location
+      operationId: createDigitalTwinLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Location created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/locations/{locationId}:
+    parameters:
+      - name: locationId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Digital Twin
+      summary: Show digital twin location
+      operationId: showDigitalTwinLocation
+      responses:
+        '200':
+          description: Location details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Digital Twin
+      summary: Replace digital twin location
+      operationId: updateDigitalTwinLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Location updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    patch:
+      tags:
+        - Digital Twin
+      summary: Partially update digital twin location
+      operationId: patchDigitalTwinLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Location updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Digital Twin
+      summary: Delete digital twin location
+      operationId: deleteDigitalTwinLocation
+      responses:
+        '200':
+          description: Location deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/systems:
+    get:
+      tags:
+        - Digital Twin
+      summary: List digital twin systems
+      operationId: listDigitalTwinSystems
+      responses:
+        '200':
+          description: Systems registered in the digital twin module.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Digital Twin
+      summary: Create digital twin system
+      operationId: createDigitalTwinSystem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: System created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/systems/{systemId}:
+    parameters:
+      - name: systemId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Digital Twin
+      summary: Show digital twin system
+      operationId: showDigitalTwinSystem
+      responses:
+        '200':
+          description: System details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Digital Twin
+      summary: Replace digital twin system
+      operationId: updateDigitalTwinSystem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: System updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    patch:
+      tags:
+        - Digital Twin
+      summary: Partially update digital twin system
+      operationId: patchDigitalTwinSystem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: System updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Digital Twin
+      summary: Delete digital twin system
+      operationId: deleteDigitalTwinSystem
+      responses:
+        '200':
+          description: System deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets:
+    get:
+      tags:
+        - Digital Twin
+      summary: List registered digital twin assets
+      operationId: listDigitalTwinAssets
+      responses:
+        '200':
+          description: Paginated assets for the tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Digital Twin
+      summary: Create digital twin asset
+      operationId: createDigitalTwinAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Asset created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Digital Twin
+      summary: Show digital twin asset
+      operationId: showDigitalTwinAsset
+      responses:
+        '200':
+          description: Asset details with status telemetry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Digital Twin
+      summary: Replace digital twin asset
+      operationId: updateDigitalTwinAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Asset updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    patch:
+      tags:
+        - Digital Twin
+      summary: Partially update digital twin asset
+      operationId: patchDigitalTwinAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Asset updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Digital Twin
+      summary: Delete digital twin asset
+      operationId: deleteDigitalTwinAsset
+      responses:
+        '200':
+          description: Asset deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/sync:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Digital Twin
+      summary: Trigger asset synchronization
+      operationId: syncDigitalTwinAsset
+      responses:
+        '202':
+          description: Synchronization job queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/status:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      tags:
+        - Digital Twin
+      summary: Update asset operational status
+      operationId: updateDigitalTwinAssetStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Asset status updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/bom:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Digital Twin
+      summary: Sync asset bill of materials
+      operationId: syncDigitalTwinAssetBom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Asset BOM synchronized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/work-orders:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Digital Twin
+      summary: Create work order for asset
+      operationId: createDigitalTwinWorkOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Work order created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/procedures/{procedureId}:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: procedureId
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Digital Twin
+      summary: Link maintenance procedure to asset
+      operationId: linkDigitalTwinProcedure
+      responses:
+        '200':
+          description: Procedure linked to asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Digital Twin
+      summary: Detach maintenance procedure from asset
+      operationId: detachDigitalTwinProcedure
+      responses:
+        '200':
+          description: Procedure detached from asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete:
+    parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: procedureId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Digital Twin
+      summary: Complete maintenance procedure for asset
+      operationId: completeDigitalTwinProcedure
+      responses:
+        '200':
+          description: Procedure completion recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/procedures:
+    get:
+      tags:
+        - Digital Twin
+      summary: List maintenance procedures
+      operationId: listDigitalTwinProcedures
+      responses:
+        '200':
+          description: Maintenance procedures configured for the tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Digital Twin
+      summary: Create maintenance procedure
+      operationId: createDigitalTwinProcedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Procedure created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/digital-twin/procedures/{procedureId}:
+    parameters:
+      - name: procedureId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Digital Twin
+      summary: Show maintenance procedure
+      operationId: showDigitalTwinProcedure
+      responses:
+        '200':
+          description: Procedure details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Digital Twin
+      summary: Replace maintenance procedure
+      operationId: updateDigitalTwinProcedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Procedure updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    patch:
+      tags:
+        - Digital Twin
+      summary: Partially update maintenance procedure
+      operationId: patchDigitalTwinProcedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Procedure updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Digital Twin
+      summary: Delete maintenance procedure
+      operationId: deleteDigitalTwinProcedure
+      responses:
+        '200':
+          description: Procedure deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

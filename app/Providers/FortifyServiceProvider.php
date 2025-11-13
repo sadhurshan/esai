@@ -112,7 +112,7 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Return the SPA shell view with optional initial data payload.
+     * Return the App shell view with optional initial data payload.
      */
     private function renderAppShell(array $initialData = []): View
     {

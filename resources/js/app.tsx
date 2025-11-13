@@ -1,9 +1,11 @@
 import '../css/app.css';
 
+import { AppErrorBoundary } from '@/components/app-error-boundary';
+import { AppProviders } from '@/providers/app-providers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
-import { AppProviders } from '@/providers/app-providers';
 import { AppRoutes } from './app-routes';
 
 const container = document.getElementById('app');
@@ -16,10 +18,14 @@ const root = createRoot(container);
 
 root.render(
     <StrictMode>
-        <AppProviders>
+        <HelmetProvider>
             <BrowserRouter>
-                <AppRoutes />
+                <AppProviders>
+                    <AppErrorBoundary>
+                        <AppRoutes />
+                    </AppErrorBoundary>
+                </AppProviders>
             </BrowserRouter>
-        </AppProviders>
+        </HelmetProvider>
     </StrictMode>,
 );

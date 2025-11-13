@@ -2,6 +2,7 @@ import { publishToast } from '@/components/ui/use-toast';
 import { HttpError, createConfiguration, type Configuration } from '@/sdk';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type PropsWithChildren } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth-context';
 
 type ApiConstructor<T> = new (configuration: Configuration) => T;
@@ -24,6 +25,8 @@ const DEFAULT_QUERY_OPTIONS = {
 export function ApiClientProvider({ children }: PropsWithChildren) {
     const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit } = useAuth();
     const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const handleApiError = useCallback(
         (error: unknown) => {
@@ -65,6 +68,11 @@ export function ApiClientProvider({ children }: PropsWithChildren) {
                         title: 'Access denied',
                         description: 'You do not have permission to perform this action.',
                     });
+                    if (location.pathname !== '/app/access-denied') {
+                        navigate('/app/access-denied', {
+                            state: { from: location.pathname },
+                        });
+                    }
                     return;
                 }
 
@@ -84,7 +92,7 @@ export function ApiClientProvider({ children }: PropsWithChildren) {
                 });
             }
         },
-        [logout, notifyPlanLimit],
+        [location.pathname, navigate, logout, notifyPlanLimit],
     );
 
     const queryClient = useMemo(() => {

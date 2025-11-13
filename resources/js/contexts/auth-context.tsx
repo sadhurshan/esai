@@ -1,4 +1,6 @@
 import { publishToast } from '@/components/ui/use-toast';
+import { AuthApi, type LoginRequest } from '@/sdk/auth-client';
+import { HttpError, createConfiguration } from '@/sdk';
 import { useCallback, useEffect, useMemo, useReducer, createContext, useContext, type ReactNode } from 'react';
 
 const STORAGE_KEY = 'esai.auth.state';
@@ -272,6 +274,19 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(authReducer, initialState, readStoredState);
+    const baseUrl = useMemo(() => (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, ''), []);
+
+    const authClient = useMemo(() => {
+        return new AuthApi(
+            createConfiguration({
+                baseUrl,
+                bearerToken: () => state.token ?? undefined,
+                defaultHeaders: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            }),
+        );
+    }, [baseUrl, state.token]);
 
     useEffect(() => {
         writeStateToStorage(state);
@@ -299,46 +314,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = useCallback(() => {
         dispatch({ type: 'LOGOUT' });
+        authClient
+            .logout()
+            .catch((error) => {
+                console.warn('Failed to revoke session token during logout', error);
+            });
         publishToast({
             variant: 'default',
             title: 'Signed out',
             description: 'You have been signed out of Elements Supply.',
         });
-    }, []);
+    }, [authClient]);
 
     const login = useCallback(
         async ({ email, password, remember }: LoginPayload) => {
             dispatch({ type: 'LOGIN_REQUEST' });
 
             try {
-                const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
-                // TODO: clarify with spec whether the login endpoint should be /auth/login or /api/auth/login once the identity module spec lands.
-                const response = await fetch(`${baseUrl.replace(/\/$/, '')}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password, remember: remember ?? false }),
-                });
+                const request: LoginRequest = {
+                    email,
+                    password,
+                    remember: remember ?? false,
+                };
 
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => null);
-                    const message =
-                        (errorBody && typeof errorBody.message === 'string'
-                            ? errorBody.message
-                            : 'Unable to sign in. Please check your credentials.') ??
-                        'Unable to sign in. Please check your credentials.';
-                    dispatch({ type: 'LOGIN_FAILURE', payload: { error: message } });
-                    publishToast({
-                        variant: 'destructive',
-                        title: 'Login failed',
-                        description: message,
-                    });
-                    throw new Error(message);
-                }
-
-                const payload = (await response.json()) as Record<string, unknown>;
-                const envelope = (payload?.data ?? payload) as Record<string, unknown>;
+                const envelope = (await authClient.login(request)) as Record<string, unknown>;
                 const { token, user, company, featureFlags, plan } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
@@ -371,13 +370,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     description: `Signed in as ${user.name ?? user.email}`,
                 });
             } catch (error) {
+                let message = 'Unable to sign in. Please check your credentials.';
+
+                if (error instanceof HttpError) {
+                    const body = error.body as Record<string, unknown> | undefined;
+                    if (body && typeof body.message === 'string' && body.message.length > 0) {
+                        message = body.message;
+                    }
+                } else if (error instanceof Error && error.message) {
+                    message = error.message;
+                }
+
+                dispatch({ type: 'LOGIN_FAILURE', payload: { error: message } });
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Login failed',
+                    description: message,
+                });
+
                 if (error instanceof Error) {
                     throw error;
                 }
                 throw new Error('Unable to sign in.');
             }
         },
-        [],
+        [authClient],
     );
 
     const refresh = useCallback(async () => {
@@ -386,25 +403,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
-            // TODO: confirm the canonical endpoint for fetching the current authenticated user (e.g. /auth/me vs /api/me) per requirements.
-            const response = await fetch(`${baseUrl.replace(/\/$/, '')}/auth/me`, {
-                headers: {
-                    Authorization: `Bearer ${state.token}`,
-                },
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    logout();
-                    return;
-                }
-
-                throw new Error('Failed to refresh session.');
-            }
-
-            const envelope = (await response.json()) as Record<string, unknown>;
-            const data = (envelope?.data ?? envelope) as Record<string, unknown>;
+            const data = (await authClient.current()) as Record<string, unknown>;
             const user = (data.user ?? data.account ?? null) as AuthenticatedUser | null;
             const company = (data.company ?? data.tenant ?? null) as CompanySummary | null;
             const featureFlags = normalizeFeatureFlags(data.feature_flags ?? data.features);
@@ -420,9 +419,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 },
             });
         } catch (error) {
+            if (error instanceof HttpError && error.response.status === 401) {
+                logout();
+                return;
+            }
             console.error('Failed to refresh auth state', error);
         }
-    }, [logout, state.token]);
+    }, [authClient, logout, state.token]);
 
     const value = useMemo<AuthContextValue>(
         () => ({

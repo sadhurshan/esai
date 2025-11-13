@@ -4,24 +4,19 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Contracts\View\View;
 
 class ProfileController extends Controller
 {
     /**
      * Show the user's profile settings page.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request): View
     {
-        return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => $request->session()->get('status'),
-        ]);
+        return view('app');
     }
 
     /**
@@ -49,12 +44,12 @@ class ProfileController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
-    $user = $request->user();
+        $user = $request->user();
 
         Auth::logout();
 
-    // Force delete so default profile deletion test expectations still hold even though the model uses soft deletes.
-    $user->forceDelete();
+        // Force delete so default profile deletion test expectations still hold even though the model uses soft deletes.
+        $user->forceDelete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -10,7 +10,7 @@ export function useModuleBootstrap(moduleKey: string) {
     const client = useSdkClient(HealthApi);
 
     return useQuery({
-        queryKey: ['workspace', 'module-bootstrap', moduleKey],
+        queryKey: ['app', 'module-bootstrap', moduleKey],
         queryFn: async () => {
             const response = await client.getHealth();
             return response.data;

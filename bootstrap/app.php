@@ -23,7 +23,6 @@ use App\Http\Middleware\EnsureExportAccess;
 use App\Http\Middleware\RateLimitEnforcer;
 use App\Http\Middleware\BuyerAdminOnly;
 use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -48,9 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(
             append: [
-            HandleAppearance::class,
-            HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
+                HandleAppearance::class,
+                AddLinkHeadersForPreloadedAssets::class,
             ],
             replace: [
                 \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class => \App\Http\Middleware\VerifyCsrfToken::class,

@@ -5,11 +5,11 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -47,30 +47,52 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::loginView(function (Request $request): View {
+            return $this->renderAppShell([
+                'page' => 'auth.login',
+                'props' => [
+                    'canResetPassword' => Features::enabled(Features::resetPasswords()),
+                    'canRegister' => Features::enabled(Features::registration()),
+                ],
+                'flash' => [
+                    'status' => $request->session()->get('status'),
+                ],
+            ]);
+        });
 
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-        ]));
+        Fortify::resetPasswordView(function (Request $request): View {
+            return $this->renderAppShell([
+                'page' => 'auth.reset-password',
+                'props' => [
+                    'email' => $request->email,
+                    'token' => $request->route('token'),
+                ],
+            ]);
+        });
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::requestPasswordResetLinkView(function (Request $request): View {
+            return $this->renderAppShell([
+                'page' => 'auth.forgot-password',
+                'flash' => [
+                    'status' => $request->session()->get('status'),
+                ],
+            ]);
+        });
 
-        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::verifyEmailView(function (Request $request): View {
+            return $this->renderAppShell([
+                'page' => 'auth.verify-email',
+                'flash' => [
+                    'status' => $request->session()->get('status'),
+                ],
+            ]);
+        });
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn (): View => $this->renderAppShell(['page' => 'auth.register']));
 
-        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
+        Fortify::twoFactorChallengeView(fn (): View => $this->renderAppShell(['page' => 'auth.two-factor-challenge']));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+        Fortify::confirmPasswordView(fn (): View => $this->renderAppShell(['page' => 'auth.confirm-password']));
     }
 
     /**
@@ -87,5 +109,15 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+    }
+
+    /**
+     * Return the SPA shell view with optional initial data payload.
+     */
+    private function renderAppShell(array $initialData = []): View
+    {
+        return view('app', [
+            'initialData' => $initialData,
+        ]);
     }
 }

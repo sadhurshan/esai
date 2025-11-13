@@ -1,72 +1,54 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', fn () => Inertia::render('home'))->name('home');
+Route::view('/', 'app')->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/company-registration', function () {
-        return Inertia::render('company/registration');
-    })->name('company.registration');
+    Route::view('/company-registration', 'app')->name('company.registration');
 });
 
 Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(function () {
-    Route::get('dashboard', function () {
-        $user = auth()->user();
+    Route::view('/app', 'app')->name('dashboard');
 
-        $user?->loadMissing('company');
+    Route::view('/app/suppliers', 'app')->name('suppliers.index');
 
-        if ($user?->company === null || ! $user->company->hasCompletedBuyerOnboarding()) {
-            return redirect()->route('company.registration');
-        }
+    Route::view('/app/rfqs', 'app')->name('rfq.index');
 
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::view('/app/rfqs/new', 'app')->name('rfq.new');
 
-    Route::get('/suppliers', fn () => Inertia::render('suppliers/index'))
-        ->name('suppliers.index');
-
-    Route::get('/rfq', fn () => Inertia::render('rfq/index'))
-        ->name('rfq.index');
-
-    Route::get('/rfq/new', fn () => Inertia::render('rfq/new'))
-        ->name('rfq.new');
-
-    Route::get('/rfq/{id}', fn () => Inertia::render('rfq/show'))
+    Route::view('/app/rfqs/{id}', 'app')
         ->whereNumber('id')
         ->name('rfq.show');
 
-    Route::get('/rfq/{id}/open', fn () => Inertia::render('rfq/open'))
+    Route::view('/app/rfqs/{id}/open', 'app')
         ->whereNumber('id')
         ->name('rfq.open');
 
-    Route::get('/rfq/{id}/compare', fn () => Inertia::render('rfq/compare'))
+    Route::view('/app/rfqs/{id}/compare', 'app')
         ->whereNumber('id')
         ->name('rfq.compare');
 
-    Route::get('/orders', fn () => Inertia::render('orders/index'))
-        ->name('orders.index');
+    Route::view('/app/orders', 'app')->name('orders.index');
 
-    Route::inertia('purchase-orders', 'purchase-orders/index')
-        ->name('purchase-orders.index');
+    Route::view('/app/purchase-orders', 'app')->name('purchase-orders.index');
 
-    Route::inertia('purchase-orders/supplier', 'purchase-orders/supplier/index')
-        ->name('purchase-orders.supplier.index');
+    Route::view('/app/purchase-orders/supplier', 'app')->name('purchase-orders.supplier.index');
 
-    Route::get('/purchase-orders/{id}/supplier', fn ($id) => Inertia::render('purchase-orders/supplier/show', ['id' => $id]))
+    Route::view('/app/purchase-orders/{id}/supplier', 'app')
         ->whereNumber('id')
         ->name('purchase-orders.supplier.show');
 
-    Route::get('/purchase-orders/{id}', fn ($id) => Inertia::render('purchase-orders/show', ['id' => $id]))
+    Route::view('/app/purchase-orders/{id}', 'app')
         ->whereNumber('id')
         ->name('purchase-orders.show');
 
-    Route::inertia('supplier/company-profile', 'supplier/company-profile')
-        ->name('supplier.company-profile');
+    Route::view('/app/supplier/company-profile', 'app')->name('supplier.company-profile');
 
-    Route::inertia('admin/companies', 'admin/companies/index')
-        ->name('admin.companies.index');
+    Route::view('/app/admin/companies', 'app')->name('admin.companies.index');
+
+    Route::view('/app/{any}', 'app')
+        ->where('any', '.*');
 });
 
 require __DIR__.'/settings.php';

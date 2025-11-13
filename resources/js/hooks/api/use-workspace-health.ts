@@ -6,7 +6,7 @@ export function useWorkspaceHealth() {
     const client = useSdkClient(HealthApi);
 
     return useQuery({
-        queryKey: ['workspace', 'health'],
+        queryKey: ['app', 'health'],
         queryFn: async () => {
             const response = await client.getHealth();
             return response.data;

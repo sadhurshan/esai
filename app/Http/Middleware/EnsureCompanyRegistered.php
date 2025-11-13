@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCompanyRegistered
@@ -43,10 +42,6 @@ class EnsureCompanyRegistered
                         'missing_fields' => $company?->buyerOnboardingMissingFields() ?? Company::BUYER_ONBOARDING_REQUIRED_FIELDS,
                     ],
                 ], Response::HTTP_FORBIDDEN);
-            }
-
-            if ($request->header('X-Inertia')) {
-                return Inertia::location(route('company.registration'));
             }
 
             return redirect()->route('company.registration');

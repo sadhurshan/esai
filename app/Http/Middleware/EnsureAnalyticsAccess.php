@@ -19,7 +19,7 @@ class EnsureAnalyticsAccess
 
         if ($user === null) {
             return response()->json([
-                'status' => 'error',
+                'status' => 'errors',
                 'message' => 'Authentication required.',
                 'data' => null,
             ], Response::HTTP_UNAUTHORIZED);

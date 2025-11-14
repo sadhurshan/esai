@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,9 @@ class AuthenticateApiSession
             return $next($request);
         }
 
-        $session = DB::table(config('session.table', 'sessions'))->where('id', $sessionId)->first();
+        $session = DB::table(config('session.table', 'sessions'))
+            ->where('id', $sessionId)
+            ->first();
 
         if (! $session || ! $session->user_id) {
             return $next($request);
@@ -40,7 +43,7 @@ class AuthenticateApiSession
             return $next($request);
         }
 
-        Auth::setUser($user);
+        Auth::onceUsingId($user->getAuthIdentifier());
         $request->setUserResolver(static fn () => $user);
 
         $this->touchSession($sessionId);
@@ -54,8 +57,13 @@ class AuthenticateApiSession
 
         if ($cookieName && $request->cookies->has($cookieName)) {
             $value = (string) $request->cookies->get($cookieName);
+
             if ($value !== '') {
-                return $value;
+                $sessionId = $this->decryptSessionCookie($value);
+
+                if ($sessionId !== null) {
+                    return $sessionId;
+                }
             }
         }
 
@@ -64,10 +72,29 @@ class AuthenticateApiSession
         return $bearer !== '' ? $bearer : null;
     }
 
+    private function decryptSessionCookie(string $value): ?string
+    {
+        try {
+            $payload = decrypt($value, false);
+        } catch (DecryptException) {
+            $payload = $value;
+        }
+
+        if (! is_string($payload) || $payload === '') {
+            return null;
+        }
+
+        if (str_contains($payload, '|')) {
+            [, $sessionId] = explode('|', $payload, 2);
+
+            return $sessionId !== '' ? $sessionId : null;
+        }
+
+        return $payload;
+    }
+
     private function touchSession(string $sessionId): void
     {
-        $lifetime = (int) config('session.lifetime', 120);
-
         DB::table(config('session.table', 'sessions'))
             ->where('id', $sessionId)
             ->update([

@@ -216,12 +216,20 @@ export class BaseAPI {
                     }) || response;
                 }
             }
+
             if (response === undefined) {
-              if (e instanceof Error) {
-                throw new FetchError(e, 'The request failed and the interceptors did not return an alternative response');
-              } else {
+                if (e instanceof ResponseError) {
+                    throw e;
+                }
+
+                if (e instanceof Error) {
+                    throw new FetchError({
+                        cause: e,
+                        message: 'The request failed and the interceptors did not return an alternative response',
+                    });
+                }
+
                 throw e;
-              }
             }
         }
         for (const middleware of this.middleware) {
@@ -266,8 +274,15 @@ export class ResponseError extends Error {
 
 export class FetchError extends Error {
     override name: "FetchError" = "FetchError";
-    constructor(public cause: Error, msg?: string) {
-        super(msg);
+    public readonly cause: Error;
+    public readonly status?: number;
+    public readonly body?: unknown;
+
+    constructor(args: { cause: Error; message?: string; status?: number; body?: unknown }) {
+        super(args.message);
+        this.cause = args.cause;
+        this.status = args.status;
+        this.body = args.body;
     }
 }
 

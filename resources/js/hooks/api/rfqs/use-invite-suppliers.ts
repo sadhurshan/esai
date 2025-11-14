@@ -24,20 +24,28 @@ export function useInviteSuppliers() {
                 return { invited: 0, responses: [] } satisfies InviteSuppliersResult;
             }
 
-            const responses: ApiSuccessResponse[] = [];
-            for (const supplierId of supplierIds) {
-                const response = await rfqsApi.inviteSupplierToRfq({
-                    rfqId: String(rfqId),
-                    inviteSupplierToRfqRequest: {
-                        supplierId: String(supplierId),
-                    },
-                });
-                responses.push(response);
+            const uniqueSupplierIds = Array.from(
+                new Set(
+                    supplierIds
+                        .map((id) => String(id).trim())
+                        .filter((id) => id.length > 0),
+                ),
+            );
+
+            if (uniqueSupplierIds.length === 0) {
+                return { invited: 0, responses: [] } satisfies InviteSuppliersResult;
             }
 
+            const response = await rfqsApi.inviteSupplierToRfq({
+                rfqId: String(rfqId),
+                inviteSupplierToRfqRequest: {
+                    supplierIds: uniqueSupplierIds,
+                },
+            });
+
             return {
-                invited: responses.length,
-                responses,
+                invited: uniqueSupplierIds.length,
+                responses: [response],
             } satisfies InviteSuppliersResult;
         },
         onSuccess: (_result, variables) => {

@@ -922,7 +922,8 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
         }
 
         if (requestParameters['isOpenBidding'] != null) {
-            formParams.append('is_open_bidding', requestParameters['isOpenBidding'] as any);
+            const openBiddingFlag = requestParameters['isOpenBidding'] ? '1' : '0';
+            formParams.append('is_open_bidding', openBiddingFlag);
         }
 
         if (requestParameters['notes'] != null) {
@@ -934,7 +935,30 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
         }
 
         if (requestParameters['items'] != null) {
-            formParams.append('items', requestParameters['items']!.join(runtime.COLLECTION_FORMATS["csv"]));
+            requestParameters['items'].forEach((item, index) => {
+                if (item == null) {
+                    return;
+                }
+
+                formParams.append(`items[${index}][part_name]`, item.partName);
+                formParams.append(`items[${index}][quantity]`, String(item.quantity));
+
+                if (item.spec != null) {
+                    formParams.append(`items[${index}][spec]`, item.spec);
+                }
+
+                if (item.uom != null) {
+                    formParams.append(`items[${index}][uom]`, item.uom);
+                }
+
+                if (item.targetPrice != null) {
+                    formParams.append(`items[${index}][target_price]`, String(item.targetPrice));
+                }
+
+                if (item.requiredDate != null) {
+                    formParams.append(`items[${index}][required_date]`, item.requiredDate);
+                }
+            });
         }
 
 

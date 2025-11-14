@@ -82,7 +82,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.session' => AuthenticateApiSession::class,
         ]);
 
-        $middleware->appendToGroup('api', AuthenticateApiSession::class);
+        $middleware->prependToGroup('api', AuthenticateApiSession::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

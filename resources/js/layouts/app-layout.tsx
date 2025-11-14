@@ -11,7 +11,7 @@ export function AppLayout() {
             <div className="flex min-h-screen w-full bg-muted/20">
                 <Sidebar variant="inset">
                     <SidebarHeader className="px-4 py-3">
-                        <img src={Branding.logo.default} alt={Branding.name} className="h-8" />
+                        <img src={Branding.logo.default} alt={Branding.name} className="h-12 w-fit" />
                     </SidebarHeader>
                     <SidebarNav />
                     <SidebarFooter className="px-4 py-6 text-xs text-muted-foreground">

@@ -20,18 +20,18 @@ import { mapValues } from '../runtime';
  */
 export interface InviteSupplierToRfqRequest {
     /**
-     * 
-     * @type {string}
+     * List of supplier IDs to invite.
+     * @type {Array<string>}
      * @memberof InviteSupplierToRfqRequest
      */
-    supplierId: string;
+    supplierIds: Array<string>;
 }
 
 /**
  * Check if a given object implements the InviteSupplierToRfqRequest interface.
  */
 export function instanceOfInviteSupplierToRfqRequest(value: object): value is InviteSupplierToRfqRequest {
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('supplierIds' in value) || value['supplierIds'] === undefined) return false;
     return true;
 }
 
@@ -45,7 +45,7 @@ export function InviteSupplierToRfqRequestFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'supplierId': json['supplier_id'],
+        'supplierIds': json['supplier_ids'],
     };
 }
 
@@ -60,7 +60,7 @@ export function InviteSupplierToRfqRequestToJSONTyped(value?: InviteSupplierToRf
 
     return {
         
-        'supplier_id': value['supplierId'],
+        'supplier_ids': value['supplierIds'],
     };
 }
 

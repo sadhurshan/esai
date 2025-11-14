@@ -34,7 +34,6 @@ export function TopBar() {
         <header className="flex h-16 items-center gap-4 border-b bg-background px-4">
             <div className="flex flex-1 items-center gap-3">
                 <SidebarTrigger className="md:hidden" />
-                <img src={Branding.logo.default} alt={Branding.name} className="hidden h-7 md:block" />
                 <WorkspaceBreadcrumbs />
             </div>
 

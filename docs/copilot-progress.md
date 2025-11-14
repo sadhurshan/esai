@@ -1,3 +1,9 @@
+## 2025-11-14 00:46
+- Added Vitest unit coverage for RFQ data hooks and the creation wizard, including query mocks and step validation assertions.
+- Configured Vitest in `vite.config.ts` with path aliases, jsdom environment, vmThreads pool, and test setup bootstrap.
+- Polyfilled `ResizeObserver` for jsdom and introduced frontend test harness utilities in `resources/js/tests/setup.ts`.
+- Verified lint, TypeScript, and Vitest suites succeed (`npm run lint`, `npm run types`, `npx vitest run`).
+
 ## 2025-11-04 09:30
 - Added `EnsureCompanyRegistered` middleware to the auth stack, gating dashboard and navigation routes until a user completes the company wizard.
 - Updated the login and registration Inertia pages to surface a "Launch the wizard" link that opens the company registration flow for unassigned accounts.

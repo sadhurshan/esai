@@ -50,10 +50,10 @@ import {
 export interface PurchaseOrder {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrder
      */
-    id: string;
+    id: number;
     /**
      * 
      * @type {number}
@@ -134,16 +134,16 @@ export interface PurchaseOrder {
     revisionNo?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrder
      */
-    rfqId?: string;
+    rfqId?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrder
      */
-    quoteId?: string;
+    quoteId?: number;
     /**
      * 
      * @type {PurchaseOrderSupplier}

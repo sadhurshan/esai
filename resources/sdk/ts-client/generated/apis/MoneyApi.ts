@@ -51,7 +51,7 @@ export interface CreateTaxCodeOperationRequest {
 }
 
 export interface DeleteTaxCodeRequest {
-    taxCodeId: string;
+    taxCodeId: number;
 }
 
 export interface ListFxRatesRequest {
@@ -65,6 +65,11 @@ export interface ListTaxCodesRequest {
     search?: string;
     active?: boolean;
     type?: string;
+}
+
+export interface PatchTaxCodeRequest {
+    taxCodeId: number;
+    requestBody: { [key: string]: any; };
 }
 
 export interface RecalcCreditNoteTotalsRequest {
@@ -84,7 +89,7 @@ export interface RecalcQuoteTotalsRequest {
 }
 
 export interface ShowTaxCodeRequest {
-    taxCodeId: string;
+    taxCodeId: number;
 }
 
 export interface UpdateMoneySettingsOperationRequest {
@@ -92,7 +97,7 @@ export interface UpdateMoneySettingsOperationRequest {
 }
 
 export interface UpdateTaxCodeOperationRequest {
-    taxCodeId: string;
+    taxCodeId: number;
     updateTaxCodeRequest: UpdateTaxCodeRequest;
 }
 
@@ -125,7 +130,7 @@ export interface MoneyApiInterface {
     /**
      * 
      * @summary Delete tax code
-     * @param {string} taxCodeId 
+     * @param {number} taxCodeId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
@@ -171,6 +176,22 @@ export interface MoneyApiInterface {
      * List tax codes
      */
     listTaxCodes(requestParameters: ListTaxCodesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListTaxCodes200Response>;
+
+    /**
+     * 
+     * @summary Partially update tax code
+     * @param {number} taxCodeId 
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MoneyApiInterface
+     */
+    patchTaxCodeRaw(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Partially update tax code
+     */
+    patchTaxCode(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
     /**
      * 
@@ -249,7 +270,7 @@ export interface MoneyApiInterface {
     /**
      * 
      * @summary Retrieve tax code
-     * @param {string} taxCodeId 
+     * @param {number} taxCodeId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
@@ -279,7 +300,7 @@ export interface MoneyApiInterface {
     /**
      * 
      * @summary Update tax code
-     * @param {string} taxCodeId 
+     * @param {number} taxCodeId 
      * @param {UpdateTaxCodeRequest} updateTaxCodeRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -521,6 +542,65 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
      */
     async listTaxCodes(requestParameters: ListTaxCodesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListTaxCodes200Response> {
         const response = await this.listTaxCodesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Partially update tax code
+     */
+    async patchTaxCodeRaw(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['taxCodeId'] == null) {
+            throw new runtime.RequiredError(
+                'taxCodeId',
+                'Required parameter "taxCodeId" was null or undefined when calling patchTaxCode().'
+            );
+        }
+
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling patchTaxCode().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/money/tax-codes/{taxCodeId}`;
+        urlPath = urlPath.replace(`{${"taxCodeId"}}`, encodeURIComponent(String(requestParameters['taxCodeId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Partially update tax code
+     */
+    async patchTaxCode(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.patchTaxCodeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

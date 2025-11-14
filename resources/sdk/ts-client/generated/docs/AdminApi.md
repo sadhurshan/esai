@@ -8,13 +8,16 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**adminCreateApiKey**](AdminApi.md#admincreateapikeyoperation) | **POST** /api/admin/api-keys | Issue API key for company |
 | [**adminCreateFeatureFlag**](AdminApi.md#admincreatefeatureflagoperation) | **POST** /api/admin/companies/{companyId}/feature-flags | Create feature flag override |
 | [**adminCreateRateLimit**](AdminApi.md#admincreateratelimitoperation) | **POST** /api/admin/rate-limits | Create rate limit rule |
+| [**adminCreateSupplier**](AdminApi.md#admincreatesupplier) | **POST** /api/admin/suppliers | Create supplier on behalf of tenant |
 | [**adminDeleteApiKey**](AdminApi.md#admindeleteapikey) | **DELETE** /api/admin/api-keys/{keyId} | Delete API key |
 | [**adminDeleteFeatureFlag**](AdminApi.md#admindeletefeatureflag) | **DELETE** /api/admin/companies/{companyId}/feature-flags/{flagId} | Remove feature flag override |
 | [**adminDeleteRateLimit**](AdminApi.md#admindeleteratelimit) | **DELETE** /api/admin/rate-limits/{rateLimitId} | Delete rate limit rule |
+| [**adminDeleteSupplier**](AdminApi.md#admindeletesupplier) | **DELETE** /api/admin/suppliers/{supplierId} | Archive supplier |
 | [**adminHealthSummary**](AdminApi.md#adminhealthsummary) | **GET** /api/admin/health | Platform health summary |
 | [**adminListApiKeys**](AdminApi.md#adminlistapikeys) | **GET** /api/admin/api-keys | List API keys |
 | [**adminListFeatureFlags**](AdminApi.md#adminlistfeatureflags) | **GET** /api/admin/companies/{companyId}/feature-flags | List company feature flags |
 | [**adminListRateLimits**](AdminApi.md#adminlistratelimits) | **GET** /api/admin/rate-limits | List rate limit rules |
+| [**adminListSuppliers**](AdminApi.md#adminlistsuppliers) | **GET** /api/admin/suppliers | List suppliers in admin console |
 | [**adminPlansDestroy**](AdminApi.md#adminplansdestroy) | **DELETE** /api/admin/plans/{planId} | Archive subscription plan |
 | [**adminPlansIndex**](AdminApi.md#adminplansindex) | **GET** /api/admin/plans | List subscription plans |
 | [**adminPlansShow**](AdminApi.md#adminplansshow) | **GET** /api/admin/plans/{planId} | Retrieve subscription plan |
@@ -22,10 +25,12 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**adminPlansUpdate**](AdminApi.md#adminplansupdateoperation) | **PUT** /api/admin/plans/{planId} | Update subscription plan |
 | [**adminRotateApiKey**](AdminApi.md#adminrotateapikey) | **POST** /api/admin/api-keys/{keyId}/rotate | Rotate API key secret |
 | [**adminShowRateLimit**](AdminApi.md#adminshowratelimit) | **GET** /api/admin/rate-limits/{rateLimitId} | Show rate limit rule |
+| [**adminShowSupplier**](AdminApi.md#adminshowsupplier) | **GET** /api/admin/suppliers/{supplierId} | Show supplier details in admin console |
 | [**adminToggleApiKey**](AdminApi.md#admintoggleapikey) | **POST** /api/admin/api-keys/{keyId}/toggle | Toggle API key activation |
 | [**adminUpdateCompanyStatus**](AdminApi.md#adminupdatecompanystatusoperation) | **PUT** /api/admin/companies/{companyId}/status | Update company lifecycle status |
 | [**adminUpdateFeatureFlag**](AdminApi.md#adminupdatefeatureflagoperation) | **PUT** /api/admin/companies/{companyId}/feature-flags/{flagId} | Update feature flag override |
 | [**adminUpdateRateLimit**](AdminApi.md#adminupdateratelimitoperation) | **PUT** /api/admin/rate-limits/{rateLimitId} | Update rate limit rule |
+| [**adminUpdateSupplier**](AdminApi.md#adminupdatesupplier) | **PATCH** /api/admin/suppliers/{supplierId} | Update supplier attributes in admin console |
 
 
 
@@ -319,6 +324,77 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## adminCreateSupplier
+
+> ApiSuccessResponse adminCreateSupplier(body)
+
+Create supplier on behalf of tenant
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AdminApi,
+} from '';
+import type { AdminCreateSupplierRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AdminApi(config);
+
+  const body = {
+    // object
+    body: Object,
+  } satisfies AdminCreateSupplierRequest;
+
+  try {
+    const data = await api.adminCreateSupplier(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **body** | `object` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Supplier created. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## adminDeleteApiKey
 
 > ApiSuccessResponse adminDeleteApiKey(keyId)
@@ -531,6 +607,77 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Rate limit removed. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## adminDeleteSupplier
+
+> ApiSuccessResponse adminDeleteSupplier(supplierId)
+
+Archive supplier
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AdminApi,
+} from '';
+import type { AdminDeleteSupplierRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AdminApi(config);
+
+  const body = {
+    // number
+    supplierId: 56,
+  } satisfies AdminDeleteSupplierRequest;
+
+  try {
+    const data = await api.adminDeleteSupplier(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **supplierId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Supplier archived. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -813,6 +960,69 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Paginated rate limit definitions. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## adminListSuppliers
+
+> ApiSuccessResponse adminListSuppliers()
+
+List suppliers in admin console
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AdminApi,
+} from '';
+import type { AdminListSuppliersRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AdminApi(config);
+
+  try {
+    const data = await api.adminListSuppliers();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Paginated suppliers scoped to current filters. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -1309,6 +1519,77 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## adminShowSupplier
+
+> ApiSuccessResponse adminShowSupplier(supplierId)
+
+Show supplier details in admin console
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AdminApi,
+} from '';
+import type { AdminShowSupplierRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AdminApi(config);
+
+  const body = {
+    // number
+    supplierId: 56,
+  } satisfies AdminShowSupplierRequest;
+
+  try {
+    const data = await api.adminShowSupplier(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **supplierId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Supplier detail for admin review. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## adminToggleApiKey
 
 > ApiSuccessResponse adminToggleApiKey(keyId)
@@ -1601,6 +1882,80 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Rate limit updated. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## adminUpdateSupplier
+
+> ApiSuccessResponse adminUpdateSupplier(supplierId, requestBody)
+
+Update supplier attributes in admin console
+
+### Example
+
+```ts
+import {
+  Configuration,
+  AdminApi,
+} from '';
+import type { AdminUpdateSupplierRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new AdminApi(config);
+
+  const body = {
+    // number
+    supplierId: 56,
+    // { [key: string]: any; }
+    requestBody: Object,
+  } satisfies AdminUpdateSupplierRequest;
+
+  try {
+    const data = await api.adminUpdateSupplier(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| **requestBody** | `{ [key: string]: any; }` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Supplier updated. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

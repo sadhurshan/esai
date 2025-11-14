@@ -7,8 +7,8 @@
 Name | Type
 ------------ | -------------
 `id` | string
-`rfqId` | string
-`supplierId` | string
+`rfqId` | number
+`supplierId` | number
 `status` | string
 `currency` | string
 `unitPrice` | number
@@ -26,7 +26,7 @@ Name | Type
 `submittedAt` | Date
 `withdrawnAt` | Date
 `withdrawReason` | string
-`supplier` | [QuoteSupplier](QuoteSupplier.md)
+`supplier` | [GoodsReceiptNoteInspector](GoodsReceiptNoteInspector.md)
 `items` | [Array&lt;QuoteItem&gt;](QuoteItem.md)
 `attachments` | [Array&lt;QuoteAttachmentsInner&gt;](QuoteAttachmentsInner.md)
 `revisions` | [Array&lt;QuoteRevision&gt;](QuoteRevision.md)

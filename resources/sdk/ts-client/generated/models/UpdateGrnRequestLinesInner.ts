@@ -21,10 +21,10 @@ import { mapValues } from '../runtime';
 export interface UpdateGrnRequestLinesInner {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof UpdateGrnRequestLinesInner
      */
-    id?: string;
+    id?: number;
     /**
      * 
      * @type {number}

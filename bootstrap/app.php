@@ -6,6 +6,7 @@ use App\Console\Commands\ApiSpecSdkTypescriptCommand;
 use App\Console\Commands\CleanupExpiredExportsCommand;
 use App\Console\Commands\DemoReset;
 use App\Http\Middleware\AdminGuard;
+use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
@@ -78,7 +79,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.guard' => AdminGuard::class,
             'api.key.auth' => ApiKeyAuth::class,
             'rate.limit.enforcer' => RateLimitEnforcer::class,
+            'auth.session' => AuthenticateApiSession::class,
         ]);
+
+        $middleware->appendToGroup('api', AuthenticateApiSession::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

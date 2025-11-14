@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
+`id` | number
 `companyId` | number
 `poNumber` | string
 `status` | string
@@ -20,8 +20,8 @@ Name | Type
 `total` | string
 `totalMinor` | number
 `revisionNo` | number
-`rfqId` | string
-`quoteId` | string
+`rfqId` | number
+`quoteId` | number
 `supplier` | [PurchaseOrderSupplier](PurchaseOrderSupplier.md)
 `rfq` | [PurchaseOrderRfq](PurchaseOrderRfq.md)
 `lines` | [Array&lt;PurchaseOrderLine&gt;](PurchaseOrderLine.md)

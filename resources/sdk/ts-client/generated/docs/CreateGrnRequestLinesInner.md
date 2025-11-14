@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`purchaseOrderLineId` | string
+`purchaseOrderLineId` | number
 `quantityReceived` | number
 `quantityAccepted` | number
 `quantityRejected` | number

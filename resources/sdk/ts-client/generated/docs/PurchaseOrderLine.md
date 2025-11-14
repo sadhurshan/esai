@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
+`id` | number
 `lineNo` | number
 `description` | string
 `quantity` | number

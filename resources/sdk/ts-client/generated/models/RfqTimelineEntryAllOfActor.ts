@@ -16,35 +16,35 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface QuoteSupplier
+ * @interface RfqTimelineEntryAllOfActor
  */
-export interface QuoteSupplier {
+export interface RfqTimelineEntryAllOfActor {
     /**
      * 
      * @type {string}
-     * @memberof QuoteSupplier
+     * @memberof RfqTimelineEntryAllOfActor
      */
     id?: string;
     /**
      * 
      * @type {string}
-     * @memberof QuoteSupplier
+     * @memberof RfqTimelineEntryAllOfActor
      */
     name?: string;
 }
 
 /**
- * Check if a given object implements the QuoteSupplier interface.
+ * Check if a given object implements the RfqTimelineEntryAllOfActor interface.
  */
-export function instanceOfQuoteSupplier(value: object): value is QuoteSupplier {
+export function instanceOfRfqTimelineEntryAllOfActor(value: object): value is RfqTimelineEntryAllOfActor {
     return true;
 }
 
-export function QuoteSupplierFromJSON(json: any): QuoteSupplier {
-    return QuoteSupplierFromJSONTyped(json, false);
+export function RfqTimelineEntryAllOfActorFromJSON(json: any): RfqTimelineEntryAllOfActor {
+    return RfqTimelineEntryAllOfActorFromJSONTyped(json, false);
 }
 
-export function QuoteSupplierFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteSupplier {
+export function RfqTimelineEntryAllOfActorFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqTimelineEntryAllOfActor {
     if (json == null) {
         return json;
     }
@@ -55,11 +55,11 @@ export function QuoteSupplierFromJSONTyped(json: any, ignoreDiscriminator: boole
     };
 }
 
-export function QuoteSupplierToJSON(json: any): QuoteSupplier {
-    return QuoteSupplierToJSONTyped(json, false);
+export function RfqTimelineEntryAllOfActorToJSON(json: any): RfqTimelineEntryAllOfActor {
+    return RfqTimelineEntryAllOfActorToJSONTyped(json, false);
 }
 
-export function QuoteSupplierToJSONTyped(value?: QuoteSupplier | null, ignoreDiscriminator: boolean = false): any {
+export function RfqTimelineEntryAllOfActorToJSONTyped(value?: RfqTimelineEntryAllOfActor | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

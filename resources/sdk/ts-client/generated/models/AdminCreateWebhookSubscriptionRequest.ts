@@ -51,10 +51,10 @@ export interface AdminCreateWebhookSubscriptionRequest {
     active?: boolean;
     /**
      * 
-     * @type {object}
+     * @type {{ [key: string]: any; }}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
-    retryPolicy?: object;
+    retryPolicy?: { [key: string]: any; };
 }
 
 /**

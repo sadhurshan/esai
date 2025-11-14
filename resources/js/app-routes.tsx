@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from '@/components/require-auth';
 import { AppLayout } from '@/layouts/app-layout';
 import { DashboardPage } from '@/pages/dashboard';
-import { RfqDetailPage, RfqListPage } from '@/pages/rfqs';
+import { RfqCreateWizard, RfqDetailPage, RfqListPage } from '@/pages/rfqs';
 import { QuoteListPage } from '@/pages/quotes';
 import { PurchaseOrderDetailPage, PurchaseOrderListPage } from '@/pages/purchase-orders';
 import { InvoiceListPage } from '@/pages/invoices';
@@ -29,7 +29,8 @@ export function AppRoutes(): ReactElement {
                 <Route path="/app" element={<AppLayout />}>
                     <Route index element={<DashboardPage />} />
                     <Route path="rfqs" element={<RfqListPage />} />
-                    <Route path="rfqs/:rfqId" element={<RfqDetailPage />} />
+                    <Route path="rfqs/new" element={<RfqCreateWizard />} />
+                    <Route path="rfqs/:id" element={<RfqDetailPage />} />
                     <Route path="quotes" element={<QuoteListPage />} />
                     <Route path="purchase-orders" element={<PurchaseOrderListPage />} />
                     <Route path="purchase-orders/:purchaseOrderId" element={<PurchaseOrderDetailPage />} />

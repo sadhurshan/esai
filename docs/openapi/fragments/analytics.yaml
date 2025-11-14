@@ -1,4 +1,61 @@
+components:
+  schemas:
+    DashboardMetrics:
+      type: object
+      description: Aggregated counts shown on the operations dashboard.
+      required:
+        - open_rfq_count
+        - quotes_awaiting_review_count
+        - pos_awaiting_acknowledgement_count
+        - unpaid_invoice_count
+        - low_stock_part_count
+      properties:
+        open_rfq_count:
+          type: integer
+          format: int32
+          minimum: 0
+        quotes_awaiting_review_count:
+          type: integer
+          format: int32
+          minimum: 0
+        pos_awaiting_acknowledgement_count:
+          type: integer
+          format: int32
+          minimum: 0
+        unpaid_invoice_count:
+          type: integer
+          format: int32
+          minimum: 0
+        low_stock_part_count:
+          type: integer
+          format: int32
+          minimum: 0
 paths:
+  /api/dashboard/metrics:
+    get:
+      tags:
+        - Analytics
+      summary: Retrieve dashboard KPI metrics
+      description: Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
+      operationId: getDashboardMetrics
+      responses:
+        '200':
+          description: Dashboard metric counts for the current company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardMetrics'
+        '402':
+          description: Analytics plan required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/analytics/overview:
     get:
       tags:

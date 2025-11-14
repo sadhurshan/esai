@@ -241,6 +241,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List suppliers in admin console */
+        get: operations["adminListSuppliers"];
+        put?: never;
+        /** Create supplier on behalf of tenant */
+        post: operations["adminCreateSupplier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/suppliers/{supplierId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        /** Show supplier details in admin console */
+        get: operations["adminShowSupplier"];
+        put?: never;
+        post?: never;
+        /** Archive supplier */
+        delete: operations["adminDeleteSupplier"];
+        options?: never;
+        head?: never;
+        /** Update supplier attributes in admin console */
+        patch: operations["adminUpdateSupplier"];
+        trace?: never;
+    };
     "/api/admin/webhook-deliveries": {
         parameters: {
             query?: never;
@@ -314,6 +353,227 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analytics/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate ad-hoc analytics export */
+        post: operations["analyticsGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fetch analytics overview dashboard */
+        get: operations["analyticsOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List analytics reports */
+        get: operations["listAnalyticsReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/reports/{reportKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportKey: string;
+            };
+            cookie?: never;
+        };
+        /** Show report configuration */
+        get: operations["showAnalyticsReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analytics/reports/{reportKey}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportKey: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run analytics report */
+        post: operations["runAnalyticsReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/delegations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List approval delegations */
+        get: operations["listApprovalDelegations"];
+        put?: never;
+        /** Create approval delegation */
+        post: operations["createApprovalDelegation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/delegations/{delegationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                delegationId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update approval delegation */
+        put: operations["updateApprovalDelegation"];
+        post?: never;
+        /** Delete approval delegation */
+        delete: operations["deleteApprovalDelegation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List approval requests */
+        get: operations["listApprovalRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/requests/{approvalId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approvalId: number;
+            };
+            cookie?: never;
+        };
+        /** Show approval request */
+        get: operations["showApprovalRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/requests/{approvalId}/action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approvalId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take action on approval request */
+        post: operations["actOnApprovalRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List approval rules */
+        get: operations["listApprovalRules"];
+        put?: never;
+        /** Create approval rule */
+        post: operations["createApprovalRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/rules/{ruleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: number;
+            };
+            cookie?: never;
+        };
+        /** Show approval rule */
+        get: operations["showApprovalRule"];
+        /** Update approval rule */
+        put: operations["updateApprovalRule"];
+        post?: never;
+        /** Delete approval rule */
+        delete: operations["deleteApprovalRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/change-orders/{changeOrderId}/approve": {
         parameters: {
             query?: never;
@@ -365,6 +625,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve profile for authenticated company */
+        get: operations["showCurrentCompany"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update profile for authenticated company */
+        patch: operations["updateCurrentCompany"];
+        trace?: never;
+    };
     "/api/companies/{companyId}": {
         parameters: {
             query?: never;
@@ -378,6 +656,97 @@ export interface paths {
         get: operations["showCompany"];
         /** Update company profile */
         put: operations["updateCompany"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: number;
+            };
+            cookie?: never;
+        };
+        /** List company documents */
+        get: operations["listCompanyDocuments"];
+        put?: never;
+        /** Upload company document */
+        post: operations["createCompanyDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: number;
+                documentId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete company document */
+        delete: operations["deleteCompanyDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate analytics insight via Copilot */
+        post: operations["copilotAnalytics"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/chat/completions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stream structured copilot response */
+        post: operations["copilotChatCompletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/copilot/prompts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List available copilot prompts */
+        get: operations["listCopilotPrompts"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -489,6 +858,321 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/crm/export-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview CRM export payload */
+        get: operations["crmExportPreview"];
+        put?: never;
+        /** Generate CRM export preview with filters */
+        post: operations["crmExportPreviewFilter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve dashboard KPI metrics
+         * @description Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
+         */
+        get: operations["getDashboardMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List registered digital twin assets */
+        get: operations["listDigitalTwinAssets"];
+        put?: never;
+        /** Create digital twin asset */
+        post: operations["createDigitalTwinAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        /** Show digital twin asset */
+        get: operations["showDigitalTwinAsset"];
+        /** Replace digital twin asset */
+        put: operations["updateDigitalTwinAsset"];
+        post?: never;
+        /** Delete digital twin asset */
+        delete: operations["deleteDigitalTwinAsset"];
+        options?: never;
+        head?: never;
+        /** Partially update digital twin asset */
+        patch: operations["patchDigitalTwinAsset"];
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/bom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Sync asset bill of materials */
+        put: operations["syncDigitalTwinAssetBom"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/procedures/{procedureId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Link maintenance procedure to asset */
+        put: operations["linkDigitalTwinProcedure"];
+        post?: never;
+        /** Detach maintenance procedure from asset */
+        delete: operations["detachDigitalTwinProcedure"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete maintenance procedure for asset */
+        post: operations["completeDigitalTwinProcedure"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update asset operational status */
+        patch: operations["updateDigitalTwinAssetStatus"];
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trigger asset synchronization */
+        post: operations["syncDigitalTwinAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/assets/{assetId}/work-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create work order for asset */
+        post: operations["createDigitalTwinWorkOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List digital twin locations */
+        get: operations["listDigitalTwinLocations"];
+        put?: never;
+        /** Create digital twin location */
+        post: operations["createDigitalTwinLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/locations/{locationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: number;
+            };
+            cookie?: never;
+        };
+        /** Show digital twin location */
+        get: operations["showDigitalTwinLocation"];
+        /** Replace digital twin location */
+        put: operations["updateDigitalTwinLocation"];
+        post?: never;
+        /** Delete digital twin location */
+        delete: operations["deleteDigitalTwinLocation"];
+        options?: never;
+        head?: never;
+        /** Partially update digital twin location */
+        patch: operations["patchDigitalTwinLocation"];
+        trace?: never;
+    };
+    "/api/digital-twin/procedures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List maintenance procedures */
+        get: operations["listDigitalTwinProcedures"];
+        put?: never;
+        /** Create maintenance procedure */
+        post: operations["createDigitalTwinProcedure"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/procedures/{procedureId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        /** Show maintenance procedure */
+        get: operations["showDigitalTwinProcedure"];
+        /** Replace maintenance procedure */
+        put: operations["updateDigitalTwinProcedure"];
+        post?: never;
+        /** Delete maintenance procedure */
+        delete: operations["deleteDigitalTwinProcedure"];
+        options?: never;
+        head?: never;
+        /** Partially update maintenance procedure */
+        patch: operations["patchDigitalTwinProcedure"];
+        trace?: never;
+    };
+    "/api/digital-twin/systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List digital twin systems */
+        get: operations["listDigitalTwinSystems"];
+        put?: never;
+        /** Create digital twin system */
+        post: operations["createDigitalTwinSystem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/digital-twin/systems/{systemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                systemId: number;
+            };
+            cookie?: never;
+        };
+        /** Show digital twin system */
+        get: operations["showDigitalTwinSystem"];
+        /** Replace digital twin system */
+        put: operations["updateDigitalTwinSystem"];
+        post?: never;
+        /** Delete digital twin system */
+        delete: operations["deleteDigitalTwinSystem"];
+        options?: never;
+        head?: never;
+        /** Partially update digital twin system */
+        patch: operations["patchDigitalTwinSystem"];
+        trace?: never;
+    };
     "/api/docs/openapi.json": {
         parameters: {
             query?: never;
@@ -529,6 +1213,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Persist document to entity */
+        post: operations["storeDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/exports": {
         parameters: {
             query?: never;
@@ -552,7 +1253,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                exportRequestId: string;
+                exportRequestId: number;
             };
             cookie?: never;
         };
@@ -571,7 +1272,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                exportRequestId: string;
+                exportRequestId: number;
             };
             cookie?: never;
         };
@@ -579,6 +1280,61 @@ export interface paths {
         get: operations["downloadExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/attachments/{quoteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: number;
+            };
+            cookie?: never;
+        };
+        /** Download quote attachments archive */
+        get: operations["downloadQuoteAttachments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/cad/{rfqId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: number;
+            };
+            cookie?: never;
+        };
+        /** Download RFQ CAD package */
+        get: operations["downloadRfqCad"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload file to temporary storage */
+        post: operations["uploadFile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -597,6 +1353,44 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pending invitations for current company */
+        get: operations["listInvitations"];
+        put?: never;
+        /** Invite user to company */
+        post: operations["createInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        /** Show invitation by token */
+        get: operations["showInvitation"];
+        put?: never;
+        post?: never;
+        /** Revoke invitation by token */
+        delete: operations["deleteInvitation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -748,6 +1542,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me/supplier-application/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get supplier self-service application status */
+        get: operations["showSelfServiceSupplierApplicationStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/supplier/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update supplier directory visibility */
+        put: operations["updateSupplierVisibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/money/fx": {
         parameters: {
             query?: never;
@@ -807,7 +1635,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                taxCodeId: string;
+                taxCodeId: number;
             };
             cookie?: never;
         };
@@ -818,6 +1646,114 @@ export interface paths {
         post?: never;
         /** Delete tax code */
         delete: operations["deleteTaxCode"];
+        options?: never;
+        head?: never;
+        /** Partially update tax code */
+        patch: operations["patchTaxCode"];
+        trace?: never;
+    };
+    "/api/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve notification preferences */
+        get: operations["showNotificationPreferences"];
+        /** Update notification preferences */
+        put: operations["updateNotificationPreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List user notifications */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/mark-all-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark all notifications as read */
+        post: operations["markAllNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{notificationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notificationId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark notification as read */
+        put: operations["markNotificationRead"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List public supplier orders */
+        get: operations["listOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        /** Show supplier order detail */
+        get: operations["showOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -845,7 +1781,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -881,7 +1817,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -901,7 +1837,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -921,8 +1857,8 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
-                grnId: string;
+                purchaseOrderId: number;
+                grnId: number;
             };
             cookie?: never;
         };
@@ -986,6 +1922,25 @@ export interface paths {
         put?: never;
         /** Issue purchase order to supplier */
         post: operations["sendPurchaseOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/purchase-orders/{purchaseOrderId}/shipments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        /** List shipments linked to purchase order */
+        get: operations["listPurchaseOrderShipments"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1060,6 +2015,46 @@ export interface paths {
         post?: never;
         /** Delete RFQ */
         delete: operations["deleteRfq"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        /** List RFQ attachments */
+        get: operations["listRfqAttachments"];
+        put?: never;
+        /** Upload RFQ attachment */
+        post: operations["uploadRfqAttachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/attachments/{attachmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete RFQ attachment */
+        delete: operations["deleteRfqAttachment"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1169,6 +2164,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/rfqs/{rfqId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close RFQ */
+        post: operations["closeRfq"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/rfqs/{rfqId}/invitations": {
         parameters: {
             query?: never;
@@ -1183,6 +2195,64 @@ export interface paths {
         put?: never;
         /** Invite supplier to RFQ */
         post: operations["inviteSupplierToRfq"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        /** List RFQ lines */
+        get: operations["listRfqLines"];
+        put?: never;
+        /** Add RFQ line */
+        post: operations["createRfqLine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/lines/{lineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update RFQ line */
+        put: operations["updateRfqLine"];
+        post?: never;
+        /** Delete RFQ line */
+        delete: operations["deleteRfqLine"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish RFQ */
+        post: operations["publishRfq"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1240,6 +2310,76 @@ export interface paths {
         put?: never;
         /** Withdraw quote */
         post: operations["withdrawQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** RFQ timeline entries */
+        get: operations["listRfqTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List supplier risk scores */
+        get: operations["listRiskScores"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/risk/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate new risk scores for suppliers */
+        post: operations["generateRiskScores"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/risk/{supplierId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        /** Retrieve supplier risk score */
+        get: operations["showRiskScore"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1370,6 +2510,191 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/supplier-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List supplier applications */
+        get: operations["listSupplierApplications"];
+        put?: never;
+        /** Submit supplier application */
+        post: operations["createSupplierApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/supplier-applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        /** Show supplier application */
+        get: operations["showSupplierApplication"];
+        put?: never;
+        post?: never;
+        /** Delete supplier application */
+        delete: operations["deleteSupplierApplication"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List suppliers for current company */
+        get: operations["listSuppliers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers/{supplierId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        /** Show supplier */
+        get: operations["showSupplier"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers/{supplierId}/esg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        /** List ESG records for supplier */
+        get: operations["listSupplierEsg"];
+        put?: never;
+        /** Store ESG record for supplier */
+        post: operations["createSupplierEsg"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers/{supplierId}/esg/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue ESG export for supplier */
+        post: operations["exportSupplierEsg"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers/{supplierId}/esg/{recordId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update ESG record */
+        put: operations["updateSupplierEsg"];
+        post?: never;
+        /** Delete ESG record */
+        delete: operations["deleteSupplierEsg"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/webhooks/stripe/customer/subscription-updated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stripe subscription updated webhook */
+        post: operations["stripeSubscriptionUpdated"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/webhooks/stripe/invoice/payment-failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stripe invoice payment failed event hook */
+        post: operations["stripeInvoicePaymentFailed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/webhooks/stripe/invoice/payment-succeeded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stripe invoice payment succeeded event hook */
+        post: operations["stripeInvoicePaymentSucceeded"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1431,6 +2756,15 @@ export interface components {
                 quantity: number;
             }[];
         };
+        CloseRfqRequest: {
+            /** @description Buyer-provided rationale for closing the RFQ. */
+            reason?: string | null;
+            /**
+             * Format: date-time
+             * @description Overrides the default (now) close timestamp if the backend permits backdating.
+             */
+            closed_at?: string | null;
+        };
         CompanyProfile: {
             id: number;
             name: string;
@@ -1491,6 +2825,19 @@ export interface components {
             has_next?: boolean;
             has_prev?: boolean;
         };
+        /** @description Aggregated counts shown on the operations dashboard. */
+        DashboardMetrics: {
+            /** Format: int32 */
+            open_rfq_count: number;
+            /** Format: int32 */
+            quotes_awaiting_review_count: number;
+            /** Format: int32 */
+            pos_awaiting_acknowledgement_count: number;
+            /** Format: int32 */
+            unpaid_invoice_count: number;
+            /** Format: int32 */
+            low_stock_part_count: number;
+        };
         /** @description Legacy alias for response metadata. */
         EnvelopeMeta: components["schemas"]["RequestMeta"];
         ErrorEnvelope: {
@@ -1506,8 +2853,7 @@ export interface components {
             data?: unknown;
         };
         ExportRequest: {
-            /** Format: uuid */
-            id: string;
+            id: number;
             /** @description Export payload type identifier. */
             type: string;
             /** @enum {string} */
@@ -1556,10 +2902,8 @@ export interface components {
             updated_at?: string;
         };
         GoodsReceiptLine: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            purchase_order_line_id: string;
+            id: number;
+            purchase_order_line_id: number;
             quantity_received: number;
             quantity_accepted?: number | null;
             quantity_rejected?: number | null;
@@ -1573,8 +2917,7 @@ export interface components {
             }[];
         };
         GoodsReceiptNote: {
-            /** Format: uuid */
-            id: string;
+            id: number;
             company_id?: number;
             purchase_order_id: number;
             number: string;
@@ -1706,10 +3049,8 @@ export interface components {
             updated_at?: string;
         };
         PoChangeOrder: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            purchase_order_id: string;
+            id: number;
+            purchase_order_id: number;
             /** @enum {string} */
             status: "proposed" | "accepted" | "rejected";
             reason: string;
@@ -1725,9 +3066,18 @@ export interface components {
                 name?: string;
             } | null;
         };
+        PublishRfqRequest: {
+            /** Format: date-time */
+            due_at: string;
+            /** Format: date-time */
+            publish_at?: string | null;
+            /** @default true */
+            notify_suppliers: boolean;
+            /** @description Optional note sent with publish notifications. */
+            message?: string | null;
+        };
         PurchaseOrder: {
-            /** Format: uuid */
-            id: string;
+            id: number;
             company_id: number;
             po_number: string;
             /** @enum {string} */
@@ -1743,18 +3093,14 @@ export interface components {
             total?: string;
             total_minor: number;
             revision_no?: number;
-            /** Format: uuid */
-            rfq_id?: string | null;
-            /** Format: uuid */
-            quote_id?: string | null;
+            rfq_id?: number | null;
+            quote_id?: number | null;
             supplier?: {
-                /** Format: uuid */
-                id?: string;
+                id?: number;
                 name?: string | null;
             } | null;
             rfq?: {
-                /** Format: uuid */
-                id?: string;
+                id?: number;
                 number?: string;
                 title?: string | null;
             } | null;
@@ -1766,8 +3112,7 @@ export interface components {
             updated_at?: string | null;
         };
         PurchaseOrderLine: {
-            /** Format: uuid */
-            id: string;
+            id: number;
             line_no: number;
             description?: string | null;
             quantity: number;
@@ -1788,8 +3133,7 @@ export interface components {
             /** Format: date */
             delivery_date?: string | null;
             taxes?: {
-                /** Format: uuid */
-                id?: string;
+                id?: number;
                 tax_code_id?: number;
                 rate_percent?: number;
                 amount_minor?: number;
@@ -1801,10 +3145,8 @@ export interface components {
         Quote: {
             /** Format: uuid */
             id: string;
-            /** Format: uuid */
-            rfq_id: string;
-            /** Format: uuid */
-            supplier_id: string;
+            rfq_id: number;
+            supplier_id: number;
             /** @enum {string} */
             status: "draft" | "submitted" | "awarded" | "withdrawn" | "expired";
             currency: string;
@@ -1827,8 +3169,7 @@ export interface components {
             withdrawn_at?: string | null;
             withdraw_reason?: string | null;
             supplier?: {
-                /** Format: uuid */
-                id?: string;
+                id?: number;
                 name?: string;
             } | null;
             items?: components["schemas"]["QuoteItem"][];
@@ -1931,6 +3272,29 @@ export interface components {
             items?: components["schemas"]["RfqItem"][];
             quotes?: components["schemas"]["QuoteSummary"][];
         };
+        /** @description Document attached to an RFQ per the documents deep spec. */
+        RfqAttachment: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Identifier of the underlying Document resource.
+             */
+            document_id?: string;
+            filename: string;
+            mime?: string | null;
+            size_bytes?: number | null;
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            uploaded_at: string;
+            /** @description Condensed user summary for audit surfaces. */
+            uploaded_by?: {
+                /** Format: uuid */
+                id?: string;
+                name?: string;
+            } | null;
+        };
         RfqClarification: {
             /** Format: uuid */
             id: string;
@@ -1975,6 +3339,33 @@ export interface components {
             /** Format: float */
             target_price?: number | null;
         };
+        RfqLinePayload: {
+            part_name: string;
+            spec?: string | null;
+            quantity: number;
+            uom?: string | null;
+            /** Format: float */
+            target_price?: number | null;
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Reference to an uploaded CAD document.
+             */
+            cad_document_id?: string | null;
+        };
+        RfqTimelineEntry: components["schemas"]["Timeline"] & {
+            /** @description Machine-readable event identifier (e.g., created, published, invitation_sent). */
+            event: string;
+            actor?: {
+                /** Format: uuid */
+                id?: string;
+                name?: string;
+            } | null;
+            /** @description Arbitrary metadata for UI rendering. */
+            context?: {
+                [key: string]: unknown;
+            } | null;
+        };
         Rma: {
             /** Format: uuid */
             id: string;
@@ -2018,6 +3409,24 @@ export interface components {
             /** @description Module-specific payload. */
             data: unknown;
             meta?: components["schemas"]["RequestMeta"];
+        };
+        Supplier: {
+            id: number;
+            company_id?: number;
+            name: string;
+            /** @description Supplier onboarding status. */
+            status?: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+        };
+        SupplierApplication: {
+            id: number;
+            supplier_name: string;
+            status: string;
+            /** Format: date-time */
+            submitted_at?: string | null;
         };
         TaxCode: {
             id: number;
@@ -2840,6 +4249,124 @@ export interface operations {
             };
         };
     };
+    adminListSuppliers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated suppliers scoped to current filters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    adminCreateSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Supplier created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    adminShowSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier detail for admin review. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    adminDeleteSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier archived. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    adminUpdateSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Supplier updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     adminListWebhookDeliveries: {
         parameters: {
             query?: {
@@ -3030,12 +4557,412 @@ export interface operations {
             };
         };
     };
+    analyticsGenerate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Analytics generation queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    analyticsOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aggregate metrics for the analytics overview screen. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listAnalyticsReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Available analytics reports for the current plan. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showAnalyticsReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Report definition including filters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    runAnalyticsReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Report execution queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listApprovalDelegations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active approval delegation rules. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createApprovalDelegation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Approval delegation created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateApprovalDelegation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                delegationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Approval delegation updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteApprovalDelegation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                delegationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval delegation removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listApprovalRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pending approval requests. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showApprovalRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approvalId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval request detail. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    actOnApprovalRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approvalId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Approval decision recorded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listApprovalRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval rules configured for the tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createApprovalRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Approval rule created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showApprovalRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval rule detail. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateApprovalRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Approval rule updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteApprovalRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval rule removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     approvePurchaseOrderChangeOrder: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                changeOrderId: string;
+                changeOrderId: number;
             };
             cookie?: never;
         };
@@ -3057,7 +4984,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                changeOrderId: string;
+                changeOrderId: number;
             };
             cookie?: never;
         };
@@ -3107,6 +5034,56 @@ export interface operations {
                             company?: components["schemas"]["CompanyProfile"];
                         };
                     };
+                };
+            };
+        };
+    };
+    showCurrentCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current tenant company profile. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            company?: components["schemas"]["CompanyProfile"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    updateCurrentCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Current company updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
         };
@@ -3168,6 +5145,153 @@ export interface operations {
         };
         responses: {
             /** @description Company profile updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listCompanyDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documents associated with the company. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createCompanyDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    label?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Company document stored. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteCompanyDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: number;
+                documentId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Company document removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    copilotAnalytics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Analytics insight with supporting narrative. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    copilotChatCompletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Copilot generated completion payload. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listCopilotPrompts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Copilot prompt catalog. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3335,6 +5459,842 @@ export interface operations {
             };
         };
     };
+    crmExportPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preview of CRM export in JSON form. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    crmExportPreviewFilter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Filtered CRM export preview. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    getDashboardMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dashboard metric counts for the current company. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["DashboardMetrics"];
+                    };
+                };
+            };
+            /** @description Analytics plan required. */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    listDigitalTwinAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated assets for the tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Asset created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Asset details with status telemetry. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Asset updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Asset deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    patchDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Asset updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    syncDigitalTwinAssetBom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Asset BOM synchronized. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    linkDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procedure linked to asset. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    detachDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procedure detached from asset. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    completeDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procedure completion recorded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateDigitalTwinAssetStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Asset status updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    syncDigitalTwinAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Synchronization job queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createDigitalTwinWorkOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Work order created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listDigitalTwinLocations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Locations in the digital twin module. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createDigitalTwinLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Location created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showDigitalTwinLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Location details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateDigitalTwinLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Location updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteDigitalTwinLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Location deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    patchDigitalTwinLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Location updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listDigitalTwinProcedures: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Maintenance procedures configured for the tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Procedure created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procedure details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Procedure updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procedure deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    patchDigitalTwinProcedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                procedureId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Procedure updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listDigitalTwinSystems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Systems registered in the digital twin module. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createDigitalTwinSystem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description System created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showDigitalTwinSystem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                systemId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description System details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateDigitalTwinSystem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                systemId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description System updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteDigitalTwinSystem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                systemId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description System deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    patchDigitalTwinSystem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                systemId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description System updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     downloadOpenApi: {
         parameters: {
             query?: never;
@@ -3389,6 +6349,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    storeDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    documentable_type: string;
+                    documentable_id: number;
+                    label?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Document stored and linked to record. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
         };
@@ -3458,7 +6448,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                exportRequestId: string;
+                exportRequestId: number;
             };
             cookie?: never;
         };
@@ -3484,7 +6474,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                exportRequestId: string;
+                exportRequestId: number;
             };
             cookie?: never;
         };
@@ -3519,6 +6509,77 @@ export interface operations {
             };
         };
     };
+    downloadQuoteAttachments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consolidated quote attachments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+        };
+    };
+    downloadRfqCad: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CAD archive for the RFQ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+        };
+    };
+    uploadFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description File uploaded and staged. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     getHealth: {
         parameters: {
             query?: never;
@@ -3543,6 +6604,96 @@ export interface operations {
                             debug: boolean;
                         };
                     };
+                };
+            };
+        };
+    };
+    listInvitations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitations collection. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Invitation created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitation details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitation revoked. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
         };
@@ -3922,6 +7073,52 @@ export interface operations {
             };
         };
     };
+    showSelfServiceSupplierApplicationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current status for the authenticated user's company application. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateSupplierVisibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Visibility updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     listFxRates: {
         parameters: {
             query?: {
@@ -4105,7 +7302,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                taxCodeId: string;
+                taxCodeId: number;
             };
             cookie?: never;
         };
@@ -4129,7 +7326,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                taxCodeId: string;
+                taxCodeId: number;
             };
             cookie?: never;
         };
@@ -4160,13 +7357,191 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                taxCodeId: string;
+                taxCodeId: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
             /** @description Tax code removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    patchTaxCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taxCodeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Tax code updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showNotificationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Per-channel notification preferences for the current user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateNotificationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Preferences updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notification feed for authenticated user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    markAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All notifications marked as read. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notificationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notification marked as read. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listOrders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Orders visible to the authenticated supplier. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Order details for supplier view. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4212,7 +7587,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4236,7 +7611,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4265,7 +7640,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4291,7 +7666,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4322,7 +7697,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4349,7 +7724,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4357,8 +7732,7 @@ export interface operations {
             content: {
                 "application/json": {
                     lines: {
-                        /** Format: uuid */
-                        purchase_order_line_id: string;
+                        purchase_order_line_id: number;
                         quantity_received: number;
                         quantity_accepted?: number | null;
                         quantity_rejected?: number | null;
@@ -4386,8 +7760,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
-                grnId: string;
+                purchaseOrderId: number;
+                grnId: number;
             };
             cookie?: never;
         };
@@ -4411,8 +7785,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
-                grnId: string;
+                purchaseOrderId: number;
+                grnId: number;
             };
             cookie?: never;
         };
@@ -4422,8 +7796,7 @@ export interface operations {
                     /** @enum {string} */
                     status?: "draft" | "inspecting" | "accepted" | "rejected";
                     lines?: {
-                        /** Format: uuid */
-                        id?: string;
+                        id?: number;
                         quantity_accepted?: number;
                         quantity_rejected?: number;
                         rejection_reason?: string | null;
@@ -4448,8 +7821,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
-                grnId: string;
+                purchaseOrderId: number;
+                grnId: number;
             };
             cookie?: never;
         };
@@ -4556,7 +7929,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -4572,6 +7945,28 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationError"];
+        };
+    };
+    listPurchaseOrderShipments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shipment timeline for the purchase order. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
         };
     };
     submitQuote: {
@@ -4815,6 +8210,92 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    listRfqAttachments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attachments linked to the RFQ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items: components["schemas"]["RfqAttachment"][];
+                        };
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    uploadRfqAttachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    title?: string | null;
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Attachment uploaded. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["RfqAttachment"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteRfqAttachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+                attachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attachment removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
     awardRfq: {
         parameters: {
             query?: never;
@@ -4980,6 +8461,36 @@ export interface operations {
             };
         };
     };
+    closeRfq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CloseRfqRequest"];
+            };
+        };
+        responses: {
+            /** @description RFQ closed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Rfq"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     listRfqInvitations: {
         parameters: {
             query?: never;
@@ -5034,6 +8545,148 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listRfqLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Line items belonging to the RFQ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items: components["schemas"]["RfqItem"][];
+                        };
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createRfqLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RfqLinePayload"];
+            };
+        };
+        responses: {
+            /** @description RFQ line created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["RfqItem"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    updateRfqLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RfqLinePayload"];
+            };
+        };
+        responses: {
+            /** @description RFQ line updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["RfqItem"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteRfqLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RFQ line deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    publishRfq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishRfqRequest"];
+            };
+        };
+        responses: {
+            /** @description RFQ published. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Rfq"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };
     };
@@ -5154,6 +8807,101 @@ export interface operations {
             };
         };
     };
+    listRfqTimeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chronological timeline of RFQ events. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items: components["schemas"]["RfqTimelineEntry"][];
+                        };
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listRiskScores: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current risk scores for suppliers in tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    generateRiskScores: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Risk generation queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showRiskScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier risk score snapshot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
     listRmas: {
         parameters: {
             query?: never;
@@ -5184,7 +8932,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                purchaseOrderId: string;
+                purchaseOrderId: number;
             };
             cookie?: never;
         };
@@ -5422,6 +9170,352 @@ export interface operations {
                             meta?: components["schemas"]["RequestMeta"];
                         };
                     };
+                };
+            };
+        };
+    };
+    listSupplierApplications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated supplier applications. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["SupplierApplication"][];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    createSupplierApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Supplier application submitted. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    showSupplierApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier application details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["SupplierApplication"];
+                    };
+                };
+            };
+        };
+    };
+    deleteSupplierApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier application deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listSuppliers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated suppliers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["Supplier"][];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    showSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Supplier"];
+                    };
+                };
+            };
+        };
+    };
+    listSupplierEsg: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Environmental, social, and governance records for the supplier. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    createSupplierEsg: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description ESG record created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    exportSupplierEsg: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ESG export queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateSupplierEsg: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description ESG record updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    deleteSupplierEsg: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: number;
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ESG record deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    stripeSubscriptionUpdated: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Webhook acknowledged. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    stripeInvoicePaymentFailed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Webhook acknowledged. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    stripeInvoicePaymentSucceeded: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Webhook acknowledged. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
         };

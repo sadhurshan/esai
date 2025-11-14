@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
+`id` | number
 `companyId` | number
 `purchaseOrderId` | number
 `number` | string

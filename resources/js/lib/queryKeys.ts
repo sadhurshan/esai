@@ -5,9 +5,22 @@ export const queryKeys = {
     rfqs: {
         root: () => ['rfqs'] as const,
         list: (params?: Record<string, unknown>) => ['rfqs', 'list', params ?? {}] as const,
-        detail: (id: number) => ['rfqs', 'detail', id] as const,
-        quotes: (rfqId: number) => ['rfqs', 'quotes', rfqId] as const,
-        invitations: (rfqId: number) => ['rfqs', 'invitations', rfqId] as const,
+        detail: (id: string | number) => ['rfqs', 'detail', id] as const,
+        quotes: (rfqId: string | number) => ['rfqs', 'quotes', rfqId] as const,
+        invitations: (rfqId: string | number) => ['rfqs', 'invitations', rfqId] as const,
+        lines: (rfqId: string | number) => ['rfqs', 'lines', rfqId] as const,
+        suppliers: (rfqId: string | number) => ['rfqs', 'suppliers', rfqId] as const,
+        clarifications: (rfqId: string | number) => ['rfqs', 'clarifications', rfqId] as const,
+        timeline: (rfqId: string | number) => ['rfqs', 'timeline', rfqId] as const,
+        attachments: (rfqId: string | number) => ['rfqs', 'attachments', rfqId] as const,
+    },
+    money: {
+        settings: () => ['money', 'settings'] as const,
+    },
+    localization: {
+        settings: () => ['localization', 'settings'] as const,
+        convert: (params: { from: string; to: string }) => ['localization', 'convert', params] as const,
+        uoms: (dimension?: string | null) => ['localization', 'uoms', dimension ?? 'all'] as const,
     },
     orders: {
         list: (params?: Record<string, unknown>) => ['orders', 'list', params ?? {}] as const,
@@ -38,6 +51,15 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['rfqs']['quotes']
     | (typeof queryKeys)['orders']['list']
     | (typeof queryKeys)['rfqs']['invitations']
+    | (typeof queryKeys)['rfqs']['lines']
+    | (typeof queryKeys)['rfqs']['suppliers']
+    | (typeof queryKeys)['rfqs']['clarifications']
+    | (typeof queryKeys)['rfqs']['timeline']
+    | (typeof queryKeys)['rfqs']['attachments']
+    | (typeof queryKeys)['money']['settings']
+    | (typeof queryKeys)['localization']['settings']
+    | (typeof queryKeys)['localization']['convert']
+    | (typeof queryKeys)['localization']['uoms']
     | (typeof queryKeys)['purchaseOrders']['root']
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']

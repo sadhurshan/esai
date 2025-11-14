@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
 use App\Http\Controllers\Api\CopilotController;
 use App\Http\Controllers\Api\SupplierRiskController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SupplierEsgController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
@@ -223,6 +224,9 @@ Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::get('dashboard/metrics', [DashboardController::class, 'metrics'])
+        ->middleware('ensure.analytics.access');
+
     Route::middleware(['ensure.localization.access', 'apply.company.locale'])->prefix('localization')->group(function (): void {
         Route::get('settings', [LocaleSettingsController::class, 'show']);
         Route::put('settings', [LocaleSettingsController::class, 'update']);

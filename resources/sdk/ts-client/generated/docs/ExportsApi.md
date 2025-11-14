@@ -110,8 +110,8 @@ async function example() {
   const body = {
     // string
     signature: signature_example,
-    // string
-    exportRequestId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    exportRequestId: 56,
   } satisfies DownloadExportRequest;
 
   try {
@@ -132,7 +132,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **signature** | `string` |  | [Defaults to `undefined`] |
-| **exportRequestId** | `string` |  | [Defaults to `undefined`] |
+| **exportRequestId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -258,8 +258,8 @@ async function example() {
   const api = new ExportsApi(config);
 
   const body = {
-    // string
-    exportRequestId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    exportRequestId: 56,
   } satisfies ShowExportRequestRequest;
 
   try {
@@ -279,7 +279,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **exportRequestId** | `string` |  | [Defaults to `undefined`] |
+| **exportRequestId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 

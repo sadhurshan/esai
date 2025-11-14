@@ -57,6 +57,10 @@
             "description": "Purchase order lifecycle, change orders, and totals"
         },
         {
+            "name": "Orders",
+            "description": "Supplier-facing order visibility endpoints"
+        },
+        {
             "name": "Invoices",
             "description": "Invoicing, credit notes, and financial reconciliation"
         },
@@ -69,12 +73,48 @@
             "description": "Bulk data export creation and download"
         },
         {
+            "name": "CRM",
+            "description": "Customer relationship data exports and insights"
+        },
+        {
+            "name": "Suppliers",
+            "description": "Supplier directory, segments, and applications"
+        },
+        {
+            "name": "Notifications",
+            "description": "In-app notification feeds and read state management"
+        },
+        {
+            "name": "Risk",
+            "description": "Supplier risk scoring and refresh workflows"
+        },
+        {
+            "name": "Digital Twin",
+            "description": "Asset telemetry, synchronization, and work orders"
+        },
+        {
+            "name": "Analytics",
+            "description": "Self-serve analytics reports and scheduled runs"
+        },
+        {
+            "name": "Copilot",
+            "description": "AI-assisted workflows and prompt catalogues"
+        },
+        {
+            "name": "Documents",
+            "description": "File uploads and document staging APIs"
+        },
+        {
             "name": "Localization",
             "description": "Localization settings, units of measure, and conversions"
         },
         {
             "name": "Money",
             "description": "Monetary settings, FX rates, and tax configuration"
+        },
+        {
+            "name": "Approvals",
+            "description": "Purchase order approval rules, requests, and delegations"
         },
         {
             "name": "Admin",
@@ -365,6 +405,22 @@
                     }
                 }
             },
+            "CloseRfqRequest": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Buyer-provided rationale for closing the RFQ."
+                    },
+                    "closed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Overrides the default (now) close timestamp if the backend permits backdating."
+                    }
+                }
+            },
             "CompanyProfile": {
                 "type": "object",
                 "required": [
@@ -558,6 +614,44 @@
                     }
                 }
             },
+            "DashboardMetrics": {
+                "type": "object",
+                "description": "Aggregated counts shown on the operations dashboard.",
+                "required": [
+                    "open_rfq_count",
+                    "quotes_awaiting_review_count",
+                    "pos_awaiting_acknowledgement_count",
+                    "unpaid_invoice_count",
+                    "low_stock_part_count"
+                ],
+                "properties": {
+                    "open_rfq_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "quotes_awaiting_review_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "pos_awaiting_acknowledgement_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "unpaid_invoice_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "low_stock_part_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
             "EnvelopeMeta": {
                 "allOf": [
                     {
@@ -614,8 +708,7 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "type": {
                         "type": "string",
@@ -752,12 +845,10 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "purchase_order_line_id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "quantity_received": {
                         "type": "number"
@@ -807,8 +898,7 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "company_id": {
                         "type": "integer"
@@ -1239,12 +1329,10 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "purchase_order_id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "status": {
                         "type": "string",
@@ -1287,6 +1375,32 @@
                     }
                 }
             },
+            "PublishRfqRequest": {
+                "type": "object",
+                "required": [
+                    "due_at"
+                ],
+                "properties": {
+                    "due_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "publish_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "notify_suppliers": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Optional note sent with publish notifications."
+                    }
+                }
+            },
             "PurchaseOrder": {
                 "type": "object",
                 "required": [
@@ -1299,8 +1413,7 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "company_id": {
                         "type": "integer"
@@ -1353,13 +1466,11 @@
                         "type": "integer"
                     },
                     "rfq_id": {
-                        "type": "string",
-                        "format": "uuid",
+                        "type": "integer",
                         "nullable": true
                     },
                     "quote_id": {
-                        "type": "string",
-                        "format": "uuid",
+                        "type": "integer",
                         "nullable": true
                     },
                     "supplier": {
@@ -1367,8 +1478,7 @@
                         "nullable": true,
                         "properties": {
                             "id": {
-                                "type": "string",
-                                "format": "uuid"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string",
@@ -1381,8 +1491,7 @@
                         "nullable": true,
                         "properties": {
                             "id": {
-                                "type": "string",
-                                "format": "uuid"
+                                "type": "integer"
                             },
                             "number": {
                                 "type": "string"
@@ -1428,8 +1537,7 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "line_no": {
                         "type": "integer"
@@ -1487,8 +1595,7 @@
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "type": "string",
-                                    "format": "uuid"
+                                    "type": "integer"
                                 },
                                 "tax_code_id": {
                                     "type": "integer"
@@ -1527,12 +1634,10 @@
                         "format": "uuid"
                     },
                     "rfq_id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "supplier_id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     },
                     "status": {
                         "type": "string",
@@ -1607,8 +1712,7 @@
                         "nullable": true,
                         "properties": {
                             "id": {
-                                "type": "string",
-                                "format": "uuid"
+                                "type": "integer"
                             },
                             "name": {
                                 "type": "string"
@@ -1940,6 +2044,60 @@
                     }
                 }
             },
+            "RfqAttachment": {
+                "type": "object",
+                "description": "Document attached to an RFQ per the documents deep spec.",
+                "required": [
+                    "id",
+                    "filename",
+                    "url",
+                    "uploaded_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "document_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identifier of the underlying Document resource."
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "mime": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "size_bytes": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "uploaded_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "uploaded_by": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Condensed user summary for audit surfaces.",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "RfqClarification": {
                 "type": "object",
                 "required": [
@@ -2083,6 +2241,83 @@
                     }
                 }
             },
+            "RfqLinePayload": {
+                "type": "object",
+                "required": [
+                    "part_name",
+                    "quantity"
+                ],
+                "properties": {
+                    "part_name": {
+                        "type": "string"
+                    },
+                    "spec": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "target_price": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cad_document_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "description": "Reference to an uploaded CAD document."
+                    }
+                }
+            },
+            "RfqTimelineEntry": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Timeline"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "event"
+                        ],
+                        "properties": {
+                            "event": {
+                                "type": "string",
+                                "description": "Machine-readable event identifier (e.g., created, published, invitation_sent)."
+                            },
+                            "actor": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "context": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "nullable": true,
+                                "description": "Arbitrary metadata for UI rendering."
+                            }
+                        }
+                    }
+                ]
+            },
             "Rma": {
                 "type": "object",
                 "required": [
@@ -2216,6 +2451,60 @@
                 },
                 "additionalProperties": false,
                 "description": "Wrapper for all successful responses. `meta.request_id` always echoes the inbound `X-Request-Id` or an internally generated UUID."
+            },
+            "Supplier": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "company_id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Supplier onboarding status."
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SupplierApplication": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "supplier_name",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "supplier_name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                }
             },
             "TaxCode": {
                 "type": "object",
@@ -3579,6 +3868,137 @@
                 }
             }
         },
+        "/api/admin/suppliers": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List suppliers in admin console",
+                "operationId": "adminListSuppliers",
+                "responses": {
+                    "200": {
+                        "description": "Paginated suppliers scoped to current filters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Create supplier on behalf of tenant",
+                "operationId": "adminCreateSupplier",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Supplier created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/suppliers/{supplierId}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Archive supplier",
+                "operationId": "adminDeleteSupplier",
+                "responses": {
+                    "200": {
+                        "description": "Supplier archived.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Show supplier details in admin console",
+                "operationId": "adminShowSupplier",
+                "responses": {
+                    "200": {
+                        "description": "Supplier detail for admin review.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update supplier attributes in admin console",
+                "operationId": "adminUpdateSupplier",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/webhook-deliveries": {
             "get": {
                 "tags": [
@@ -3885,6 +4305,490 @@
                 }
             }
         },
+        "/api/analytics/generate": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Generate ad-hoc analytics export",
+                "operationId": "analyticsGenerate",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Analytics generation queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/overview": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Fetch analytics overview dashboard",
+                "operationId": "analyticsOverview",
+                "responses": {
+                    "200": {
+                        "description": "Aggregate metrics for the analytics overview screen.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/reports": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "List analytics reports",
+                "operationId": "listAnalyticsReports",
+                "responses": {
+                    "200": {
+                        "description": "Available analytics reports for the current plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/reports/{reportKey}": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Show report configuration",
+                "operationId": "showAnalyticsReport",
+                "responses": {
+                    "200": {
+                        "description": "Report definition including filters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "reportKey",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/api/analytics/reports/{reportKey}/run": {
+            "parameters": [
+                {
+                    "name": "reportKey",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Run analytics report",
+                "operationId": "runAnalyticsReport",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Report execution queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/delegations": {
+            "get": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "List approval delegations",
+                "operationId": "listApprovalDelegations",
+                "responses": {
+                    "200": {
+                        "description": "Active approval delegation rules.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Create approval delegation",
+                "operationId": "createApprovalDelegation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Approval delegation created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/delegations/{delegationId}": {
+            "delete": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Delete approval delegation",
+                "operationId": "deleteApprovalDelegation",
+                "responses": {
+                    "200": {
+                        "description": "Approval delegation removed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "delegationId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Update approval delegation",
+                "operationId": "updateApprovalDelegation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Approval delegation updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/requests": {
+            "get": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "List approval requests",
+                "operationId": "listApprovalRequests",
+                "responses": {
+                    "200": {
+                        "description": "Pending approval requests.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/requests/{approvalId}": {
+            "get": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Show approval request",
+                "operationId": "showApprovalRequest",
+                "responses": {
+                    "200": {
+                        "description": "Approval request detail.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "approvalId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/approvals/requests/{approvalId}/action": {
+            "parameters": [
+                {
+                    "name": "approvalId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Take action on approval request",
+                "operationId": "actOnApprovalRequest",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Approval decision recorded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/rules": {
+            "get": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "List approval rules",
+                "operationId": "listApprovalRules",
+                "responses": {
+                    "200": {
+                        "description": "Approval rules configured for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Create approval rule",
+                "operationId": "createApprovalRule",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Approval rule created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/approvals/rules/{ruleId}": {
+            "delete": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Delete approval rule",
+                "operationId": "deleteApprovalRule",
+                "responses": {
+                    "200": {
+                        "description": "Approval rule removed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Show approval rule",
+                "operationId": "showApprovalRule",
+                "responses": {
+                    "200": {
+                        "description": "Approval rule detail.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "ruleId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Approvals"
+                ],
+                "summary": "Update approval rule",
+                "operationId": "updateApprovalRule",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Approval rule updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/change-orders/{changeOrderId}/approve": {
             "put": {
                 "tags": [
@@ -3898,8 +4802,7 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
+                            "type": "integer"
                         }
                     }
                 ],
@@ -3930,8 +4833,7 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
+                            "type": "integer"
                         }
                     }
                 ],
@@ -4020,6 +4922,74 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/companies/current": {
+            "get": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Retrieve profile for authenticated company",
+                "operationId": "showCurrentCompany",
+                "responses": {
+                    "200": {
+                        "description": "Current tenant company profile.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "company": {
+                                                            "$ref": "#/components/schemas/CompanyProfile"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Update profile for authenticated company",
+                "operationId": "updateCurrentCompany",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Current company updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }
@@ -4133,6 +5103,202 @@
                 "responses": {
                     "200": {
                         "description": "Company profile updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/companies/{companyId}/documents": {
+            "get": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "List company documents",
+                "operationId": "listCompanyDocuments",
+                "responses": {
+                    "200": {
+                        "description": "Documents associated with the company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "companyId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Upload company document",
+                "operationId": "createCompanyDocument",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Company document stored.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/companies/{companyId}/documents/{documentId}": {
+            "delete": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Delete company document",
+                "operationId": "deleteCompanyDocument",
+                "responses": {
+                    "200": {
+                        "description": "Company document removed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "companyId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "documentId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/copilot/analytics": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Generate analytics insight via Copilot",
+                "operationId": "copilotAnalytics",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Analytics insight with supporting narrative.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/copilot/chat/completions": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Stream structured copilot response",
+                "operationId": "copilotChatCompletion",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Copilot generated completion payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/copilot/prompts": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "List available copilot prompts",
+                "operationId": "listCopilotPrompts",
+                "responses": {
+                    "200": {
+                        "description": "Copilot prompt catalog.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4449,6 +5615,999 @@
                 }
             }
         },
+        "/api/crm/export-preview": {
+            "get": {
+                "tags": [
+                    "CRM"
+                ],
+                "summary": "Preview CRM export payload",
+                "operationId": "crmExportPreview",
+                "responses": {
+                    "200": {
+                        "description": "Preview of CRM export in JSON form.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "CRM"
+                ],
+                "summary": "Generate CRM export preview with filters",
+                "operationId": "crmExportPreviewFilter",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Filtered CRM export preview.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dashboard/metrics": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Retrieve dashboard KPI metrics",
+                "description": "Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.",
+                "operationId": "getDashboardMetrics",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard metric counts for the current company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/DashboardMetrics"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Analytics plan required.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets": {
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "List registered digital twin assets",
+                "operationId": "listDigitalTwinAssets",
+                "responses": {
+                    "200": {
+                        "description": "Paginated assets for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Create digital twin asset",
+                "operationId": "createDigitalTwinAsset",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Asset created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}": {
+            "delete": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Delete digital twin asset",
+                "operationId": "deleteDigitalTwinAsset",
+                "responses": {
+                    "200": {
+                        "description": "Asset deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Show digital twin asset",
+                "operationId": "showDigitalTwinAsset",
+                "responses": {
+                    "200": {
+                        "description": "Asset details with status telemetry.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Partially update digital twin asset",
+                "operationId": "patchDigitalTwinAsset",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Asset updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Replace digital twin asset",
+                "operationId": "updateDigitalTwinAsset",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Asset updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/bom": {
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Sync asset bill of materials",
+                "operationId": "syncDigitalTwinAssetBom",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Asset BOM synchronized.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/procedures/{procedureId}": {
+            "delete": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Detach maintenance procedure from asset",
+                "operationId": "detachDigitalTwinProcedure",
+                "responses": {
+                    "200": {
+                        "description": "Procedure detached from asset.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "procedureId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Link maintenance procedure to asset",
+                "operationId": "linkDigitalTwinProcedure",
+                "responses": {
+                    "200": {
+                        "description": "Procedure linked to asset.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete": {
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "procedureId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Complete maintenance procedure for asset",
+                "operationId": "completeDigitalTwinProcedure",
+                "responses": {
+                    "200": {
+                        "description": "Procedure completion recorded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/status": {
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Update asset operational status",
+                "operationId": "updateDigitalTwinAssetStatus",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Asset status updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/sync": {
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Trigger asset synchronization",
+                "operationId": "syncDigitalTwinAsset",
+                "responses": {
+                    "202": {
+                        "description": "Synchronization job queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/assets/{assetId}/work-orders": {
+            "parameters": [
+                {
+                    "name": "assetId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Create work order for asset",
+                "operationId": "createDigitalTwinWorkOrder",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Work order created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/locations": {
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "List digital twin locations",
+                "operationId": "listDigitalTwinLocations",
+                "responses": {
+                    "200": {
+                        "description": "Locations in the digital twin module.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Create digital twin location",
+                "operationId": "createDigitalTwinLocation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Location created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/locations/{locationId}": {
+            "delete": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Delete digital twin location",
+                "operationId": "deleteDigitalTwinLocation",
+                "responses": {
+                    "200": {
+                        "description": "Location deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Show digital twin location",
+                "operationId": "showDigitalTwinLocation",
+                "responses": {
+                    "200": {
+                        "description": "Location details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "locationId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Partially update digital twin location",
+                "operationId": "patchDigitalTwinLocation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Location updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Replace digital twin location",
+                "operationId": "updateDigitalTwinLocation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Location updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/procedures": {
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "List maintenance procedures",
+                "operationId": "listDigitalTwinProcedures",
+                "responses": {
+                    "200": {
+                        "description": "Maintenance procedures configured for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Create maintenance procedure",
+                "operationId": "createDigitalTwinProcedure",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Procedure created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/procedures/{procedureId}": {
+            "delete": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Delete maintenance procedure",
+                "operationId": "deleteDigitalTwinProcedure",
+                "responses": {
+                    "200": {
+                        "description": "Procedure deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Show maintenance procedure",
+                "operationId": "showDigitalTwinProcedure",
+                "responses": {
+                    "200": {
+                        "description": "Procedure details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "procedureId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Partially update maintenance procedure",
+                "operationId": "patchDigitalTwinProcedure",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Procedure updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Replace maintenance procedure",
+                "operationId": "updateDigitalTwinProcedure",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Procedure updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/systems": {
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "List digital twin systems",
+                "operationId": "listDigitalTwinSystems",
+                "responses": {
+                    "200": {
+                        "description": "Systems registered in the digital twin module.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Create digital twin system",
+                "operationId": "createDigitalTwinSystem",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "System created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/digital-twin/systems/{systemId}": {
+            "delete": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Delete digital twin system",
+                "operationId": "deleteDigitalTwinSystem",
+                "responses": {
+                    "200": {
+                        "description": "System deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Show digital twin system",
+                "operationId": "showDigitalTwinSystem",
+                "responses": {
+                    "200": {
+                        "description": "System details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "systemId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Partially update digital twin system",
+                "operationId": "patchDigitalTwinSystem",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "System updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Digital Twin"
+                ],
+                "summary": "Replace digital twin system",
+                "operationId": "updateDigitalTwinSystem",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "System updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/docs/openapi.json": {
             "get": {
                 "tags": [
@@ -4531,6 +6690,57 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/documents": {
+            "post": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Persist document to entity",
+                "operationId": "storeDocument",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file",
+                                    "documentable_type",
+                                    "documentable_id"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "documentable_type": {
+                                        "type": "string"
+                                    },
+                                    "documentable_id": {
+                                        "type": "integer"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Document stored and linked to record.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }
@@ -4686,8 +6896,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ]
@@ -4749,11 +6958,114 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ]
+        },
+        "/api/files/attachments/{quoteId}": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Download quote attachments archive",
+                "operationId": "downloadQuoteAttachments",
+                "responses": {
+                    "200": {
+                        "description": "Consolidated quote attachments.",
+                        "content": {
+                            "application/zip": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/files/cad/{rfqId}": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Download RFQ CAD package",
+                "operationId": "downloadRfqCad",
+                "responses": {
+                    "200": {
+                        "description": "CAD archive for the RFQ.",
+                        "content": {
+                            "application/zip": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/files/upload": {
+            "post": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Upload file to temporary storage",
+                "operationId": "uploadFile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "File uploaded and staged.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/api/health": {
             "get": {
@@ -4831,6 +7143,107 @@
                     }
                 }
             }
+        },
+        "/api/invitations": {
+            "get": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "List pending invitations for current company",
+                "operationId": "listInvitations",
+                "responses": {
+                    "200": {
+                        "description": "Invitations collection.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Invite user to company",
+                "operationId": "createInvitation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Invitation created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invitations/{token}": {
+            "delete": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Revoke invitation by token",
+                "operationId": "deleteInvitation",
+                "responses": {
+                    "200": {
+                        "description": "Invitation revoked.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Show invitation by token",
+                "operationId": "showInvitation",
+                "responses": {
+                    "200": {
+                        "description": "Invitation details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
         },
         "/api/invoices/{invoiceId}": {
             "delete": {
@@ -5465,6 +7878,59 @@
                 }
             }
         },
+        "/api/me/supplier-application/status": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Get supplier self-service application status",
+                "operationId": "showSelfServiceSupplierApplicationStatus",
+                "responses": {
+                    "200": {
+                        "description": "Current status for the authenticated user's company application.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/supplier/visibility": {
+            "put": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Update supplier directory visibility",
+                "operationId": "updateSupplierVisibility",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Visibility updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/money/fx": {
             "get": {
                 "tags": [
@@ -5859,11 +8325,40 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ],
+            "patch": {
+                "tags": [
+                    "Money"
+                ],
+                "summary": "Partially update tax code",
+                "operationId": "patchTaxCode",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tax code updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "tags": [
                     "Money"
@@ -5908,6 +8403,182 @@
                     }
                 }
             }
+        },
+        "/api/notification-preferences": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Retrieve notification preferences",
+                "operationId": "showNotificationPreferences",
+                "responses": {
+                    "200": {
+                        "description": "Per-channel notification preferences for the current user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Update notification preferences",
+                "operationId": "updateNotificationPreferences",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "List user notifications",
+                "operationId": "listNotifications",
+                "responses": {
+                    "200": {
+                        "description": "Notification feed for authenticated user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/notifications/mark-all-read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "operationId": "markAllNotificationsRead",
+                "responses": {
+                    "200": {
+                        "description": "All notifications marked as read.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/notifications/{notificationId}/read": {
+            "parameters": [
+                {
+                    "name": "notificationId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark notification as read",
+                "operationId": "markNotificationRead",
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "List public supplier orders",
+                "operationId": "listOrders",
+                "responses": {
+                    "200": {
+                        "description": "Orders visible to the authenticated supplier.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/orders/{orderId}": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Show supplier order detail",
+                "operationId": "showOrder",
+                "responses": {
+                    "200": {
+                        "description": "Order details for supplier view.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "orderId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
         },
         "/api/purchase-orders": {
             "get": {
@@ -6029,8 +8700,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ]
@@ -6048,8 +8718,7 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
+                            "type": "integer"
                         }
                     }
                 ],
@@ -6138,8 +8807,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ],
@@ -6239,8 +8907,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ],
@@ -6271,8 +8938,7 @@
                                             ],
                                             "properties": {
                                                 "purchase_order_line_id": {
-                                                    "type": "string",
-                                                    "format": "uuid"
+                                                    "type": "integer"
                                                 },
                                                 "quantity_received": {
                                                     "type": "number"
@@ -6373,8 +9039,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 },
                 {
@@ -6382,8 +9047,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "integer"
                     }
                 }
             ],
@@ -6415,8 +9079,7 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "string",
-                                                    "format": "uuid"
+                                                    "type": "integer"
                                                 },
                                                 "quantity_accepted": {
                                                     "type": "number"
@@ -6610,8 +9273,7 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
+                            "type": "integer"
                         }
                     }
                 ],
@@ -6631,6 +9293,37 @@
                     }
                 }
             }
+        },
+        "/api/purchase-orders/{purchaseOrderId}/shipments": {
+            "get": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "List shipments linked to purchase order",
+                "operationId": "listPurchaseOrderShipments",
+                "responses": {
+                    "200": {
+                        "description": "Shipment timeline for the purchase order.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "purchaseOrderId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
         },
         "/api/quotes": {
             "post": {
@@ -7207,6 +9900,172 @@
                 }
             }
         },
+        "/api/rfqs/{rfqId}/attachments": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "List RFQ attachments",
+                "operationId": "listRfqAttachments",
+                "responses": {
+                    "200": {
+                        "description": "Attachments linked to the RFQ.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqAttachment"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Upload RFQ attachment",
+                "operationId": "uploadRfqAttachment",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Attachment uploaded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqAttachment"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/attachments/{attachmentId}": {
+            "delete": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Delete RFQ attachment",
+                "operationId": "deleteRfqAttachment",
+                "responses": {
+                    "200": {
+                        "description": "Attachment removed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "attachmentId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ]
+        },
         "/api/rfqs/{rfqId}/award": {
             "post": {
                 "tags": [
@@ -7509,6 +10368,66 @@
                 }
             }
         },
+        "/api/rfqs/{rfqId}/close": {
+            "post": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Close RFQ",
+                "operationId": "closeRfq",
+                "parameters": [
+                    {
+                        "name": "rfqId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CloseRfqRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "RFQ closed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Rfq"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/rfqs/{rfqId}/invitations": {
             "get": {
                 "tags": [
@@ -7602,6 +10521,262 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/lines": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "List RFQ lines",
+                "operationId": "listRfqLines",
+                "responses": {
+                    "200": {
+                        "description": "Line items belonging to the RFQ.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqItem"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Add RFQ line",
+                "operationId": "createRfqLine",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RfqLinePayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "RFQ line created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqItem"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/lines/{lineId}": {
+            "delete": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Delete RFQ line",
+                "operationId": "deleteRfqLine",
+                "responses": {
+                    "200": {
+                        "description": "RFQ line deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "lineId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Update RFQ line",
+                "operationId": "updateRfqLine",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RfqLinePayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "RFQ line updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqItem"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/publish": {
+            "post": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Publish RFQ",
+                "operationId": "publishRfq",
+                "parameters": [
+                    {
+                        "name": "rfqId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublishRfqRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "RFQ published.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Rfq"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationError"
@@ -7849,6 +11024,148 @@
                 }
             }
         },
+        "/api/rfqs/{rfqId}/timeline": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "RFQ timeline entries",
+                "operationId": "listRfqTimeline",
+                "parameters": [
+                    {
+                        "name": "rfqId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chronological timeline of RFQ events.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqTimelineEntry"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/api/risk": {
+            "get": {
+                "tags": [
+                    "Risk"
+                ],
+                "summary": "List supplier risk scores",
+                "operationId": "listRiskScores",
+                "responses": {
+                    "200": {
+                        "description": "Current risk scores for suppliers in tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/risk/generate": {
+            "post": {
+                "tags": [
+                    "Risk"
+                ],
+                "summary": "Generate new risk scores for suppliers",
+                "operationId": "generateRiskScores",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Risk generation queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/risk/{supplierId}": {
+            "get": {
+                "tags": [
+                    "Risk"
+                ],
+                "summary": "Retrieve supplier risk score",
+                "operationId": "showRiskScore",
+                "responses": {
+                    "200": {
+                        "description": "Supplier risk score snapshot.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
         "/api/rmas": {
             "get": {
                 "tags": [
@@ -7909,8 +11226,7 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
+                            "type": "integer"
                         }
                     }
                 ],
@@ -8319,6 +11635,480 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier-applications": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "List supplier applications",
+                "operationId": "listSupplierApplications",
+                "responses": {
+                    "200": {
+                        "description": "Paginated supplier applications.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/SupplierApplication"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Submit supplier application",
+                "operationId": "createSupplierApplication",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Supplier application submitted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier-applications/{applicationId}": {
+            "delete": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Delete supplier application",
+                "operationId": "deleteSupplierApplication",
+                "responses": {
+                    "200": {
+                        "description": "Supplier application deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Show supplier application",
+                "operationId": "showSupplierApplication",
+                "responses": {
+                    "200": {
+                        "description": "Supplier application details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SupplierApplication"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "applicationId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/suppliers": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "List suppliers for current company",
+                "operationId": "listSuppliers",
+                "responses": {
+                    "200": {
+                        "description": "Paginated suppliers.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Supplier"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{supplierId}": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Show supplier",
+                "operationId": "showSupplier",
+                "responses": {
+                    "200": {
+                        "description": "Supplier details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Supplier"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/suppliers/{supplierId}/esg": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "List ESG records for supplier",
+                "operationId": "listSupplierEsg",
+                "responses": {
+                    "200": {
+                        "description": "Environmental, social, and governance records for the supplier.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Store ESG record for supplier",
+                "operationId": "createSupplierEsg",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "ESG record created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{supplierId}/esg/export": {
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Queue ESG export for supplier",
+                "operationId": "exportSupplierEsg",
+                "responses": {
+                    "202": {
+                        "description": "ESG export queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{supplierId}/esg/{recordId}": {
+            "delete": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Delete ESG record",
+                "operationId": "deleteSupplierEsg",
+                "responses": {
+                    "200": {
+                        "description": "ESG record deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "supplierId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "recordId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Update ESG record",
+                "operationId": "updateSupplierEsg",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "ESG record updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/webhooks/stripe/customer/subscription-updated": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Stripe subscription updated webhook",
+                "operationId": "stripeSubscriptionUpdated",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook acknowledged.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/webhooks/stripe/invoice/payment-failed": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Stripe invoice payment failed event hook",
+                "operationId": "stripeInvoicePaymentFailed",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook acknowledged.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/webhooks/stripe/invoice/payment-succeeded": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Stripe invoice payment succeeded event hook",
+                "operationId": "stripeInvoicePaymentSucceeded",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook acknowledged.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }

@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
+`id` | number
 `taxCodeId` | number
 `ratePercent` | number
 `amountMinor` | number

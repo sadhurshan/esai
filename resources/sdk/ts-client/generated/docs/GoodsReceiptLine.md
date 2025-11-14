@@ -6,8 +6,8 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
-`purchaseOrderLineId` | string
+`id` | number
+`purchaseOrderLineId` | number
 `quantityReceived` | number
 `quantityAccepted` | number
 `quantityRejected` | number

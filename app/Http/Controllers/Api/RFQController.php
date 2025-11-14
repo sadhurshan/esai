@@ -10,6 +10,7 @@ use App\Models\RfqItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,16 +18,67 @@ class RFQController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
-        try {
-            $query = RFQ::query();
+        $user = $this->resolveRequestUser($request);
 
-            $tab = $request->query('tab');
-            $query = $this->mapTabFilters($query, $tab);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        try {
+            $query = RFQ::query()
+                ->where('company_id', $companyId);
+
+            $statusFilter = $this->normalizeStatus($request->query('status'));
+
+            if ($statusFilter === null) {
+                $tab = $request->query('tab');
+                $query = $this->mapTabFilters($query, $tab);
+            } else {
+                $statusValues = $this->resolveStatusFilter($statusFilter);
+                if ($statusValues !== null) {
+                    $query->whereIn('status', $statusValues);
+                }
+            }
 
             if ($search = $request->query('q')) {
                 $query->where(function ($builder) use ($search): void {
                     $builder->where('number', 'like', "%{$search}%")
                         ->orWhere('item_name', 'like', "%{$search}%");
+                });
+            }
+
+            $dateFrom = $this->normalizeDate($request->query('date_from'));
+            $dateTo = $this->normalizeDate($request->query('date_to'));
+
+            if ($dateFrom || $dateTo) {
+                $query->where(function (Builder $builder) use ($dateFrom, $dateTo): void {
+                    $builder->where(function (Builder $sent) use ($dateFrom, $dateTo): void {
+                        $sent->whereNotNull('sent_at');
+
+                        if ($dateFrom) {
+                            $sent->whereDate('sent_at', '>=', $dateFrom);
+                        }
+
+                        if ($dateTo) {
+                            $sent->whereDate('sent_at', '<=', $dateTo);
+                        }
+                    })->orWhere(function (Builder $drafts) use ($dateFrom, $dateTo): void {
+                        $drafts->whereNull('sent_at');
+
+                        if ($dateFrom) {
+                            $drafts->whereDate('created_at', '>=', $dateFrom);
+                        }
+
+                        if ($dateTo) {
+                            $drafts->whereDate('created_at', '<=', $dateTo);
+                        }
+                    });
                 });
             }
 
@@ -47,10 +99,6 @@ class RFQController extends ApiController
                 'meta' => $meta,
             ]);
         } catch (\Throwable $throwable) {
-            if (isset($payload['cad_path'])) {
-                Storage::delete($payload['cad_path']);
-            }
-
             report($throwable);
 
             return $this->fail('Server error', 500);
@@ -201,6 +249,44 @@ class RFQController extends ApiController
             'received', 'sent' => $this->applySentConstraints($query),
             default => $query,
         };
+    }
+
+    private function normalizeStatus(mixed $status): ?string
+    {
+        if (! is_string($status)) {
+            return null;
+        }
+
+        $normalized = strtolower(trim($status));
+
+        return $normalized === '' || $normalized === 'all' ? null : $normalized;
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function resolveStatusFilter(string $status): ?array
+    {
+        return match ($status) {
+            'draft' => ['awaiting'],
+            'open' => ['open'],
+            'closed' => ['closed', 'cancelled'],
+            'awarded' => ['awarded'],
+            default => null,
+        };
+    }
+
+    private function normalizeDate(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', trim($value))->toDateString();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function generateNumber(): string

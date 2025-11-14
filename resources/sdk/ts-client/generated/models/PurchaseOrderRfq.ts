@@ -21,10 +21,10 @@ import { mapValues } from '../runtime';
 export interface PurchaseOrderRfq {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrderRfq
      */
-    id?: string;
+    id?: number;
     /**
      * 
      * @type {string}

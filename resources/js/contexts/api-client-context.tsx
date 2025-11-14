@@ -24,7 +24,7 @@ const DEFAULT_QUERY_OPTIONS = {
 
 export function ApiClientProvider({ children }: PropsWithChildren) {
     const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit } = useAuth();
-    const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
     const navigate = useNavigate();
     const location = useLocation();
 

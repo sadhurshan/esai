@@ -1,20 +1,23 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { useDashboardMetrics, type DashboardMetrics } from '@/hooks/api/use-dashboard-metrics';
+import { publishToast } from '@/components/ui/use-toast';
+import { HttpError } from '@/sdk';
 import {
     BatteryWarning,
     ClipboardCheck,
     FileSpreadsheet,
     HandCoins,
     LayoutDashboard,
+    TriangleAlert,
     WalletMinimal,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { useEffect, useMemo, type ComponentType } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, type ComponentType } from 'react';
 
 interface MetricConfig {
     key: keyof DashboardMetrics;
@@ -59,7 +62,9 @@ const METRIC_DEFINITIONS: MetricConfig[] = [
 export function DashboardPage() {
     const { state, notifyPlanLimit, clearPlanLimit } = useAuth();
     const analyticsEnabled = state.featureFlags.analytics_enabled !== false;
+    const navigate = useNavigate();
     const metricsQuery = useDashboardMetrics(analyticsEnabled);
+    const errorToastRef = useRef(false);
 
     useEffect(() => {
         if (!analyticsEnabled) {
@@ -79,6 +84,21 @@ export function DashboardPage() {
 
         return undefined;
     }, [analyticsEnabled, clearPlanLimit, notifyPlanLimit, state.planLimit]);
+
+    useEffect(() => {
+        if (metricsQuery.isError && !metricsQuery.isFetching) {
+            if (!errorToastRef.current && !(metricsQuery.error instanceof HttpError)) {
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Unable to load metrics',
+                    description: 'We could not fetch the latest dashboard insights. Please retry.',
+                });
+                errorToastRef.current = true;
+            }
+        } else {
+            errorToastRef.current = false;
+        }
+    }, [metricsQuery.error, metricsQuery.isError, metricsQuery.isFetching]);
 
     const metricCards = useMemo(() => {
         const data = metricsQuery.data;
@@ -128,16 +148,6 @@ export function DashboardPage() {
                 </Button>
             </div>
 
-            {!analyticsEnabled ? (
-                <Alert className="border-dashed">
-                    <AlertTitle>Analytics upgrade required</AlertTitle>
-                    <AlertDescription>
-                        Your current plan does not include the analytics dashboard. Visit billing to upgrade and unlock
-                        sourcing insights.
-                    </AlertDescription>
-                </Alert>
-            ) : null}
-
             {analyticsEnabled ? (
                 metricsQuery.isLoading || metricsQuery.isPlaceholderData ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,15 +164,26 @@ export function DashboardPage() {
                         ))}
                     </div>
                 ) : metricsQuery.isError ? (
-                    <Alert variant="destructive">
-                        <AlertTitle>Unable to load metrics</AlertTitle>
-                        <AlertDescription>
-                            Something went wrong while fetching dashboard data. Please retry or refresh the page.
-                        </AlertDescription>
-                    </Alert>
+                    <EmptyState
+                        title="Unable to load metrics"
+                        description="Something went wrong while fetching dashboard data."
+                        icon={<TriangleAlert className="h-6 w-6" />}
+                        ctaLabel="Retry"
+                        ctaProps={{ onClick: () => metricsQuery.refetch(), variant: 'outline' }}
+                    />
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{metricCards}</div>
                 )
+            ) : null}
+
+            {!analyticsEnabled ? (
+                <EmptyState
+                    title="Analytics upgrade required"
+                    description="Your current plan does not include the analytics dashboard. Upgrade to unlock sourcing insights."
+                    icon={<TriangleAlert className="h-6 w-6" />}
+                    ctaLabel="View plans"
+                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings?tab=billing') }}
+                />
             ) : null}
         </div>
     );

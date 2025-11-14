@@ -8,6 +8,7 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**deleteTaxCode**](MoneyApi.md#deletetaxcode) | **DELETE** /api/money/tax-codes/{taxCodeId} | Delete tax code |
 | [**listFxRates**](MoneyApi.md#listfxrates) | **GET** /api/money/fx | List FX rates |
 | [**listTaxCodes**](MoneyApi.md#listtaxcodes) | **GET** /api/money/tax-codes | List tax codes |
+| [**patchTaxCode**](MoneyApi.md#patchtaxcode) | **PATCH** /api/money/tax-codes/{taxCodeId} | Partially update tax code |
 | [**recalcCreditNoteTotals**](MoneyApi.md#recalccreditnotetotals) | **POST** /api/credit-notes/{creditNoteId}/recalculate | Recalculate credit note totals |
 | [**recalcInvoiceTotals**](MoneyApi.md#recalcinvoicetotals) | **POST** /api/invoices/{invoiceId}/recalculate | Recalculate invoice totals |
 | [**recalcPurchaseOrderTotals**](MoneyApi.md#recalcpurchaseordertotals) | **POST** /api/purchase-orders/{purchaseOrderId}/recalculate | Recalculate purchase order totals |
@@ -117,8 +118,8 @@ async function example() {
   const api = new MoneyApi(config);
 
   const body = {
-    // string
-    taxCodeId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    taxCodeId: 56,
   } satisfies DeleteTaxCodeRequest;
 
   try {
@@ -138,7 +139,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **taxCodeId** | `string` |  | [Defaults to `undefined`] |
+| **taxCodeId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -315,6 +316,80 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Cursor paginated tax codes. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## patchTaxCode
+
+> ApiSuccessResponse patchTaxCode(taxCodeId, requestBody)
+
+Partially update tax code
+
+### Example
+
+```ts
+import {
+  Configuration,
+  MoneyApi,
+} from '';
+import type { PatchTaxCodeRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new MoneyApi(config);
+
+  const body = {
+    // number
+    taxCodeId: 56,
+    // { [key: string]: any; }
+    requestBody: Object,
+  } satisfies PatchTaxCodeRequest;
+
+  try {
+    const data = await api.patchTaxCode(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **taxCodeId** | `number` |  | [Defaults to `undefined`] |
+| **requestBody** | `{ [key: string]: any; }` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Tax code updated. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -692,8 +767,8 @@ async function example() {
   const api = new MoneyApi(config);
 
   const body = {
-    // string
-    taxCodeId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    taxCodeId: 56,
   } satisfies ShowTaxCodeRequest;
 
   try {
@@ -713,7 +788,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **taxCodeId** | `string` |  | [Defaults to `undefined`] |
+| **taxCodeId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -834,8 +909,8 @@ async function example() {
   const api = new MoneyApi(config);
 
   const body = {
-    // string
-    taxCodeId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    taxCodeId: 56,
     // UpdateTaxCodeRequest
     updateTaxCodeRequest: ...,
   } satisfies UpdateTaxCodeOperationRequest;
@@ -857,7 +932,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **taxCodeId** | `string` |  | [Defaults to `undefined`] |
+| **taxCodeId** | `number` |  | [Defaults to `undefined`] |
 | **updateTaxCodeRequest** | [UpdateTaxCodeRequest](UpdateTaxCodeRequest.md) |  | |
 
 ### Return type

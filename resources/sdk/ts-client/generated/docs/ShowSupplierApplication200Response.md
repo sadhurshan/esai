@@ -1,24 +1,28 @@
 
-# QuoteSupplier
+# ShowSupplierApplication200Response
 
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`id` | string
-`name` | string
+`status` | string
+`message` | string
+`data` | [SupplierApplication](SupplierApplication.md)
+`meta` | [RequestMeta](RequestMeta.md)
 
 ## Example
 
 ```typescript
-import type { QuoteSupplier } from ''
+import type { ShowSupplierApplication200Response } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "id": null,
-  "name": null,
-} satisfies QuoteSupplier
+  "status": null,
+  "message": null,
+  "data": null,
+  "meta": null,
+} satisfies ShowSupplierApplication200Response
 
 console.log(example)
 
@@ -27,7 +31,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as QuoteSupplier
+const exampleParsed = JSON.parse(exampleJSON) as ShowSupplierApplication200Response
 console.log(exampleParsed)
 ```
 

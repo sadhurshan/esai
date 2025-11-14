@@ -29,16 +29,16 @@ import {
 export interface PoChangeOrder {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PoChangeOrder
      */
-    id: string;
+    id: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PoChangeOrder
      */
-    purchaseOrderId: string;
+    purchaseOrderId: number;
     /**
      * 
      * @type {string}

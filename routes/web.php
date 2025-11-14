@@ -1,8 +1,22 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\AuthSessionController;
+use App\Http\Controllers\Api\Auth\PasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'app')->name('home');
+
+Route::prefix('api/auth')->group(function (): void {
+    Route::post('login', [AuthSessionController::class, 'store'])->middleware('guest');
+
+    Route::middleware('auth')->group(function (): void {
+        Route::get('me', [AuthSessionController::class, 'show']);
+        Route::post('logout', [AuthSessionController::class, 'destroy']);
+    });
+
+    Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('guest');
+    Route::post('reset-password', [PasswordResetController::class, 'reset'])->middleware('guest');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::view('/company-registration', 'app')->name('company.registration');

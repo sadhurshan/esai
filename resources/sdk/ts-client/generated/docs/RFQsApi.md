@@ -6,17 +6,27 @@ All URIs are relative to *https://api.elements-supply.ai*
 |------------- | ------------- | -------------|
 | [**awardRfq**](RFQsApi.md#awardrfqoperation) | **POST** /api/rfqs/{rfqId}/award | Award RFQ |
 | [**awardRfqLines**](RFQsApi.md#awardrfqlines) | **POST** /api/rfqs/{rfqId}/award-lines | Award specific RFQ lines |
+| [**closeRfq**](RFQsApi.md#closerfqoperation) | **POST** /api/rfqs/{rfqId}/close | Close RFQ |
 | [**createRfq**](RFQsApi.md#createrfq) | **POST** /api/rfqs | Create RFQ |
 | [**createRfqAmendment**](RFQsApi.md#createrfqamendmentoperation) | **POST** /api/rfqs/{rfqId}/clarifications/amendment | Publish amendment |
 | [**createRfqClarificationAnswer**](RFQsApi.md#createrfqclarificationanswer) | **POST** /api/rfqs/{rfqId}/clarifications/answer | Submit clarification answer |
 | [**createRfqClarificationQuestion**](RFQsApi.md#createrfqclarificationquestion) | **POST** /api/rfqs/{rfqId}/clarifications/question | Submit clarification question |
+| [**createRfqLine**](RFQsApi.md#createrfqline) | **POST** /api/rfqs/{rfqId}/lines | Add RFQ line |
 | [**deleteRfq**](RFQsApi.md#deleterfq) | **DELETE** /api/rfqs/{rfqId} | Delete RFQ |
+| [**deleteRfqAttachment**](RFQsApi.md#deleterfqattachment) | **DELETE** /api/rfqs/{rfqId}/attachments/{attachmentId} | Delete RFQ attachment |
+| [**deleteRfqLine**](RFQsApi.md#deleterfqline) | **DELETE** /api/rfqs/{rfqId}/lines/{lineId} | Delete RFQ line |
 | [**inviteSupplierToRfq**](RFQsApi.md#invitesuppliertorfqoperation) | **POST** /api/rfqs/{rfqId}/invitations | Invite supplier to RFQ |
+| [**listRfqAttachments**](RFQsApi.md#listrfqattachments) | **GET** /api/rfqs/{rfqId}/attachments | List RFQ attachments |
 | [**listRfqClarifications**](RFQsApi.md#listrfqclarifications) | **GET** /api/rfqs/{rfqId}/clarifications | List clarifications |
 | [**listRfqInvitations**](RFQsApi.md#listrfqinvitations) | **GET** /api/rfqs/{rfqId}/invitations | List RFQ invitations |
+| [**listRfqLines**](RFQsApi.md#listrfqlines) | **GET** /api/rfqs/{rfqId}/lines | List RFQ lines |
+| [**listRfqTimeline**](RFQsApi.md#listrfqtimeline) | **GET** /api/rfqs/{rfqId}/timeline | RFQ timeline entries |
 | [**listRfqs**](RFQsApi.md#listrfqs) | **GET** /api/rfqs | List RFQs |
+| [**publishRfq**](RFQsApi.md#publishrfqoperation) | **POST** /api/rfqs/{rfqId}/publish | Publish RFQ |
 | [**showRfq**](RFQsApi.md#showrfq) | **GET** /api/rfqs/{rfqId} | Retrieve RFQ |
 | [**updateRfq**](RFQsApi.md#updaterfq) | **PUT** /api/rfqs/{rfqId} | Update RFQ |
+| [**updateRfqLine**](RFQsApi.md#updaterfqline) | **PUT** /api/rfqs/{rfqId}/lines/{lineId} | Update RFQ line |
+| [**uploadRfqAttachment**](RFQsApi.md#uploadrfqattachment) | **POST** /api/rfqs/{rfqId}/attachments | Upload RFQ attachment |
 
 
 
@@ -164,6 +174,82 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Award lines processed. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## closeRfq
+
+> CreateRfq201Response closeRfq(rfqId, closeRfqRequest)
+
+Close RFQ
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { CloseRfqOperationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // CloseRfqRequest (optional)
+    closeRfqRequest: ...,
+  } satisfies CloseRfqOperationRequest;
+
+  try {
+    const data = await api.closeRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **closeRfqRequest** | [CloseRfqRequest](CloseRfqRequest.md) |  | [Optional] |
+
+### Return type
+
+[**CreateRfq201Response**](CreateRfq201Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | RFQ closed. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -501,6 +587,82 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## createRfqLine
+
+> CreateRfqLine201Response createRfqLine(rfqId, rfqLinePayload)
+
+Add RFQ line
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { CreateRfqLineRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // RfqLinePayload
+    rfqLinePayload: ...,
+  } satisfies CreateRfqLineRequest;
+
+  try {
+    const data = await api.createRfqLine(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **rfqLinePayload** | [RfqLinePayload](RfqLinePayload.md) |  | |
+
+### Return type
+
+[**CreateRfqLine201Response**](CreateRfqLine201Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | RFQ line created. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## deleteRfq
 
 > ApiSuccessResponse deleteRfq(rfqId)
@@ -568,6 +730,156 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | RFQ deleted. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## deleteRfqAttachment
+
+> ApiSuccessResponse deleteRfqAttachment(rfqId, attachmentId)
+
+Delete RFQ attachment
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { DeleteRfqAttachmentRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // string
+    attachmentId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies DeleteRfqAttachmentRequest;
+
+  try {
+    const data = await api.deleteRfqAttachment(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **attachmentId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Attachment removed. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## deleteRfqLine
+
+> ApiSuccessResponse deleteRfqLine(rfqId, lineId)
+
+Delete RFQ line
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { DeleteRfqLineRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // string
+    lineId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies DeleteRfqLineRequest;
+
+  try {
+    const data = await api.deleteRfqLine(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **lineId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | RFQ line deleted. |  -  |
 | **404** | Resource not found. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
@@ -644,6 +956,78 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **201** | Invitation created. |  -  |
 | **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## listRfqAttachments
+
+> ListRfqAttachments200Response listRfqAttachments(rfqId)
+
+List RFQ attachments
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { ListRfqAttachmentsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies ListRfqAttachmentsRequest;
+
+  try {
+    const data = await api.listRfqAttachments(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ListRfqAttachments200Response**](ListRfqAttachments200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Attachments linked to the RFQ. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -790,6 +1174,150 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## listRfqLines
+
+> ListRfqLines200Response listRfqLines(rfqId)
+
+List RFQ lines
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { ListRfqLinesRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies ListRfqLinesRequest;
+
+  try {
+    const data = await api.listRfqLines(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ListRfqLines200Response**](ListRfqLines200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Line items belonging to the RFQ. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## listRfqTimeline
+
+> ListRfqTimeline200Response listRfqTimeline(rfqId)
+
+RFQ timeline entries
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { ListRfqTimelineRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies ListRfqTimelineRequest;
+
+  try {
+    const data = await api.listRfqTimeline(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ListRfqTimeline200Response**](ListRfqTimeline200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Chronological timeline of RFQ events. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## listRfqs
 
 > ListRfqs200Response listRfqs(perPage, page, tab, q, sort, sortDirection)
@@ -872,6 +1400,82 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Collection of RFQs visible to the current tenant. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## publishRfq
+
+> CreateRfq201Response publishRfq(rfqId, publishRfqRequest)
+
+Publish RFQ
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { PublishRfqOperationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // PublishRfqRequest
+    publishRfqRequest: ...,
+  } satisfies PublishRfqOperationRequest;
+
+  try {
+    const data = await api.publishRfq(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **publishRfqRequest** | [PublishRfqRequest](PublishRfqRequest.md) |  | |
+
+### Return type
+
+[**CreateRfq201Response**](CreateRfq201Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | RFQ published. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -1052,6 +1656,167 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | RFQ updated. |  -  |
 | **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## updateRfqLine
+
+> CreateRfqLine201Response updateRfqLine(rfqId, lineId, rfqLinePayload)
+
+Update RFQ line
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { UpdateRfqLineRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // string
+    lineId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // RfqLinePayload
+    rfqLinePayload: ...,
+  } satisfies UpdateRfqLineRequest;
+
+  try {
+    const data = await api.updateRfqLine(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **lineId** | `string` |  | [Defaults to `undefined`] |
+| **rfqLinePayload** | [RfqLinePayload](RfqLinePayload.md) |  | |
+
+### Return type
+
+[**CreateRfqLine201Response**](CreateRfqLine201Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | RFQ line updated. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## uploadRfqAttachment
+
+> UploadRfqAttachment201Response uploadRfqAttachment(rfqId, file, title, description)
+
+Upload RFQ attachment
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { UploadRfqAttachmentRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // Blob
+    file: BINARY_DATA_HERE,
+    // string (optional)
+    title: title_example,
+    // string (optional)
+    description: description_example,
+  } satisfies UploadRfqAttachmentRequest;
+
+  try {
+    const data = await api.uploadRfqAttachment(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| **file** | `Blob` |  | [Defaults to `undefined`] |
+| **title** | `string` |  | [Optional] [Defaults to `undefined`] |
+| **description** | `string` |  | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**UploadRfqAttachment201Response**](UploadRfqAttachment201Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `multipart/form-data`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **201** | Attachment uploaded. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

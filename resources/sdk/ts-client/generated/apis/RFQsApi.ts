@@ -19,13 +19,21 @@ import type {
   ApiSuccessResponse,
   AwardLinesRequest,
   AwardRfqRequest,
+  CloseRfqRequest,
   CreateRfq201Response,
   CreateRfqAmendmentRequest,
+  CreateRfqLine201Response,
   CreateRfqRequestItemsInner,
   InviteSupplierToRfqRequest,
+  ListRfqAttachments200Response,
   ListRfqClarifications200Response,
   ListRfqInvitations200Response,
+  ListRfqLines200Response,
+  ListRfqTimeline200Response,
   ListRfqs200Response,
+  PublishRfqRequest,
+  RfqLinePayload,
+  UploadRfqAttachment201Response,
 } from '../models/index';
 import {
     ApiErrorResponseFromJSON,
@@ -36,20 +44,36 @@ import {
     AwardLinesRequestToJSON,
     AwardRfqRequestFromJSON,
     AwardRfqRequestToJSON,
+    CloseRfqRequestFromJSON,
+    CloseRfqRequestToJSON,
     CreateRfq201ResponseFromJSON,
     CreateRfq201ResponseToJSON,
     CreateRfqAmendmentRequestFromJSON,
     CreateRfqAmendmentRequestToJSON,
+    CreateRfqLine201ResponseFromJSON,
+    CreateRfqLine201ResponseToJSON,
     CreateRfqRequestItemsInnerFromJSON,
     CreateRfqRequestItemsInnerToJSON,
     InviteSupplierToRfqRequestFromJSON,
     InviteSupplierToRfqRequestToJSON,
+    ListRfqAttachments200ResponseFromJSON,
+    ListRfqAttachments200ResponseToJSON,
     ListRfqClarifications200ResponseFromJSON,
     ListRfqClarifications200ResponseToJSON,
     ListRfqInvitations200ResponseFromJSON,
     ListRfqInvitations200ResponseToJSON,
+    ListRfqLines200ResponseFromJSON,
+    ListRfqLines200ResponseToJSON,
+    ListRfqTimeline200ResponseFromJSON,
+    ListRfqTimeline200ResponseToJSON,
     ListRfqs200ResponseFromJSON,
     ListRfqs200ResponseToJSON,
+    PublishRfqRequestFromJSON,
+    PublishRfqRequestToJSON,
+    RfqLinePayloadFromJSON,
+    RfqLinePayloadToJSON,
+    UploadRfqAttachment201ResponseFromJSON,
+    UploadRfqAttachment201ResponseToJSON,
 } from '../models/index';
 
 export interface AwardRfqOperationRequest {
@@ -60,6 +84,11 @@ export interface AwardRfqOperationRequest {
 export interface AwardRfqLinesRequest {
     rfqId: string;
     awardLinesRequest: AwardLinesRequest;
+}
+
+export interface CloseRfqOperationRequest {
+    rfqId: string;
+    closeRfqRequest?: CloseRfqRequest;
 }
 
 export interface CreateRfqRequest {
@@ -94,13 +123,32 @@ export interface CreateRfqClarificationQuestionRequest {
     createRfqAmendmentRequest: CreateRfqAmendmentRequest;
 }
 
+export interface CreateRfqLineRequest {
+    rfqId: string;
+    rfqLinePayload: RfqLinePayload;
+}
+
 export interface DeleteRfqRequest {
     rfqId: string;
+}
+
+export interface DeleteRfqAttachmentRequest {
+    rfqId: string;
+    attachmentId: string;
+}
+
+export interface DeleteRfqLineRequest {
+    rfqId: string;
+    lineId: string;
 }
 
 export interface InviteSupplierToRfqOperationRequest {
     rfqId: string;
     inviteSupplierToRfqRequest: InviteSupplierToRfqRequest;
+}
+
+export interface ListRfqAttachmentsRequest {
+    rfqId: string;
 }
 
 export interface ListRfqClarificationsRequest {
@@ -111,6 +159,14 @@ export interface ListRfqInvitationsRequest {
     rfqId: string;
 }
 
+export interface ListRfqLinesRequest {
+    rfqId: string;
+}
+
+export interface ListRfqTimelineRequest {
+    rfqId: string;
+}
+
 export interface ListRfqsRequest {
     perPage?: number;
     page?: number;
@@ -118,6 +174,11 @@ export interface ListRfqsRequest {
     q?: string;
     sort?: ListRfqsSortEnum;
     sortDirection?: ListRfqsSortDirectionEnum;
+}
+
+export interface PublishRfqOperationRequest {
+    rfqId: string;
+    publishRfqRequest: PublishRfqRequest;
 }
 
 export interface ShowRfqRequest {
@@ -138,6 +199,19 @@ export interface UpdateRfqRequest {
     notes?: string;
     deadlineAt?: Date;
     cad?: Blob;
+}
+
+export interface UpdateRfqLineRequest {
+    rfqId: string;
+    lineId: string;
+    rfqLinePayload: RfqLinePayload;
+}
+
+export interface UploadRfqAttachmentRequest {
+    rfqId: string;
+    file: Blob;
+    title?: string;
+    description?: string;
 }
 
 /**
@@ -178,6 +252,22 @@ export interface RFQsApiInterface {
      * Award specific RFQ lines
      */
     awardRfqLines(requestParameters: AwardRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Close RFQ
+     * @param {string} rfqId 
+     * @param {CloseRfqRequest} [closeRfqRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    closeRfqRaw(requestParameters: CloseRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfq201Response>>;
+
+    /**
+     * Close RFQ
+     */
+    closeRfq(requestParameters: CloseRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response>;
 
     /**
      * 
@@ -257,6 +347,22 @@ export interface RFQsApiInterface {
 
     /**
      * 
+     * @summary Add RFQ line
+     * @param {string} rfqId 
+     * @param {RfqLinePayload} rfqLinePayload 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    createRfqLineRaw(requestParameters: CreateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfqLine201Response>>;
+
+    /**
+     * Add RFQ line
+     */
+    createRfqLine(requestParameters: CreateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfqLine201Response>;
+
+    /**
+     * 
      * @summary Delete RFQ
      * @param {string} rfqId 
      * @param {*} [options] Override http request option.
@@ -269,6 +375,38 @@ export interface RFQsApiInterface {
      * Delete RFQ
      */
     deleteRfq(requestParameters: DeleteRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Delete RFQ attachment
+     * @param {string} rfqId 
+     * @param {string} attachmentId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    deleteRfqAttachmentRaw(requestParameters: DeleteRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Delete RFQ attachment
+     */
+    deleteRfqAttachment(requestParameters: DeleteRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Delete RFQ line
+     * @param {string} rfqId 
+     * @param {string} lineId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    deleteRfqLineRaw(requestParameters: DeleteRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Delete RFQ line
+     */
+    deleteRfqLine(requestParameters: DeleteRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
     /**
      * 
@@ -285,6 +423,21 @@ export interface RFQsApiInterface {
      * Invite supplier to RFQ
      */
     inviteSupplierToRfq(requestParameters: InviteSupplierToRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary List RFQ attachments
+     * @param {string} rfqId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    listRfqAttachmentsRaw(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqAttachments200Response>>;
+
+    /**
+     * List RFQ attachments
+     */
+    listRfqAttachments(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAttachments200Response>;
 
     /**
      * 
@@ -318,6 +471,36 @@ export interface RFQsApiInterface {
 
     /**
      * 
+     * @summary List RFQ lines
+     * @param {string} rfqId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    listRfqLinesRaw(requestParameters: ListRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqLines200Response>>;
+
+    /**
+     * List RFQ lines
+     */
+    listRfqLines(requestParameters: ListRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqLines200Response>;
+
+    /**
+     * 
+     * @summary RFQ timeline entries
+     * @param {string} rfqId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    listRfqTimelineRaw(requestParameters: ListRfqTimelineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqTimeline200Response>>;
+
+    /**
+     * RFQ timeline entries
+     */
+    listRfqTimeline(requestParameters: ListRfqTimelineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqTimeline200Response>;
+
+    /**
+     * 
      * @summary List RFQs
      * @param {number} [perPage] 
      * @param {number} [page] 
@@ -335,6 +518,22 @@ export interface RFQsApiInterface {
      * List RFQs
      */
     listRfqs(requestParameters: ListRfqsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqs200Response>;
+
+    /**
+     * 
+     * @summary Publish RFQ
+     * @param {string} rfqId 
+     * @param {PublishRfqRequest} publishRfqRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    publishRfqRaw(requestParameters: PublishRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfq201Response>>;
+
+    /**
+     * Publish RFQ
+     */
+    publishRfq(requestParameters: PublishRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response>;
 
     /**
      * 
@@ -377,6 +576,41 @@ export interface RFQsApiInterface {
      * Update RFQ
      */
     updateRfq(requestParameters: UpdateRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response>;
+
+    /**
+     * 
+     * @summary Update RFQ line
+     * @param {string} rfqId 
+     * @param {string} lineId 
+     * @param {RfqLinePayload} rfqLinePayload 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    updateRfqLineRaw(requestParameters: UpdateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfqLine201Response>>;
+
+    /**
+     * Update RFQ line
+     */
+    updateRfqLine(requestParameters: UpdateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfqLine201Response>;
+
+    /**
+     * 
+     * @summary Upload RFQ attachment
+     * @param {string} rfqId 
+     * @param {Blob} file 
+     * @param {string} [title] 
+     * @param {string} [description] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    uploadRfqAttachmentRaw(requestParameters: UploadRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UploadRfqAttachment201Response>>;
+
+    /**
+     * Upload RFQ attachment
+     */
+    uploadRfqAttachment(requestParameters: UploadRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UploadRfqAttachment201Response>;
 
 }
 
@@ -500,6 +734,58 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async awardRfqLines(requestParameters: AwardRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.awardRfqLinesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Close RFQ
+     */
+    async closeRfqRaw(requestParameters: CloseRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfq201Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling closeRfq().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/close`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CloseRfqRequestToJSON(requestParameters['closeRfqRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateRfq201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Close RFQ
+     */
+    async closeRfq(requestParameters: CloseRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response> {
+        const response = await this.closeRfqRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -851,6 +1137,65 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
     }
 
     /**
+     * Add RFQ line
+     */
+    async createRfqLineRaw(requestParameters: CreateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfqLine201Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling createRfqLine().'
+            );
+        }
+
+        if (requestParameters['rfqLinePayload'] == null) {
+            throw new runtime.RequiredError(
+                'rfqLinePayload',
+                'Required parameter "rfqLinePayload" was null or undefined when calling createRfqLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/lines`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RfqLinePayloadToJSON(requestParameters['rfqLinePayload']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateRfqLine201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Add RFQ line
+     */
+    async createRfqLine(requestParameters: CreateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfqLine201Response> {
+        const response = await this.createRfqLineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Delete RFQ
      */
     async deleteRfqRaw(requestParameters: DeleteRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -896,6 +1241,120 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async deleteRfq(requestParameters: DeleteRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.deleteRfqRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Delete RFQ attachment
+     */
+    async deleteRfqAttachmentRaw(requestParameters: DeleteRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling deleteRfqAttachment().'
+            );
+        }
+
+        if (requestParameters['attachmentId'] == null) {
+            throw new runtime.RequiredError(
+                'attachmentId',
+                'Required parameter "attachmentId" was null or undefined when calling deleteRfqAttachment().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/attachments/{attachmentId}`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+        urlPath = urlPath.replace(`{${"attachmentId"}}`, encodeURIComponent(String(requestParameters['attachmentId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete RFQ attachment
+     */
+    async deleteRfqAttachment(requestParameters: DeleteRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.deleteRfqAttachmentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Delete RFQ line
+     */
+    async deleteRfqLineRaw(requestParameters: DeleteRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling deleteRfqLine().'
+            );
+        }
+
+        if (requestParameters['lineId'] == null) {
+            throw new runtime.RequiredError(
+                'lineId',
+                'Required parameter "lineId" was null or undefined when calling deleteRfqLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/lines/{lineId}`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+        urlPath = urlPath.replace(`{${"lineId"}}`, encodeURIComponent(String(requestParameters['lineId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete RFQ line
+     */
+    async deleteRfqLine(requestParameters: DeleteRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.deleteRfqLineRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -955,6 +1414,55 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async inviteSupplierToRfq(requestParameters: InviteSupplierToRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.inviteSupplierToRfqRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List RFQ attachments
+     */
+    async listRfqAttachmentsRaw(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqAttachments200Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling listRfqAttachments().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/attachments`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListRfqAttachments200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List RFQ attachments
+     */
+    async listRfqAttachments(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAttachments200Response> {
+        const response = await this.listRfqAttachmentsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1057,6 +1565,104 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
     }
 
     /**
+     * List RFQ lines
+     */
+    async listRfqLinesRaw(requestParameters: ListRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqLines200Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling listRfqLines().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/lines`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListRfqLines200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List RFQ lines
+     */
+    async listRfqLines(requestParameters: ListRfqLinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqLines200Response> {
+        const response = await this.listRfqLinesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * RFQ timeline entries
+     */
+    async listRfqTimelineRaw(requestParameters: ListRfqTimelineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqTimeline200Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling listRfqTimeline().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/timeline`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListRfqTimeline200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * RFQ timeline entries
+     */
+    async listRfqTimeline(requestParameters: ListRfqTimelineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqTimeline200Response> {
+        const response = await this.listRfqTimelineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List RFQs
      */
     async listRfqsRaw(requestParameters: ListRfqsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqs200Response>> {
@@ -1118,6 +1724,65 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async listRfqs(requestParameters: ListRfqsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqs200Response> {
         const response = await this.listRfqsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Publish RFQ
+     */
+    async publishRfqRaw(requestParameters: PublishRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfq201Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling publishRfq().'
+            );
+        }
+
+        if (requestParameters['publishRfqRequest'] == null) {
+            throw new runtime.RequiredError(
+                'publishRfqRequest',
+                'Required parameter "publishRfqRequest" was null or undefined when calling publishRfq().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/publish`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: PublishRfqRequestToJSON(requestParameters['publishRfqRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateRfq201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Publish RFQ
+     */
+    async publishRfq(requestParameters: PublishRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response> {
+        const response = await this.publishRfqRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1281,6 +1946,158 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async updateRfq(requestParameters: UpdateRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response> {
         const response = await this.updateRfqRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update RFQ line
+     */
+    async updateRfqLineRaw(requestParameters: UpdateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateRfqLine201Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling updateRfqLine().'
+            );
+        }
+
+        if (requestParameters['lineId'] == null) {
+            throw new runtime.RequiredError(
+                'lineId',
+                'Required parameter "lineId" was null or undefined when calling updateRfqLine().'
+            );
+        }
+
+        if (requestParameters['rfqLinePayload'] == null) {
+            throw new runtime.RequiredError(
+                'rfqLinePayload',
+                'Required parameter "rfqLinePayload" was null or undefined when calling updateRfqLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/lines/{lineId}`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+        urlPath = urlPath.replace(`{${"lineId"}}`, encodeURIComponent(String(requestParameters['lineId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RfqLinePayloadToJSON(requestParameters['rfqLinePayload']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateRfqLine201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update RFQ line
+     */
+    async updateRfqLine(requestParameters: UpdateRfqLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfqLine201Response> {
+        const response = await this.updateRfqLineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Upload RFQ attachment
+     */
+    async uploadRfqAttachmentRaw(requestParameters: UploadRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UploadRfqAttachment201Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling uploadRfqAttachment().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling uploadRfqAttachment().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+        if (requestParameters['title'] != null) {
+            formParams.append('title', requestParameters['title'] as any);
+        }
+
+        if (requestParameters['description'] != null) {
+            formParams.append('description', requestParameters['description'] as any);
+        }
+
+
+        let urlPath = `/api/rfqs/{rfqId}/attachments`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UploadRfqAttachment201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload RFQ attachment
+     */
+    async uploadRfqAttachment(requestParameters: UploadRfqAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UploadRfqAttachment201Response> {
+        const response = await this.uploadRfqAttachmentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

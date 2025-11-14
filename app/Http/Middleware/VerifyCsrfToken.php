@@ -7,6 +7,15 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 class VerifyCsrfToken extends Middleware
 {
     /**
+     * The URIs that should be excluded from CSRF verification.
+     *
+     * @var list<string>
+     */
+    protected $except = [
+        'api/auth/*',
+    ];
+
+    /**
      * Always accept CSRF tokens when running the test suite.
      */
     protected function tokensMatch($request): bool

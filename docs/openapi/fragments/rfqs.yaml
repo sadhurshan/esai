@@ -203,6 +203,130 @@ components:
                 type: string
               url:
                 type: string
+    RfqAttachment:
+      type: object
+      description: Document attached to an RFQ per the documents deep spec.
+      required:
+        - id
+        - filename
+        - url
+        - uploaded_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+          description: Identifier of the underlying Document resource.
+        filename:
+          type: string
+        mime:
+          type: string
+          nullable: true
+        size_bytes:
+          type: integer
+          nullable: true
+        url:
+          type: string
+          format: uri
+        uploaded_at:
+          type: string
+          format: date-time
+        uploaded_by:
+          type: object
+          nullable: true
+          description: Condensed user summary for audit surfaces.
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+    PublishRfqRequest:
+      type: object
+      required:
+        - due_at
+      properties:
+        due_at:
+          type: string
+          format: date-time
+        publish_at:
+          type: string
+          format: date-time
+          nullable: true
+        notify_suppliers:
+          type: boolean
+          default: true
+        message:
+          type: string
+          nullable: true
+          description: Optional note sent with publish notifications.
+    CloseRfqRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          nullable: true
+          description: Buyer-provided rationale for closing the RFQ.
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Overrides the default (now) close timestamp if the backend permits backdating.
+    RfqLinePayload:
+      type: object
+      required:
+        - part_name
+        - quantity
+      properties:
+        part_name:
+          type: string
+        spec:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+          minimum: 1
+        uom:
+          type: string
+          nullable: true
+        target_price:
+          type: number
+          format: float
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        cad_document_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Reference to an uploaded CAD document.
+    RfqTimelineEntry:
+      allOf:
+        - $ref: '#/components/schemas/Timeline'
+        - type: object
+          required:
+            - event
+          properties:
+            event:
+              type: string
+              description: Machine-readable event identifier (e.g., created, published, invitation_sent).
+            actor:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+            context:
+              type: object
+              additionalProperties: true
+              nullable: true
+              description: Arbitrary metadata for UI rendering. # TODO: clarify required keys with spec owner.
     AwardLinesRequest:
       type: object
       required:
@@ -678,6 +802,327 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/publish:
+    post:
+      tags:
+        - RFQs
+      summary: Publish RFQ
+      operationId: publishRfq
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishRfqRequest'
+      responses:
+        '200':
+          description: RFQ published.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/close:
+    post:
+      tags:
+        - RFQs
+      summary: Close RFQ
+      operationId: closeRfq
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloseRfqRequest'
+      responses:
+        '200':
+          description: RFQ closed.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/lines:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: List RFQ lines
+      operationId: listRfqLines
+      responses:
+        '200':
+          description: Line items belonging to the RFQ.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - RFQs
+      summary: Add RFQ line
+      operationId: createRfqLine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RfqLinePayload'
+      responses:
+        '201':
+          description: RFQ line created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/lines/{lineId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: lineId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - RFQs
+      summary: Update RFQ line
+      operationId: updateRfqLine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RfqLinePayload'
+      responses:
+        '200':
+          description: RFQ line updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - RFQs
+      summary: Delete RFQ line
+      operationId: deleteRfqLine
+      responses:
+        '200':
+          description: RFQ line deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfqs/{rfqId}/attachments:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: List RFQ attachments
+      operationId: listRfqAttachments
+      responses:
+        '200':
+          description: Attachments linked to the RFQ.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqAttachment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - RFQs
+      summary: Upload RFQ attachment
+      operationId: uploadRfqAttachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                  nullable: true
+                description:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Attachment uploaded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqAttachment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/attachments/{attachmentId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: attachmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - RFQs
+      summary: Delete RFQ attachment
+      operationId: deleteRfqAttachment
+      responses:
+        '200':
+          description: Attachment removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfqs/{rfqId}/timeline:
+    get:
+      tags:
+        - RFQs
+      summary: RFQ timeline entries
+      operationId: listRfqTimeline
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chronological timeline of RFQ events.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqTimelineEntry'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/rfqs/{rfqId}/award:
     post:
       tags:
@@ -738,3 +1183,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+
+
+
+
+

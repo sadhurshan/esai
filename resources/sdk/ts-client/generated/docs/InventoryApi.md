@@ -42,8 +42,8 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
     // CreateGrnRequest
     createGrnRequest: ...,
   } satisfies CreateGrnOperationRequest;
@@ -65,7 +65,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 | **createGrnRequest** | [CreateGrnRequest](CreateGrnRequest.md) |  | |
 
 ### Return type
@@ -116,8 +116,8 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
     // CreateRmaRequest
     createRmaRequest: ...,
   } satisfies CreateRmaOperationRequest;
@@ -139,7 +139,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 | **createRmaRequest** | [CreateRmaRequest](CreateRmaRequest.md) |  | |
 
 ### Return type
@@ -190,10 +190,10 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
-    // string
-    grnId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
+    // number
+    grnId: 56,
   } satisfies DeleteGrnRequest;
 
   try {
@@ -213,8 +213,8 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
-| **grnId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+| **grnId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -264,8 +264,8 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
   } satisfies ListGrnsRequest;
 
   try {
@@ -285,7 +285,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -472,10 +472,10 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
-    // string
-    grnId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
+    // number
+    grnId: 56,
   } satisfies ShowGrnRequest;
 
   try {
@@ -495,8 +495,8 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
-| **grnId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+| **grnId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -617,10 +617,10 @@ async function example() {
   const api = new InventoryApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
-    // string
-    grnId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
+    // number
+    grnId: 56,
     // UpdateGrnRequest
     updateGrnRequest: ...,
   } satisfies UpdateGrnOperationRequest;
@@ -642,8 +642,8 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
-| **grnId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+| **grnId** | `number` |  | [Defaults to `undefined`] |
 | **updateGrnRequest** | [UpdateGrnRequest](UpdateGrnRequest.md) |  | |
 
 ### Return type

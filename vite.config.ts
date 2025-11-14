@@ -2,7 +2,11 @@ import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+
+const rootDir = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
     plugins: [
@@ -22,5 +26,22 @@ export default defineConfig({
     ],
     esbuild: {
         jsx: 'automatic',
+    },
+    resolve: {
+        alias: {
+            '@': path.resolve(rootDir, 'resources/js'),
+        },
+    },
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: ['resources/js/tests/setup.ts'],
+        include: ['resources/js/**/*.{test,spec}.{ts,tsx}', 'resources/js/**/__tests__/**/*.{ts,tsx}'],
+        pool: 'vmThreads',
+        poolOptions: {
+            vmThreads: {
+                singleThread: true,
+            },
+        },
     },
 });

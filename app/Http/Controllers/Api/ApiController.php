@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 
@@ -71,7 +72,53 @@ abstract class ApiController extends Controller
 
         $defaultUser = $request->user();
 
-        return $defaultUser instanceof User ? $defaultUser : null;
+        if ($defaultUser instanceof User) {
+            return $defaultUser;
+        }
+
+        $sessionId = $this->resolveSessionId($request);
+
+        if ($sessionId === null) {
+            return null;
+        }
+
+        $session = DB::table(config('session.table', 'sessions'))
+            ->where('id', $sessionId)
+            ->first();
+
+        if (! $session || ! $session->user_id) {
+            return null;
+        }
+
+        $user = User::find((int) $session->user_id);
+
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        $request->setUserResolver(static fn () => $user);
+
+        DB::table(config('session.table', 'sessions'))
+            ->where('id', $sessionId)
+            ->update(['last_activity' => Carbon::now()->getTimestamp()]);
+
+        return $user;
+    }
+
+    private function resolveSessionId(Request $request): ?string
+    {
+        $cookieName = config('session.cookie');
+
+        if ($cookieName && $request->cookies->has($cookieName)) {
+            $value = (string) $request->cookies->get($cookieName);
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        $bearer = $request->bearerToken();
+
+        return $bearer !== '' ? $bearer : null;
     }
 
     protected function resolveUserCompanyId(User $user): ?int

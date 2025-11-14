@@ -274,7 +274,7 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(authReducer, initialState, readStoredState);
-    const baseUrl = useMemo(() => (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, ''), []);
+    const baseUrl = useMemo(() => (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, ''), []);
 
     const authClient = useMemo(() => {
         return new AuthApi(

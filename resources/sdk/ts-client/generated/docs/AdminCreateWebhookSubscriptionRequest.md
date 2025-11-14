@@ -11,7 +11,7 @@ Name | Type
 `secret` | string
 `events` | Array&lt;string&gt;
 `active` | boolean
-`retryPolicy` | object
+`retryPolicy` | { [key: string]: any; }
 
 ## Example
 

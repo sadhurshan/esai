@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { GoodsReceiptNoteInspector } from './GoodsReceiptNoteInspector';
+import {
+    GoodsReceiptNoteInspectorFromJSON,
+    GoodsReceiptNoteInspectorFromJSONTyped,
+    GoodsReceiptNoteInspectorToJSON,
+    GoodsReceiptNoteInspectorToJSONTyped,
+} from './GoodsReceiptNoteInspector';
 import type { QuoteAttachmentsInner } from './QuoteAttachmentsInner';
 import {
     QuoteAttachmentsInnerFromJSON,
@@ -27,13 +34,6 @@ import {
     QuoteRevisionToJSON,
     QuoteRevisionToJSONTyped,
 } from './QuoteRevision';
-import type { QuoteSupplier } from './QuoteSupplier';
-import {
-    QuoteSupplierFromJSON,
-    QuoteSupplierFromJSONTyped,
-    QuoteSupplierToJSON,
-    QuoteSupplierToJSONTyped,
-} from './QuoteSupplier';
 import type { QuoteItem } from './QuoteItem';
 import {
     QuoteItemFromJSON,
@@ -56,16 +56,16 @@ export interface Quote {
     id: string;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Quote
      */
-    rfqId: string;
+    rfqId: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Quote
      */
-    supplierId: string;
+    supplierId: number;
     /**
      * 
      * @type {string}
@@ -170,10 +170,10 @@ export interface Quote {
     withdrawReason?: string;
     /**
      * 
-     * @type {QuoteSupplier}
+     * @type {GoodsReceiptNoteInspector}
      * @memberof Quote
      */
-    supplier?: QuoteSupplier;
+    supplier?: GoodsReceiptNoteInspector;
     /**
      * 
      * @type {Array<QuoteItem>}
@@ -251,7 +251,7 @@ export function QuoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): Quo
         'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
         'withdrawnAt': json['withdrawn_at'] == null ? undefined : (new Date(json['withdrawn_at'])),
         'withdrawReason': json['withdraw_reason'] == null ? undefined : json['withdraw_reason'],
-        'supplier': json['supplier'] == null ? undefined : QuoteSupplierFromJSON(json['supplier']),
+        'supplier': json['supplier'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['supplier']),
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(QuoteItemFromJSON)),
         'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(QuoteAttachmentsInnerFromJSON)),
         'revisions': json['revisions'] == null ? undefined : ((json['revisions'] as Array<any>).map(QuoteRevisionFromJSON)),
@@ -289,7 +289,7 @@ export function QuoteToJSONTyped(value?: Quote | null, ignoreDiscriminator: bool
         'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
         'withdrawn_at': value['withdrawnAt'] == null ? value['withdrawnAt'] : value['withdrawnAt'].toISOString(),
         'withdraw_reason': value['withdrawReason'],
-        'supplier': QuoteSupplierToJSON(value['supplier']),
+        'supplier': GoodsReceiptNoteInspectorToJSON(value['supplier']),
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(QuoteItemToJSON)),
         'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(QuoteAttachmentsInnerToJSON)),
         'revisions': value['revisions'] == null ? undefined : ((value['revisions'] as Array<any>).map(QuoteRevisionToJSON)),

@@ -8,6 +8,7 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**approvePurchaseOrderChangeOrder**](PurchaseOrdersApi.md#approvepurchaseorderchangeorder) | **PUT** /api/change-orders/{changeOrderId}/approve | Approve change order |
 | [**createPurchaseOrderChangeOrder**](PurchaseOrdersApi.md#createpurchaseorderchangeorderoperation) | **POST** /api/purchase-orders/{purchaseOrderId}/change-orders | Propose change order |
 | [**listPurchaseOrderChangeOrders**](PurchaseOrdersApi.md#listpurchaseorderchangeorders) | **GET** /api/purchase-orders/{purchaseOrderId}/change-orders | List change orders for purchase order |
+| [**listPurchaseOrderShipments**](PurchaseOrdersApi.md#listpurchaseordershipments) | **GET** /api/purchase-orders/{purchaseOrderId}/shipments | List shipments linked to purchase order |
 | [**listPurchaseOrders**](PurchaseOrdersApi.md#listpurchaseorders) | **GET** /api/purchase-orders | List purchase orders |
 | [**rejectPurchaseOrderChangeOrder**](PurchaseOrdersApi.md#rejectpurchaseorderchangeorder) | **PUT** /api/change-orders/{changeOrderId}/reject | Reject change order |
 | [**sendPurchaseOrder**](PurchaseOrdersApi.md#sendpurchaseorder) | **POST** /api/purchase-orders/{purchaseOrderId}/send | Issue purchase order to supplier |
@@ -41,8 +42,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
     // AcknowledgePurchaseOrderRequest
     acknowledgePurchaseOrderRequest: ...,
   } satisfies AcknowledgePurchaseOrderOperationRequest;
@@ -64,7 +65,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 | **acknowledgePurchaseOrderRequest** | [AcknowledgePurchaseOrderRequest](AcknowledgePurchaseOrderRequest.md) |  | |
 
 ### Return type
@@ -115,8 +116,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    changeOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    changeOrderId: 56,
   } satisfies ApprovePurchaseOrderChangeOrderRequest;
 
   try {
@@ -136,7 +137,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **changeOrderId** | `string` |  | [Defaults to `undefined`] |
+| **changeOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -186,8 +187,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
     // CreatePurchaseOrderChangeOrderRequest
     createPurchaseOrderChangeOrderRequest: ...,
   } satisfies CreatePurchaseOrderChangeOrderOperationRequest;
@@ -209,7 +210,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 | **createPurchaseOrderChangeOrderRequest** | [CreatePurchaseOrderChangeOrderRequest](CreatePurchaseOrderChangeOrderRequest.md) |  | |
 
 ### Return type
@@ -260,8 +261,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
   } satisfies ListPurchaseOrderChangeOrdersRequest;
 
   try {
@@ -281,7 +282,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -301,6 +302,77 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Current change orders for the PO. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## listPurchaseOrderShipments
+
+> ApiSuccessResponse listPurchaseOrderShipments(purchaseOrderId)
+
+List shipments linked to purchase order
+
+### Example
+
+```ts
+import {
+  Configuration,
+  PurchaseOrdersApi,
+} from '';
+import type { ListPurchaseOrderShipmentsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new PurchaseOrdersApi(config);
+
+  const body = {
+    // number
+    purchaseOrderId: 56,
+  } satisfies ListPurchaseOrderShipmentsRequest;
+
+  try {
+    const data = await api.listPurchaseOrderShipments(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Shipment timeline for the purchase order. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -411,8 +483,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    changeOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    changeOrderId: 56,
   } satisfies RejectPurchaseOrderChangeOrderRequest;
 
   try {
@@ -432,7 +504,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **changeOrderId** | `string` |  | [Defaults to `undefined`] |
+| **changeOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -482,8 +554,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
   } satisfies SendPurchaseOrderRequest;
 
   try {
@@ -503,7 +575,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -554,8 +626,8 @@ async function example() {
   const api = new PurchaseOrdersApi(config);
 
   const body = {
-    // string
-    purchaseOrderId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+    // number
+    purchaseOrderId: 56,
   } satisfies ShowPurchaseOrderRequest;
 
   try {
@@ -575,7 +647,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **purchaseOrderId** | `string` |  | [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
 
 ### Return type
 

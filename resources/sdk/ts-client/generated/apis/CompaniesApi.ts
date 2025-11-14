@@ -31,6 +31,29 @@ import {
     UpdateCompanyRequestToJSON,
 } from '../models/index';
 
+export interface CreateCompanyDocumentRequest {
+    companyId: number;
+    file: Blob;
+    label?: string;
+}
+
+export interface CreateInvitationRequest {
+    requestBody: { [key: string]: any; };
+}
+
+export interface DeleteCompanyDocumentRequest {
+    companyId: number;
+    documentId: number;
+}
+
+export interface DeleteInvitationRequest {
+    token: string;
+}
+
+export interface ListCompanyDocumentsRequest {
+    companyId: number;
+}
+
 export interface RegisterCompanyOperationRequest {
     registerCompanyRequest: RegisterCompanyRequest;
 }
@@ -39,9 +62,17 @@ export interface ShowCompanyRequest {
     companyId: number;
 }
 
+export interface ShowInvitationRequest {
+    token: string;
+}
+
 export interface UpdateCompanyOperationRequest {
     companyId: number;
     updateCompanyRequest: UpdateCompanyRequest;
+}
+
+export interface UpdateCurrentCompanyRequest {
+    requestBody: { [key: string]: any; };
 }
 
 /**
@@ -51,6 +82,98 @@ export interface UpdateCompanyOperationRequest {
  * @interface CompaniesApiInterface
  */
 export interface CompaniesApiInterface {
+    /**
+     * 
+     * @summary Upload company document
+     * @param {number} companyId 
+     * @param {Blob} file 
+     * @param {string} [label] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    createCompanyDocumentRaw(requestParameters: CreateCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Upload company document
+     */
+    createCompanyDocument(requestParameters: CreateCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Invite user to company
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    createInvitationRaw(requestParameters: CreateInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Invite user to company
+     */
+    createInvitation(requestParameters: CreateInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Delete company document
+     * @param {number} companyId 
+     * @param {number} documentId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    deleteCompanyDocumentRaw(requestParameters: DeleteCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Delete company document
+     */
+    deleteCompanyDocument(requestParameters: DeleteCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Revoke invitation by token
+     * @param {string} token 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    deleteInvitationRaw(requestParameters: DeleteInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Revoke invitation by token
+     */
+    deleteInvitation(requestParameters: DeleteInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary List company documents
+     * @param {number} companyId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    listCompanyDocumentsRaw(requestParameters: ListCompanyDocumentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * List company documents
+     */
+    listCompanyDocuments(requestParameters: ListCompanyDocumentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary List pending invitations for current company
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    listInvitationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * List pending invitations for current company
+     */
+    listInvitations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
     /**
      * 
      * @summary Register company and request onboarding
@@ -83,6 +206,35 @@ export interface CompaniesApiInterface {
 
     /**
      * 
+     * @summary Retrieve profile for authenticated company
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    showCurrentCompanyRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RegisterCompany201Response>>;
+
+    /**
+     * Retrieve profile for authenticated company
+     */
+    showCurrentCompany(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RegisterCompany201Response>;
+
+    /**
+     * 
+     * @summary Show invitation by token
+     * @param {string} token 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    showInvitationRaw(requestParameters: ShowInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Show invitation by token
+     */
+    showInvitation(requestParameters: ShowInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
      * @summary Update company profile
      * @param {number} companyId 
      * @param {UpdateCompanyRequest} updateCompanyRequest 
@@ -97,12 +249,355 @@ export interface CompaniesApiInterface {
      */
     updateCompany(requestParameters: UpdateCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
+    /**
+     * 
+     * @summary Update profile for authenticated company
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    updateCurrentCompanyRaw(requestParameters: UpdateCurrentCompanyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Update profile for authenticated company
+     */
+    updateCurrentCompany(requestParameters: UpdateCurrentCompanyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
 }
 
 /**
  * 
  */
 export class CompaniesApi extends runtime.BaseAPI implements CompaniesApiInterface {
+
+    /**
+     * Upload company document
+     */
+    async createCompanyDocumentRaw(requestParameters: CreateCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['companyId'] == null) {
+            throw new runtime.RequiredError(
+                'companyId',
+                'Required parameter "companyId" was null or undefined when calling createCompanyDocument().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling createCompanyDocument().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+        if (requestParameters['label'] != null) {
+            formParams.append('label', requestParameters['label'] as any);
+        }
+
+
+        let urlPath = `/api/companies/{companyId}/documents`;
+        urlPath = urlPath.replace(`{${"companyId"}}`, encodeURIComponent(String(requestParameters['companyId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload company document
+     */
+    async createCompanyDocument(requestParameters: CreateCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.createCompanyDocumentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Invite user to company
+     */
+    async createInvitationRaw(requestParameters: CreateInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling createInvitation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/invitations`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Invite user to company
+     */
+    async createInvitation(requestParameters: CreateInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.createInvitationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Delete company document
+     */
+    async deleteCompanyDocumentRaw(requestParameters: DeleteCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['companyId'] == null) {
+            throw new runtime.RequiredError(
+                'companyId',
+                'Required parameter "companyId" was null or undefined when calling deleteCompanyDocument().'
+            );
+        }
+
+        if (requestParameters['documentId'] == null) {
+            throw new runtime.RequiredError(
+                'documentId',
+                'Required parameter "documentId" was null or undefined when calling deleteCompanyDocument().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/companies/{companyId}/documents/{documentId}`;
+        urlPath = urlPath.replace(`{${"companyId"}}`, encodeURIComponent(String(requestParameters['companyId'])));
+        urlPath = urlPath.replace(`{${"documentId"}}`, encodeURIComponent(String(requestParameters['documentId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete company document
+     */
+    async deleteCompanyDocument(requestParameters: DeleteCompanyDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.deleteCompanyDocumentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Revoke invitation by token
+     */
+    async deleteInvitationRaw(requestParameters: DeleteInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['token'] == null) {
+            throw new runtime.RequiredError(
+                'token',
+                'Required parameter "token" was null or undefined when calling deleteInvitation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/invitations/{token}`;
+        urlPath = urlPath.replace(`{${"token"}}`, encodeURIComponent(String(requestParameters['token'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Revoke invitation by token
+     */
+    async deleteInvitation(requestParameters: DeleteInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.deleteInvitationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List company documents
+     */
+    async listCompanyDocumentsRaw(requestParameters: ListCompanyDocumentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['companyId'] == null) {
+            throw new runtime.RequiredError(
+                'companyId',
+                'Required parameter "companyId" was null or undefined when calling listCompanyDocuments().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/companies/{companyId}/documents`;
+        urlPath = urlPath.replace(`{${"companyId"}}`, encodeURIComponent(String(requestParameters['companyId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List company documents
+     */
+    async listCompanyDocuments(requestParameters: ListCompanyDocumentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.listCompanyDocumentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List pending invitations for current company
+     */
+    async listInvitationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/invitations`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List pending invitations for current company
+     */
+    async listInvitations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.listInvitationsRaw(initOverrides);
+        return await response.value();
+    }
 
     /**
      * Register company and request onboarding
@@ -205,6 +700,96 @@ export class CompaniesApi extends runtime.BaseAPI implements CompaniesApiInterfa
     }
 
     /**
+     * Retrieve profile for authenticated company
+     */
+    async showCurrentCompanyRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RegisterCompany201Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/companies/current`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RegisterCompany201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Retrieve profile for authenticated company
+     */
+    async showCurrentCompany(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RegisterCompany201Response> {
+        const response = await this.showCurrentCompanyRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Show invitation by token
+     */
+    async showInvitationRaw(requestParameters: ShowInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['token'] == null) {
+            throw new runtime.RequiredError(
+                'token',
+                'Required parameter "token" was null or undefined when calling showInvitation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/invitations/{token}`;
+        urlPath = urlPath.replace(`{${"token"}}`, encodeURIComponent(String(requestParameters['token'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Show invitation by token
+     */
+    async showInvitation(requestParameters: ShowInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.showInvitationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Update company profile
      */
     async updateCompanyRaw(requestParameters: UpdateCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -260,6 +845,57 @@ export class CompaniesApi extends runtime.BaseAPI implements CompaniesApiInterfa
      */
     async updateCompany(requestParameters: UpdateCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.updateCompanyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update profile for authenticated company
+     */
+    async updateCurrentCompanyRaw(requestParameters: UpdateCurrentCompanyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling updateCurrentCompany().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/companies/current`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update profile for authenticated company
+     */
+    async updateCurrentCompany(requestParameters: UpdateCurrentCompanyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.updateCurrentCompanyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

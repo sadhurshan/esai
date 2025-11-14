@@ -94,33 +94,29 @@ export function RfqListPage() {
         dateTo,
     });
 
-    const { items, meta, total, isClientSideFiltered } = rfqsQuery;
+    const { items, meta } = rfqsQuery;
 
     const paginationInfo = useMemo(() => {
-        if (isClientSideFiltered) {
-            return {
-                from: items.length > 0 ? 1 : 0,
-                to: items.length,
-                total,
-            };
-        }
-
         if (!meta) {
             return { from: 0, to: 0, total: 0 };
         }
 
+        if (items.length === 0) {
+            return { from: 0, to: 0, total: meta.total ?? 0 };
+        }
+
         const start = (meta.currentPage - 1) * meta.perPage + 1;
-        const end = Math.min(meta.currentPage * meta.perPage, total);
+        const end = Math.min(meta.currentPage * meta.perPage, meta.total);
 
         return {
-            from: items.length > 0 ? start : 0,
-            to: items.length > 0 ? end : 0,
-            total,
+            from: start,
+            to: end,
+            total: meta.total,
         };
-    }, [isClientSideFiltered, items.length, meta, total]);
+    }, [items.length, meta]);
 
-    const canGoPrev = !isClientSideFiltered && meta ? meta.currentPage > 1 : false;
-    const canGoNext = !isClientSideFiltered && meta ? meta.currentPage < meta.lastPage : false;
+    const canGoPrev = meta ? meta.currentPage > 1 : false;
+    const canGoNext = meta ? meta.currentPage < meta.lastPage : false;
 
     const showSkeleton = rfqsQuery.isLoading && !rfqsQuery.isError;
     const showEmptyState = !showSkeleton && !rfqsQuery.isError && items.length === 0;
@@ -307,7 +303,6 @@ export function RfqListPage() {
                 <div className="text-xs text-muted-foreground">
                     Showing {paginationInfo.from ? `${paginationInfo.from}–${paginationInfo.to}` : '0'} of{' '}
                     {paginationInfo.total} RFQs
-                    {isClientSideFiltered ? ' (filtered locally)' : ''}
                 </div>
                 <div className="flex items-center gap-2">
                     <Button

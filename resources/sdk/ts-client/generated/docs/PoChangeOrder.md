@@ -6,8 +6,8 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
-`purchaseOrderId` | string
+`id` | number
+`purchaseOrderId` | number
 `status` | string
 `reason` | string
 `poRevisionNo` | number

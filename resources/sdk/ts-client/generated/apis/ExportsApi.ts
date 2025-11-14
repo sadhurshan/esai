@@ -37,7 +37,7 @@ export interface CreateExportRequestOperationRequest {
 
 export interface DownloadExportRequest {
     signature: string;
-    exportRequestId: string;
+    exportRequestId: number;
 }
 
 export interface ListExportRequestsRequest {
@@ -46,7 +46,7 @@ export interface ListExportRequestsRequest {
 }
 
 export interface ShowExportRequestRequest {
-    exportRequestId: string;
+    exportRequestId: number;
 }
 
 /**
@@ -75,7 +75,7 @@ export interface ExportsApiInterface {
      * 
      * @summary Download export artifact
      * @param {string} signature 
-     * @param {string} exportRequestId 
+     * @param {number} exportRequestId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface
@@ -106,7 +106,7 @@ export interface ExportsApiInterface {
     /**
      * 
      * @summary Retrieve export request
-     * @param {string} exportRequestId 
+     * @param {number} exportRequestId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface

@@ -52,7 +52,12 @@ export function createAuthenticatedFetch(options: ClientOptions = {}): FetchAPI 
     const fetchImpl = resolveFetchImplementation(options.fetch);
 
     return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-        const request = new Request(input, init);
+        const mergedInit: RequestInit = {
+            credentials: 'include',
+            ...init,
+        };
+
+        const request = new Request(input, mergedInit);
         const headers = new Headers(request.headers);
 
         applyDefaultHeaders(headers, options.defaultHeaders ?? {});

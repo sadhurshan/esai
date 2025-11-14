@@ -64,6 +64,18 @@ export interface AdminUpdateWebhookSubscriptionOperationRequest {
     adminUpdateWebhookSubscriptionRequest: AdminUpdateWebhookSubscriptionRequest;
 }
 
+export interface StripeInvoicePaymentFailedRequest {
+    requestBody: { [key: string]: any; };
+}
+
+export interface StripeInvoicePaymentSucceededRequest {
+    requestBody: { [key: string]: any; };
+}
+
+export interface StripeSubscriptionUpdatedRequest {
+    requestBody: { [key: string]: any; };
+}
+
 /**
  * WebhooksApi - interface
  * 
@@ -177,6 +189,51 @@ export interface WebhooksApiInterface {
      * Update webhook subscription
      */
     adminUpdateWebhookSubscription(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Stripe invoice payment failed event hook
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebhooksApiInterface
+     */
+    stripeInvoicePaymentFailedRaw(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Stripe invoice payment failed event hook
+     */
+    stripeInvoicePaymentFailed(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Stripe invoice payment succeeded event hook
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebhooksApiInterface
+     */
+    stripeInvoicePaymentSucceededRaw(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Stripe invoice payment succeeded event hook
+     */
+    stripeInvoicePaymentSucceeded(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Stripe subscription updated webhook
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebhooksApiInterface
+     */
+    stripeSubscriptionUpdatedRaw(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Stripe subscription updated webhook
+     */
+    stripeSubscriptionUpdated(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
 }
 
@@ -533,6 +590,159 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
      */
     async adminUpdateWebhookSubscription(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.adminUpdateWebhookSubscriptionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Stripe invoice payment failed event hook
+     */
+    async stripeInvoicePaymentFailedRaw(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentFailed().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/webhooks/stripe/invoice/payment-failed`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Stripe invoice payment failed event hook
+     */
+    async stripeInvoicePaymentFailed(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.stripeInvoicePaymentFailedRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Stripe invoice payment succeeded event hook
+     */
+    async stripeInvoicePaymentSucceededRaw(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentSucceeded().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/webhooks/stripe/invoice/payment-succeeded`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Stripe invoice payment succeeded event hook
+     */
+    async stripeInvoicePaymentSucceeded(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.stripeInvoicePaymentSucceededRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Stripe subscription updated webhook
+     */
+    async stripeSubscriptionUpdatedRaw(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling stripeSubscriptionUpdated().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/webhooks/stripe/customer/subscription-updated`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Stripe subscription updated webhook
+     */
+    async stripeSubscriptionUpdated(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.stripeSubscriptionUpdatedRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

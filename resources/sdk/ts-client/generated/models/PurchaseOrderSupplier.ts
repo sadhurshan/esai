@@ -21,10 +21,10 @@ import { mapValues } from '../runtime';
 export interface PurchaseOrderSupplier {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrderSupplier
      */
-    id?: string;
+    id?: number;
     /**
      * 
      * @type {string}

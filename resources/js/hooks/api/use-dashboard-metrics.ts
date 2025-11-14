@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
-import { ListRfqsTabEnum, PurchaseOrdersApi, RFQsApi, type RfqCollection } from '@/sdk';
+import { DashboardApi, type DashboardMetricsResponse } from '@/sdk';
 
 export interface DashboardMetrics {
     openRfqCount: number;
@@ -10,47 +10,36 @@ export interface DashboardMetrics {
     lowStockPartCount: number;
 }
 
-const FALLBACK_METRICS: DashboardMetrics = {
+const FALLBACK_METRICS: DashboardMetrics = Object.freeze({
     openRfqCount: 0,
     quotesAwaitingReviewCount: 0,
     posAwaitingAcknowledgementCount: 0,
     unpaidInvoiceCount: 0,
     lowStockPartCount: 0,
-};
+});
 
-function extractTotal(collection?: RfqCollection | null): number {
-    if (!collection) {
-        return 0;
-    }
+function normalizeMetrics(response?: DashboardMetricsResponse | null): DashboardMetrics {
+    const payload = response?.data;
 
-    return collection.meta?.total ?? collection.items.length ?? 0;
+    return {
+        openRfqCount: Number(payload?.open_rfq_count ?? 0),
+        quotesAwaitingReviewCount: Number(payload?.quotes_awaiting_review_count ?? 0),
+        posAwaitingAcknowledgementCount: Number(payload?.pos_awaiting_acknowledgement_count ?? 0),
+        unpaidInvoiceCount: Number(payload?.unpaid_invoice_count ?? 0),
+        lowStockPartCount: Number(payload?.low_stock_part_count ?? 0),
+    } satisfies DashboardMetrics;
 }
 
 export function useDashboardMetrics(enabled: boolean): UseQueryResult<DashboardMetrics, unknown> {
-    const rfqsApi = useSdkClient(RFQsApi);
-    const purchaseOrdersApi = useSdkClient(PurchaseOrdersApi);
+    const dashboardApi = useSdkClient(DashboardApi);
 
     return useQuery<DashboardMetrics>({
         queryKey: ['dashboard', 'metrics'],
         enabled,
         queryFn: async () => {
-            const [openRfqsResponse, quotesAwaitingReviewResponse, purchaseOrdersResponse] = await Promise.all([
-                rfqsApi.listRfqs({ perPage: 1, tab: ListRfqsTabEnum.Open }),
-                rfqsApi.listRfqs({ perPage: 1, tab: ListRfqsTabEnum.Received }),
-                purchaseOrdersApi.listPurchaseOrders({ perPage: 1, status: 'sent' }),
-            ]);
+            const response = await dashboardApi.getMetrics();
 
-            const openRfqCount = extractTotal(openRfqsResponse.data);
-            const quotesAwaitingReviewCount = extractTotal(quotesAwaitingReviewResponse.data);
-            const posAwaitingAcknowledgementCount = purchaseOrdersResponse.data.meta?.total ?? 0;
-
-            return {
-                openRfqCount,
-                quotesAwaitingReviewCount,
-                posAwaitingAcknowledgementCount,
-                unpaidInvoiceCount: 0, // TODO: clarify invoicing summary endpoint once available
-                lowStockPartCount: 0, // TODO: wire low-stock metric when inventory summary endpoint ships
-            } satisfies DashboardMetrics;
+            return normalizeMetrics(response);
         },
         staleTime: 30_000,
         placeholderData: FALLBACK_METRICS,

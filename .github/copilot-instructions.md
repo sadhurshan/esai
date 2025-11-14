@@ -13,6 +13,8 @@ When generating code, interfaces, or documentation:
 - If something is ambiguous, include a `// TODO: clarify with spec` comment — do not guess.
 - Cross-reference `/deep-specs/*` for per-module details.
 - All architecture, API, and UX rules must align with these specs.
+- Don’t use Set-Content or shell commands to edit files. Please modify the file directly in the editor instead.
+- Don't ever use python to edit files. If text-edit tool stop working or not available, just let me know
 
 ## Product & Architecture
 - Multi-tenant procurement platform (RFQ → Quote → PO → Order → Receiving → Invoice) built with Laravel 12 + Inertia React TS.

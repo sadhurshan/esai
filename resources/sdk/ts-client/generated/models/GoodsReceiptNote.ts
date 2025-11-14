@@ -36,10 +36,10 @@ import {
 export interface GoodsReceiptNote {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof GoodsReceiptNote
      */
-    id: string;
+    id: number;
     /**
      * 
      * @type {number}

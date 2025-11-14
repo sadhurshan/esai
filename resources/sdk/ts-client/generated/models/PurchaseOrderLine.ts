@@ -29,10 +29,10 @@ import {
 export interface PurchaseOrderLine {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PurchaseOrderLine
      */
-    id: string;
+    id: number;
     /**
      * 
      * @type {number}

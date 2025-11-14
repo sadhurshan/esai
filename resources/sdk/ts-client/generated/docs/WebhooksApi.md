@@ -11,6 +11,9 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**adminRetryWebhookDelivery**](WebhooksApi.md#adminretrywebhookdelivery) | **POST** /api/admin/webhook-deliveries/{deliveryId}/retry | Retry failed webhook delivery |
 | [**adminShowWebhookSubscription**](WebhooksApi.md#adminshowwebhooksubscription) | **GET** /api/admin/webhook-subscriptions/{subscriptionId} | Retrieve webhook subscription |
 | [**adminUpdateWebhookSubscription**](WebhooksApi.md#adminupdatewebhooksubscriptionoperation) | **PUT** /api/admin/webhook-subscriptions/{subscriptionId} | Update webhook subscription |
+| [**stripeInvoicePaymentFailed**](WebhooksApi.md#stripeinvoicepaymentfailed) | **POST** /api/webhooks/stripe/invoice/payment-failed | Stripe invoice payment failed event hook |
+| [**stripeInvoicePaymentSucceeded**](WebhooksApi.md#stripeinvoicepaymentsucceeded) | **POST** /api/webhooks/stripe/invoice/payment-succeeded | Stripe invoice payment succeeded event hook |
+| [**stripeSubscriptionUpdated**](WebhooksApi.md#stripesubscriptionupdated) | **POST** /api/webhooks/stripe/customer/subscription-updated | Stripe subscription updated webhook |
 
 
 
@@ -508,6 +511,219 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Webhook subscription updated. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## stripeInvoicePaymentFailed
+
+> ApiSuccessResponse stripeInvoicePaymentFailed(requestBody)
+
+Stripe invoice payment failed event hook
+
+### Example
+
+```ts
+import {
+  Configuration,
+  WebhooksApi,
+} from '';
+import type { StripeInvoicePaymentFailedRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new WebhooksApi(config);
+
+  const body = {
+    // { [key: string]: any; }
+    requestBody: Object,
+  } satisfies StripeInvoicePaymentFailedRequest;
+
+  try {
+    const data = await api.stripeInvoicePaymentFailed(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **requestBody** | `{ [key: string]: any; }` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Webhook acknowledged. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## stripeInvoicePaymentSucceeded
+
+> ApiSuccessResponse stripeInvoicePaymentSucceeded(requestBody)
+
+Stripe invoice payment succeeded event hook
+
+### Example
+
+```ts
+import {
+  Configuration,
+  WebhooksApi,
+} from '';
+import type { StripeInvoicePaymentSucceededRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new WebhooksApi(config);
+
+  const body = {
+    // { [key: string]: any; }
+    requestBody: Object,
+  } satisfies StripeInvoicePaymentSucceededRequest;
+
+  try {
+    const data = await api.stripeInvoicePaymentSucceeded(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **requestBody** | `{ [key: string]: any; }` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Webhook acknowledged. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## stripeSubscriptionUpdated
+
+> ApiSuccessResponse stripeSubscriptionUpdated(requestBody)
+
+Stripe subscription updated webhook
+
+### Example
+
+```ts
+import {
+  Configuration,
+  WebhooksApi,
+} from '';
+import type { StripeSubscriptionUpdatedRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new WebhooksApi(config);
+
+  const body = {
+    // { [key: string]: any; }
+    requestBody: Object,
+  } satisfies StripeSubscriptionUpdatedRequest;
+
+  try {
+    const data = await api.stripeSubscriptionUpdated(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **requestBody** | `{ [key: string]: any; }` |  | |
+
+### Return type
+
+[**ApiSuccessResponse**](ApiSuccessResponse.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Webhook acknowledged. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

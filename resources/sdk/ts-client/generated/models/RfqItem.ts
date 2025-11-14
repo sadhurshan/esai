@@ -61,6 +61,12 @@ export interface RfqItem {
      * @memberof RfqItem
      */
     targetPrice?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqItem
+     */
+    requiredDate?: string;
 }
 
 /**
@@ -91,6 +97,7 @@ export function RfqItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
+        'requiredDate': json['required_date'] == null ? undefined : json['required_date'],
     };
 }
 
@@ -112,6 +119,7 @@ export function RfqItemToJSONTyped(value?: RfqItem | null, ignoreDiscriminator: 
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],
+        'required_date': value['requiredDate'],
     };
 }
 

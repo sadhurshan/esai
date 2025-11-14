@@ -64,7 +64,7 @@ export class AuthApi extends BaseAPI {
 
     async login(payload: LoginRequest): Promise<LoginResponse> {
         const response = await this.request({
-            path: '/auth/login',
+            path: '/api/auth/login',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export class AuthApi extends BaseAPI {
 
     async current(): Promise<AuthSessionResponse> {
         const response = await this.request({
-            path: '/auth/me',
+            path: '/api/auth/me',
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -90,7 +90,7 @@ export class AuthApi extends BaseAPI {
 
     async logout(): Promise<void> {
         await this.request({
-            path: '/auth/logout',
+            path: '/api/auth/logout',
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -100,7 +100,7 @@ export class AuthApi extends BaseAPI {
 
     async requestPasswordReset(payload: ForgotPasswordRequest): Promise<void> {
         await this.request({
-            path: '/auth/forgot-password',
+            path: '/api/auth/forgot-password',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export class AuthApi extends BaseAPI {
 
     async resetPassword(payload: ResetPasswordRequest): Promise<void> {
         await this.request({
-            path: '/auth/reset-password',
+            path: '/api/auth/reset-password',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

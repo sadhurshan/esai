@@ -49,6 +49,12 @@ export interface CreateRfqRequestItemsInner {
      * @memberof CreateRfqRequestItemsInner
      */
     targetPrice?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateRfqRequestItemsInner
+     */
+    requiredDate?: string;
 }
 
 /**
@@ -75,6 +81,7 @@ export function CreateRfqRequestItemsInnerFromJSONTyped(json: any, ignoreDiscrim
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
+        'requiredDate': json['required_date'] == null ? undefined : json['required_date'],
     };
 }
 
@@ -94,6 +101,7 @@ export function CreateRfqRequestItemsInnerToJSONTyped(value?: CreateRfqRequestIt
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],
+        'required_date': value['requiredDate'],
     };
 }
 

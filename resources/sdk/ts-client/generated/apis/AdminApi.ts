@@ -94,6 +94,10 @@ export interface AdminCreateRateLimitOperationRequest {
     adminCreateRateLimitRequest: AdminCreateRateLimitRequest;
 }
 
+export interface AdminCreateSupplierRequest {
+    body: object;
+}
+
 export interface AdminDeleteApiKeyRequest {
     keyId: number;
 }
@@ -105,6 +109,10 @@ export interface AdminDeleteFeatureFlagRequest {
 
 export interface AdminDeleteRateLimitRequest {
     rateLimitId: number;
+}
+
+export interface AdminDeleteSupplierRequest {
+    supplierId: number;
 }
 
 export interface AdminListApiKeysRequest {
@@ -146,6 +154,10 @@ export interface AdminShowRateLimitRequest {
     rateLimitId: number;
 }
 
+export interface AdminShowSupplierRequest {
+    supplierId: number;
+}
+
 export interface AdminToggleApiKeyRequest {
     keyId: number;
 }
@@ -164,6 +176,11 @@ export interface AdminUpdateFeatureFlagOperationRequest {
 export interface AdminUpdateRateLimitOperationRequest {
     rateLimitId: number;
     adminUpdateRateLimitRequest: AdminUpdateRateLimitRequest;
+}
+
+export interface AdminUpdateSupplierRequest {
+    supplierId: number;
+    requestBody: { [key: string]: any; };
 }
 
 /**
@@ -237,6 +254,21 @@ export interface AdminApiInterface {
 
     /**
      * 
+     * @summary Create supplier on behalf of tenant
+     * @param {object} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminCreateSupplierRaw(requestParameters: AdminCreateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Create supplier on behalf of tenant
+     */
+    adminCreateSupplier(requestParameters: AdminCreateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
      * @summary Delete API key
      * @param {number} keyId 
      * @param {*} [options] Override http request option.
@@ -280,6 +312,21 @@ export interface AdminApiInterface {
      * Delete rate limit rule
      */
     adminDeleteRateLimit(requestParameters: AdminDeleteRateLimitRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Archive supplier
+     * @param {number} supplierId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminDeleteSupplierRaw(requestParameters: AdminDeleteSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Archive supplier
+     */
+    adminDeleteSupplier(requestParameters: AdminDeleteSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
     /**
      * 
@@ -341,6 +388,20 @@ export interface AdminApiInterface {
      * List rate limit rules
      */
     adminListRateLimits(requestParameters: AdminListRateLimitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListRateLimits200Response>;
+
+    /**
+     * 
+     * @summary List suppliers in admin console
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminListSuppliersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * List suppliers in admin console
+     */
+    adminListSuppliers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
     /**
      * 
@@ -449,6 +510,21 @@ export interface AdminApiInterface {
 
     /**
      * 
+     * @summary Show supplier details in admin console
+     * @param {number} supplierId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminShowSupplierRaw(requestParameters: AdminShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Show supplier details in admin console
+     */
+    adminShowSupplier(requestParameters: AdminShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
      * @summary Toggle API key activation
      * @param {number} keyId 
      * @param {*} [options] Override http request option.
@@ -510,6 +586,22 @@ export interface AdminApiInterface {
      * Update rate limit rule
      */
     adminUpdateRateLimit(requestParameters: AdminUpdateRateLimitOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Update supplier attributes in admin console
+     * @param {number} supplierId 
+     * @param {{ [key: string]: any; }} requestBody 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminUpdateSupplierRaw(requestParameters: AdminUpdateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Update supplier attributes in admin console
+     */
+    adminUpdateSupplier(requestParameters: AdminUpdateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
 }
 
@@ -739,6 +831,57 @@ export class AdminApi extends runtime.BaseAPI implements AdminApiInterface {
     }
 
     /**
+     * Create supplier on behalf of tenant
+     */
+    async adminCreateSupplierRaw(requestParameters: AdminCreateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['body'] == null) {
+            throw new runtime.RequiredError(
+                'body',
+                'Required parameter "body" was null or undefined when calling adminCreateSupplier().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/admin/suppliers`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['body'] as any,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Create supplier on behalf of tenant
+     */
+    async adminCreateSupplier(requestParameters: AdminCreateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.adminCreateSupplierRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Delete API key
      */
     async adminDeleteApiKeyRaw(requestParameters: AdminDeleteApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -890,6 +1033,55 @@ export class AdminApi extends runtime.BaseAPI implements AdminApiInterface {
      */
     async adminDeleteRateLimit(requestParameters: AdminDeleteRateLimitRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.adminDeleteRateLimitRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Archive supplier
+     */
+    async adminDeleteSupplierRaw(requestParameters: AdminDeleteSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['supplierId'] == null) {
+            throw new runtime.RequiredError(
+                'supplierId',
+                'Required parameter "supplierId" was null or undefined when calling adminDeleteSupplier().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/admin/suppliers/{supplierId}`;
+        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Archive supplier
+     */
+    async adminDeleteSupplier(requestParameters: AdminDeleteSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.adminDeleteSupplierRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1078,6 +1270,47 @@ export class AdminApi extends runtime.BaseAPI implements AdminApiInterface {
      */
     async adminListRateLimits(requestParameters: AdminListRateLimitsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListRateLimits200Response> {
         const response = await this.adminListRateLimitsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List suppliers in admin console
+     */
+    async adminListSuppliersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/admin/suppliers`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List suppliers in admin console
+     */
+    async adminListSuppliers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.adminListSuppliersRaw(initOverrides);
         return await response.value();
     }
 
@@ -1428,6 +1661,55 @@ export class AdminApi extends runtime.BaseAPI implements AdminApiInterface {
     }
 
     /**
+     * Show supplier details in admin console
+     */
+    async adminShowSupplierRaw(requestParameters: AdminShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['supplierId'] == null) {
+            throw new runtime.RequiredError(
+                'supplierId',
+                'Required parameter "supplierId" was null or undefined when calling adminShowSupplier().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/admin/suppliers/{supplierId}`;
+        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Show supplier details in admin console
+     */
+    async adminShowSupplier(requestParameters: AdminShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.adminShowSupplierRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Toggle API key activation
      */
     async adminToggleApiKeyRaw(requestParameters: AdminToggleApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -1658,6 +1940,65 @@ export class AdminApi extends runtime.BaseAPI implements AdminApiInterface {
      */
     async adminUpdateRateLimit(requestParameters: AdminUpdateRateLimitOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.adminUpdateRateLimitRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update supplier attributes in admin console
+     */
+    async adminUpdateSupplierRaw(requestParameters: AdminUpdateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['supplierId'] == null) {
+            throw new runtime.RequiredError(
+                'supplierId',
+                'Required parameter "supplierId" was null or undefined when calling adminUpdateSupplier().'
+            );
+        }
+
+        if (requestParameters['requestBody'] == null) {
+            throw new runtime.RequiredError(
+                'requestBody',
+                'Required parameter "requestBody" was null or undefined when calling adminUpdateSupplier().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/admin/suppliers/{supplierId}`;
+        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['requestBody'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update supplier attributes in admin console
+     */
+    async adminUpdateSupplier(requestParameters: AdminUpdateSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.adminUpdateSupplierRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

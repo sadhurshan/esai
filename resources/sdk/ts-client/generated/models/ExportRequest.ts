@@ -29,10 +29,10 @@ import {
 export interface ExportRequest {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof ExportRequest
      */
-    id: string;
+    id: number;
     /**
      * Export payload type identifier.
      * @type {string}

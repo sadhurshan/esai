@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`id` | string
+`id` | number
 `quantityAccepted` | number
 `quantityRejected` | number
 `rejectionReason` | string

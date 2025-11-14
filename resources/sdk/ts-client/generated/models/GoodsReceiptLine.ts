@@ -29,16 +29,16 @@ import {
 export interface GoodsReceiptLine {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof GoodsReceiptLine
      */
-    id: string;
+    id: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof GoodsReceiptLine
      */
-    purchaseOrderLineId: string;
+    purchaseOrderLineId: number;
     /**
      * 
      * @type {number}

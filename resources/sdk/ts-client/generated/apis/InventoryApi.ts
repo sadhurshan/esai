@@ -47,22 +47,22 @@ import {
 } from '../models/index';
 
 export interface CreateGrnOperationRequest {
-    purchaseOrderId: string;
+    purchaseOrderId: number;
     createGrnRequest: CreateGrnRequest;
 }
 
 export interface CreateRmaOperationRequest {
-    purchaseOrderId: string;
+    purchaseOrderId: number;
     createRmaRequest: CreateRmaRequest;
 }
 
 export interface DeleteGrnRequest {
-    purchaseOrderId: string;
-    grnId: string;
+    purchaseOrderId: number;
+    grnId: number;
 }
 
 export interface ListGrnsRequest {
-    purchaseOrderId: string;
+    purchaseOrderId: number;
 }
 
 export interface ReviewRmaRequest {
@@ -71,8 +71,8 @@ export interface ReviewRmaRequest {
 }
 
 export interface ShowGrnRequest {
-    purchaseOrderId: string;
-    grnId: string;
+    purchaseOrderId: number;
+    grnId: number;
 }
 
 export interface ShowRmaRequest {
@@ -80,8 +80,8 @@ export interface ShowRmaRequest {
 }
 
 export interface UpdateGrnOperationRequest {
-    purchaseOrderId: string;
-    grnId: string;
+    purchaseOrderId: number;
+    grnId: number;
     updateGrnRequest: UpdateGrnRequest;
 }
 
@@ -95,7 +95,7 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary Create goods receipt note
-     * @param {string} purchaseOrderId 
+     * @param {number} purchaseOrderId 
      * @param {CreateGrnRequest} createGrnRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -111,7 +111,7 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary Create RMA for purchase order
-     * @param {string} purchaseOrderId 
+     * @param {number} purchaseOrderId 
      * @param {CreateRmaRequest} createRmaRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -127,8 +127,8 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary Delete goods receipt note
-     * @param {string} purchaseOrderId 
-     * @param {string} grnId 
+     * @param {number} purchaseOrderId 
+     * @param {number} grnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
@@ -143,7 +143,7 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary List goods receipt notes for purchase order
-     * @param {string} purchaseOrderId 
+     * @param {number} purchaseOrderId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
@@ -188,8 +188,8 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary Show goods receipt note
-     * @param {string} purchaseOrderId 
-     * @param {string} grnId 
+     * @param {number} purchaseOrderId 
+     * @param {number} grnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
@@ -219,8 +219,8 @@ export interface InventoryApiInterface {
     /**
      * 
      * @summary Update goods receipt note
-     * @param {string} purchaseOrderId 
-     * @param {string} grnId 
+     * @param {number} purchaseOrderId 
+     * @param {number} grnId 
      * @param {UpdateGrnRequest} updateGrnRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

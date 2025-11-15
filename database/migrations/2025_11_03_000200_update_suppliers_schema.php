@@ -118,23 +118,25 @@ return new class extends Migration
             }
         }
 
-        Schema::create('supplier_documents', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
-            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
-            $table->enum('type', ['iso9001', 'iso14001', 'as9100', 'itar', 'reach', 'rohs', 'insurance', 'nda', 'other']);
-            $table->string('path', 2048);
-            $table->string('mime', 191);
-            $table->unsignedBigInteger('size_bytes');
-            $table->date('issued_at')->nullable();
-            $table->date('expires_at')->nullable();
-            $table->enum('status', ['valid', 'expiring', 'expired'])->default('valid');
-            $table->timestamps();
-            $table->softDeletes();
+        if (! Schema::hasTable('supplier_documents')) {
+            Schema::create('supplier_documents', function (Blueprint $table): void {
+                $table->id();
+                $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
+                $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
+                $table->enum('type', ['iso9001', 'iso14001', 'as9100', 'itar', 'reach', 'rohs', 'insurance', 'nda', 'other']);
+                $table->string('path', 2048);
+                $table->string('mime', 191);
+                $table->unsignedBigInteger('size_bytes');
+                $table->date('issued_at')->nullable();
+                $table->date('expires_at')->nullable();
+                $table->enum('status', ['valid', 'expiring', 'expired'])->default('valid');
+                $table->timestamps();
+                $table->softDeletes();
 
-            $table->index(['supplier_id', 'type']);
-            $table->index(['type', 'expires_at']);
-        });
+                $table->index(['supplier_id', 'type']);
+                $table->index(['type', 'expires_at']);
+            });
+        }
     }
 
     public function down(): void

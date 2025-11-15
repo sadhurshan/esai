@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Invoicing\AttachCreditNoteFileAction;
 use App\Enums\CreditNoteStatus;
+use App\Http\Requests\CreditNote\AttachCreditNoteFileRequest;
 use App\Http\Requests\CreditNote\ReviewCreditNoteRequest;
 use App\Http\Requests\CreditNote\StoreCreditNoteRequest;
+use App\Http\Requests\CreditNote\UpdateCreditNoteLinesRequest;
 use App\Http\Resources\CreditNoteResource;
+use App\Http\Resources\DocumentResource;
 use App\Models\CreditNote;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
@@ -18,8 +22,10 @@ use Illuminate\Validation\ValidationException;
 
 class CreditNoteController extends ApiController
 {
-    public function __construct(private readonly CreditNoteService $service)
-    {
+    public function __construct(
+        private readonly CreditNoteService $service,
+        private readonly AttachCreditNoteFileAction $attachCreditNoteFile,
+    ) {
     }
 
     public function index(Request $request): JsonResponse
@@ -51,6 +57,12 @@ class CreditNoteController extends ApiController
             $query->where('status', $status);
         }
 
+        if ($supplierId = $request->query('supplier_id')) {
+            $query->whereHas('invoice', function ($builder) use ($supplierId): void {
+                $builder->where('supplier_id', (int) $supplierId);
+            });
+        }
+
         if ($invoiceId = $request->query('invoice_id')) {
             $query->where('invoice_id', (int) $invoiceId);
         }
@@ -62,6 +74,15 @@ class CreditNoteController extends ApiController
             } catch (\Throwable) {
                 // Ignore invalid dates; client-side validation expected.
             }
+        }
+
+        if ($search = trim((string) $request->query('search'))) {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('credit_number', 'like', '%'.$search.'%')
+                    ->orWhereHas('invoice', function ($invoiceQuery) use ($search): void {
+                        $invoiceQuery->where('invoice_number', 'like', '%'.$search.'%');
+                    });
+            });
         }
 
         if ($to = $request->query('created_to')) {
@@ -135,9 +156,9 @@ class CreditNoteController extends ApiController
             return $this->fail('Credit note not accessible.', 403);
         }
 
-        $creditNote->load(['invoice', 'purchaseOrder', 'goodsReceiptNote', 'documents']);
+        $detailed = $this->service->loadDetail($creditNote);
 
-        return $this->ok((new CreditNoteResource($creditNote))->toArray($request));
+        return $this->ok((new CreditNoteResource($detailed))->toArray($request));
     }
 
     public function issue(Request $request, CreditNote $creditNote): JsonResponse
@@ -203,5 +224,57 @@ class CreditNoteController extends ApiController
             (new CreditNoteResource($updated))->toArray($request),
             $message
         );
+    }
+
+    public function updateLines(UpdateCreditNoteLinesRequest $request, CreditNote $creditNote): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if (! $user instanceof User) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+            return $this->fail('Credit note not accessible.', 403);
+        }
+
+        $payload = $request->validated();
+        $lines = $payload['lines'] ?? [];
+
+        try {
+            $updated = $this->service->updateCreditNoteLines($creditNote, $lines, $user);
+        } catch (ValidationException $exception) {
+            return $this->fail('Validation failed', 422, $exception->errors());
+        }
+
+        return $this->ok(
+            (new CreditNoteResource($updated))->toArray($request),
+            'Credit note lines updated.'
+        );
+    }
+
+    public function attachFile(AttachCreditNoteFileRequest $request, CreditNote $creditNote): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if (! $user instanceof User) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+            return $this->fail('Credit note not accessible.', 403);
+        }
+
+        $payload = $request->payload();
+        $file = $payload['file'];
+
+        $document = $this->attachCreditNoteFile->execute($user, $creditNote, $file);
+
+        $detailed = $this->service->loadDetail($creditNote);
+
+        return $this->ok([
+            'credit_note' => (new CreditNoteResource($detailed))->toArray($request),
+            'attachment' => (new DocumentResource($document))->toArray($request),
+        ], 'Credit note attachment uploaded.');
     }
 }

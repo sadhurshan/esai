@@ -11,6 +11,11 @@ export const queryKeys = {
         supplierRoot: () => ['quotes', 'supplier'] as const,
         supplierList: (params?: Record<string, unknown>) => ['quotes', 'supplier', 'list', params ?? {}] as const,
     },
+    awards: {
+        root: () => ['awards'] as const,
+        candidates: (rfqId: string | number) => ['awards', 'rfq', String(rfqId), 'candidates'] as const,
+        summary: (rfqId: string | number) => ['awards', 'rfq', String(rfqId), 'summary'] as const,
+    },
     suppliers: {
         list: (params?: Record<string, unknown>) => ['suppliers', 'list', params ?? {}] as const,
     },
@@ -42,10 +47,37 @@ export const queryKeys = {
         list: (params?: Record<string, unknown>) => ['purchase-orders', 'list', params ?? {}] as const,
         detail: (id: number) => ['purchase-orders', 'detail', id] as const,
         changeOrders: (purchaseOrderId: number) => ['purchase-orders', 'change-orders', purchaseOrderId] as const,
+        events: (purchaseOrderId: number) => ['purchase-orders', 'events', purchaseOrderId] as const,
+    },
+    invoices: {
+        list: (params?: Record<string, unknown>) => ['invoices', 'list', params ?? {}] as const,
+        detail: (id: number | string) => ['invoices', 'detail', String(id)] as const,
     },
     companies: {
         detail: (id: number) => ['companies', 'detail', id] as const,
         documents: (id: number) => ['companies', 'documents', id] as const,
+    },
+    receiving: {
+        root: () => ['receiving'] as const,
+        list: (params?: Record<string, unknown>) => ['receiving', 'grns', 'list', params ?? {}] as const,
+        detail: (id: string | number) => ['receiving', 'grns', 'detail', String(id)] as const,
+    },
+    matching: {
+        candidates: (params?: Record<string, unknown>) => ['matching', 'candidates', params ?? {}] as const,
+    },
+    credits: {
+        root: () => ['credits'] as const,
+        list: (params?: Record<string, unknown>) => ['credits', 'list', params ?? {}] as const,
+        detail: (id: string | number) => ['credits', 'detail', String(id)] as const,
+    },
+    inventory: {
+        root: () => ['inventory'] as const,
+        items: (params?: Record<string, unknown>) => ['inventory', 'items', params ?? {}] as const,
+        item: (id: string | number) => ['inventory', 'items', String(id)] as const,
+        locations: (params?: Record<string, unknown>) => ['inventory', 'locations', params ?? {}] as const,
+        movementsList: (params?: Record<string, unknown>) => ['inventory', 'movements', params ?? {}] as const,
+        movement: (id: string | number) => ['inventory', 'movements', String(id)] as const,
+        lowStock: (params?: Record<string, unknown>) => ['inventory', 'low-stock', params ?? {}] as const,
     },
     admin: {
         companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
@@ -65,6 +97,9 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['quotes']['revisions']
     | (typeof queryKeys)['quotes']['supplierRoot']
     | (typeof queryKeys)['quotes']['supplierList']
+    | (typeof queryKeys)['awards']['root']
+    | (typeof queryKeys)['awards']['candidates']
+    | (typeof queryKeys)['awards']['summary']
     | (typeof queryKeys)['rfqs']['root']
     | (typeof queryKeys)['rfqs']['list']
     | (typeof queryKeys)['rfqs']['detail']
@@ -84,8 +119,25 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']
     | (typeof queryKeys)['purchaseOrders']['changeOrders']
+    | (typeof queryKeys)['purchaseOrders']['events']
+    | (typeof queryKeys)['invoices']['list']
+    | (typeof queryKeys)['invoices']['detail']
     | (typeof queryKeys)['companies']['detail']
     | (typeof queryKeys)['companies']['documents']
+    | (typeof queryKeys)['receiving']['root']
+    | (typeof queryKeys)['receiving']['list']
+    | (typeof queryKeys)['receiving']['detail']
+    | (typeof queryKeys)['matching']['candidates']
+    | (typeof queryKeys)['credits']['root']
+    | (typeof queryKeys)['credits']['list']
+    | (typeof queryKeys)['credits']['detail']
+    | (typeof queryKeys)['inventory']['root']
+    | (typeof queryKeys)['inventory']['items']
+    | (typeof queryKeys)['inventory']['item']
+    | (typeof queryKeys)['inventory']['locations']
+    | (typeof queryKeys)['inventory']['movementsList']
+    | (typeof queryKeys)['inventory']['movement']
+    | (typeof queryKeys)['inventory']['lowStock']
     | (typeof queryKeys)['admin']['companies']
     | (typeof queryKeys)['me']['supplierStatus']
 >;

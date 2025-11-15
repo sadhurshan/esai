@@ -6,7 +6,9 @@ use App\Models\Notification;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\CreditNote;
+use App\Models\CreditNoteLine;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Subscription;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\seed;
 use function Pest\Laravel\postJson;
+use function Pest\Laravel\putJson;
 
 uses(RefreshDatabase::class);
 
@@ -219,6 +222,128 @@ it('prevents unauthorized roles from issuing or approving credit notes', functio
         'decision' => 'approve',
     ])->assertStatus(403)
         ->assertJsonPath('message', 'Insufficient permissions to review credit notes.');
+});
+
+it('updates credit note lines and recalculates totals', function (): void {
+    [$plan, $company, $user] = prepareCreditNotePlanContext();
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $company->id,
+        'status' => 'confirmed',
+    ]);
+
+    $supplier = Supplier::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'subtotal' => 1000.00,
+        'tax_amount' => 0,
+        'total' => 1000.00,
+        'currency' => 'USD',
+    ]);
+
+    $lineA = InvoiceLine::factory()->for($invoice)->create([
+        'quantity' => 5,
+        'unit_price' => 100,
+        'unit_price_minor' => 10000,
+    ]);
+
+    $lineB = InvoiceLine::factory()->for($invoice)->create([
+        'quantity' => 3,
+        'unit_price' => 200,
+        'unit_price_minor' => 20000,
+    ]);
+
+    actingAs($user);
+
+    $creditId = postJson("/api/credit-notes/invoices/{$invoice->id}", [
+        'reason' => 'Invoice variance credit',
+        'amount' => 100.00,
+    ])->json('data.id');
+
+    $response = putJson("/api/credit-notes/{$creditId}/lines", [
+        'lines' => [
+            ['invoice_line_id' => $lineA->id, 'qty_to_credit' => 2],
+            ['invoice_line_id' => $lineB->id, 'qty_to_credit' => 1.5],
+        ],
+    ])->assertOk()
+        ->assertJsonPath('data.amount_minor', 50000)
+        ->assertJsonPath('data.lines.0.qty_to_credit', 2);
+
+    expect($response->json('data.lines'))->toHaveCount(2);
+
+    $creditNote = CreditNote::findOrFail($creditId);
+    expect($creditNote->lines()->count())->toBe(2);
+    expect($creditNote->amount_minor)->toBe(50000);
+});
+
+it('prevents exceeding remaining quantities when other credits exist', function (): void {
+    [$plan, $company, $user] = prepareCreditNotePlanContext();
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $company->id,
+        'status' => 'confirmed',
+    ]);
+
+    $supplier = Supplier::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'subtotal' => 800.00,
+        'tax_amount' => 0,
+        'total' => 800.00,
+        'currency' => 'USD',
+    ]);
+
+    $line = InvoiceLine::factory()->for($invoice)->create([
+        'quantity' => 5,
+        'unit_price' => 120,
+        'unit_price_minor' => 12000,
+    ]);
+
+    $existingCredit = CreditNote::factory()->create([
+        'company_id' => $company->id,
+        'invoice_id' => $invoice->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'currency' => 'USD',
+        'amount' => 480.00,
+        'amount_minor' => 48000,
+        'status' => CreditNoteStatus::Issued,
+    ]);
+
+    CreditNoteLine::create([
+        'credit_note_id' => $existingCredit->id,
+        'invoice_line_id' => $line->id,
+        'qty_to_credit' => 4,
+        'qty_invoiced' => $line->quantity,
+        'unit_price_minor' => $line->unit_price_minor ?? 0,
+        'line_total_minor' => 48000,
+        'currency' => 'USD',
+        'uom' => $line->uom,
+        'description' => $line->description,
+    ]);
+
+    actingAs($user);
+
+    $creditId = postJson("/api/credit-notes/invoices/{$invoice->id}", [
+        'reason' => 'Follow-up variance',
+        'amount' => 120.00,
+    ])->json('data.id');
+
+    putJson("/api/credit-notes/{$creditId}/lines", [
+        'lines' => [
+            ['invoice_line_id' => $line->id, 'qty_to_credit' => 2],
+        ],
+    ])->assertStatus(422)
+        ->assertJsonPath('message', 'Validation failed');
 });
 
 it('enforces plan gating for credit notes', function (): void {

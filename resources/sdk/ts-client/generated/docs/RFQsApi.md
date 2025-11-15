@@ -7,16 +7,19 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**awardRfq**](RFQsApi.md#awardrfqoperation) | **POST** /api/rfqs/{rfqId}/award | Award RFQ |
 | [**awardRfqLines**](RFQsApi.md#awardrfqlines) | **POST** /api/rfqs/{rfqId}/award-lines | Award specific RFQ lines |
 | [**closeRfq**](RFQsApi.md#closerfqoperation) | **POST** /api/rfqs/{rfqId}/close | Close RFQ |
+| [**createAwards**](RFQsApi.md#createawardsoperation) | **POST** /api/awards | Create RFQ line awards without generating purchase orders |
 | [**createRfq**](RFQsApi.md#createrfq) | **POST** /api/rfqs | Create RFQ |
 | [**createRfqAmendment**](RFQsApi.md#createrfqamendmentoperation) | **POST** /api/rfqs/{rfqId}/clarifications/amendment | Publish amendment |
 | [**createRfqClarificationAnswer**](RFQsApi.md#createrfqclarificationanswer) | **POST** /api/rfqs/{rfqId}/clarifications/answer | Submit clarification answer |
 | [**createRfqClarificationQuestion**](RFQsApi.md#createrfqclarificationquestion) | **POST** /api/rfqs/{rfqId}/clarifications/question | Submit clarification question |
 | [**createRfqLine**](RFQsApi.md#createrfqline) | **POST** /api/rfqs/{rfqId}/lines | Add RFQ line |
+| [**deleteAward**](RFQsApi.md#deleteaward) | **DELETE** /api/awards/{awardId} | Delete an RFQ line award and reopen the associated line |
 | [**deleteRfq**](RFQsApi.md#deleterfq) | **DELETE** /api/rfqs/{rfqId} | Delete RFQ |
 | [**deleteRfqAttachment**](RFQsApi.md#deleterfqattachment) | **DELETE** /api/rfqs/{rfqId}/attachments/{attachmentId} | Delete RFQ attachment |
 | [**deleteRfqLine**](RFQsApi.md#deleterfqline) | **DELETE** /api/rfqs/{rfqId}/lines/{lineId} | Delete RFQ line |
 | [**inviteSupplierToRfq**](RFQsApi.md#invitesuppliertorfqoperation) | **POST** /api/rfqs/{rfqId}/invitations | Invite supplier to RFQ |
 | [**listRfqAttachments**](RFQsApi.md#listrfqattachments) | **GET** /api/rfqs/{rfqId}/attachments | List RFQ attachments |
+| [**listRfqAwardCandidates**](RFQsApi.md#listrfqawardcandidates) | **GET** /api/rfqs/{rfqId}/award-candidates | List award candidates for an RFQ |
 | [**listRfqClarifications**](RFQsApi.md#listrfqclarifications) | **GET** /api/rfqs/{rfqId}/clarifications | List clarifications |
 | [**listRfqInvitations**](RFQsApi.md#listrfqinvitations) | **GET** /api/rfqs/{rfqId}/invitations | List RFQ invitations |
 | [**listRfqLines**](RFQsApi.md#listrfqlines) | **GET** /api/rfqs/{rfqId}/lines | List RFQ lines |
@@ -249,6 +252,81 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | RFQ closed. |  -  |
 | **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## createAwards
+
+> CreateAwards200Response createAwards(createAwardsRequest)
+
+Create RFQ line awards without generating purchase orders
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { CreateAwardsOperationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // CreateAwardsRequest
+    createAwardsRequest: ...,
+  } satisfies CreateAwardsOperationRequest;
+
+  try {
+    const data = await api.createAwards(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **createAwardsRequest** | [CreateAwardsRequest](CreateAwardsRequest.md) |  | |
+
+### Return type
+
+[**CreateAwards200Response**](CreateAwards200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Awards persisted successfully. |  -  |
+| **401** | Missing or invalid credentials. |  * X-Request-Id -  <br>  |
+| **402** | Plan upgrade required to award RFQs. |  -  |
+| **403** | Authenticated but lacking required permissions. |  * X-Request-Id -  <br>  |
 | **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
@@ -663,6 +741,82 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## deleteAward
+
+> CreateAwards200Response deleteAward(awardId)
+
+Delete an RFQ line award and reopen the associated line
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { DeleteAwardRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // number
+    awardId: 56,
+  } satisfies DeleteAwardRequest;
+
+  try {
+    const data = await api.deleteAward(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **awardId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**CreateAwards200Response**](CreateAwards200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Award deleted and current awards returned. |  -  |
+| **401** | Missing or invalid credentials. |  * X-Request-Id -  <br>  |
+| **402** | Plan upgrade required to manage RFQ awards. |  -  |
+| **403** | Authenticated but lacking required permissions. |  * X-Request-Id -  <br>  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## deleteRfq
 
 > ApiSuccessResponse deleteRfq(rfqId)
@@ -1027,6 +1181,80 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Attachments linked to the RFQ. |  -  |
+| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## listRfqAwardCandidates
+
+> ListRfqAwardCandidates200Response listRfqAwardCandidates(rfqId)
+
+List award candidates for an RFQ
+
+### Example
+
+```ts
+import {
+  Configuration,
+  RFQsApi,
+} from '';
+import type { ListRfqAwardCandidatesRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new RFQsApi(config);
+
+  const body = {
+    // string
+    rfqId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
+  } satisfies ListRfqAwardCandidatesRequest;
+
+  try {
+    const data = await api.listRfqAwardCandidates(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **rfqId** | `string` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ListRfqAwardCandidates200Response**](ListRfqAwardCandidates200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Flattened quote candidates per RFQ line with converted price hints. |  -  |
+| **401** | Missing or invalid credentials. |  * X-Request-Id -  <br>  |
+| **403** | Authenticated but lacking required permissions. |  * X-Request-Id -  <br>  |
 | **404** | Resource not found. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

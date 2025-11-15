@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\WebhookDeliveryController as AdminWebhookDelivery
 use App\Http\Controllers\Admin\WebhookSubscriptionController as AdminWebhookSubscriptionController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AwardController;
+use App\Http\Controllers\Api\AwardLineController;
 use App\Http\Controllers\Api\Billing\StripeWebhookController;
 use App\Http\Controllers\Api\CopilotController;
 use App\Http\Controllers\Api\SupplierRiskController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\Api\PoChangeOrderController;
 use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\QuoteLineController;
 use App\Http\Controllers\Api\RfqClarificationController;
+use App\Http\Controllers\Api\RfqAwardCandidateController;
 use App\Http\Controllers\Api\QuoteRevisionController;
 use App\Http\Controllers\Api\RfqAwardController;
 use App\Http\Controllers\Api\RfqInvitationController;
@@ -133,6 +135,9 @@ Route::prefix('rfqs')->group(function (): void {
 
     Route::get('{rfq}/quotes', [QuoteController::class, 'index']);
 
+    Route::get('{rfq}/award-candidates', [RfqAwardCandidateController::class, 'index'])
+        ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+
     Route::prefix('{rfq}/quotes/{quote}')
         ->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'ensure.supplier.approved'])
         ->group(function (): void {
@@ -156,6 +161,19 @@ Route::prefix('rfqs')->group(function (): void {
         });
 });
 
+Route::prefix('awards')
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed'])
+    ->group(function (): void {
+        Route::post('/', [AwardLineController::class, 'store']);
+        Route::delete('{award}', [AwardLineController::class, 'destroy']);
+    });
+
+Route::prefix('pos')
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed'])
+    ->group(function (): void {
+        Route::post('from-awards', [PurchaseOrderController::class, 'createFromAwards']);
+    });
+
 Route::prefix('orders')->group(function (): void {
     Route::get('/', [OrderController::class, 'index']);
     Route::get('{order}', [OrderController::class, 'show']);
@@ -177,6 +195,8 @@ Route::middleware('web')->group(function (): void {
     Route::prefix('purchase-orders')->group(function (): void {
         Route::get('/', [PurchaseOrderController::class, 'index']);
         Route::post('{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->middleware('ensure.company.onboarded');
+        Route::post('{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->middleware('ensure.company.onboarded');
+        Route::post('{purchaseOrder}/export', [PurchaseOrderController::class, 'export'])->middleware('ensure.company.onboarded');
         Route::post('{purchaseOrder}/acknowledge', [PurchaseOrderController::class, 'acknowledge'])
             ->middleware('ensure.supplier.approved');
         Route::get('{purchaseOrder}/change-orders', [PoChangeOrderController::class, 'index']);
@@ -195,13 +215,30 @@ Route::middleware('web')->group(function (): void {
                 Route::put('{note}', [GoodsReceiptNoteController::class, 'update'])->middleware('ensure.subscribed');
                 Route::delete('{note}', [GoodsReceiptNoteController::class, 'destroy'])->middleware('ensure.subscribed');
             });
+        Route::get('{purchaseOrder}/documents/{document}/download', [PurchaseOrderController::class, 'downloadPdf'])
+            ->middleware('signed')
+            ->name('purchase-orders.pdf.download');
+        Route::get('{purchaseOrder}/events', [PurchaseOrderController::class, 'events']);
         Route::get('{purchaseOrder}', [PurchaseOrderController::class, 'show']);
     });
 
+    Route::prefix('receiving/grns')
+        ->middleware(['ensure.company.onboarded', 'ensure.inventory.access'])
+        ->group(function (): void {
+            Route::get('/', [GoodsReceiptNoteController::class, 'companyIndex']);
+            Route::get('{note}', [GoodsReceiptNoteController::class, 'companyShow']);
+            Route::post('/', [GoodsReceiptNoteController::class, 'companyStore'])->middleware('ensure.subscribed');
+            Route::post('{note}/attachments', [GoodsReceiptNoteController::class, 'companyAttachFile'])
+                ->middleware('ensure.subscribed');
+        });
+
     Route::prefix('invoices')->group(function (): void {
+        Route::get('/', [InvoiceController::class, 'list'])->middleware('ensure.company.onboarded');
         Route::get('{invoice}', [InvoiceController::class, 'show'])->middleware('ensure.company.onboarded');
         Route::put('{invoice}', [InvoiceController::class, 'update'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
         Route::delete('{invoice}', [InvoiceController::class, 'destroy'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        Route::post('from-po', [InvoiceController::class, 'storeFromPo'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        Route::post('{invoice}/attachments', [InvoiceController::class, 'attachFile'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
     });
 
     Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve'])
@@ -233,6 +270,8 @@ Route::middleware('web')->group(function (): void {
 });
 
 Route::post('documents', [DocumentController::class, 'store'])
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+Route::get('documents/{document}', [DocumentController::class, 'show'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
@@ -321,6 +360,8 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
         Route::get('/{creditNote}', [CreditNoteController::class, 'show']);
         Route::post('/{creditNote}/issue', [CreditNoteController::class, 'issue']);
         Route::post('/{creditNote}/approve', [CreditNoteController::class, 'approve']);
+        Route::put('/{creditNote}/lines', [CreditNoteController::class, 'updateLines']);
+        Route::post('/{creditNote}/attachments', [CreditNoteController::class, 'attachFile']);
     });
 
     Route::middleware(['ensure.subscribed', 'ensure.money.access'])->group(function (): void {

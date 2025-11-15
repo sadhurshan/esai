@@ -22,10 +22,21 @@ const ROUTE_BREADCRUMBS: BreadcrumbDefinition[] = [
         label: 'RFQ Detail',
         dynamicLabel: (params) => `RFQ #${params.rfqId}`,
     },
+    {
+        path: '/app/rfqs/:rfqId/awards',
+        label: 'Awards',
+        dynamicLabel: () => 'Award review',
+    },
     { path: '/app/quotes', label: 'Quotes' },
     { path: '/app/purchase-orders', label: 'Purchase Orders' },
     {
         path: '/app/purchase-orders/:purchaseOrderId',
+        label: 'Purchase Order Detail',
+        dynamicLabel: (params) => `PO #${params.purchaseOrderId}`,
+    },
+    { path: '/app/pos', label: 'Purchase Orders' },
+    {
+        path: '/app/pos/:purchaseOrderId',
         label: 'Purchase Order Detail',
         dynamicLabel: (params) => `PO #${params.purchaseOrderId}`,
     },

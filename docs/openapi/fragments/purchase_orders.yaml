@@ -19,6 +19,9 @@ components:
         status:
           type: string
           enum: [draft, sent, acknowledged, fulfilled, closed, cancelled]
+        ack_status:
+          type: string
+          enum: [draft, sent, acknowledged, declined]
         currency:
           type: string
         incoterm:
@@ -40,6 +43,17 @@ components:
           type: string
         total_minor:
           type: integer
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        ack_reason:
+          type: string
+          nullable: true
         revision_no:
           type: integer
         rfq_id:
@@ -76,6 +90,84 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PoChangeOrder'
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderDelivery'
+        latest_delivery:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            purchase_order_id:
+              type: integer
+            channel:
+              type: string
+              enum: [email, webhook]
+            status:
+              type: string
+              enum: [queued, sent, failed]
+            recipients_to:
+              type: array
+              items:
+                type: string
+                format: email
+              nullable: true
+            recipients_cc:
+              type: array
+              items:
+                type: string
+                format: email
+              nullable: true
+            message:
+              type: string
+              nullable: true
+            delivery_reference:
+              type: string
+              nullable: true
+            response_meta:
+              type: object
+              additionalProperties: true
+              nullable: true
+            error_reason:
+              type: string
+              nullable: true
+            sent_at:
+              type: string
+              format: date-time
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+              nullable: true
+            updated_at:
+              type: string
+              format: date-time
+              nullable: true
+            sent_by:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+        pdf_document_id:
+          type: integer
+          nullable: true
+        pdf_document:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/PurchaseOrderPdfDocument'
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -84,6 +176,151 @@ components:
           type: string
           format: date-time
           nullable: true
+    PurchaseOrderDelivery:
+      type: object
+      required:
+        - id
+        - purchase_order_id
+        - channel
+        - status
+      properties:
+        id:
+          type: integer
+        purchase_order_id:
+          type: integer
+        channel:
+          type: string
+          enum: [email, webhook]
+        status:
+          type: string
+          enum: [queued, sent, failed]
+        recipients_to:
+          type: array
+          items:
+            type: string
+            format: email
+          nullable: true
+        recipients_cc:
+          type: array
+          items:
+            type: string
+            format: email
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        delivery_reference:
+          type: string
+          nullable: true
+        response_meta:
+          type: object
+          additionalProperties: true
+          nullable: true
+        error_reason:
+          type: string
+          nullable: true
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        sent_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+    PurchaseOrderEvent:
+      type: object
+      required:
+        - id
+        - purchase_order_id
+        - type
+        - summary
+      properties:
+        id:
+          type: integer
+        purchase_order_id:
+          type: integer
+        type:
+          type: string
+          enum: [sent, supplier_ack, supplier_decline, invoice_created, invoice_attachment]
+        summary:
+          type: string
+        description:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+        actor:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+              nullable: true
+            type:
+              type: string
+              enum: [buyer, supplier, system]
+        occurred_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    PurchaseOrderPdfDocument:
+      type: object
+      required:
+        - id
+        - filename
+        - version
+        - download_url
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        version:
+          type: integer
+        download_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    ExportPurchaseOrderResponse:
+      type: object
+      required:
+        - document
+        - download_url
+      properties:
+        document:
+          $ref: '#/components/schemas/PurchaseOrderPdfDocument'
+        download_url:
+          type: string
+          format: uri
     PurchaseOrderLine:
       type: object
       required:
@@ -130,6 +367,12 @@ components:
         delivery_date:
           type: string
           format: date
+          nullable: true
+        invoiced_quantity:
+          type: integer
+          nullable: true
+        remaining_quantity:
+          type: integer
           nullable: true
         taxes:
           type: array
@@ -186,6 +429,16 @@ components:
               type: integer
             name:
               type: string
+    CreatePurchaseOrdersFromAwardsRequest:
+      type: object
+      required:
+        - award_ids
+      properties:
+        award_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
 paths:
   /api/purchase-orders:
     get:
@@ -268,9 +521,66 @@ paths:
           required: true
           schema:
             type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel
+              properties:
+                channel:
+                  type: string
+                  enum: [email, webhook]
+                to:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                  description: Required when channel is email.
+                cc:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                message:
+                  type: string
+                  maxLength: 2000
       responses:
         '200':
           description: Purchase order issued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          purchase_order:
+                            $ref: '#/components/schemas/PurchaseOrder'
+                          delivery:
+                            $ref: '#/components/schemas/PurchaseOrderDelivery'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/purchase-orders/{purchaseOrderId}/cancel:
+    post:
+      tags:
+        - Purchase Orders
+      summary: Cancel purchase order
+      operationId: cancelPurchaseOrder
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Purchase order cancelled.
           content:
             application/json:
               schema:
@@ -296,18 +606,154 @@ paths:
             schema:
               type: object
               required:
-                - action
+                - decision
               properties:
-                action:
+                decision:
                   type: string
-                  enum: [accept, reject]
+                  enum: [acknowledged, declined]
+                reason:
+                  type: string
+                  nullable: true
+                  maxLength: 2000
       responses:
         '200':
           description: Purchase order acknowledgement recorded.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PurchaseOrder'
+  /api/purchase-orders/{purchaseOrderId}/events:
+    parameters:
+      - name: purchaseOrderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Purchase Orders
+      summary: List purchase order timeline events
+      operationId: listPurchaseOrderEvents
+      responses:
+        '200':
+          description: Timeline entries for the purchase order.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PurchaseOrderEvent'
+  /api/purchase-orders/{purchaseOrderId}/export:
+    post:
+      tags:
+        - Purchase Orders
+      summary: Generate PDF for purchase order
+      operationId: exportPurchaseOrder
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Purchase order PDF ready for download.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExportPurchaseOrderResponse'
+  /api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download:
+    get:
+      tags:
+        - Purchase Orders
+      summary: Download purchase order PDF
+      operationId: downloadPurchaseOrderDocument
+      parameters:
+        - name: purchaseOrderId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Purchase order PDF stream.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Document not found for purchase order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/pos/from-awards:
+    post:
+      tags:
+        - Purchase Orders
+      summary: Convert awarded RFQ lines into draft purchase orders
+      operationId: createPurchaseOrdersFromAwards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePurchaseOrdersFromAwardsRequest'
+      responses:
+        '201':
+          description: Purchase orders drafted from the provided awards.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - purchase_orders
+                        properties:
+                          purchase_orders:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/PurchaseOrder'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Plan upgrade required to create purchase orders.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/purchase-orders/{purchaseOrderId}/change-orders:
     parameters:
       - name: purchaseOrderId

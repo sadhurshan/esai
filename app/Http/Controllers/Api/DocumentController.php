@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Documents\DocumentStorer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 
@@ -71,6 +72,21 @@ class DocumentController extends ApiController
             (new DocumentResource($document))->toArray($request),
             'Document uploaded.'
         );
+    }
+
+    public function show(Request $request, Document $document): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if (! $user instanceof User) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ($this->authorizeDenied($user, 'view', $document)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        return $this->ok((new DocumentResource($document))->toArray($request));
     }
 
     private function resolveDocumentable(StoreDocumentRequest $request, int $companyId): ?Model

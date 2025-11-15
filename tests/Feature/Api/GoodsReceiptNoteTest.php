@@ -2,11 +2,14 @@
 
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\Document;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 
@@ -115,6 +118,152 @@ test('buyer can record goods receipt and fetch it via nested routes', function (
         ->assertJsonPath('data.id', $noteId);
 });
 
+test('company receiving endpoints list and show goods receipts', function (): void {
+    [
+        'company' => $company,
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    $payload = [
+        'number' => 'GRN-COMPANY-'.Str::upper(Str::random(5)),
+        'inspected_by_id' => $user->id,
+        'inspected_at' => now()->toISOString(),
+        'lines' => [
+            [
+                'purchase_order_line_id' => $line->id,
+                'received_qty' => 4,
+                'accepted_qty' => 4,
+                'rejected_qty' => 0,
+            ],
+        ],
+    ];
+
+    $create = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/grns", $payload);
+
+    $create->assertOk();
+
+    $noteId = (int) $create->json('data.id');
+
+    $list = $this->getJson('/api/receiving/grns');
+    $list->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.items.0.id', $noteId)
+        ->assertJsonPath('data.items.0.purchase_order_id', $purchaseOrder->id)
+        ->assertJsonPath('data.meta.per_page', 25);
+
+    $detail = $this->getJson("/api/receiving/grns/{$noteId}");
+    $detail->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.id', $noteId)
+        ->assertJsonPath('data.purchase_order_id', $purchaseOrder->id)
+        ->assertJsonPath('data.lines.0.purchase_order_line_id', $line->id);
+});
+
+test('company receiving endpoint can create goods receipt notes', function (): void {
+    [
+        'company' => $company,
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    $payload = [
+        'purchase_order_id' => $purchaseOrder->id,
+        'received_at' => now()->toISOString(),
+        'reference' => 'Dock slip #22',
+        'notes' => 'Boxes arrived sealed',
+        'status' => 'posted',
+        'lines' => [
+            [
+                'po_line_id' => $line->id,
+                'qty_received' => 5,
+                'notes' => 'Partial delivery',
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/receiving/grns', $payload);
+
+    $response->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.purchase_order_id', $purchaseOrder->id)
+        ->assertJsonPath('data.reference', 'Dock slip #22')
+        ->assertJsonPath('data.status', 'posted');
+
+    $noteId = (int) $response->json('data.id');
+
+    $this->assertDatabaseHas('goods_receipt_notes', [
+        'id' => $noteId,
+        'company_id' => $company->id,
+        'reference' => 'Dock slip #22',
+        'notes' => 'Boxes arrived sealed',
+        'status' => 'complete',
+    ]);
+
+    $line->refresh();
+
+    expect($line->received_qty)->toBe(5)
+        ->and($line->receiving_status)->toBe('received');
+});
+
+test('company receiving endpoint accepts attachment uploads', function (): void {
+    [
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    $createPayload = [
+        'purchase_order_id' => $purchaseOrder->id,
+        'status' => 'draft',
+        'lines' => [
+            [
+                'po_line_id' => $line->id,
+                'qty_received' => 3,
+            ],
+        ],
+    ];
+
+    $noteResponse = $this->postJson('/api/receiving/grns', $createPayload);
+    $noteResponse->assertOk();
+
+    $noteId = (int) $noteResponse->json('data.id');
+
+    Storage::fake('s3');
+    config(['documents.disk' => 's3']);
+
+    $file = UploadedFile::fake()->create('delivery.pdf', 200, 'application/pdf');
+
+    $upload = $this->post(
+        "/api/receiving/grns/{$noteId}/attachments",
+        ['file' => $file],
+        ['Accept' => 'application/json']
+    );
+
+    $upload->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('message', 'Attachment uploaded.')
+        ->assertJsonPath('data.attachments.0.filename', 'delivery.pdf');
+
+    /** @var Document|null $document */
+    $document = Document::query()
+        ->where('documentable_type', \App\Models\GoodsReceiptNote::class)
+        ->where('documentable_id', $noteId)
+        ->first();
+
+    expect($document)->not->toBeNull();
+
+    Storage::disk('s3')->assertExists($document->path);
+});
+
 test('validation fails when accepted and rejected quantities do not balance', function (): void {
     [
         'user' => $user,
@@ -201,7 +350,7 @@ test('rejected quantities mark note and purchase order line as ncr raised', func
     $response = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/grns", $payload);
 
     $response->assertOk()
-        ->assertJsonPath('data.status', 'ncr_raised')
+        ->assertJsonPath('data.status', 'variance')
         ->assertJsonPath('data.lines.0.rejected_qty', 3);
 
     $line->refresh();

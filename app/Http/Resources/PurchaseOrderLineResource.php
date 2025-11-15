@@ -30,6 +30,9 @@ class PurchaseOrderLineResource extends JsonResource
         $taxMoney = Money::fromMinor($taxTotalMinor, $currency);
         $lineTotalMoney = $lineSubtotalMoney->add($taxMoney);
 
+        $invoicedQuantity = $this->relationLoaded('invoiceLines') ? (int) $this->invoiceLines->sum('quantity') : null;
+        $remainingQuantity = $invoicedQuantity !== null ? max((int) $quantity - $invoicedQuantity, 0) : null;
+
         return [
             'id' => $this->getKey(),
             'line_no' => $this->line_no,
@@ -46,6 +49,8 @@ class PurchaseOrderLineResource extends JsonResource
             'line_total' => (float) $lineTotalMoney->toDecimal($minorUnit),
             'line_total_minor' => $lineTotalMoney->amountMinor(),
             'delivery_date' => optional($this->delivery_date)?->toDateString(),
+            'invoiced_quantity' => $invoicedQuantity,
+            'remaining_quantity' => $remainingQuantity,
             'taxes' => $this->whenLoaded('taxes', fn () => $taxes->map(fn (LineTax $tax): array => [
                 'id' => $tax->getKey(),
                 'tax_code_id' => $tax->tax_code_id,

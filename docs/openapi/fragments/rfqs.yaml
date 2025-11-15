@@ -350,6 +350,191 @@ components:
               quantity:
                 type: integer
                 minimum: 1
+    CreateAwardsRequest:
+      type: object
+      required:
+        - rfq_id
+        - items
+      properties:
+        rfq_id:
+          type: integer
+          description: Numeric RFQ identifier.
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - rfq_item_id
+              - quote_item_id
+            properties:
+              rfq_item_id:
+                type: integer
+              quote_item_id:
+                type: integer
+              awarded_qty:
+                type: integer
+                minimum: 1
+                nullable: true
+                description: Optional awarded quantity for partial allocations.
+    RfqAwardCandidateOption:
+      type: object
+      required:
+        - quote_id
+        - quote_item_id
+        - unit_price_minor
+        - unit_price_currency
+        - converted_currency
+      properties:
+        quote_id:
+          type: integer
+        quote_item_id:
+          type: integer
+        supplier_id:
+          type: integer
+          nullable: true
+        supplier_name:
+          type: string
+          nullable: true
+        unit_price_minor:
+          type: integer
+        unit_price_currency:
+          type: string
+        converted_unit_price_minor:
+          type: integer
+          nullable: true
+        converted_currency:
+          type: string
+        conversion_unavailable:
+          type: boolean
+        lead_time_days:
+          type: integer
+          nullable: true
+        quote_revision:
+          type: integer
+          nullable: true
+        quote_status:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        award:
+          $ref: '#/components/schemas/RfqAwardCandidateExistingAward'
+    RfqAwardCandidateExistingAward:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        po_id:
+          type: integer
+          nullable: true
+        awarded_qty:
+          type: integer
+          nullable: true
+        awarded_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfqAwardCandidateLine:
+      type: object
+      required:
+        - id
+        - line_no
+        - part_name
+        - quantity
+        - currency
+        - candidates
+      properties:
+        id:
+          type: integer
+        line_no:
+          type: integer
+        part_name:
+          type: string
+        spec:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        uom:
+          type: string
+          nullable: true
+        currency:
+          type: string
+        target_price_minor:
+          type: integer
+          nullable: true
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RfqAwardCandidateOption'
+        best_price:
+          $ref: '#/components/schemas/RfqAwardCandidateBestPrice'
+    RfqAwardCandidateBestPrice:
+      type: object
+      nullable: true
+      properties:
+        quote_id:
+          type: integer
+        quote_item_id:
+          type: integer
+        supplier_id:
+          type: integer
+          nullable: true
+        supplier_name:
+          type: string
+          nullable: true
+        unit_price_minor:
+          type: integer
+          nullable: true
+        unit_price_currency:
+          type: string
+          nullable: true
+        converted_unit_price_minor:
+          type: integer
+          nullable: true
+        converted_currency:
+          type: string
+          nullable: true
+    RfqItemAwardSummary:
+      type: object
+      required:
+        - id
+        - rfq_item_id
+        - supplier_id
+        - quote_id
+        - quote_item_id
+        - status
+      properties:
+        id:
+          type: integer
+        rfq_item_id:
+          type: integer
+        supplier_id:
+          type: integer
+        supplier_name:
+          type: string
+          nullable: true
+        quote_id:
+          type: integer
+        quote_item_id:
+          type: integer
+        po_id:
+          type: integer
+          nullable: true
+        awarded_qty:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        awarded_at:
+          type: string
+          format: date-time
+          nullable: true
 paths:
   /api/rfqs:
     get:
@@ -1156,6 +1341,83 @@ paths:
               schema:
                 allOf:
                   - $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/award-candidates:
+    get:
+      tags:
+        - RFQs
+      summary: List award candidates for an RFQ
+      operationId: listRfqAwardCandidates
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Flattened quote candidates per RFQ line with converted price hints.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - rfq
+                          - company_currency
+                          - lines
+                          - awards
+                          - meta
+                        properties:
+                          rfq:
+                            type: object
+                            required:
+                              - id
+                              - number
+                              - status
+                              - currency
+                              - is_partially_awarded
+                            properties:
+                              id:
+                                type: integer
+                              number:
+                                type: string
+                              title:
+                                type: string
+                                nullable: true
+                              status:
+                                type: string
+                              currency:
+                                type: string
+                              is_partially_awarded:
+                                type: boolean
+                          company_currency:
+                            type: string
+                          lines:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqAwardCandidateLine'
+                          awards:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqItemAwardSummary'
+                          meta:
+                            type: object
+                            properties:
+                              quotes:
+                                type: integer
+                              suppliers:
+                                type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
     
   /api/rfqs/{rfqId}/award-lines:
     post:
@@ -1183,6 +1445,95 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/awards:
+    post:
+      tags:
+        - RFQs
+      summary: Create RFQ line awards without generating purchase orders
+      operationId: createAwards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAwardsRequest'
+      responses:
+        '200':
+          description: Awards persisted successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - awards
+                        properties:
+                          awards:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqItemAwardSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Plan upgrade required to award RFQs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/awards/{awardId}:
+    delete:
+      tags:
+        - RFQs
+      summary: Delete an RFQ line award and reopen the associated line
+      operationId: deleteAward
+      parameters:
+        - name: awardId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Award deleted and current awards returned.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - awards
+                        properties:
+                          awards:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/RfqItemAwardSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Plan upgrade required to manage RFQ awards.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
 
 

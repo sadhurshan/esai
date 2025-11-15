@@ -17,6 +17,7 @@ return new class extends Migration
                 'rfq',
                 'quote',
                 'po',
+                'grn_attachment',
                 'invoice',
                 'supplier',
                 'part',

@@ -26,6 +26,9 @@ Name | Type
 `rfq` | [PurchaseOrderRfq](PurchaseOrderRfq.md)
 `lines` | [Array&lt;PurchaseOrderLine&gt;](PurchaseOrderLine.md)
 `changeOrders` | [Array&lt;PoChangeOrder&gt;](PoChangeOrder.md)
+`pdfDocumentId` | number
+`pdfDocument` | [PurchaseOrderPdfDocument](PurchaseOrderPdfDocument.md)
+`cancelledAt` | Date
 `createdAt` | Date
 `updatedAt` | Date
 
@@ -56,6 +59,9 @@ const example = {
   "rfq": null,
   "lines": null,
   "changeOrders": null,
+  "pdfDocumentId": null,
+  "pdfDocument": null,
+  "cancelledAt": null,
   "createdAt": null,
   "updatedAt": null,
 } satisfies PurchaseOrder

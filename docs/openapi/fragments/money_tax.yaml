@@ -454,26 +454,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
-  /api/invoices/{invoiceId}/recalculate:
-    post:
-      tags:
-        - Money
-      summary: Recalculate invoice totals
-      operationId: recalcInvoiceTotals
-      parameters:
-        - name: invoiceId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Invoice totals recalculated.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
   /api/credit-notes/{creditNoteId}/recalculate:
     post:
       tags:

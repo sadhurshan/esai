@@ -20,6 +20,13 @@ import {
     PurchaseOrderLineToJSON,
     PurchaseOrderLineToJSONTyped,
 } from './PurchaseOrderLine';
+import type { PurchaseOrderPdfDocument } from './PurchaseOrderPdfDocument';
+import {
+    PurchaseOrderPdfDocumentFromJSON,
+    PurchaseOrderPdfDocumentFromJSONTyped,
+    PurchaseOrderPdfDocumentToJSON,
+    PurchaseOrderPdfDocumentToJSONTyped,
+} from './PurchaseOrderPdfDocument';
 import type { PurchaseOrderRfq } from './PurchaseOrderRfq';
 import {
     PurchaseOrderRfqFromJSON,
@@ -170,6 +177,24 @@ export interface PurchaseOrder {
     changeOrders?: Array<PoChangeOrder>;
     /**
      * 
+     * @type {number}
+     * @memberof PurchaseOrder
+     */
+    pdfDocumentId?: number;
+    /**
+     * 
+     * @type {PurchaseOrderPdfDocument}
+     * @memberof PurchaseOrder
+     */
+    pdfDocument?: PurchaseOrderPdfDocument;
+    /**
+     * 
+     * @type {Date}
+     * @memberof PurchaseOrder
+     */
+    cancelledAt?: Date;
+    /**
+     * 
      * @type {Date}
      * @memberof PurchaseOrder
      */
@@ -240,6 +265,9 @@ export function PurchaseOrderFromJSONTyped(json: any, ignoreDiscriminator: boole
         'rfq': json['rfq'] == null ? undefined : PurchaseOrderRfqFromJSON(json['rfq']),
         'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(PurchaseOrderLineFromJSON)),
         'changeOrders': json['change_orders'] == null ? undefined : ((json['change_orders'] as Array<any>).map(PoChangeOrderFromJSON)),
+        'pdfDocumentId': json['pdf_document_id'] == null ? undefined : json['pdf_document_id'],
+        'pdfDocument': json['pdf_document'] == null ? undefined : PurchaseOrderPdfDocumentFromJSON(json['pdf_document']),
+        'cancelledAt': json['cancelled_at'] == null ? undefined : (new Date(json['cancelled_at'])),
         'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
     };
@@ -276,6 +304,9 @@ export function PurchaseOrderToJSONTyped(value?: PurchaseOrder | null, ignoreDis
         'rfq': PurchaseOrderRfqToJSON(value['rfq']),
         'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(PurchaseOrderLineToJSON)),
         'change_orders': value['changeOrders'] == null ? undefined : ((value['changeOrders'] as Array<any>).map(PoChangeOrderToJSON)),
+        'pdf_document_id': value['pdfDocumentId'],
+        'pdf_document': PurchaseOrderPdfDocumentToJSON(value['pdfDocument']),
+        'cancelled_at': value['cancelledAt'] == null ? value['cancelledAt'] : value['cancelledAt'].toISOString(),
         'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
         'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
     };

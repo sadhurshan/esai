@@ -241,6 +241,274 @@ it('awards rfq line items across suppliers and drafts purchase orders', function
     expect($awardAuditCount)->toBe(3);
 });
 
+it('awards rfq line items without drafting purchase orders via standalone endpoint', function (): void {
+    $scenario = buildRfqAwardScenario();
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+    $buyerUser = $scenario['buyerUser'];
+
+    actingAs($buyerUser);
+
+    $payload = [
+        'rfq_id' => $rfq->id,
+        'items' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+                'awarded_qty' => 5,
+            ],
+            [
+                'rfq_item_id' => $rfqItems[1]->id,
+                'quote_item_id' => $suppliers[1]['quote_items'][$rfqItems[1]->id]->id,
+                'awarded_qty' => 3,
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/awards', $payload);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonCount(2, 'data.awards');
+
+    expect(RfqItemAward::count())->toBe(2)
+        ->and(PurchaseOrder::count())->toBe(0);
+
+    $awardPayload = $response->json('data.awards');
+    expect($awardPayload[0]['po_id'])->toBeNull();
+});
+
+it('converts standalone awards into purchase orders grouped by supplier', function (): void {
+    $scenario = buildRfqAwardScenario(rfqItemCount: 2, supplierCount: 2);
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+    $buyerUser = $scenario['buyerUser'];
+
+    actingAs($buyerUser);
+
+    $this->postJson('/api/awards', [
+        'rfq_id' => $rfq->id,
+        'items' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+            ],
+            [
+                'rfq_item_id' => $rfqItems[1]->id,
+                'quote_item_id' => $suppliers[1]['quote_items'][$rfqItems[1]->id]->id,
+            ],
+        ],
+    ])->assertOk();
+
+    $awardIds = RfqItemAward::pluck('id')->all();
+
+    $response = $this->postJson('/api/pos/from-awards', [
+        'award_ids' => $awardIds,
+    ]);
+
+    $response
+        ->assertCreated()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonCount(2, 'data.purchase_orders');
+
+    expect(PurchaseOrder::count())->toBe(2);
+
+    RfqItemAward::all()->each(function (RfqItemAward $award): void {
+        expect($award->po_id)->not->toBeNull();
+
+        $line = PurchaseOrderLine::where('rfq_item_award_id', $award->id)->first();
+        expect($line)->not->toBeNull();
+    });
+});
+
+it('rejects conversion when awards span multiple rfqs', function (): void {
+    $scenario = buildRfqAwardScenario(rfqItemCount: 1, supplierCount: 2);
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+    $buyerUser = $scenario['buyerUser'];
+
+    actingAs($buyerUser);
+
+    $this->postJson('/api/awards', [
+        'rfq_id' => $rfq->id,
+        'items' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+            ],
+        ],
+    ])->assertOk();
+
+    $otherRfq = RFQ::factory()->create([
+        'company_id' => $rfq->company_id,
+        'created_by' => $buyerUser->id,
+        'status' => 'open',
+        'due_at' => now()->addDays(5),
+        'deadline_at' => now()->addDays(5),
+        'currency' => 'USD',
+    ]);
+
+    $otherItem = RfqItem::create([
+        'rfq_id' => $otherRfq->id,
+        'line_no' => 99,
+        'part_name' => 'Other Part',
+        'quantity' => 4,
+        'uom' => 'pcs',
+    ]);
+
+    $quote = Quote::create([
+        'company_id' => $rfq->company_id,
+        'rfq_id' => $otherRfq->id,
+        'supplier_id' => $suppliers[1]['supplier']->id,
+        'submitted_by' => $suppliers[1]['user']->id,
+        'currency' => 'USD',
+        'unit_price' => 100,
+        'lead_time_days' => 7,
+        'status' => 'submitted',
+        'revision_no' => 1,
+    ]);
+
+    $quoteItem = QuoteItem::create([
+        'quote_id' => $quote->id,
+        'rfq_item_id' => $otherItem->id,
+        'unit_price' => 120,
+        'currency' => 'USD',
+        'lead_time_days' => 6,
+    ]);
+
+    $this->postJson('/api/awards', [
+        'rfq_id' => $otherRfq->id,
+        'items' => [
+            [
+                'rfq_item_id' => $otherItem->id,
+                'quote_item_id' => $quoteItem->id,
+                'awarded_qty' => 2,
+            ],
+        ],
+    ])->assertOk();
+
+    $awardIds = RfqItemAward::pluck('id')->all();
+
+    $this->postJson('/api/pos/from-awards', [
+        'award_ids' => $awardIds,
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors(['award_ids']);
+});
+
+it('prevents converting awards that already belong to purchase orders', function (): void {
+    $scenario = buildRfqAwardScenario(rfqItemCount: 1, supplierCount: 1);
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+
+    actingAs($scenario['buyerUser']);
+
+    $this->postJson("/api/rfqs/{$rfq->id}/award-lines", [
+        'awards' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+            ],
+        ],
+    ])->assertCreated();
+
+    $award = RfqItemAward::firstOrFail();
+
+    $this->postJson('/api/pos/from-awards', [
+        'award_ids' => [$award->id],
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors(['award_ids']);
+});
+
+it('allows buyers to delete awards and reopen rfq lines', function (): void {
+    $scenario = buildRfqAwardScenario(rfqItemCount: 1, supplierCount: 2);
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+    $buyerUser = $scenario['buyerUser'];
+
+    actingAs($buyerUser);
+
+    $this->postJson('/api/awards', [
+        'rfq_id' => $rfq->id,
+        'items' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+                'awarded_qty' => 4,
+            ],
+        ],
+    ])->assertOk();
+
+    $award = RfqItemAward::firstOrFail();
+
+    $response = $this->deleteJson("/api/awards/{$award->id}");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonCount(0, 'data.awards');
+
+    expect(RfqItemAward::count())->toBe(0);
+
+    $rfq->refresh();
+
+    expect($rfq->status)->toBe('open')
+        ->and($rfq->is_partially_awarded)->toBeFalse();
+
+    $quoteStatuses = QuoteItem::query()
+        ->where('rfq_item_id', $rfqItems[0]->id)
+        ->pluck('status')
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+
+    expect($quoteStatuses)->toBe(['pending']);
+
+    $supplierStatuses = collect($suppliers)
+        ->map(fn ($supplier) => $supplier['quote']->refresh()->status)
+        ->unique()
+        ->values()
+        ->all();
+
+    expect($supplierStatuses)->toBe(['submitted']);
+});
+
+it('prevents deleting awards once converted to purchase orders', function (): void {
+    $scenario = buildRfqAwardScenario();
+
+    $rfq = $scenario['rfq'];
+    $rfqItems = $scenario['rfqItems'];
+    $suppliers = $scenario['suppliers'];
+
+    actingAs($scenario['buyerUser']);
+
+    $this->postJson("/api/rfqs/{$rfq->id}/award-lines", [
+        'awards' => [
+            [
+                'rfq_item_id' => $rfqItems[0]->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItems[0]->id]->id,
+            ],
+        ],
+    ])->assertCreated();
+
+    $award = RfqItemAward::firstOrFail();
+
+    $this->deleteJson("/api/awards/{$award->id}")
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['po_id']);
+});
+
 it('rejects invalid rfq to quote item mappings', function (): void {
     $scenario = buildRfqAwardScenario();
 

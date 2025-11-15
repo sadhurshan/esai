@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Invoicing\AttachInvoiceFileAction;
 use App\Actions\Invoicing\CreateInvoiceAction;
 use App\Actions\Invoicing\DeleteInvoiceAction;
 use App\Actions\Invoicing\PerformInvoiceMatchAction;
 use App\Actions\Invoicing\UpdateInvoiceAction;
-use App\Http\Requests\StoreInvoiceRequest;
+use App\Http\Requests\Invoice\AttachInvoiceFileRequest;
+use App\Http\Requests\Invoice\CreateInvoiceFromPurchaseOrderRequest;
+use App\Http\Requests\Invoice\ListInvoicesRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use App\Http\Resources\DocumentResource;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\JsonResponse;
@@ -21,9 +25,10 @@ class InvoiceController extends ApiController
         private readonly UpdateInvoiceAction $updateInvoiceAction,
         private readonly DeleteInvoiceAction $deleteInvoiceAction,
         private readonly PerformInvoiceMatchAction $performInvoiceMatchAction,
+        private readonly AttachInvoiceFileAction $attachInvoiceFileAction,
     ) {}
 
-    public function index(Request $request, PurchaseOrder $purchaseOrder): JsonResponse
+    public function index(ListInvoicesRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
 
@@ -39,15 +44,24 @@ class InvoiceController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $query = $purchaseOrder->invoices()->with(['document']);
+        $query = $purchaseOrder->invoices()->with(['document', 'attachments', 'supplier', 'purchaseOrder']);
 
-        if ($status = $request->query('status')) {
-            $allowed = ['pending', 'paid', 'overdue', 'disputed'];
-            if (! in_array($status, $allowed, true)) {
-                return $this->fail('Invalid status filter.', 422);
-            }
+        $filters = $request->payload();
 
-            $query->where('status', $status);
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['supplier_id'])) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+
+        if (! empty($filters['from'])) {
+            $query->whereDate('invoice_date', '>=', $filters['from']);
+        }
+
+        if (! empty($filters['to'])) {
+            $query->whereDate('invoice_date', '<=', $filters['to']);
         }
 
         $paginator = $query->orderByDesc('created_at')->paginate($this->perPage($request))->withQueryString();
@@ -57,7 +71,58 @@ class InvoiceController extends ApiController
         return $this->ok($result);
     }
 
-    public function store(StoreInvoiceRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
+    public function list(ListInvoicesRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 422);
+        }
+
+        if ($this->authorizeDenied($user, 'viewAny', Invoice::class)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        $filters = $request->payload();
+
+        $query = Invoice::query()
+            ->where('company_id', $companyId)
+            ->with(['supplier', 'purchaseOrder', 'document', 'attachments']);
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['supplier_id'])) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+
+        if (! empty($filters['from'])) {
+            $query->whereDate('invoice_date', '>=', $filters['from']);
+        }
+
+        if (! empty($filters['to'])) {
+            $query->whereDate('invoice_date', '<=', $filters['to']);
+        }
+
+        $paginator = $query
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('created_at')
+            ->paginate($this->perPage($request))
+            ->withQueryString();
+
+        $result = $this->paginate($paginator, $request, InvoiceResource::class);
+
+        return $this->ok($result);
+    }
+
+    public function store(CreateInvoiceFromPurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
 
@@ -77,7 +142,45 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-    $invoice->load(['lines.taxes.taxCode', 'document', 'matches']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'purchaseOrder']);
+
+        return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice created.');
+    }
+
+    public function storeFromPo(CreateInvoiceFromPurchaseOrderRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $payload = $request->payload();
+        $purchaseOrderId = $payload['po_id'] ?? null;
+
+        if (! is_int($purchaseOrderId) || $purchaseOrderId <= 0) {
+            return $this->fail('Purchase order is required.', 422, ['po_id' => ['A valid purchase order is required.']]);
+        }
+
+        $purchaseOrder = PurchaseOrder::query()->whereKey($purchaseOrderId)->first();
+
+        if ($purchaseOrder === null) {
+            return $this->fail('Purchase order not found.', 404);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+            return $this->fail('Purchase order not found for this company.', 404);
+        }
+
+        if ($this->authorizeDenied($user, 'create', Invoice::class)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        $invoice = $this->createInvoiceAction->execute($user, $purchaseOrder, $payload);
+
+        $this->performInvoiceMatchAction->execute($invoice);
+
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'purchaseOrder']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice created.');
     }
@@ -94,7 +197,7 @@ class InvoiceController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-    $invoice->load(['lines.taxes.taxCode', 'document', 'matches', 'purchaseOrder']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'purchaseOrder', 'supplier']);
 
         if ($user->company_id === null || (int) $invoice->company_id !== (int) $user->company_id) {
             return $this->fail('Invoice not found for this company.', 404);
@@ -119,7 +222,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-    $invoice->load(['lines.taxes.taxCode', 'document', 'matches']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'purchaseOrder']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice updated.');
     }
@@ -139,6 +242,33 @@ class InvoiceController extends ApiController
         $this->deleteInvoiceAction->execute($user, $invoice);
 
         return $this->ok(null, 'Invoice deleted.');
+    }
+
+    public function attachFile(AttachInvoiceFileRequest $request, Invoice $invoice): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ($this->authorizeDenied($user, 'update', $invoice)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        $payload = $request->payload();
+
+        /** @var \Illuminate\Http\UploadedFile $file */
+        $file = $payload['file'];
+
+        $document = $this->attachInvoiceFileAction->execute($user, $invoice, $file);
+
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'purchaseOrder']);
+
+        return $this->ok([
+            'invoice' => (new InvoiceResource($invoice))->toArray($request),
+            'attachment' => (new DocumentResource($document))->toArray($request),
+        ], 'Invoice attachment uploaded.');
     }
 
     private function purchaseOrderAccessible(PurchaseOrder $purchaseOrder, ?int $companyId): bool

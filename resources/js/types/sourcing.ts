@@ -88,6 +88,15 @@ export interface QuoteAttachment {
     sizeBytes: number;
 }
 
+export interface DocumentAttachment {
+    id: number;
+    filename: string;
+    mime: string;
+    sizeBytes: number;
+    createdAt?: string | null;
+    downloadUrl?: string | null;
+}
+
 export interface QuoteLineItem {
     id: number;
     rfqItemId: number;
@@ -130,7 +139,15 @@ export interface PurchaseOrderLine {
     quantity: number;
     uom: string;
     unitPrice: number;
+    unitPriceMinor?: number;
+    currency?: string;
+    lineSubtotalMinor?: number;
+    taxTotalMinor?: number;
+    lineTotalMinor?: number;
     deliveryDate?: string | null;
+    invoicedQuantity?: number | null;
+    remainingQuantity?: number | null;
+    receivedQuantity?: number | null;
 }
 
 export interface PurchaseOrderChangeOrder {
@@ -149,11 +166,20 @@ export interface PurchaseOrderChangeOrder {
     updatedAt?: string | null;
 }
 
+export interface PurchaseOrderPdfDocument {
+    id: number;
+    filename: string;
+    version: number;
+    downloadUrl: string;
+    createdAt?: string | null;
+}
+
 export interface PurchaseOrderSummary {
     id: number;
     companyId: number;
     poNumber: string;
     status: string;
+    ackStatus?: 'draft' | 'sent' | 'acknowledged' | 'declined';
     currency: string;
     incoterm?: string | null;
     taxPercent?: number | null;
@@ -166,11 +192,253 @@ export interface PurchaseOrderSummary {
     rfqTitle?: string | null;
     createdAt?: string | null;
     updatedAt?: string | null;
+    sentAt?: string | null;
+    acknowledgedAt?: string | null;
+    ackReason?: string | null;
+    subtotalMinor?: number;
+    taxAmountMinor?: number;
+    totalMinor?: number;
     lines?: PurchaseOrderLine[];
     changeOrders?: PurchaseOrderChangeOrder[];
+    pdfDocumentId?: number | null;
+    pdfDocument?: PurchaseOrderPdfDocument | null;
+    latestDelivery?: PurchaseOrderDelivery | null;
+    deliveries?: PurchaseOrderDelivery[];
 }
 
 export interface PurchaseOrderDetail extends PurchaseOrderSummary {
     lines: PurchaseOrderLine[];
     changeOrders: PurchaseOrderChangeOrder[];
+}
+
+export interface PurchaseOrderDelivery {
+    id: number;
+    channel: 'email' | 'webhook';
+    status: 'pending' | 'sent' | 'failed';
+    recipientsTo?: string[] | null;
+    recipientsCc?: string[] | null;
+    message?: string | null;
+    deliveryReference?: string | null;
+    responseMeta?: Record<string, unknown> | null;
+    errorReason?: string | null;
+    sentAt?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+    sentBy?: {
+        id: number;
+        name?: string | null;
+        email?: string | null;
+    } | null;
+}
+
+export interface PurchaseOrderEvent {
+    id: number;
+    purchaseOrderId: number;
+    type: string;
+    summary: string;
+    description?: string | null;
+    metadata?: Record<string, unknown> | null;
+    actor?: {
+        id?: number | null;
+        name?: string | null;
+        email?: string | null;
+        type?: string | null;
+    } | null;
+    occurredAt?: string | null;
+    createdAt?: string | null;
+}
+
+export interface InvoiceSummary {
+    id: string;
+    companyId: number;
+    purchaseOrderId: number;
+    supplierId: number;
+    invoiceNumber: string;
+    invoiceDate?: string | null;
+    currency: string;
+    status: string;
+    subtotal: number;
+    taxAmount: number;
+    total: number;
+    subtotalMinor?: number;
+    taxAmountMinor?: number;
+    totalMinor?: number;
+    supplier?: {
+        id: number;
+        name?: string | null;
+    } | null;
+    purchaseOrder?: {
+        id: number;
+        poNumber?: string | null;
+    } | null;
+    document?: DocumentAttachment | null;
+    attachments?: DocumentAttachment[];
+    matchSummary?: Record<string, number>;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface InvoiceLineDetail {
+    id: number;
+    poLineId: number;
+    description: string;
+    quantity: number;
+    uom: string;
+    currency?: string;
+    unitPrice: number;
+    unitPriceMinor?: number;
+    taxCodeIds?: number[];
+}
+
+export interface InvoiceDetail extends InvoiceSummary {
+    lines: InvoiceLineDetail[];
+    matches?: unknown[];
+}
+
+export interface GrnLine {
+    id?: number;
+    grnId?: number;
+    poLineId: number;
+    lineNo?: number;
+    description?: string | null;
+    orderedQty: number;
+    qtyReceived: number;
+    previouslyReceived?: number;
+    remainingQty?: number;
+    uom?: string | null;
+    unitPriceMinor?: number;
+    currency?: string;
+    variance?: 'over' | 'short' | null;
+    notes?: string | null;
+}
+
+export interface GrnTimelineEntry {
+    id: string;
+    summary: string;
+    occurredAt?: string | null;
+    actor?: {
+        id?: number | null;
+        name?: string | null;
+    } | null;
+}
+
+export interface GoodsReceiptNoteSummary {
+    id: number;
+    grnNumber: string;
+    purchaseOrderId: number;
+    purchaseOrderNumber?: string | null;
+    supplierName?: string | null;
+    supplierId?: number | null;
+    status: 'draft' | 'posted' | string;
+    receivedAt?: string | null;
+    postedAt?: string | null;
+    linesCount?: number;
+    attachmentsCount?: number;
+    createdBy?: {
+        id?: number | null;
+        name?: string | null;
+    } | null;
+}
+
+export interface GoodsReceiptNoteDetail extends GoodsReceiptNoteSummary {
+    reference?: string | null;
+    notes?: string | null;
+    lines: GrnLine[];
+    attachments: DocumentAttachment[];
+    timeline?: GrnTimelineEntry[];
+}
+
+export interface MatchDiscrepancy {
+    id: string;
+    type: 'qty' | 'price' | 'uom';
+    label: string;
+    severity?: 'info' | 'warning' | 'critical';
+    difference?: number;
+    unit?: string | null;
+    amountMinor?: number;
+    currency?: string;
+    notes?: string | null;
+}
+
+export interface MatchCandidateLine {
+    id: string;
+    poLineId: number;
+    lineNo?: number;
+    itemDescription?: string | null;
+    orderedQty: number;
+    receivedQty?: number;
+    invoicedQty?: number;
+    uom?: string | null;
+    priceVarianceMinor?: number;
+    qtyVariance?: number;
+    uomVariance?: string | null;
+    discrepancies: MatchDiscrepancy[];
+}
+
+export interface MatchCandidate {
+    id: string;
+    purchaseOrderId: number;
+    purchaseOrderNumber?: string | null;
+    supplierId?: number | null;
+    supplierName?: string | null;
+    currency?: string;
+    poTotalMinor?: number;
+    receivedTotalMinor?: number;
+    invoicedTotalMinor?: number;
+    varianceMinor?: number;
+    status: 'clean' | 'variance' | 'pending' | 'resolved';
+    invoices?: Array<{ id: string; invoiceNumber?: string | null; totalMinor?: number }>;
+    grns?: GoodsReceiptNoteSummary[];
+    lines: MatchCandidateLine[];
+    lastActivityAt?: string | null;
+}
+
+export interface MatchResolutionInput {
+    invoiceId: string;
+    purchaseOrderId: number;
+    grnIds?: number[];
+    decisions: Array<{
+        lineId: string;
+        type: MatchDiscrepancy['type'];
+        status: 'accept' | 'reject' | 'credit' | 'pending';
+        notes?: string;
+    }>;
+}
+
+export interface CreditNoteLine {
+    id?: string;
+    invoiceLineId: number;
+    description?: string | null;
+    qtyInvoiced?: number;
+    qtyAlreadyCredited?: number;
+    qtyToCredit: number;
+    unitPriceMinor: number;
+    currency: string;
+    totalMinor?: number;
+    uom?: string | null;
+}
+
+export interface CreditNoteSummary {
+    id: string;
+    creditNumber: string;
+    status: 'draft' | 'pending_review' | 'issued' | 'approved' | 'rejected' | string;
+    supplierName?: string | null;
+    supplierId?: number | null;
+    invoiceId?: number;
+    invoiceNumber?: string | null;
+    currency?: string;
+    totalMinor?: number;
+    createdAt?: string | null;
+    issuedAt?: string | null;
+}
+
+export interface CreditNoteDetail extends CreditNoteSummary {
+    reason?: string | null;
+    lines: CreditNoteLine[];
+    attachments: DocumentAttachment[];
+    balanceMinor?: number;
+    notes?: string | null;
+    invoice?: InvoiceSummary | null;
+    purchaseOrder?: PurchaseOrderSummary | null;
+    goodsReceiptNote?: GoodsReceiptNoteSummary | null;
 }

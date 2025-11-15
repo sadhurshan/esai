@@ -6,6 +6,7 @@ use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
 use App\Http\Requests\ApiFormRequest;
 use App\Models\Invoice;
+use App\Models\Part;
 use App\Models\PurchaseOrder;
 use App\Models\Quote;
 use App\Models\RFQ;
@@ -23,7 +24,8 @@ class StoreDocumentRequest extends ApiFormRequest
         'po' => PurchaseOrder::class,
         'invoice' => Invoice::class,
         'supplier' => Supplier::class,
-        // TODO: clarify with spec for additional documentable entities (parts, orders, etc.).
+        'part' => Part::class,
+        // TODO: clarify with spec for additional documentable entities (orders, etc.).
     ];
 
     /**

@@ -2,6 +2,7 @@
 export * from './AdminApi';
 export * from './AnalyticsApi';
 export * from './ApprovalsApi';
+export * from './AuthApi';
 export * from './CRMApi';
 export * from './CompaniesApi';
 export * from './CopilotApi';

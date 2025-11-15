@@ -20,12 +20,15 @@ import type {
   AwardLinesRequest,
   AwardRfqRequest,
   CloseRfqRequest,
+  CreateAwards200Response,
+  CreateAwardsRequest,
   CreateRfq201Response,
   CreateRfqAmendmentRequest,
   CreateRfqLine201Response,
   CreateRfqRequestItemsInner,
   InviteSupplierToRfqRequest,
   ListRfqAttachments200Response,
+  ListRfqAwardCandidates200Response,
   ListRfqClarifications200Response,
   ListRfqInvitations200Response,
   ListRfqLines200Response,
@@ -46,6 +49,10 @@ import {
     AwardRfqRequestToJSON,
     CloseRfqRequestFromJSON,
     CloseRfqRequestToJSON,
+    CreateAwards200ResponseFromJSON,
+    CreateAwards200ResponseToJSON,
+    CreateAwardsRequestFromJSON,
+    CreateAwardsRequestToJSON,
     CreateRfq201ResponseFromJSON,
     CreateRfq201ResponseToJSON,
     CreateRfqAmendmentRequestFromJSON,
@@ -58,6 +65,8 @@ import {
     InviteSupplierToRfqRequestToJSON,
     ListRfqAttachments200ResponseFromJSON,
     ListRfqAttachments200ResponseToJSON,
+    ListRfqAwardCandidates200ResponseFromJSON,
+    ListRfqAwardCandidates200ResponseToJSON,
     ListRfqClarifications200ResponseFromJSON,
     ListRfqClarifications200ResponseToJSON,
     ListRfqInvitations200ResponseFromJSON,
@@ -89,6 +98,10 @@ export interface AwardRfqLinesRequest {
 export interface CloseRfqOperationRequest {
     rfqId: string;
     closeRfqRequest?: CloseRfqRequest;
+}
+
+export interface CreateAwardsOperationRequest {
+    createAwardsRequest: CreateAwardsRequest;
 }
 
 export interface CreateRfqRequest {
@@ -128,6 +141,10 @@ export interface CreateRfqLineRequest {
     rfqLinePayload: RfqLinePayload;
 }
 
+export interface DeleteAwardRequest {
+    awardId: number;
+}
+
 export interface DeleteRfqRequest {
     rfqId: string;
 }
@@ -148,6 +165,10 @@ export interface InviteSupplierToRfqOperationRequest {
 }
 
 export interface ListRfqAttachmentsRequest {
+    rfqId: string;
+}
+
+export interface ListRfqAwardCandidatesRequest {
     rfqId: string;
 }
 
@@ -271,6 +292,21 @@ export interface RFQsApiInterface {
 
     /**
      * 
+     * @summary Create RFQ line awards without generating purchase orders
+     * @param {CreateAwardsRequest} createAwardsRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    createAwardsRaw(requestParameters: CreateAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateAwards200Response>>;
+
+    /**
+     * Create RFQ line awards without generating purchase orders
+     */
+    createAwards(requestParameters: CreateAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateAwards200Response>;
+
+    /**
+     * 
      * @summary Create RFQ
      * @param {string} itemName 
      * @param {string} type 
@@ -363,6 +399,21 @@ export interface RFQsApiInterface {
 
     /**
      * 
+     * @summary Delete an RFQ line award and reopen the associated line
+     * @param {number} awardId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    deleteAwardRaw(requestParameters: DeleteAwardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateAwards200Response>>;
+
+    /**
+     * Delete an RFQ line award and reopen the associated line
+     */
+    deleteAward(requestParameters: DeleteAwardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateAwards200Response>;
+
+    /**
+     * 
      * @summary Delete RFQ
      * @param {string} rfqId 
      * @param {*} [options] Override http request option.
@@ -438,6 +489,21 @@ export interface RFQsApiInterface {
      * List RFQ attachments
      */
     listRfqAttachments(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAttachments200Response>;
+
+    /**
+     * 
+     * @summary List award candidates for an RFQ
+     * @param {string} rfqId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RFQsApiInterface
+     */
+    listRfqAwardCandidatesRaw(requestParameters: ListRfqAwardCandidatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqAwardCandidates200Response>>;
+
+    /**
+     * List award candidates for an RFQ
+     */
+    listRfqAwardCandidates(requestParameters: ListRfqAwardCandidatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAwardCandidates200Response>;
 
     /**
      * 
@@ -786,6 +852,57 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async closeRfq(requestParameters: CloseRfqOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateRfq201Response> {
         const response = await this.closeRfqRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create RFQ line awards without generating purchase orders
+     */
+    async createAwardsRaw(requestParameters: CreateAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateAwards200Response>> {
+        if (requestParameters['createAwardsRequest'] == null) {
+            throw new runtime.RequiredError(
+                'createAwardsRequest',
+                'Required parameter "createAwardsRequest" was null or undefined when calling createAwards().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/awards`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateAwardsRequestToJSON(requestParameters['createAwardsRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateAwards200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Create RFQ line awards without generating purchase orders
+     */
+    async createAwards(requestParameters: CreateAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateAwards200Response> {
+        const response = await this.createAwardsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1196,6 +1313,55 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
     }
 
     /**
+     * Delete an RFQ line award and reopen the associated line
+     */
+    async deleteAwardRaw(requestParameters: DeleteAwardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateAwards200Response>> {
+        if (requestParameters['awardId'] == null) {
+            throw new runtime.RequiredError(
+                'awardId',
+                'Required parameter "awardId" was null or undefined when calling deleteAward().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/awards/{awardId}`;
+        urlPath = urlPath.replace(`{${"awardId"}}`, encodeURIComponent(String(requestParameters['awardId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateAwards200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete an RFQ line award and reopen the associated line
+     */
+    async deleteAward(requestParameters: DeleteAwardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateAwards200Response> {
+        const response = await this.deleteAwardRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Delete RFQ
      */
     async deleteRfqRaw(requestParameters: DeleteRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -1463,6 +1629,55 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
      */
     async listRfqAttachments(requestParameters: ListRfqAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAttachments200Response> {
         const response = await this.listRfqAttachmentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List award candidates for an RFQ
+     */
+    async listRfqAwardCandidatesRaw(requestParameters: ListRfqAwardCandidatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRfqAwardCandidates200Response>> {
+        if (requestParameters['rfqId'] == null) {
+            throw new runtime.RequiredError(
+                'rfqId',
+                'Required parameter "rfqId" was null or undefined when calling listRfqAwardCandidates().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/rfqs/{rfqId}/award-candidates`;
+        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListRfqAwardCandidates200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List award candidates for an RFQ
+     */
+    async listRfqAwardCandidates(requestParameters: ListRfqAwardCandidatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRfqAwardCandidates200Response> {
+        const response = await this.listRfqAwardCandidatesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -3,10 +3,12 @@
 namespace App\Http\Resources;
 
 use App\Enums\CreditNoteStatus;
+use App\Http\Resources\CreditNoteLineResource;
 use App\Models\CreditNote;
 use App\Models\Currency;
 use App\Support\Money\Money;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 
 /** @mixin CreditNote */
 class CreditNoteResource extends JsonResource
@@ -21,6 +23,8 @@ class CreditNoteResource extends JsonResource
         $status = $this->status instanceof CreditNoteStatus ? $this->status->value : $this->status;
         $currency = strtoupper($this->currency ?? $this->invoice?->currency ?? 'USD');
         $minorUnit = $this->minorUnitFor($currency);
+        $documents = $this->normalizeRelationValue($this->whenLoaded('documents'));
+        $lines = $this->normalizeRelationValue($this->whenLoaded('lines'));
 
         $amountMinor = $this->amount_minor !== null
             ? (int) $this->amount_minor
@@ -44,7 +48,8 @@ class CreditNoteResource extends JsonResource
             'issued_by' => $this->issued_by !== null ? (int) $this->issued_by : null,
             'approved_by' => $this->approved_by !== null ? (int) $this->approved_by : null,
             'approved_at' => $this->approved_at?->toIso8601String(),
-            'attachments' => DocumentResource::collection($this->whenLoaded('documents')),
+            'attachments' => DocumentResource::collection($documents),
+            'lines' => CreditNoteLineResource::collection($lines),
             'invoice' => $this->whenLoaded('invoice', fn () => InvoiceResource::make($this->invoice)),
             'purchase_order' => $this->whenLoaded('purchaseOrder', fn () => PurchaseOrderResource::make($this->purchaseOrder)),
             'goods_receipt_note' => $this->whenLoaded('goodsReceiptNote', fn () => GoodsReceiptNoteResource::make($this->goodsReceiptNote)),
@@ -63,5 +68,17 @@ class CreditNoteResource extends JsonResource
         }
 
         return (int) self::$minorUnitCache[$currency];
+    }
+
+    /**
+     * @param mixed $relation
+     */
+    private function normalizeRelationValue($relation)
+    {
+        if ($relation instanceof MissingValue || $relation === null) {
+            return collect();
+        }
+
+        return $relation;
     }
 }

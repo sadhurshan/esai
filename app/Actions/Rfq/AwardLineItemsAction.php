@@ -2,6 +2,7 @@
 
 namespace App\Actions\Rfq;
 
+use App\Actions\Rfq\Concerns\ManagesRfqAwardState;
 use App\Actions\PurchaseOrder\CreatePurchaseOrderFromQuoteItemsAction;
 use App\Enums\RfqItemAwardStatus;
 use App\Exceptions\RfqAwardException;
@@ -24,12 +25,14 @@ use Illuminate\Validation\ValidationException;
 
 class AwardLineItemsAction
 {
+    use ManagesRfqAwardState;
+
     private const SUPPLIER_NOTIFICATION_ROLES = ['supplier_admin', 'supplier_estimator'];
 
     public function __construct(
         private readonly CreatePurchaseOrderFromQuoteItemsAction $createPurchaseOrderFromQuoteItemsAction,
         private readonly NotificationService $notifications,
-        private readonly AuditLogger $auditLogger,
+        protected readonly AuditLogger $auditLogger,
     ) {
     }
 
@@ -39,7 +42,7 @@ class AwardLineItemsAction
      *
      * @throws ValidationException
      */
-    public function execute(RFQ $rfq, array $awards, User $user): Collection
+    public function execute(RFQ $rfq, array $awards, User $user, bool $createPurchaseOrders = true): Collection
     {
         $this->assertRfqEligible($rfq);
 
@@ -77,7 +80,8 @@ class AwardLineItemsAction
             &$winnerSupplierIds,
             &$winnerQuoteItemIds,
             &$purchaseOrders,
-            $rfqItemIds
+            $rfqItemIds,
+            $createPurchaseOrders
         ): void {
             $groupedBySupplier = $awardRows->groupBy('supplier_id');
             $awardedAt = now();
@@ -88,24 +92,33 @@ class AwardLineItemsAction
                 $supplier = $supplierRows->first()['supplier'];
                 $quoteItemIds = $supplierRows->pluck('quote_item_id')->all();
 
-                $result = $this->createPurchaseOrderFromQuoteItemsAction->execute(
-                    $rfq,
-                    $supplier,
-                    $quoteItemIds
-                );
+                $po = null;
+                $lines = [];
 
-                /** @var PurchaseOrder $po */
-                $po = $result['po'];
-                /** @var array<int, PurchaseOrderLine> $lines */
-                $lines = $result['lines'];
+                if ($createPurchaseOrders) {
+                    $result = $this->createPurchaseOrderFromQuoteItemsAction->execute(
+                        $rfq,
+                        $supplier,
+                        $quoteItemIds
+                    );
 
-                $purchaseOrders[$po->id] = $po;
+                    /** @var PurchaseOrder $poInstance */
+                    $poInstance = $result['po'];
+                    /** @var array<int, PurchaseOrderLine> $linesInstance */
+                    $linesInstance = $result['lines'];
+
+                    $po = $poInstance;
+                    $lines = $linesInstance;
+
+                    $purchaseOrders[$po->id] = $po;
+                }
 
                 foreach ($supplierRows as $row) {
                     /** @var Quote $quote */
                     $quote = $row['quote'];
                     /** @var QuoteItem $quoteItem */
                     $quoteItem = $row['quote_item'];
+                    $awardedQty = (int) ($row['awarded_qty'] ?? ($quoteItem->rfqItem->quantity ?? 1));
 
                     $award = RfqItemAward::create([
                         'company_id' => $rfq->company_id,
@@ -114,25 +127,29 @@ class AwardLineItemsAction
                         'supplier_id' => $supplierId,
                         'quote_id' => $quote->id,
                         'quote_item_id' => $quoteItem->id,
-                        'po_id' => $po->id,
+                        'awarded_qty' => $awardedQty,
+                        'po_id' => $po?->id,
                         'awarded_by' => $user->id,
                         'awarded_at' => $awardedAt,
                         'status' => RfqItemAwardStatus::Awarded,
                     ]);
 
-                    $poLine = $lines[$row['rfq_item_id']] ?? $po->lines()
-                        ->where('rfq_item_id', $row['rfq_item_id'])
-                        ->orderByDesc('id')
-                        ->first();
+                    if ($po instanceof PurchaseOrder) {
+                        $poLine = $lines[$row['rfq_item_id']] ?? $po->lines()
+                            ->where('rfq_item_id', $row['rfq_item_id'])
+                            ->orderByDesc('id')
+                            ->first();
 
-                    if ($poLine instanceof PurchaseOrderLine) {
-                        $poLine->rfq_item_award_id = $award->id;
-                        $poLine->save();
+                        if ($poLine instanceof PurchaseOrderLine) {
+                            $poLine->rfq_item_award_id = $award->id;
+                            $poLine->quantity = $awardedQty > 0 ? $awardedQty : $poLine->quantity;
+                            $poLine->save();
+                        }
                     }
 
                     $this->auditLogger->created($award, [
                         'rfq_item_id' => $row['rfq_item_id'],
-                        'po_id' => $po->id,
+                        'po_id' => $po?->id,
                     ]);
 
                     $this->updateQuoteItemStatus($quoteItem, 'awarded');
@@ -142,7 +159,10 @@ class AwardLineItemsAction
 
                     $winnerNotifications[$supplierId]['items'][] = $row['rfq_item_id'];
                     $winnerNotifications[$supplierId]['supplier'] = $supplier;
-                    $winnerNotifications[$supplierId]['po'] = $po;
+
+                    if ($po instanceof PurchaseOrder) {
+                        $winnerNotifications[$supplierId]['po'] = $po;
+                    }
                 }
             }
 
@@ -235,6 +255,7 @@ class AwardLineItemsAction
         return $payload->map(function (array $row, int $index) use ($rfq, $rfqItems, $quoteItems) {
             $rfqItemId = (int) ($row['rfq_item_id'] ?? 0);
             $quoteItemId = (int) ($row['quote_item_id'] ?? 0);
+            $awardedQtyInput = $row['awarded_qty'] ?? null;
 
             /** @var RfqItem|null $rfqItem */
             $rfqItem = $rfqItems->get($rfqItemId);
@@ -289,6 +310,20 @@ class AwardLineItemsAction
                 throw new RfqAwardException('RFQ item already awarded.', 409);
             }
 
+            $awardedQty = (int) ($awardedQtyInput ?? $rfqItem?->quantity ?? 0);
+
+            if ($awardedQty <= 0) {
+                throw ValidationException::withMessages([
+                    "awards.$index.awarded_qty" => ['Awarded quantity must be greater than zero.'],
+                ]);
+            }
+
+            if ($rfqItem !== null && $awardedQty > (int) $rfqItem->quantity) {
+                throw ValidationException::withMessages([
+                    "awards.$index.awarded_qty" => ['Awarded quantity exceeds RFQ line quantity.'],
+                ]);
+            }
+
             return [
                 'rfq_item_id' => $rfqItemId,
                 'quote_item_id' => $quoteItemId,
@@ -296,81 +331,9 @@ class AwardLineItemsAction
                 'quote_item' => $quoteItem,
                 'supplier' => $supplier,
                 'supplier_id' => $supplier->id,
+                'awarded_qty' => $awardedQty,
             ];
         });
-    }
-
-    private function updateQuoteItemStatus(QuoteItem $quoteItem, string $status): void
-    {
-        if ($quoteItem->status === $status) {
-            return;
-        }
-
-        $before = Arr::only($quoteItem->getAttributes(), ['status']);
-        $quoteItem->status = $status;
-        $quoteItem->save();
-
-        $this->auditLogger->updated($quoteItem, $before, ['status' => $status]);
-    }
-
-    private function refreshQuoteStatuses(RFQ $rfq): void
-    {
-        $quotes = Quote::query()
-            ->with('items')
-            ->where('rfq_id', $rfq->id)
-            ->get();
-
-        foreach ($quotes as $quote) {
-            if ($quote->status === 'withdrawn') {
-                continue;
-            }
-
-            $awardedCount = $quote->items->where('status', 'awarded')->count();
-            $pendingCount = $quote->items->where('status', 'pending')->count();
-
-            $targetStatus = $quote->status;
-
-            if ($awardedCount > 0) {
-                $targetStatus = 'awarded';
-            } elseif ($pendingCount === 0) {
-                $targetStatus = 'lost';
-            }
-
-            if ($targetStatus !== $quote->status) {
-                $before = Arr::only($quote->getAttributes(), ['status']);
-                $quote->status = $targetStatus;
-                $quote->save();
-
-                $this->auditLogger->updated($quote, $before, ['status' => $targetStatus]);
-            }
-        }
-    }
-
-    private function refreshRfqState(RFQ $rfq): void
-    {
-        $before = Arr::only($rfq->getAttributes(), ['status', 'is_partially_awarded', 'version_no', 'version']);
-
-        $totalItems = (int) $rfq->items()->count();
-        $awardedItems = (int) RfqItemAward::query()
-            ->where('rfq_id', $rfq->id)
-            ->where('status', RfqItemAwardStatus::Awarded)
-            ->count();
-
-        if ($totalItems > 0 && $awardedItems >= $totalItems) {
-            $rfq->status = 'awarded';
-            $rfq->is_partially_awarded = false;
-        } elseif ($awardedItems > 0) {
-            $rfq->is_partially_awarded = true;
-        }
-
-        $rfq->incrementVersion();
-
-        $this->auditLogger->updated($rfq, $before, Arr::only($rfq->getAttributes(), [
-            'status',
-            'is_partially_awarded',
-            'version_no',
-            'version',
-        ]));
     }
 
     /**
@@ -382,8 +345,6 @@ class AwardLineItemsAction
         foreach ($winnerNotifications as $supplierId => $payload) {
             /** @var Supplier $supplier */
             $supplier = $payload['supplier'];
-            /** @var PurchaseOrder $po */
-            $po = $payload['po'];
             $itemIds = array_values(array_unique($payload['items']));
 
             $recipients = $this->supplierRecipients($supplier);
@@ -391,19 +352,28 @@ class AwardLineItemsAction
                 continue;
             }
 
+            $po = $payload['po'] ?? null;
+            $resourceType = $po instanceof PurchaseOrder ? PurchaseOrder::class : RFQ::class;
+            $resourceId = $po instanceof PurchaseOrder ? $po->id : $rfq->id;
+
+            $meta = [
+                'rfq_id' => $rfq->id,
+                'rfq_item_ids' => $itemIds,
+            ];
+
+            if ($po instanceof PurchaseOrder) {
+                $meta['po_id'] = $po->id;
+                $meta['po_number'] = $po->po_number;
+            }
+
             $this->notifications->send(
                 $recipients,
                 'rfq_line_awarded',
                 'RFQ lines awarded',
                 sprintf('RFQ %s awarded line items %s to your company.', $rfq->number ?? $rfq->id, implode(', ', $itemIds)),
-                PurchaseOrder::class,
-                $po->id,
-                [
-                    'rfq_id' => $rfq->id,
-                    'rfq_item_ids' => $itemIds,
-                    'po_id' => $po->id,
-                    'po_number' => $po->po_number,
-                ]
+                $resourceType,
+                $resourceId,
+                $meta
             );
         }
 

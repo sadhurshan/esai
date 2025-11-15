@@ -5,7 +5,7 @@ components:
       required:
         - id
         - purchase_order_id
-        - number
+        - grn_number
         - status
       properties:
         id:
@@ -14,17 +14,45 @@ components:
           type: integer
         purchase_order_id:
           type: integer
+        purchase_order_number:
+          type: string
+          nullable: true
+        po_number:
+          type: string
+          nullable: true
+        grn_number:
+          type: string
         number:
           type: string
         status:
           type: string
-          enum: [draft, inspecting, accepted, rejected]
+          enum: [draft, inspecting, posted, variance, rejected]
         inspected_by_id:
           type: integer
           nullable: true
         inspected_at:
           type: string
           format: date-time
+          nullable: true
+        received_at:
+          type: string
+          format: date-time
+          nullable: true
+        posted_at:
+          type: string
+          format: date-time
+          nullable: true
+        reference:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        supplier_id:
+          type: integer
+          nullable: true
+        supplier_name:
+          type: string
           nullable: true
         inspector:
           type: object
@@ -34,52 +62,118 @@ components:
               type: integer
             name:
               type: string
+        created_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        lines_count:
+          type: integer
+          nullable: true
+        attachments_count:
+          type: integer
+          nullable: true
         lines:
           type: array
           items:
             $ref: '#/components/schemas/GoodsReceiptLine'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentAttachment'
+        timeline:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
         created_at:
           type: string
           format: date-time
+          nullable: true
         updated_at:
           type: string
           format: date-time
+          nullable: true
     GoodsReceiptLine:
       type: object
       required:
         - id
         - purchase_order_line_id
-        - quantity_received
+        - received_qty
       properties:
         id:
           type: integer
+        goods_receipt_note_id:
+          type: integer
         purchase_order_line_id:
           type: integer
-        quantity_received:
-          type: number
-        quantity_accepted:
-          type: number
-          nullable: true
-        quantity_rejected:
-          type: number
-          nullable: true
-        rejection_reason:
+        po_line_id:
+          type: integer
+        line_no:
           type: string
           nullable: true
+        description:
+          type: string
+          nullable: true
+        ordered_qty:
+          type: number
+          nullable: true
+        received_qty:
+          type: number
+        accepted_qty:
+          type: number
+          nullable: true
+        rejected_qty:
+          type: number
+          nullable: true
+        previously_received:
+          type: number
+          nullable: true
+        remaining_qty:
+          type: number
+          nullable: true
+        defect_notes:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        uom:
+          type: string
+          nullable: true
+        unit_price_minor:
+          type: integer
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        variance:
+          type: object
+          nullable: true
+          additionalProperties: true
         attachments:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              filename:
-                type: string
-              mime:
-                type: string
-              size_bytes:
-                type: integer
+            $ref: '#/components/schemas/DocumentAttachment'
+    CompanyGoodsReceiptLineInput:
+      type: object
+      required:
+        - po_line_id
+        - qty_received
+      properties:
+        po_line_id:
+          type: integer
+        qty_received:
+          type: number
+        notes:
+          type: string
+          nullable: true
+        uom:
+          type: string
+          nullable: true
     Rma:
       type: object
       required:
@@ -264,6 +358,182 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/receiving/grns:
+    get:
+      tags:
+        - Inventory
+      summary: List company goods receipt notes
+      operationId: listCompanyGrns
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
+        - name: purchase_order_id
+          in: query
+          schema:
+            type: integer
+        - name: supplier_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, posted, variance, all]
+        - name: received_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: received_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cursor paginated goods receipt notes scoped to the authenticated company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/GoodsReceiptNote'
+                          meta:
+                            type: object
+                            properties:
+                              per_page:
+                                type: integer
+                              next_cursor:
+                                type: string
+                                nullable: true
+                              prev_cursor:
+                                type: string
+                                nullable: true
+                            additionalProperties: false
+    post:
+      tags:
+        - Inventory
+      summary: Record a goods receipt note for a purchase order
+      operationId: storeCompanyGrn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - purchase_order_id
+                - lines
+              properties:
+                purchase_order_id:
+                  type: integer
+                received_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                reference:
+                  type: string
+                  nullable: true
+                notes:
+                  type: string
+                  nullable: true
+                status:
+                  type: string
+                  enum: [draft, posted]
+                  nullable: true
+                lines:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/CompanyGoodsReceiptLineInput'
+      responses:
+        '200':
+          description: Goods receipt stored.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GoodsReceiptNote'
+  /api/receiving/grns/{grnId}:
+    parameters:
+      - name: grnId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Inventory
+      summary: Show a goods receipt note
+      operationId: showCompanyGrn
+      responses:
+        '200':
+          description: Goods receipt details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GoodsReceiptNote'
+  /api/receiving/grns/{grnId}/attachments:
+    post:
+      tags:
+        - Inventory
+      summary: Upload attachment to goods receipt note
+      operationId: attachCompanyGrnFile
+      parameters:
+        - name: grnId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Attachment uploaded and goods receipt note updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GoodsReceiptNote'
   /api/rmas:
     get:
       tags:

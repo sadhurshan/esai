@@ -9,6 +9,8 @@ components:
         - invoice_number
         - status
         - currency
+        - subtotal
+        - tax_amount
         - total
       properties:
         id:
@@ -23,11 +25,15 @@ components:
           nullable: true
         invoice_number:
           type: string
+        invoice_date:
+          type: string
+          format: date
+          nullable: true
         currency:
           type: string
         status:
           type: string
-          enum: [draft, submitted, approved, rejected, paid]
+          enum: [pending, draft, submitted, approved, rejected, paid, overdue, disputed, posted]
         subtotal:
           type: number
           format: float
@@ -48,6 +54,31 @@ components:
               type: integer
             unmatched:
               type: integer
+        supplier:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+              nullable: true
+        purchase_order:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            po_number:
+              type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceLine'
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceMatch'
         document:
           type: object
           nullable: true
@@ -61,12 +92,155 @@ components:
               type: string
             size_bytes:
               type: integer
+            created_at:
+              type: string
+              format: date-time
+              nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentAttachment'
         created_at:
           type: string
           format: date-time
         updated_at:
           type: string
           format: date-time
+    InvoiceLine:
+      type: object
+      required:
+        - id
+        - description
+        - quantity
+        - unit_price
+      properties:
+        id:
+          type: string
+        invoice_id:
+          type: string
+          nullable: true
+        po_line_id:
+          type: string
+          nullable: true
+        description:
+          type: string
+        quantity:
+          type: number
+        uom:
+          type: string
+          nullable: true
+        currency:
+          type: string
+        unit_price:
+          type: number
+          format: float
+        unit_price_minor:
+          type: integer
+          nullable: true
+        line_subtotal:
+          type: number
+          format: float
+        tax_total:
+          type: number
+          format: float
+        line_total:
+          type: number
+          format: float
+        taxes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              tax_code_id:
+                type: integer
+              rate_percent:
+                type: number
+              amount_minor:
+                type: integer
+              amount:
+                type: number
+                format: float
+              sequence:
+                type: integer
+    InvoiceMatch:
+      type: object
+      required:
+        - id
+        - result
+      properties:
+        id:
+          type: integer
+        invoice_id:
+          type: integer
+        purchase_order_id:
+          type: integer
+          nullable: true
+        goods_receipt_note_id:
+          type: integer
+          nullable: true
+        result:
+          type: string
+          enum: [matched, qty_mismatch, price_mismatch, unmatched]
+        details:
+          type: object
+          additionalProperties: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    DocumentAttachment:
+      type: object
+      required:
+        - id
+        - filename
+        - mime
+        - size_bytes
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        mime:
+          type: string
+        size_bytes:
+          type: integer
+        version:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        meta:
+          type: object
+          additionalProperties: true
+          nullable: true
+    InvoiceLineInput:
+      type: object
+      required:
+        - po_line_id
+        - quantity
+      properties:
+        po_line_id:
+          type: integer
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+          format: float
+        description:
+          type: string
+          nullable: true
+        uom:
+          type: string
+          nullable: true
+        tax_code_ids:
+          type: array
+          items:
+            type: integer
     InvoiceCollection:
       type: object
       required:
@@ -88,6 +262,31 @@ paths:
         schema:
           type: string
           format: uuid
+      - $ref: '#/components/parameters/PerPageQuery'
+      - $ref: '#/components/parameters/PageQuery'
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [pending, paid, overdue, disputed]
+      - name: supplier_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
     get:
       tags:
         - Invoices
@@ -117,29 +316,28 @@ paths:
             schema:
               type: object
               required:
-                - invoice_number
-                - currency
-                - total
-                - file
+                - lines
               properties:
                 invoice_number:
                   type: string
+                  maxLength: 60
+                invoice_date:
+                  type: string
+                  format: date
                 currency:
                   type: string
-                subtotal:
-                  type: number
-                  format: float
-                tax_amount:
-                  type: number
-                  format: float
-                total:
-                  type: number
-                  format: float
-                file:
+                  minLength: 3
+                  maxLength: 3
+                document:
                   type: string
                   format: binary
+                lines:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/InvoiceLineInput'
       responses:
-        '201':
+        '200':
           description: Invoice captured.
           content:
             application/json:
@@ -150,6 +348,50 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/Invoice'
+  /api/invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List invoices for company
+      operationId: listInvoices
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, paid, overdue, disputed]
+        - name: supplier_id
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Paginated invoices for the active company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InvoiceCollection'
   /api/invoices/{invoiceId}:
     parameters:
       - name: invoiceId
@@ -189,26 +431,41 @@ paths:
             schema:
               type: object
               properties:
-                invoice_number:
-                  type: string
                 status:
                   type: string
-                subtotal:
-                  type: number
-                  format: float
-                tax_amount:
-                  type: number
-                  format: float
-                total:
-                  type: number
-                  format: float
+                  enum: [pending, paid, overdue, disputed]
+                lines:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                    properties:
+                      id:
+                        type: integer
+                      description:
+                        type: string
+                      quantity:
+                        type: integer
+                      unit_price:
+                        type: number
+                        format: float
+                      tax_code_ids:
+                        type: array
+                        items:
+                          type: integer
       responses:
         '200':
           description: Invoice updated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Invoice'
     delete:
       tags:
         - Invoices
@@ -221,6 +478,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invoices/from-po:
+    post:
+      tags:
+        - Invoices
+      summary: Create invoice from purchase order reference
+      operationId: createInvoiceFromPo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - po_id
+                - lines
+              properties:
+                po_id:
+                  type: integer
+                supplier_id:
+                  type: integer
+                  nullable: true
+                invoice_number:
+                  type: string
+                  nullable: true
+                invoice_date:
+                  type: string
+                  format: date
+                  nullable: true
+                currency:
+                  type: string
+                  nullable: true
+                document:
+                  type: string
+                  format: binary
+                  nullable: true
+                lines:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - po_line_id
+                    oneOf:
+                      - required: [quantity]
+                      - required: [qty_invoiced]
+                    properties:
+                      po_line_id:
+                        type: integer
+                      quantity:
+                        type: integer
+                        nullable: true
+                      qty_invoiced:
+                        type: integer
+                        nullable: true
+                      unit_price:
+                        type: number
+                        format: float
+                        nullable: true
+                      unit_price_minor:
+                        type: integer
+                        nullable: true
+                      description:
+                        type: string
+                        nullable: true
+                      uom:
+                        type: string
+                        nullable: true
+                      tax_code_ids:
+                        type: array
+                        items:
+                          type: integer
+      responses:
+        '200':
+          description: Invoice created from purchase order lines.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Invoice'
+  /api/invoices/{invoiceId}/attachments:
+    post:
+      tags:
+        - Invoices
+      summary: Upload supporting file for invoice
+      operationId: attachInvoiceFile
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Invoice attachment uploaded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          invoice:
+                            $ref: '#/components/schemas/Invoice'
+                          attachment:
+                            $ref: '#/components/schemas/DocumentAttachment'
   /api/invoices/{invoiceId}/recalculate:
     post:
       tags:
@@ -240,4 +622,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Invoice'

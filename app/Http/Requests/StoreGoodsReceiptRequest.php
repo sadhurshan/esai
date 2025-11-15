@@ -23,6 +23,8 @@ class StoreGoodsReceiptRequest extends ApiFormRequest
             ],
             'inspected_by_id' => ['nullable', 'integer', 'exists:users,id'],
             'inspected_at' => ['nullable', 'date'],
+            'reference' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:2000'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.purchase_order_line_id' => ['required', 'integer', 'exists:po_lines,id'],
             'lines.*.received_qty' => ['required', 'integer', 'min:1'],

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class GoodsReceiptNote extends Model
 {
@@ -20,6 +21,8 @@ class GoodsReceiptNote extends Model
         'inspected_by_id',
         'inspected_at',
         'status',
+        'reference',
+        'notes',
     ];
 
     protected $casts = [
@@ -27,6 +30,8 @@ class GoodsReceiptNote extends Model
         'purchase_order_id' => 'integer',
         'inspected_by_id' => 'integer',
         'inspected_at' => 'datetime',
+        'reference' => 'string',
+        'notes' => 'string',
     ];
 
     public function company(): BelongsTo
@@ -47,5 +52,10 @@ class GoodsReceiptNote extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(GoodsReceiptLine::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

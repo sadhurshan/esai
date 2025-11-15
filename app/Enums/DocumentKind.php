@@ -7,6 +7,7 @@ enum DocumentKind: string
     case Rfq = 'rfq';
     case Quote = 'quote';
     case PurchaseOrder = 'po';
+    case GoodsReceipt = 'grn_attachment';
     case Invoice = 'invoice';
     case Supplier = 'supplier';
     case Part = 'part';

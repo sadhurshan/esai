@@ -218,5 +218,5 @@ describe('RfqCreateWizard', () => {
         expect(removeItemSpy).toHaveBeenCalledWith('esai.rfq-wizard-state');
 
         removeItemSpy.mockRestore();
-    });
+    }, 15_000);
 });

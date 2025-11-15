@@ -2,6 +2,7 @@
 
 namespace App\Actions\Invoicing;
 
+use App\Actions\PurchaseOrder\RecordPurchaseOrderEventAction;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
@@ -28,6 +29,7 @@ class CreateInvoiceAction
         private readonly DatabaseManager $db,
         private readonly TotalsCalculator $totalsCalculator,
         private readonly LineTaxSyncService $lineTaxSync,
+        private readonly RecordPurchaseOrderEventAction $recordPoEvent,
     ) {}
 
     /**
@@ -57,8 +59,10 @@ class CreateInvoiceAction
             ]);
         }
 
-    /** @var Collection<int, array<string, mixed>> $linesPayload */
-    $linesPayload = collect($payload['lines'] ?? []);
+        $purchaseOrder->loadMissing(['lines.invoiceLines']);
+
+        /** @var Collection<int, array<string, mixed>> $linesPayload */
+        $linesPayload = collect($payload['lines'] ?? []);
 
         if ($linesPayload->isEmpty()) {
             throw ValidationException::withMessages([
@@ -67,13 +71,23 @@ class CreateInvoiceAction
         }
 
         $invoiceNumber = $payload['invoice_number'] ?? $this->generateInvoiceNumber($companyId);
-
+        $invoiceDate = $payload['invoice_date'] ?? now()->toDateString();
         $currency = $payload['currency'] ?? $purchaseOrder->currency ?? 'USD';
 
         /** @var UploadedFile|null $document */
         $document = $payload['document'] ?? null;
 
-        return $this->db->transaction(function () use ($companyId, $user, $purchaseOrder, $supplierId, $invoiceNumber, $currency, $linesPayload, $document): Invoice {
+        return $this->db->transaction(function () use (
+            $companyId,
+            $user,
+            $purchaseOrder,
+            $supplierId,
+            $invoiceNumber,
+            $invoiceDate,
+            $currency,
+            $linesPayload,
+            $document,
+        ): Invoice {
             $resolvedLines = $this->resolveLines($purchaseOrder, $linesPayload);
 
             $calculation = $this->totalsCalculator->calculate(
@@ -94,6 +108,7 @@ class CreateInvoiceAction
                 'supplier_id' => $supplierId,
                 'invoice_number' => $invoiceNumber,
                 'currency' => strtoupper($currency),
+                'invoice_date' => $invoiceDate,
                 'subtotal' => $this->formatMinor($calculation['totals']['subtotal_minor'], $currency, $minorUnit),
                 'tax_amount' => $this->formatMinor($calculation['totals']['tax_total_minor'], $currency, $minorUnit),
                 'total' => $this->formatMinor($calculation['totals']['grand_total_minor'], $currency, $minorUnit),
@@ -159,6 +174,20 @@ class CreateInvoiceAction
 
             $this->auditLogger->created($invoice, ['user_id' => $user->id]);
 
+            $this->recordPoEvent->execute(
+                $purchaseOrder,
+                'invoice_created',
+                sprintf('Invoice %s created', $invoice->invoice_number),
+                null,
+                [
+                    'invoice_id' => $invoice->getKey(),
+                    'invoice_number' => $invoice->invoice_number,
+                    'total_minor' => $calculation['totals']['grand_total_minor'],
+                ],
+                $user,
+                now(),
+            );
+
             return $invoice;
         });
     }
@@ -203,7 +232,7 @@ class CreateInvoiceAction
     {
         $purchaseOrder->loadMissing('lines');
 
-        return $lines->map(function (array $line) use ($purchaseOrder): array {
+        $resolved = $lines->map(function (array $line) use ($purchaseOrder): array {
             $poLineId = (int) ($line['po_line_id'] ?? 0);
 
             /** @var PurchaseOrderLine|null $poLine */
@@ -214,6 +243,8 @@ class CreateInvoiceAction
                     'lines' => ["Purchase order line {$poLineId} is invalid for this purchase order."],
                 ]);
             }
+
+            $poLine->loadMissing('invoiceLines');
 
             $quantity = isset($line['quantity']) ? (int) $line['quantity'] : (int) $poLine->quantity;
             $unitPrice = isset($line['unit_price']) ? (float) $line['unit_price'] : (float) $poLine->unit_price;
@@ -230,6 +261,38 @@ class CreateInvoiceAction
                 )),
             ];
         });
+
+        $resolved
+            ->groupBy('po_line_id')
+            ->each(function (Collection $group, int $poLineId) use ($purchaseOrder): void {
+                /** @var PurchaseOrderLine|null $poLine */
+                $poLine = $purchaseOrder->lines->firstWhere('id', $poLineId);
+
+                if ($poLine === null) {
+                    return;
+                }
+
+                $poLine->loadMissing('invoiceLines');
+
+                $alreadyInvoiced = (int) $poLine->invoiceLines->sum('quantity');
+                $remaining = max(0, (int) $poLine->quantity - $alreadyInvoiced);
+                $requested = (int) $group->sum('quantity');
+
+                if ($requested > $remaining) {
+                    throw ValidationException::withMessages([
+                        'lines' => [
+                            sprintf(
+                                'Line %d exceeds remaining quantity. Available: %d, requested: %d.',
+                                $poLine->line_no ?? $poLineId,
+                                $remaining,
+                                $requested,
+                            ),
+                        ],
+                    ]);
+                }
+            });
+
+        return $resolved;
     }
 
     private function formatMinor(int $amountMinor, string $currency, int $minorUnit): string

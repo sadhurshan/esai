@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Currency;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\URL;
 
 /** @mixin \App\Models\PurchaseOrder */
 class PurchaseOrderResource extends JsonResource
@@ -20,11 +21,12 @@ class PurchaseOrderResource extends JsonResource
         $taxMinor = $this->tax_amount_minor ?? $this->decimalToMinor($this->tax_amount, $minorUnit);
         $totalMinor = $this->total_minor ?? $this->decimalToMinor($this->total, $minorUnit);
 
-        return [
+        $payload = [
             'id' => $this->getKey(),
             'company_id' => $this->company_id,
             'po_number' => $this->po_number,
             'status' => $this->status,
+            'ack_status' => $this->ack_status ?? 'draft',
             'currency' => $currency,
             'incoterm' => $this->incoterm,
             'tax_percent' => $this->tax_percent,
@@ -37,6 +39,10 @@ class PurchaseOrderResource extends JsonResource
             'revision_no' => $this->revision_no,
             'rfq_id' => $this->rfq_id,
             'quote_id' => $this->quote_id,
+            'pdf_document_id' => $this->pdf_document_id,
+            'sent_at' => optional($this->sent_at)?->toIso8601String(),
+            'acknowledged_at' => optional($this->acknowledged_at)?->toIso8601String(),
+            'ack_reason' => $this->ack_reason,
             'supplier' => $this->when(
                 $this->relationLoaded('supplier') || $this->relationLoaded('quote'),
                 function () {
@@ -77,9 +83,36 @@ class PurchaseOrderResource extends JsonResource
                 ->map(fn ($changeOrder) => (new PoChangeOrderResource($changeOrder))->toArray($request))
                 ->values()
                 ->all(), []),
+            'deliveries' => $this->whenLoaded('deliveries', fn () => $this->deliveries
+                ->map(fn ($delivery) => (new PurchaseOrderDeliveryResource($delivery))->toArray($request))
+                ->values()
+                ->all(), []),
+            'latest_delivery' => $this->whenLoaded('deliveries', function () use ($request) {
+                $delivery = $this->deliveries->first();
+
+                return $delivery ? (new PurchaseOrderDeliveryResource($delivery))->toArray($request) : null;
+            }),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
+            'cancelled_at' => optional($this->cancelled_at)?->toIso8601String(),
         ];
+
+        if ($this->relationLoaded('pdfDocument') && $this->pdfDocument) {
+            $downloadUrl = URL::signedRoute('purchase-orders.pdf.download', [
+                'purchaseOrder' => $this->getKey(),
+                'document' => $this->pdfDocument->getKey(),
+            ], now()->addMinutes(30));
+
+            $payload['pdf_document'] = [
+                'id' => $this->pdfDocument->getKey(),
+                'filename' => $this->pdfDocument->filename,
+                'version' => $this->pdfDocument->version_number,
+                'download_url' => $downloadUrl,
+                'created_at' => optional($this->pdfDocument->created_at)?->toIso8601String(),
+            ];
+        }
+
+        return $payload;
     }
 
     private function minorUnitFor(string $currency): int

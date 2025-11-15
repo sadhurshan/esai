@@ -20,6 +20,7 @@ import {
     LineChart,
     Settings,
     ShieldAlert,
+    Scale,
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Quotes', to: '/app/quotes', icon: FileText },
     { label: 'Purchase Orders', to: '/app/purchase-orders', icon: ClipboardList },
     { label: 'Invoices', to: '/app/invoices', icon: Wallet },
+    { label: 'Matching', to: '/app/matching', icon: Scale, featureKey: 'finance_enabled' },
     { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory.access' },
     { label: 'Assets', to: '/app/assets', icon: Factory, featureKey: 'digital_twin.access' },
     { label: 'Orders', to: '/app/orders', icon: PackageSearch },

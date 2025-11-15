@@ -34,6 +34,10 @@ class PurchaseOrder extends Model
         'subtotal_minor',
         'tax_amount_minor',
         'total_minor',
+        'sent_at',
+        'ack_status',
+        'acknowledged_at',
+        'ack_reason',
     ];
 
     protected $casts = [
@@ -45,6 +49,9 @@ class PurchaseOrder extends Model
         'subtotal_minor' => 'integer',
         'tax_amount_minor' => 'integer',
         'total_minor' => 'integer',
+        'cancelled_at' => 'datetime',
+        'sent_at' => 'datetime',
+        'acknowledged_at' => 'datetime',
     ];
 
     public function company(): BelongsTo
@@ -95,5 +102,15 @@ class PurchaseOrder extends Model
     public function creditNotes(): HasMany
     {
         return $this->hasMany(CreditNote::class);
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderDelivery::class)->latest('created_at');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderEvent::class)->latest('occurred_at');
     }
 }

@@ -8,8 +8,10 @@ use App\Enums\DocumentKind;
 use App\Enums\MoneyRoundRule;
 use App\Models\CompanyMoneySetting;
 use App\Models\CreditNote;
+use App\Models\CreditNoteLine;
 use App\Models\Currency;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
@@ -145,7 +147,7 @@ class CreditNoteService
                 $creditNote->documents()->attach($document->id);
             }
 
-            return $creditNote->fresh(['documents']);
+            return $this->refreshDetail($creditNote);
         });
     }
 
@@ -174,7 +176,7 @@ class CreditNoteService
                 sprintf('Credit note %s has been issued and is awaiting approval.', $creditNote->credit_number)
             );
 
-            return $creditNote->fresh(['invoice', 'purchaseOrder', 'goodsReceiptNote', 'documents']);
+            return $this->refreshDetail($creditNote);
         });
     }
 
@@ -215,7 +217,7 @@ class CreditNoteService
                     sprintf('Credit note %s has been rejected.', $creditNote->credit_number),
                 );
 
-                return $creditNote->fresh(['invoice', 'purchaseOrder', 'goodsReceiptNote', 'documents']);
+                return $this->refreshDetail($creditNote);
             }
 
             $creditNote->status = CreditNoteStatus::Approved;
@@ -291,8 +293,242 @@ class CreditNoteService
                 sprintf('Credit note %s has been approved and applied to invoice %s.', $creditNote->credit_number, $invoice->invoice_number),
             );
 
-            return $creditNote->fresh(['invoice', 'purchaseOrder', 'goodsReceiptNote', 'documents']);
+            return $this->refreshDetail($creditNote);
         });
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $lines
+     */
+    public function updateCreditNoteLines(CreditNote $creditNote, array $lines, User $actor): CreditNote
+    {
+        if ($creditNote->status !== CreditNoteStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => ['Only draft credit notes can be edited.'],
+            ]);
+        }
+
+        if ($creditNote->company_id === null) {
+            throw ValidationException::withMessages([
+                'credit_note_id' => ['Credit note company context is required.'],
+            ]);
+        }
+
+        if ($creditNote->invoice_id === null) {
+            throw ValidationException::withMessages([
+                'invoice_id' => ['Credit note invoice context is required.'],
+            ]);
+        }
+
+        if (count($lines) === 0) {
+            throw ValidationException::withMessages([
+                'lines' => ['At least one credit line is required.'],
+            ]);
+        }
+
+        /** @var Invoice|null $invoice */
+        $invoice = $creditNote->invoice()->with('lines')->first();
+
+        if (! $invoice instanceof Invoice) {
+            throw ValidationException::withMessages([
+                'invoice_id' => ['Invoice not found for this credit note.'],
+            ]);
+        }
+
+        $invoiceLines = $invoice->lines->keyBy('id');
+
+        if ($invoiceLines->isEmpty()) {
+            throw ValidationException::withMessages([
+                'lines' => ['Invoice has no lines available for credit.'],
+            ]);
+        }
+
+        $normalized = [];
+
+        foreach ($lines as $index => $line) {
+            $invoiceLineId = (int) ($line['invoice_line_id'] ?? $line['invoiceLineId'] ?? 0);
+            $quantity = $line['qty_to_credit'] ?? $line['qtyToCredit'] ?? null;
+            $qtyToCredit = is_numeric($quantity) ? (float) $quantity : null;
+
+            if ($invoiceLineId <= 0) {
+                throw ValidationException::withMessages([
+                    "lines.$index.invoice_line_id" => ['Invoice line id is required.'],
+                ]);
+            }
+
+            if ($qtyToCredit === null || $qtyToCredit < 0) {
+                throw ValidationException::withMessages([
+                    "lines.$index.qty_to_credit" => ['Quantity to credit must be zero or greater.'],
+                ]);
+            }
+
+            if (! $invoiceLines->has($invoiceLineId)) {
+                throw ValidationException::withMessages([
+                    "lines.$index.invoice_line_id" => ['Line does not belong to the credit note invoice.'],
+                ]);
+            }
+
+            if (array_key_exists($invoiceLineId, $normalized)) {
+                throw ValidationException::withMessages([
+                    "lines.$index.invoice_line_id" => ['Duplicate invoice line detected.'],
+                ]);
+            }
+
+            $normalized[$invoiceLineId] = [
+                'qty_to_credit' => $qtyToCredit,
+                'description' => $line['description'] ?? null,
+                'uom' => $line['uom'] ?? null,
+            ];
+        }
+
+        $previousCredits = $this->previouslyCreditedQuantities($creditNote, array_keys($normalized));
+
+        return DB::transaction(function () use ($creditNote, $invoice, $invoiceLines, $normalized, $previousCredits): CreditNote {
+            $currency = strtoupper($invoice->currency ?? $creditNote->currency ?? 'USD');
+            $minorUnit = $this->resolveMinorUnit($currency);
+            $totalMinor = 0;
+            $before = $creditNote->only(['amount', 'amount_minor', 'currency']);
+
+            foreach ($normalized as $invoiceLineId => $linePayload) {
+                /** @var InvoiceLine $invoiceLine */
+                $invoiceLine = $invoiceLines->get($invoiceLineId);
+
+                $qtyInvoiced = (float) ($invoiceLine->quantity ?? 0);
+                $alreadyCredited = (float) ($previousCredits[$invoiceLineId] ?? 0);
+                $remaining = max($qtyInvoiced - $alreadyCredited, 0);
+                $requested = (float) $linePayload['qty_to_credit'];
+
+                if ($requested > $remaining + 0.0001) {
+                    throw ValidationException::withMessages([
+                        'lines' => [sprintf('Cannot credit more than remaining quantity for invoice line %s.', $invoiceLineId)],
+                    ]);
+                }
+
+                $unitPriceMinor = $this->resolveInvoiceLineUnitPriceMinor($invoiceLine, $currency, $minorUnit);
+                $lineTotalMinor = (int) max(0, round($requested * $unitPriceMinor));
+
+                $creditNote->lines()->updateOrCreate(
+                    [
+                        'invoice_line_id' => $invoiceLineId,
+                    ],
+                    [
+                        'qty_to_credit' => $requested,
+                        'qty_invoiced' => $qtyInvoiced,
+                        'unit_price_minor' => $unitPriceMinor,
+                        'line_total_minor' => $lineTotalMinor,
+                        'currency' => $invoiceLine->currency ?? $currency,
+                        'uom' => $linePayload['uom'] ?? $invoiceLine->uom,
+                        'description' => $linePayload['description'] ?? $invoiceLine->description,
+                    ]
+                );
+
+                $totalMinor += $lineTotalMinor;
+            }
+
+            $creditNote->lines()->whereNotIn('invoice_line_id', array_keys($normalized))->delete();
+
+            if ($totalMinor <= 0) {
+                throw ValidationException::withMessages([
+                    'lines' => ['At least one line must have a non-zero total.'],
+                ]);
+            }
+
+            $creditNote->currency = $currency;
+            $creditNote->amount_minor = $totalMinor;
+            $creditNote->amount = Money::fromMinor($totalMinor, $currency)->toDecimal($minorUnit);
+            $creditNote->save();
+
+            $this->auditLogger->updated($creditNote, $before, [
+                'amount' => $creditNote->amount,
+                'amount_minor' => $creditNote->amount_minor,
+                'currency' => $creditNote->currency,
+            ]);
+
+            return $this->refreshDetail($creditNote);
+        });
+    }
+
+    private function refreshDetail(CreditNote $creditNote): CreditNote
+    {
+        $reloaded = $creditNote->fresh();
+
+        if (! $reloaded instanceof CreditNote) {
+            return $creditNote;
+        }
+
+        return $this->loadDetail($reloaded);
+    }
+
+    public function loadDetail(CreditNote $creditNote): CreditNote
+    {
+        $creditNote->load([
+            'invoice' => function ($query): void {
+                $query->with(['lines', 'supplier', 'purchaseOrder']);
+            },
+            'purchaseOrder',
+            'goodsReceiptNote',
+            'documents',
+            'lines.invoiceLine',
+        ]);
+
+        $this->attachLineContext($creditNote);
+
+        return $creditNote;
+    }
+
+    private function attachLineContext(CreditNote $creditNote): void
+    {
+        if (! $creditNote->relationLoaded('lines')) {
+            return;
+        }
+
+        $lineIds = $creditNote->lines->pluck('invoice_line_id')->filter()->unique()->all();
+
+        if ($lineIds === []) {
+            return;
+        }
+
+        $previousCredits = $this->previouslyCreditedQuantities($creditNote, $lineIds);
+
+        foreach ($creditNote->lines as $line) {
+            $line->setAttribute('previously_credited_qty', $previousCredits[$line->invoice_line_id] ?? 0);
+        }
+    }
+
+    /**
+     * @param array<int, int> $invoiceLineIds
+     * @return array<int, float>
+     */
+    private function previouslyCreditedQuantities(CreditNote $creditNote, array $invoiceLineIds): array
+    {
+        if ($creditNote->company_id === null || $creditNote->invoice_id === null || $invoiceLineIds === []) {
+            return [];
+        }
+
+        return CreditNoteLine::query()
+            ->selectRaw('invoice_line_id, SUM(qty_to_credit) as qty_total')
+            ->join('credit_notes', 'credit_note_lines.credit_note_id', '=', 'credit_notes.id')
+            ->where('credit_notes.company_id', $creditNote->company_id)
+            ->where('credit_notes.invoice_id', $creditNote->invoice_id)
+            ->where('credit_notes.id', '!=', $creditNote->id)
+            ->where('credit_notes.status', '!=', CreditNoteStatus::Rejected->value)
+            ->whereIn('credit_note_lines.invoice_line_id', $invoiceLineIds)
+            ->groupBy('credit_note_lines.invoice_line_id')
+            ->pluck('qty_total', 'invoice_line_id')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function resolveInvoiceLineUnitPriceMinor(InvoiceLine $invoiceLine, string $currency, int $minorUnit): int
+    {
+        if ($invoiceLine->unit_price_minor !== null) {
+            return (int) $invoiceLine->unit_price_minor;
+        }
+
+        $resolvedCurrency = $invoiceLine->currency ?? $currency;
+        $resolvedMinorUnit = $resolvedCurrency === $currency ? $minorUnit : $this->resolveMinorUnit($resolvedCurrency);
+
+        return Money::fromDecimal((float) $invoiceLine->unit_price, $resolvedCurrency, $resolvedMinorUnit)->amountMinor();
     }
 
     private function generateCreditNumber(int $companyId): string

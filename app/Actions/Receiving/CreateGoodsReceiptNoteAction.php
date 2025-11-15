@@ -12,7 +12,9 @@ use App\Support\Documents\DocumentStorer;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateGoodsReceiptNoteAction
@@ -70,14 +72,32 @@ class CreateGoodsReceiptNoteAction
             ]);
         }
 
-    return $this->db->transaction(function () use ($companyId, $purchaseOrder, $payload, $linesPayload, $inspectorId, $user): array {
+        $statusPreference = isset($payload['status']) && is_string($payload['status'])
+            ? strtolower((string) $payload['status'])
+            : null;
+
+        return $this->db->transaction(function () use ($companyId, $purchaseOrder, $payload, $linesPayload, $inspectorId, $user, $statusPreference): array {
+            $inspectedAt = $payload['inspected_at'] ?? now();
+
+            if (is_string($inspectedAt)) {
+                try {
+                    $inspectedAt = Carbon::parse($inspectedAt);
+                } catch (\Throwable $exception) {
+                    $inspectedAt = now();
+                }
+            }
+
+            $noteNumber = $payload['number'] ?? $this->generateNumber($companyId);
+
             $note = GoodsReceiptNote::create([
                 'company_id' => $companyId,
                 'purchase_order_id' => $purchaseOrder->id,
-                'number' => $payload['number'],
+                'number' => $noteNumber,
                 'inspected_by_id' => $inspectorId,
-                'inspected_at' => $payload['inspected_at'] ?? now(),
+                'inspected_at' => $inspectedAt,
                 'status' => 'pending',
+                'reference' => $payload['reference'] ?? null,
+                'notes' => $payload['notes'] ?? null,
             ]);
 
             $createdLines = new EloquentCollection();
@@ -121,13 +141,7 @@ class CreateGoodsReceiptNoteAction
                 }
             }
 
-            if ($hasRejection) {
-                $note->status = 'ncr_raised';
-            } elseif ($createdLines->sum('received_qty') > 0) {
-                $note->status = 'complete';
-            } else {
-                $note->status = 'pending';
-            }
+            $note->status = $this->resolveNoteStatus($statusPreference, $hasRejection, $createdLines);
             $note->save();
 
             $this->auditLogger->created($note);
@@ -257,5 +271,45 @@ class CreateGoodsReceiptNoteAction
             && Schema::hasColumn('po_lines', 'receiving_status');
 
         return $this->poLineReceivingColumns;
+    }
+
+    private function resolveNoteStatus(?string $requestedStatus, bool $hasRejection, EloquentCollection $lines): string
+    {
+        if ($hasRejection) {
+            return 'ncr_raised';
+        }
+
+        $hasReceivedQty = $lines->sum('received_qty') > 0;
+
+        if ($requestedStatus === 'draft') {
+            return 'pending';
+        }
+
+        if ($requestedStatus === 'posted' && $hasReceivedQty) {
+            return 'complete';
+        }
+
+        return $hasReceivedQty ? 'complete' : 'pending';
+    }
+
+    private function generateNumber(int $companyId): string
+    {
+        $attempts = 0;
+
+        do {
+            $attempts++;
+            $candidate = sprintf('GRN-%s-%s', now()->format('ymd'), Str::upper(Str::random(4)));
+
+            $exists = GoodsReceiptNote::query()
+                ->where('company_id', $companyId)
+                ->where('number', $candidate)
+                ->exists();
+        } while ($exists && $attempts < 10);
+
+        if ($exists) {
+            return sprintf('GRN-%s-%d', now()->format('ymd'), random_int(1000, 9999));
+        }
+
+        return $candidate;
     }
 }

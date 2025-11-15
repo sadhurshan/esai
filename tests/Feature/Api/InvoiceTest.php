@@ -69,7 +69,7 @@ function provisionInvoiceContext(int $invoiceCap = 5): array
         PurchaseOrderLine::factory()->create([
             'purchase_order_id' => $purchaseOrder->id,
             'description' => 'Precision plates',
-            'quantity' => 3,
+            'quantity' => 5,
             'unit_price' => 120,
             'uom' => 'EA',
         ]),
@@ -177,6 +177,48 @@ test('finance user can create invoice and receives match summary', function (): 
         ->and(array_unique($results))->toEqual(['qty_mismatch']);
 });
 
+test('finance user can create invoice via from-po endpoint', function (): void {
+    [
+        'company' => $company,
+        'finance' => $financeUser,
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'supplier' => $supplier,
+        'taxCode' => $taxCode,
+    ] = provisionInvoiceContext();
+
+    Notification::fake();
+
+    $this->actingAs($financeUser);
+
+    $payload = [
+        'po_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'invoice_number' => 'INV-PO-FROM-ENDPOINT',
+        'lines' => [
+            [
+                'po_line_id' => $poLines[0]->id,
+                'description' => 'Precision plates',
+                'qty_invoiced' => 1,
+                'uom' => 'EA',
+                'unit_price_minor' => 12000,
+                'tax_code_ids' => [$taxCode->id],
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/invoices/from-po', $payload);
+
+    $response->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('message', 'Invoice created.')
+        ->assertJsonPath('data.purchase_order_id', $purchaseOrder->id)
+        ->assertJsonPath('data.invoice_number', 'INV-PO-FROM-ENDPOINT');
+
+    $company->refresh();
+    expect($company->invoices_monthly_used)->toBe(1);
+});
+
 test('invoice creation is blocked when plan invoice cap is exhausted', function (): void {
     [
         'plan' => $plan,
@@ -216,6 +258,88 @@ test('invoice creation is blocked when plan invoice cap is exhausted', function 
         ->assertJsonPath('errors.code', 'invoices_per_month')
         ->assertJsonPath('errors.limit', $plan->invoices_per_month)
         ->assertJsonPath('errors.usage', $plan->invoices_per_month);
+
+    $this->assertDatabaseMissing('invoices', [
+        'purchase_order_id' => $purchaseOrder->id,
+    ]);
+});
+
+test('over-invoicing is rejected via purchase order endpoint', function (): void {
+    [
+        'finance' => $financeUser,
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'supplier' => $supplier,
+    ] = provisionInvoiceContext();
+
+    $this->actingAs($financeUser);
+
+    $requestedQuantity = (int) $poLines[0]->quantity + 2;
+    $expectedMessage = sprintf(
+        'Line %d exceeds remaining quantity. Available: %d, requested: %d.',
+        $poLines[0]->line_no,
+        $poLines[0]->quantity,
+        $requestedQuantity,
+    );
+
+    $payload = [
+        'supplier_id' => $supplier->id,
+        'lines' => [
+            [
+                'po_line_id' => $poLines[0]->id,
+                'description' => 'Precision plates',
+                'quantity' => $requestedQuantity,
+                'uom' => 'EA',
+                'unit_price' => 120,
+            ],
+        ],
+    ];
+
+    $response = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/invoices", $payload);
+
+    $response->assertStatus(422)
+        ->assertJsonPath('errors.lines.0', $expectedMessage);
+
+    $this->assertDatabaseMissing('invoices', [
+        'purchase_order_id' => $purchaseOrder->id,
+    ]);
+});
+
+test('over-invoicing is rejected via from-po endpoint', function (): void {
+    [
+        'finance' => $financeUser,
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'supplier' => $supplier,
+    ] = provisionInvoiceContext();
+
+    $this->actingAs($financeUser);
+
+    $requestedQuantity = (int) $poLines[1]->quantity + 5;
+    $expectedMessage = sprintf(
+        'Line %d exceeds remaining quantity. Available: %d, requested: %d.',
+        $poLines[1]->line_no,
+        $poLines[1]->quantity,
+        $requestedQuantity,
+    );
+
+    $payload = [
+        'po_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'invoice_number' => 'INV-OVERAGE',
+        'lines' => [
+            [
+                'po_line_id' => $poLines[1]->id,
+                'qty_invoiced' => $requestedQuantity,
+                'unit_price_minor' => 8000,
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/invoices/from-po', $payload);
+
+    $response->assertStatus(422)
+        ->assertJsonPath('errors.lines.0', $expectedMessage);
 
     $this->assertDatabaseMissing('invoices', [
         'purchase_order_id' => $purchaseOrder->id,

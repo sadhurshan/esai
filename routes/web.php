@@ -59,6 +59,13 @@ Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(func
 
     Route::view('/app/supplier/company-profile', 'app')->name('supplier.company-profile');
 
+    Route::view('/app/inventory', 'app')->name('inventory.index');
+    Route::view('/app/inventory/items', 'app')->name('inventory.items.index');
+    Route::view('/app/inventory/items/new', 'app')->name('inventory.items.create');
+    Route::view('/app/inventory/items/{itemId}', 'app')
+        ->where('itemId', '[A-Za-z0-9_-]+')
+        ->name('inventory.items.show');
+
     Route::view('/app/admin/companies', 'app')->name('admin.companies.index');
 
     Route::view('/app/{any}', 'app')

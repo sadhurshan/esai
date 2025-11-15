@@ -10,13 +10,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class InvoiceResource extends JsonResource
 {
     private const STATUS_MAP = [
-        'pending' => 'draft',
+        'pending' => 'pending',
         'draft' => 'draft',
         'paid' => 'paid',
         'approved' => 'approved',
         'submitted' => 'submitted',
-        'overdue' => 'rejected',
-        'disputed' => 'rejected',
+        'overdue' => 'overdue',
+        'disputed' => 'disputed',
+        'posted' => 'posted',
+        'rejected' => 'rejected',
     ];
 
     public function toArray(Request $request): array
@@ -29,11 +31,20 @@ class InvoiceResource extends JsonResource
             'purchase_order_id' => $this->purchase_order_id,
             'supplier_id' => $this->supplier_id,
             'invoice_number' => $this->invoice_number,
+            'invoice_date' => optional($this->invoice_date)?->toDateString(),
             'currency' => $this->currency,
             'status' => self::STATUS_MAP[$this->status] ?? $this->status,
             'subtotal' => (float) $this->subtotal,
             'tax_amount' => (float) $this->tax_amount,
             'total' => (float) $this->total,
+            'supplier' => $this->whenLoaded('supplier', fn () => [
+                'id' => $this->supplier?->getKey(),
+                'name' => $this->supplier?->name,
+            ]),
+            'purchase_order' => $this->whenLoaded('purchaseOrder', fn () => [
+                'id' => $this->purchaseOrder?->getKey(),
+                'po_number' => $this->purchaseOrder?->po_number,
+            ]),
             'lines' => $this->when($this->relationLoaded('lines'), fn () => $this->lines
                 ->map(fn ($line) => (new InvoiceLineResource($line))->toArray($request))
                 ->values()
@@ -44,6 +55,10 @@ class InvoiceResource extends JsonResource
                 ->all(), []),
             'match_summary' => $matchSummary,
             'document' => $this->whenLoaded('document', fn () => $this->formatDocument($this->document)),
+            'attachments' => $this->whenLoaded('attachments', fn () => $this->attachments
+                ->map(fn ($attachment) => (new DocumentResource($attachment))->toArray($request))
+                ->values()
+                ->all(), []),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

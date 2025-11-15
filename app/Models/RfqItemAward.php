@@ -20,6 +20,7 @@ class RfqItemAward extends Model
         'supplier_id',
         'quote_id',
         'quote_item_id',
+        'awarded_qty',
         'po_id',
         'awarded_by',
         'awarded_at',
@@ -29,6 +30,7 @@ class RfqItemAward extends Model
     protected $casts = [
         'awarded_at' => 'datetime',
         'status' => RfqItemAwardStatus::class,
+        'awarded_qty' => 'integer',
     ];
 
     public function company(): BelongsTo

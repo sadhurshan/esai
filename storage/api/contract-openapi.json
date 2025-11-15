@@ -583,6 +583,29 @@
                     }
                 }
             },
+            "CompanyGoodsReceiptLineInput": {
+                "type": "object",
+                "required": [
+                    "po_line_id",
+                    "qty_received"
+                ],
+                "properties": {
+                    "po_line_id": {
+                        "type": "integer"
+                    },
+                    "qty_received": {
+                        "type": "number"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
             "CompanyProfile": {
                 "type": "object",
                 "required": [
@@ -643,6 +666,59 @@
                     }
                 }
             },
+            "CreateAwardsRequest": {
+                "type": "object",
+                "required": [
+                    "rfq_id",
+                    "items"
+                ],
+                "properties": {
+                    "rfq_id": {
+                        "type": "integer",
+                        "description": "Numeric RFQ identifier."
+                    },
+                    "items": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "rfq_item_id",
+                                "quote_item_id"
+                            ],
+                            "properties": {
+                                "rfq_item_id": {
+                                    "type": "integer"
+                                },
+                                "quote_item_id": {
+                                    "type": "integer"
+                                },
+                                "awarded_qty": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "nullable": true,
+                                    "description": "Optional awarded quantity for partial allocations."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "CreatePurchaseOrdersFromAwardsRequest": {
+                "type": "object",
+                "required": [
+                    "award_ids"
+                ],
+                "properties": {
+                    "award_ids": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            },
             "CreditNote": {
                 "type": "object",
                 "required": [
@@ -651,7 +727,9 @@
                     "invoice_id",
                     "credit_number",
                     "status",
-                    "total"
+                    "amount",
+                    "amount_minor",
+                    "currency"
                 ],
                 "properties": {
                     "id": {
@@ -668,7 +746,23 @@
                         "type": "integer",
                         "nullable": true
                     },
+                    "grn_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
                     "credit_number": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "amount_minor": {
+                        "type": "integer"
+                    },
+                    "reason": {
                         "type": "string"
                     },
                     "status": {
@@ -680,15 +774,6 @@
                             "approved",
                             "rejected"
                         ]
-                    },
-                    "reason": {
-                        "type": "string"
-                    },
-                    "total": {
-                        "$ref": "#/components/schemas/Money"
-                    },
-                    "balance_remaining": {
-                        "$ref": "#/components/schemas/Money"
                     },
                     "review_comment": {
                         "type": "string",
@@ -702,23 +787,22 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "issued_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
                     "approved_at": {
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
                     },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DocumentAttachment"
+                        }
                     },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CreditNoteLine"
+                        }
                     },
                     "invoice": {
                         "type": "object",
@@ -732,6 +816,38 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "purchase_order": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "po_number": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "goods_receipt_note": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "number": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 }
             },
@@ -750,6 +866,52 @@
                     },
                     "meta": {
                         "$ref": "#/components/schemas/PageMeta"
+                    }
+                }
+            },
+            "CreditNoteLine": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "invoice_line_id",
+                    "qty_invoiced",
+                    "qty_to_credit",
+                    "unit_price_minor",
+                    "currency"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "invoice_line_id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "qty_invoiced": {
+                        "type": "number"
+                    },
+                    "qty_to_credit": {
+                        "type": "number"
+                    },
+                    "qty_already_credited": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "unit_price_minor": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "total_minor": {
+                        "type": "integer"
                     }
                 }
             },
@@ -814,6 +976,43 @@
                     }
                 }
             },
+            "DocumentAttachment": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "filename",
+                    "mime",
+                    "size_bytes"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "mime": {
+                        "type": "string"
+                    },
+                    "size_bytes": {
+                        "type": "integer"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    }
+                }
+            },
             "EnvelopeMeta": {
                 "allOf": [
                     {
@@ -858,6 +1057,22 @@
                     }
                 },
                 "additionalProperties": false
+            },
+            "ExportPurchaseOrderResponse": {
+                "type": "object",
+                "required": [
+                    "document",
+                    "download_url"
+                ],
+                "properties": {
+                    "document": {
+                        "$ref": "#/components/schemas/PurchaseOrderPdfDocument"
+                    },
+                    "download_url": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
             },
             "ExportRequest": {
                 "type": "object",
@@ -1003,49 +1218,81 @@
                 "required": [
                     "id",
                     "purchase_order_line_id",
-                    "quantity_received"
+                    "received_qty"
                 ],
                 "properties": {
                     "id": {
                         "type": "integer"
                     },
+                    "goods_receipt_note_id": {
+                        "type": "integer"
+                    },
                     "purchase_order_line_id": {
                         "type": "integer"
                     },
-                    "quantity_received": {
-                        "type": "number"
+                    "po_line_id": {
+                        "type": "integer"
                     },
-                    "quantity_accepted": {
-                        "type": "number",
-                        "nullable": true
-                    },
-                    "quantity_rejected": {
-                        "type": "number",
-                        "nullable": true
-                    },
-                    "rejection_reason": {
+                    "line_no": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "ordered_qty": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "received_qty": {
+                        "type": "number"
+                    },
+                    "accepted_qty": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "rejected_qty": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "previously_received": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "remaining_qty": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "defect_notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "currency": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "variance": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
                     },
                     "attachments": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string",
-                                    "format": "uuid"
-                                },
-                                "filename": {
-                                    "type": "string"
-                                },
-                                "mime": {
-                                    "type": "string"
-                                },
-                                "size_bytes": {
-                                    "type": "integer"
-                                }
-                            }
+                            "$ref": "#/components/schemas/DocumentAttachment"
                         }
                     }
                 }
@@ -1055,7 +1302,7 @@
                 "required": [
                     "id",
                     "purchase_order_id",
-                    "number",
+                    "grn_number",
                     "status"
                 ],
                 "properties": {
@@ -1068,6 +1315,17 @@
                     "purchase_order_id": {
                         "type": "integer"
                     },
+                    "purchase_order_number": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "po_number": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "grn_number": {
+                        "type": "string"
+                    },
                     "number": {
                         "type": "string"
                     },
@@ -1076,7 +1334,8 @@
                         "enum": [
                             "draft",
                             "inspecting",
-                            "accepted",
+                            "posted",
+                            "variance",
                             "rejected"
                         ]
                     },
@@ -1087,6 +1346,32 @@
                     "inspected_at": {
                         "type": "string",
                         "format": "date-time",
+                        "nullable": true
+                    },
+                    "received_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "posted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "reference": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "supplier_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "supplier_name": {
+                        "type": "string",
                         "nullable": true
                     },
                     "inspector": {
@@ -1101,19 +1386,54 @@
                             }
                         }
                     },
+                    "created_by": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "lines_count": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "attachments_count": {
+                        "type": "integer",
+                        "nullable": true
+                    },
                     "lines": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/GoodsReceiptLine"
                         }
                     },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DocumentAttachment"
+                        }
+                    },
+                    "timeline": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
                     "created_at": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "nullable": true
                     },
                     "updated_at": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "nullable": true
                     }
                 }
             },
@@ -1126,6 +1446,8 @@
                     "invoice_number",
                     "status",
                     "currency",
+                    "subtotal",
+                    "tax_amount",
                     "total"
                 ],
                 "properties": {
@@ -1146,17 +1468,26 @@
                     "invoice_number": {
                         "type": "string"
                     },
+                    "invoice_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
                     "currency": {
                         "type": "string"
                     },
                     "status": {
                         "type": "string",
                         "enum": [
+                            "pending",
                             "draft",
                             "submitted",
                             "approved",
                             "rejected",
-                            "paid"
+                            "paid",
+                            "overdue",
+                            "disputed",
+                            "posted"
                         ]
                     },
                     "subtotal": {
@@ -1188,6 +1519,43 @@
                             }
                         }
                     },
+                    "supplier": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "purchase_order": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "po_number": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/InvoiceLine"
+                        }
+                    },
+                    "matches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/InvoiceMatch"
+                        }
+                    },
                     "document": {
                         "type": "object",
                         "nullable": true,
@@ -1204,7 +1572,18 @@
                             },
                             "size_bytes": {
                                 "type": "integer"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
                             }
+                        }
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DocumentAttachment"
                         }
                     },
                     "created_at": {
@@ -1232,6 +1611,163 @@
                     },
                     "meta": {
                         "$ref": "#/components/schemas/PageMeta"
+                    }
+                }
+            },
+            "InvoiceLine": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "description",
+                    "quantity",
+                    "unit_price"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "invoice_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "po_line_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "number"
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "unit_price": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "line_subtotal": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "tax_total": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "line_total": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "taxes": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "tax_code_id": {
+                                    "type": "integer"
+                                },
+                                "rate_percent": {
+                                    "type": "number"
+                                },
+                                "amount_minor": {
+                                    "type": "integer"
+                                },
+                                "amount": {
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "sequence": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "InvoiceLineInput": {
+                "type": "object",
+                "required": [
+                    "po_line_id",
+                    "quantity"
+                ],
+                "properties": {
+                    "po_line_id": {
+                        "type": "integer"
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "unit_price": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "tax_code_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            },
+            "InvoiceMatch": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "result"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "invoice_id": {
+                        "type": "integer"
+                    },
+                    "purchase_order_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "goods_receipt_note_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "result": {
+                        "type": "string",
+                        "enum": [
+                            "matched",
+                            "qty_mismatch",
+                            "price_mismatch",
+                            "unmatched"
+                        ]
+                    },
+                    "details": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 }
             },
@@ -1594,6 +2130,15 @@
                             "cancelled"
                         ]
                     },
+                    "ack_status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "sent",
+                            "acknowledged",
+                            "declined"
+                        ]
+                    },
                     "currency": {
                         "type": "string"
                     },
@@ -1623,6 +2168,20 @@
                     },
                     "total_minor": {
                         "type": "integer"
+                    },
+                    "sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "acknowledged_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "ack_reason": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "revision_no": {
                         "type": "integer"
@@ -1676,12 +2235,297 @@
                             "$ref": "#/components/schemas/PoChangeOrder"
                         }
                     },
+                    "deliveries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PurchaseOrderDelivery"
+                        }
+                    },
+                    "latest_delivery": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "purchase_order_id": {
+                                "type": "integer"
+                            },
+                            "channel": {
+                                "type": "string",
+                                "enum": [
+                                    "email",
+                                    "webhook"
+                                ]
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "queued",
+                                    "sent",
+                                    "failed"
+                                ]
+                            },
+                            "recipients_to": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "email"
+                                },
+                                "nullable": true
+                            },
+                            "recipients_cc": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "email"
+                                },
+                                "nullable": true
+                            },
+                            "message": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "delivery_reference": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "response_meta": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "nullable": true
+                            },
+                            "error_reason": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "sent_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "sent_by": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "pdf_document_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "pdf_document": {
+                        "type": "object",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PurchaseOrderPdfDocument"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "cancelled_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
                     },
                     "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                }
+            },
+            "PurchaseOrderDelivery": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "purchase_order_id",
+                    "channel",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "purchase_order_id": {
+                        "type": "integer"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "email",
+                            "webhook"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "sent",
+                            "failed"
+                        ]
+                    },
+                    "recipients_to": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "email"
+                        },
+                        "nullable": true
+                    },
+                    "recipients_cc": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "email"
+                        },
+                        "nullable": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "delivery_reference": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "response_meta": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    },
+                    "error_reason": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "sent_by": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string",
+                                "format": "email"
+                            }
+                        }
+                    }
+                }
+            },
+            "PurchaseOrderEvent": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "purchase_order_id",
+                    "type",
+                    "summary"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "purchase_order_id": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "sent",
+                            "supplier_ack",
+                            "supplier_decline",
+                            "invoice_created",
+                            "invoice_attachment"
+                        ]
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    },
+                    "actor": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "nullable": true
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "buyer",
+                                    "supplier",
+                                    "system"
+                                ]
+                            }
+                        }
+                    },
+                    "occurred_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
@@ -1751,6 +2595,14 @@
                         "format": "date",
                         "nullable": true
                     },
+                    "invoiced_quantity": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "remaining_quantity": {
+                        "type": "integer",
+                        "nullable": true
+                    },
                     "taxes": {
                         "type": "array",
                         "items": {
@@ -1777,6 +2629,35 @@
                                 }
                             }
                         }
+                    }
+                }
+            },
+            "PurchaseOrderPdfDocument": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "filename",
+                    "version",
+                    "download_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "download_url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 }
             },
@@ -2391,6 +3272,177 @@
                     }
                 }
             },
+            "RfqAwardCandidateBestPrice": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "quote_id": {
+                        "type": "integer"
+                    },
+                    "quote_item_id": {
+                        "type": "integer"
+                    },
+                    "supplier_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "unit_price_currency": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "converted_unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "converted_currency": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "RfqAwardCandidateExistingAward": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "po_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "awarded_qty": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "awarded_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                }
+            },
+            "RfqAwardCandidateLine": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "line_no",
+                    "part_name",
+                    "quantity",
+                    "currency",
+                    "candidates"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "line_no": {
+                        "type": "integer"
+                    },
+                    "part_name": {
+                        "type": "string"
+                    },
+                    "spec": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "quantity": {
+                        "type": "integer"
+                    },
+                    "uom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "target_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "candidates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RfqAwardCandidateOption"
+                        }
+                    },
+                    "best_price": {
+                        "$ref": "#/components/schemas/RfqAwardCandidateBestPrice"
+                    }
+                }
+            },
+            "RfqAwardCandidateOption": {
+                "type": "object",
+                "required": [
+                    "quote_id",
+                    "quote_item_id",
+                    "unit_price_minor",
+                    "unit_price_currency",
+                    "converted_currency"
+                ],
+                "properties": {
+                    "quote_id": {
+                        "type": "integer"
+                    },
+                    "quote_item_id": {
+                        "type": "integer"
+                    },
+                    "supplier_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "unit_price_minor": {
+                        "type": "integer"
+                    },
+                    "unit_price_currency": {
+                        "type": "string"
+                    },
+                    "converted_unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "converted_currency": {
+                        "type": "string"
+                    },
+                    "conversion_unavailable": {
+                        "type": "boolean"
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "quote_revision": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string"
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "award": {
+                        "$ref": "#/components/schemas/RfqAwardCandidateExistingAward"
+                    }
+                }
+            },
             "RfqClarification": {
                 "type": "object",
                 "required": [
@@ -2530,6 +3582,54 @@
                     "target_price": {
                         "type": "number",
                         "format": "float",
+                        "nullable": true
+                    }
+                }
+            },
+            "RfqItemAwardSummary": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "rfq_item_id",
+                    "supplier_id",
+                    "quote_id",
+                    "quote_item_id",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "rfq_item_id": {
+                        "type": "integer"
+                    },
+                    "supplier_id": {
+                        "type": "integer"
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "quote_id": {
+                        "type": "integer"
+                    },
+                    "quote_item_id": {
+                        "type": "integer"
+                    },
+                    "po_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "awarded_qty": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "awarded_at": {
+                        "type": "string",
+                        "format": "date-time",
                         "nullable": true
                     }
                 }
@@ -5308,6 +6408,155 @@
                 }
             }
         },
+        "/api/awards": {
+            "post": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Create RFQ line awards without generating purchase orders",
+                "operationId": "createAwards",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAwardsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Awards persisted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "awards"
+                                                    ],
+                                                    "properties": {
+                                                        "awards": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqItemAwardSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "402": {
+                        "description": "Plan upgrade required to award RFQs.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/awards/{awardId}": {
+            "delete": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Delete an RFQ line award and reopen the associated line",
+                "operationId": "deleteAward",
+                "parameters": [
+                    {
+                        "name": "awardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Award deleted and current awards returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "awards"
+                                                    ],
+                                                    "properties": {
+                                                        "awards": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqItemAwardSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "402": {
+                        "description": "Plan upgrade required to manage RFQ awards.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/change-orders/{changeOrderId}/approve": {
             "put": {
                 "tags": [
@@ -6070,6 +7319,77 @@
                 }
             }
         },
+        "/api/credit-notes/{creditNoteId}/attachments": {
+            "post": {
+                "tags": [
+                    "Credit Notes"
+                ],
+                "summary": "Upload attachment for credit note",
+                "operationId": "attachCreditNoteFile",
+                "parameters": [
+                    {
+                        "name": "creditNoteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Credit note attachment uploaded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "credit_note": {
+                                                            "$ref": "#/components/schemas/CreditNote"
+                                                        },
+                                                        "attachment": {
+                                                            "$ref": "#/components/schemas/DocumentAttachment"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/credit-notes/{creditNoteId}/issue": {
             "post": {
                 "tags": [
@@ -6095,6 +7415,92 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/credit-notes/{creditNoteId}/lines": {
+            "put": {
+                "tags": [
+                    "Credit Notes"
+                ],
+                "summary": "Update credit note lines",
+                "operationId": "updateCreditNoteLines",
+                "parameters": [
+                    {
+                        "name": "creditNoteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "lines"
+                                ],
+                                "properties": {
+                                    "lines": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "invoice_line_id",
+                                                "qty_to_credit"
+                                            ],
+                                            "properties": {
+                                                "invoice_line_id": {
+                                                    "type": "integer"
+                                                },
+                                                "qty_to_credit": {
+                                                    "type": "number"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "uom": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Credit note lines updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CreditNote"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -7764,6 +9170,219 @@
                 }
             ]
         },
+        "/api/invoices": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "List invoices for company",
+                "operationId": "listInvoices",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "paid",
+                                "overdue",
+                                "disputed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "supplier_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated invoices for the active company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/InvoiceCollection"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/from-po": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Create invoice from purchase order reference",
+                "operationId": "createInvoiceFromPo",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "po_id",
+                                    "lines"
+                                ],
+                                "properties": {
+                                    "po_id": {
+                                        "type": "integer"
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "invoice_number": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "invoice_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "document": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "lines": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "po_line_id"
+                                            ],
+                                            "oneOf": [
+                                                {
+                                                    "required": [
+                                                        "quantity"
+                                                    ]
+                                                },
+                                                {
+                                                    "required": [
+                                                        "qty_invoiced"
+                                                    ]
+                                                }
+                                            ],
+                                            "properties": {
+                                                "po_line_id": {
+                                                    "type": "integer"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "qty_invoiced": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "unit_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "unit_price_minor": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "uom": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "tax_code_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invoice created from purchase order lines.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Invoice"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/invoices/{invoiceId}": {
             "delete": {
                 "tags": [
@@ -7842,23 +9461,44 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "invoice_number": {
-                                        "type": "string"
-                                    },
                                     "status": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "paid",
+                                            "overdue",
+                                            "disputed"
+                                        ]
                                     },
-                                    "subtotal": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "tax_amount": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "total": {
-                                        "type": "number",
-                                        "format": "float"
+                                    "lines": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer"
+                                                },
+                                                "unit_price": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "tax_code_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -7871,7 +9511,90 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Invoice"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/{invoiceId}/attachments": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Upload supporting file for invoice",
+                "operationId": "attachInvoiceFile",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invoice attachment uploaded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "invoice": {
+                                                            "$ref": "#/components/schemas/Invoice"
+                                                        },
+                                                        "attachment": {
+                                                            "$ref": "#/components/schemas/DocumentAttachment"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -7882,10 +9605,10 @@
         "/api/invoices/{invoiceId}/recalculate": {
             "post": {
                 "tags": [
-                    "Money"
+                    "Invoices"
                 ],
                 "summary": "Recalculate invoice totals",
-                "operationId": "recalcInvoiceTotals",
+                "operationId": "recalculateInvoice",
                 "parameters": [
                     {
                         "name": "invoiceId",
@@ -7899,11 +9622,23 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Invoice totals recalculated.",
+                        "description": "Recalculated invoice summary.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Invoice"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -9099,6 +10834,79 @@
                 }
             ]
         },
+        "/api/pos/from-awards": {
+            "post": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "Convert awarded RFQ lines into draft purchase orders",
+                "operationId": "createPurchaseOrdersFromAwards",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePurchaseOrdersFromAwardsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Purchase orders drafted from the provided awards.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "purchase_orders"
+                                                    ],
+                                                    "properties": {
+                                                        "purchase_orders": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/PurchaseOrder"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "402": {
+                        "description": "Plan upgrade required to create purchase orders.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/purchase-orders": {
             "get": {
                 "tags": [
@@ -9248,15 +11056,20 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "action"
+                                    "decision"
                                 ],
                                 "properties": {
-                                    "action": {
+                                    "decision": {
                                         "type": "string",
                                         "enum": [
-                                            "accept",
-                                            "reject"
+                                            "acknowledged",
+                                            "declined"
                                         ]
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 2000
                                     }
                                 }
                             }
@@ -9269,10 +11082,56 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/PurchaseOrder"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-orders/{purchaseOrderId}/cancel": {
+            "post": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "Cancel purchase order",
+                "operationId": "cancelPurchaseOrder",
+                "parameters": [
+                    {
+                        "name": "purchaseOrderId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase order cancelled.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
                     }
                 }
             }
@@ -9367,6 +11226,150 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download": {
+            "get": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "Download purchase order PDF",
+                "operationId": "downloadPurchaseOrderDocument",
+                "parameters": [
+                    {
+                        "name": "purchaseOrderId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "documentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase order PDF stream.",
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found for purchase order.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-orders/{purchaseOrderId}/events": {
+            "get": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "List purchase order timeline events",
+                "operationId": "listPurchaseOrderEvents",
+                "responses": {
+                    "200": {
+                        "description": "Timeline entries for the purchase order.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/PurchaseOrderEvent"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "purchaseOrderId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/purchase-orders/{purchaseOrderId}/export": {
+            "post": {
+                "tags": [
+                    "Purchase Orders"
+                ],
+                "summary": "Generate PDF for purchase order",
+                "operationId": "exportPurchaseOrder",
+                "parameters": [
+                    {
+                        "name": "purchaseOrderId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase order PDF ready for download.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExportPurchaseOrderResponse"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -9673,6 +11676,52 @@
                         "type": "string",
                         "format": "uuid"
                     }
+                },
+                {
+                    "$ref": "#/components/parameters/PerPageQuery"
+                },
+                {
+                    "$ref": "#/components/parameters/PageQuery"
+                },
+                {
+                    "name": "status",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "paid",
+                            "overdue",
+                            "disputed"
+                        ]
+                    }
+                },
+                {
+                    "name": "supplier_id",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "from",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                {
+                    "name": "to",
+                    "in": "query",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "format": "date"
+                    }
                 }
             ],
             "post": {
@@ -9688,33 +11737,32 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "invoice_number",
-                                    "currency",
-                                    "total",
-                                    "file"
+                                    "lines"
                                 ],
                                 "properties": {
                                     "invoice_number": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 60
+                                    },
+                                    "invoice_date": {
+                                        "type": "string",
+                                        "format": "date"
                                     },
                                     "currency": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 3
                                     },
-                                    "subtotal": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "tax_amount": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "total": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "file": {
+                                    "document": {
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "lines": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "$ref": "#/components/schemas/InvoiceLineInput"
+                                        }
                                     }
                                 }
                             }
@@ -9722,7 +11770,7 @@
                     }
                 },
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Invoice captured.",
                         "content": {
                             "application/json": {
@@ -9796,13 +11844,74 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "channel"
+                                ],
+                                "properties": {
+                                    "channel": {
+                                        "type": "string",
+                                        "enum": [
+                                            "email",
+                                            "webhook"
+                                        ]
+                                    },
+                                    "to": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "description": "Required when channel is email."
+                                    },
+                                    "cc": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "email"
+                                        }
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "maxLength": 2000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Purchase order issued.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "purchase_order": {
+                                                            "$ref": "#/components/schemas/PurchaseOrder"
+                                                        },
+                                                        "delivery": {
+                                                            "$ref": "#/components/schemas/PurchaseOrderDelivery"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -10261,6 +12370,309 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/receiving/grns": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "List company goods receipt notes",
+                "operationId": "listCompanyGrns",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "name": "purchase_order_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "supplier_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "draft",
+                                "posted",
+                                "variance",
+                                "all"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "received_from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "received_to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor paginated goods receipt notes scoped to the authenticated company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items",
+                                                        "meta"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/GoodsReceiptNote"
+                                                            }
+                                                        },
+                                                        "meta": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "per_page": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "next_cursor": {
+                                                                    "type": "string",
+                                                                    "nullable": true
+                                                                },
+                                                                "prev_cursor": {
+                                                                    "type": "string",
+                                                                    "nullable": true
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Record a goods receipt note for a purchase order",
+                "operationId": "storeCompanyGrn",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "purchase_order_id",
+                                    "lines"
+                                ],
+                                "properties": {
+                                    "purchase_order_id": {
+                                        "type": "integer"
+                                    },
+                                    "received_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    },
+                                    "reference": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "draft",
+                                            "posted"
+                                        ],
+                                        "nullable": true
+                                    },
+                                    "lines": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "$ref": "#/components/schemas/CompanyGoodsReceiptLineInput"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Goods receipt stored.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GoodsReceiptNote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/receiving/grns/{grnId}": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Show a goods receipt note",
+                "operationId": "showCompanyGrn",
+                "responses": {
+                    "200": {
+                        "description": "Goods receipt details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GoodsReceiptNote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "grnId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/receiving/grns/{grnId}/attachments": {
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Upload attachment to goods receipt note",
+                "operationId": "attachCompanyGrnFile",
+                "parameters": [
+                    {
+                        "name": "grnId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Attachment uploaded and goods receipt note updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/GoodsReceiptNote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -10918,6 +13330,125 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/award-candidates": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "List award candidates for an RFQ",
+                "operationId": "listRfqAwardCandidates",
+                "parameters": [
+                    {
+                        "name": "rfqId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Flattened quote candidates per RFQ line with converted price hints.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rfq",
+                                                        "company_currency",
+                                                        "lines",
+                                                        "awards",
+                                                        "meta"
+                                                    ],
+                                                    "properties": {
+                                                        "rfq": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "id",
+                                                                "number",
+                                                                "status",
+                                                                "currency",
+                                                                "is_partially_awarded"
+                                                            ],
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "number": {
+                                                                    "type": "string"
+                                                                },
+                                                                "title": {
+                                                                    "type": "string",
+                                                                    "nullable": true
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "currency": {
+                                                                    "type": "string"
+                                                                },
+                                                                "is_partially_awarded": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            }
+                                                        },
+                                                        "company_currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "lines": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqAwardCandidateLine"
+                                                            }
+                                                        },
+                                                        "awards": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/RfqItemAwardSummary"
+                                                            }
+                                                        },
+                                                        "meta": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "quotes": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "suppliers": {
+                                                                    "type": "integer"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
                     }
                 }
             }

@@ -33,6 +33,7 @@ class DocumentResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
             'is_expired' => $this->isExpired(),
             'is_public' => $this->isPublic(),
+            'download_url' => $this->temporaryDownloadUrl(),
         ];
     }
 }

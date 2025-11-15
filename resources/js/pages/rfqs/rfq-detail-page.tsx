@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useReducer } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Helmet } from 'react-helmet-async';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Plus, PenLine, Trash2 } from 'lucide-react';
 
 import { AttachmentUploader } from '@/components/rfqs/attachment-uploader';
@@ -790,6 +790,12 @@ export function RfqDetailPage() {
                     }
                     : undefined}
             />
+
+            <div className="flex flex-wrap items-center gap-2">
+                <Button asChild variant="secondary">
+                    <Link to={`/app/rfqs/${rfq.id}/awards`}>Review awards &amp; convert to POs</Link>
+                </Button>
+            </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="overview">
                 <TabsList>

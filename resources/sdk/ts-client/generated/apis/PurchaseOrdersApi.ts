@@ -19,6 +19,9 @@ import type {
   ApiErrorResponse,
   ApiSuccessResponse,
   CreatePurchaseOrderChangeOrderRequest,
+  CreatePurchaseOrdersFromAwards201Response,
+  CreatePurchaseOrdersFromAwardsRequest,
+  ExportPurchaseOrder200Response,
   ListPurchaseOrderChangeOrders200Response,
   ListPurchaseOrders200Response,
   ListPurchaseOrdersStatusParameter,
@@ -33,6 +36,12 @@ import {
     ApiSuccessResponseToJSON,
     CreatePurchaseOrderChangeOrderRequestFromJSON,
     CreatePurchaseOrderChangeOrderRequestToJSON,
+    CreatePurchaseOrdersFromAwards201ResponseFromJSON,
+    CreatePurchaseOrdersFromAwards201ResponseToJSON,
+    CreatePurchaseOrdersFromAwardsRequestFromJSON,
+    CreatePurchaseOrdersFromAwardsRequestToJSON,
+    ExportPurchaseOrder200ResponseFromJSON,
+    ExportPurchaseOrder200ResponseToJSON,
     ListPurchaseOrderChangeOrders200ResponseFromJSON,
     ListPurchaseOrderChangeOrders200ResponseToJSON,
     ListPurchaseOrders200ResponseFromJSON,
@@ -52,9 +61,26 @@ export interface ApprovePurchaseOrderChangeOrderRequest {
     changeOrderId: number;
 }
 
+export interface CancelPurchaseOrderRequest {
+    purchaseOrderId: number;
+}
+
 export interface CreatePurchaseOrderChangeOrderOperationRequest {
     purchaseOrderId: number;
     createPurchaseOrderChangeOrderRequest: CreatePurchaseOrderChangeOrderRequest;
+}
+
+export interface CreatePurchaseOrdersFromAwardsOperationRequest {
+    createPurchaseOrdersFromAwardsRequest: CreatePurchaseOrdersFromAwardsRequest;
+}
+
+export interface DownloadPurchaseOrderDocumentRequest {
+    purchaseOrderId: number;
+    documentId: number;
+}
+
+export interface ExportPurchaseOrderRequest {
+    purchaseOrderId: number;
 }
 
 export interface ListPurchaseOrderChangeOrdersRequest {
@@ -124,6 +150,21 @@ export interface PurchaseOrdersApiInterface {
 
     /**
      * 
+     * @summary Cancel purchase order
+     * @param {number} purchaseOrderId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PurchaseOrdersApiInterface
+     */
+    cancelPurchaseOrderRaw(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+
+    /**
+     * Cancel purchase order
+     */
+    cancelPurchaseOrder(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
      * @summary Propose change order
      * @param {number} purchaseOrderId 
      * @param {CreatePurchaseOrderChangeOrderRequest} createPurchaseOrderChangeOrderRequest 
@@ -137,6 +178,52 @@ export interface PurchaseOrdersApiInterface {
      * Propose change order
      */
     createPurchaseOrderChangeOrder(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Convert awarded RFQ lines into draft purchase orders
+     * @param {CreatePurchaseOrdersFromAwardsRequest} createPurchaseOrdersFromAwardsRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PurchaseOrdersApiInterface
+     */
+    createPurchaseOrdersFromAwardsRaw(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>>;
+
+    /**
+     * Convert awarded RFQ lines into draft purchase orders
+     */
+    createPurchaseOrdersFromAwards(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreatePurchaseOrdersFromAwards201Response>;
+
+    /**
+     * 
+     * @summary Download purchase order PDF
+     * @param {number} purchaseOrderId 
+     * @param {number} documentId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PurchaseOrdersApiInterface
+     */
+    downloadPurchaseOrderDocumentRaw(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+
+    /**
+     * Download purchase order PDF
+     */
+    downloadPurchaseOrderDocument(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
+
+    /**
+     * 
+     * @summary Generate PDF for purchase order
+     * @param {number} purchaseOrderId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PurchaseOrdersApiInterface
+     */
+    exportPurchaseOrderRaw(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>>;
+
+    /**
+     * Generate PDF for purchase order
+     */
+    exportPurchaseOrder(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExportPurchaseOrder200Response>;
 
     /**
      * 
@@ -347,6 +434,55 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
     }
 
     /**
+     * Cancel purchase order
+     */
+    async cancelPurchaseOrderRaw(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (requestParameters['purchaseOrderId'] == null) {
+            throw new runtime.RequiredError(
+                'purchaseOrderId',
+                'Required parameter "purchaseOrderId" was null or undefined when calling cancelPurchaseOrder().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/purchase-orders/{purchaseOrderId}/cancel`;
+        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Cancel purchase order
+     */
+    async cancelPurchaseOrder(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+        const response = await this.cancelPurchaseOrderRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Propose change order
      */
     async createPurchaseOrderChangeOrderRaw(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -402,6 +538,163 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
      */
     async createPurchaseOrderChangeOrder(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.createPurchaseOrderChangeOrderRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Convert awarded RFQ lines into draft purchase orders
+     */
+    async createPurchaseOrdersFromAwardsRaw(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>> {
+        if (requestParameters['createPurchaseOrdersFromAwardsRequest'] == null) {
+            throw new runtime.RequiredError(
+                'createPurchaseOrdersFromAwardsRequest',
+                'Required parameter "createPurchaseOrdersFromAwardsRequest" was null or undefined when calling createPurchaseOrdersFromAwards().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/pos/from-awards`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreatePurchaseOrdersFromAwardsRequestToJSON(requestParameters['createPurchaseOrdersFromAwardsRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreatePurchaseOrdersFromAwards201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Convert awarded RFQ lines into draft purchase orders
+     */
+    async createPurchaseOrdersFromAwards(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreatePurchaseOrdersFromAwards201Response> {
+        const response = await this.createPurchaseOrdersFromAwardsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Download purchase order PDF
+     */
+    async downloadPurchaseOrderDocumentRaw(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        if (requestParameters['purchaseOrderId'] == null) {
+            throw new runtime.RequiredError(
+                'purchaseOrderId',
+                'Required parameter "purchaseOrderId" was null or undefined when calling downloadPurchaseOrderDocument().'
+            );
+        }
+
+        if (requestParameters['documentId'] == null) {
+            throw new runtime.RequiredError(
+                'documentId',
+                'Required parameter "documentId" was null or undefined when calling downloadPurchaseOrderDocument().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download`;
+        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(`{${"documentId"}}`, encodeURIComponent(String(requestParameters['documentId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * Download purchase order PDF
+     */
+    async downloadPurchaseOrderDocument(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.downloadPurchaseOrderDocumentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Generate PDF for purchase order
+     */
+    async exportPurchaseOrderRaw(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>> {
+        if (requestParameters['purchaseOrderId'] == null) {
+            throw new runtime.RequiredError(
+                'purchaseOrderId',
+                'Required parameter "purchaseOrderId" was null or undefined when calling exportPurchaseOrder().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/purchase-orders/{purchaseOrderId}/export`;
+        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ExportPurchaseOrder200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Generate PDF for purchase order
+     */
+    async exportPurchaseOrder(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExportPurchaseOrder200Response> {
+        const response = await this.exportPurchaseOrderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

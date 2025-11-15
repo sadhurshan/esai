@@ -8,7 +8,9 @@ components:
                 - invoice_id
                 - credit_number
                 - status
-                - total
+                - amount
+                - amount_minor
+                - currency
             properties:
                 id:
                     type: string
@@ -20,17 +22,22 @@ components:
                 purchase_order_id:
                     type: integer
                     nullable: true
+                grn_id:
+                    type: integer
+                    nullable: true
                 credit_number:
+                    type: string
+                currency:
+                    type: string
+                amount:
+                    type: string
+                amount_minor:
+                    type: integer
+                reason:
                     type: string
                 status:
                     type: string
                     enum: [draft, pending_review, issued, approved, rejected]
-                reason:
-                    type: string
-                total:
-                    $ref: '#/components/schemas/Money'
-                balance_remaining:
-                    $ref: '#/components/schemas/Money'
                 review_comment:
                     type: string
                     nullable: true
@@ -40,20 +47,18 @@ components:
                 approved_by:
                     type: integer
                     nullable: true
-                issued_at:
-                    type: string
-                    format: date-time
-                    nullable: true
                 approved_at:
                     type: string
                     format: date-time
                     nullable: true
-                created_at:
-                    type: string
-                    format: date-time
-                updated_at:
-                    type: string
-                    format: date-time
+                attachments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DocumentAttachment'
+                lines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CreditNoteLine'
                 invoice:
                     type: object
                     nullable: true
@@ -63,6 +68,61 @@ components:
                             format: uuid
                         invoice_number:
                             type: string
+                purchase_order:
+                    type: object
+                    nullable: true
+                    properties:
+                        id:
+                            type: integer
+                        po_number:
+                            type: string
+                goods_receipt_note:
+                    type: object
+                    nullable: true
+                    properties:
+                        id:
+                            type: integer
+                        number:
+                            type: string
+                created_at:
+                    type: string
+                    format: date-time
+                updated_at:
+                    type: string
+                    format: date-time
+        CreditNoteLine:
+            type: object
+            required:
+                - id
+                - invoice_line_id
+                - qty_invoiced
+                - qty_to_credit
+                - unit_price_minor
+                - currency
+            properties:
+                id:
+                    type: integer
+                invoice_line_id:
+                    type: integer
+                description:
+                    type: string
+                    nullable: true
+                qty_invoiced:
+                    type: number
+                qty_to_credit:
+                    type: number
+                qty_already_credited:
+                    type: number
+                    nullable: true
+                unit_price_minor:
+                    type: integer
+                currency:
+                    type: string
+                uom:
+                    type: string
+                    nullable: true
+                total_minor:
+                    type: integer
         CreditNoteCollection:
             type: object
             required:
@@ -235,4 +295,99 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/credit-notes/{creditNoteId}/lines:
+        put:
+            tags:
+                - Credit Notes
+            summary: Update credit note lines
+            operationId: updateCreditNoteLines
+            parameters:
+                - name: creditNoteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - lines
+                            properties:
+                                lines:
+                                    type: array
+                                    minItems: 1
+                                    items:
+                                        type: object
+                                        required:
+                                            - invoice_line_id
+                                            - qty_to_credit
+                                        properties:
+                                            invoice_line_id:
+                                                type: integer
+                                            qty_to_credit:
+                                                type: number
+                                            description:
+                                                type: string
+                                                nullable: true
+                                            uom:
+                                                type: string
+                                                nullable: true
+            responses:
+                '200':
+                    description: Credit note lines updated.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/CreditNote'
+    /api/credit-notes/{creditNoteId}/attachments:
+        post:
+            tags:
+                - Credit Notes
+            summary: Upload attachment for credit note
+            operationId: attachCreditNoteFile
+            parameters:
+                - name: creditNoteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            required:
+                                - file
+                            properties:
+                                file:
+                                    type: string
+                                    format: binary
+            responses:
+                '200':
+                    description: Credit note attachment uploaded.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  credit_note:
+                                                      $ref: '#/components/schemas/CreditNote'
+                                                  attachment:
+                                                      $ref: '#/components/schemas/DocumentAttachment'
     # TODO: clarify with spec whether /apply and /reverse endpoints are exposed for credit note settlement workflows.

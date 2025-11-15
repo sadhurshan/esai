@@ -574,6 +574,137 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send password reset link
+         * @description Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
+         */
+        post: operations["authForgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an authenticated session
+         * @description Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
+         */
+        post: operations["authLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Terminate the authenticated session */
+        post: operations["authLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect the current authenticated session
+         * @description Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
+         */
+        get: operations["authSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset password with token
+         * @description Verifies the password reset token issued via email and sets a new password for the user.
+         */
+        post: operations["authResetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/awards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create RFQ line awards without generating purchase orders */
+        post: operations["createAwards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/awards/{awardId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an RFQ line award and reopen the associated line */
+        delete: operations["deleteAward"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/change-orders/{changeOrderId}/approve": {
         parameters: {
             query?: never;
@@ -1759,6 +1890,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pos/from-awards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Convert awarded RFQ lines into draft purchase orders */
+        post: operations["createPurchaseOrdersFromAwards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/purchase-orders": {
         parameters: {
             query?: never;
@@ -1812,6 +1960,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/purchase-orders/{purchaseOrderId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel purchase order */
+        post: operations["cancelPurchaseOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/purchase-orders/{purchaseOrderId}/change-orders": {
         parameters: {
             query?: never;
@@ -1826,6 +1991,40 @@ export interface paths {
         put?: never;
         /** Propose change order */
         post: operations["createPurchaseOrderChangeOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download purchase order PDF */
+        get: operations["downloadPurchaseOrderDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/purchase-orders/{purchaseOrderId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate PDF for purchase order */
+        post: operations["exportPurchaseOrder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2147,6 +2346,23 @@ export interface paths {
         put?: never;
         /** Award RFQ */
         post: operations["awardRfq"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rfqs/{rfqId}/award-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List award candidates for an RFQ */
+        get: operations["listRfqAwardCandidates"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2829,6 +3045,63 @@ export interface components {
             last_used_at: string | null;
         };
         ApiSuccessResponse: components["schemas"]["SuccessEnvelope"];
+        AuthForgotPasswordRequest: {
+            /** Format: email */
+            email: string;
+        };
+        AuthLoginRequest: {
+            /** Format: email */
+            email: string;
+            /** Format: password */
+            password: string;
+            /** @description When true the session cookie is kept beyond the current browser session. */
+            remember?: boolean;
+        };
+        AuthResetPasswordRequest: {
+            /** @description Token issued via the password reset email. */
+            token: string;
+            /** Format: email */
+            email: string;
+            /** Format: password */
+            password: string;
+            /**
+             * Format: password
+             * @description Must match `password`.
+             */
+            password_confirmation: string;
+        };
+        AuthSession: {
+            /** @description Session identifier echoed in the `XSRF-TOKEN` cookie for SPA clients. */
+            token: string;
+            user: components["schemas"]["AuthSessionUser"];
+            company?: components["schemas"]["AuthSessionCompany"] | null;
+            /** @description Flattened feature flag map for the authenticated company. */
+            feature_flags: {
+                [key: string]: boolean;
+            };
+            /** @description Active plan code assigned to the company, if any. */
+            plan?: string | null;
+        };
+        AuthSessionCompany: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @description Current buyer onboarding status. */
+            status: string;
+            /** @description Plan code applied to the company. */
+            plan?: string | null;
+        };
+        AuthSessionUser: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: email */
+            email: string;
+            /** @description Role assigned to the user (buyer_admin, supplier_user, etc.). */
+            role: string;
+            /** Format: int64 */
+            company_id?: number | null;
+        };
         AuthToken: {
             /** @description Personal access token value. Store securely. */
             token: string;
@@ -2877,6 +3150,19 @@ export interface components {
             created_at?: string;
             /** Format: date-time */
             updated_at?: string;
+        };
+        CreateAwardsRequest: {
+            /** @description Numeric RFQ identifier. */
+            rfq_id: number;
+            items: {
+                rfq_item_id: number;
+                quote_item_id: number;
+                /** @description Optional awarded quantity for partial allocations. */
+                awarded_qty?: number | null;
+            }[];
+        };
+        CreatePurchaseOrdersFromAwardsRequest: {
+            award_ids: number[];
         };
         CreditNote: {
             /** Format: uuid */
@@ -2944,6 +3230,11 @@ export interface components {
             };
             /** @description Always null for error responses. */
             data?: unknown;
+        };
+        ExportPurchaseOrderResponse: {
+            document: components["schemas"]["PurchaseOrderPdfDocument"];
+            /** Format: uri */
+            download_url: string;
         };
         ExportRequest: {
             id: number;
@@ -3199,6 +3490,10 @@ export interface components {
             } | null;
             lines?: components["schemas"]["PurchaseOrderLine"][];
             change_orders?: components["schemas"]["PoChangeOrder"][];
+            pdf_document_id?: number | null;
+            pdf_document?: components["schemas"]["PurchaseOrderPdfDocument"] | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
             /** Format: date-time */
             created_at?: string | null;
             /** Format: date-time */
@@ -3234,6 +3529,15 @@ export interface components {
                 amount?: number;
                 sequence?: number;
             }[];
+        };
+        PurchaseOrderPdfDocument: {
+            id: number;
+            filename: string;
+            version: number;
+            /** Format: uri */
+            download_url: string;
+            /** Format: date-time */
+            created_at?: string | null;
         };
         Quote: {
             /** Format: uuid */
@@ -3429,6 +3733,53 @@ export interface components {
                 name?: string;
             } | null;
         };
+        RfqAwardCandidateBestPrice: {
+            quote_id?: number;
+            quote_item_id?: number;
+            supplier_id?: number | null;
+            supplier_name?: string | null;
+            unit_price_minor?: number | null;
+            unit_price_currency?: string | null;
+            converted_unit_price_minor?: number | null;
+            converted_currency?: string | null;
+        } | null;
+        RfqAwardCandidateExistingAward: {
+            id?: number;
+            status?: string;
+            po_id?: number | null;
+            awarded_qty?: number | null;
+            /** Format: date-time */
+            awarded_at?: string | null;
+        } | null;
+        RfqAwardCandidateLine: {
+            id: number;
+            line_no: number;
+            part_name: string;
+            spec?: string | null;
+            quantity: number;
+            uom?: string | null;
+            currency: string;
+            target_price_minor?: number | null;
+            candidates: components["schemas"]["RfqAwardCandidateOption"][];
+            best_price?: components["schemas"]["RfqAwardCandidateBestPrice"];
+        };
+        RfqAwardCandidateOption: {
+            quote_id: number;
+            quote_item_id: number;
+            supplier_id?: number | null;
+            supplier_name?: string | null;
+            unit_price_minor: number;
+            unit_price_currency: string;
+            converted_unit_price_minor?: number | null;
+            converted_currency: string;
+            conversion_unavailable?: boolean;
+            lead_time_days?: number | null;
+            quote_revision?: number | null;
+            quote_status?: string;
+            /** Format: date-time */
+            submitted_at?: string | null;
+            award?: components["schemas"]["RfqAwardCandidateExistingAward"];
+        };
         RfqClarification: {
             /** Format: uuid */
             id: string;
@@ -3472,6 +3823,19 @@ export interface components {
             uom?: string | null;
             /** Format: float */
             target_price?: number | null;
+        };
+        RfqItemAwardSummary: {
+            id: number;
+            rfq_item_id: number;
+            supplier_id: number;
+            supplier_name?: string | null;
+            quote_id: number;
+            quote_item_id: number;
+            po_id?: number | null;
+            awarded_qty?: number | null;
+            status: string;
+            /** Format: date-time */
+            awarded_at?: string | null;
         };
         RfqLinePayload: {
             part_name: string;
@@ -5089,6 +5453,246 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
+        };
+    };
+    authForgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Reset email dispatched (or suppressed for privacy). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            /** @description Invalid email payload. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    authLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Authenticated session payload. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["AuthSession"];
+                    };
+                };
+            };
+            /** @description Invalid credentials supplied. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    authLogout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session destroyed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            /** @description No active session. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    authSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["AuthSession"];
+                    };
+                };
+            };
+            /** @description Missing or invalid session. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    authResetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Password reset successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            /** @description Invalid reset token or password payload. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    createAwards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAwardsRequest"];
+            };
+        };
+        responses: {
+            /** @description Awards persisted successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description Plan upgrade required to award RFQs. */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteAward: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                awardId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Award deleted and current awards returned. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description Plan upgrade required to manage RFQ awards. */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
         };
     };
     approvePurchaseOrderChangeOrder: {
@@ -7686,6 +8290,46 @@ export interface operations {
             };
         };
     };
+    createPurchaseOrdersFromAwards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePurchaseOrdersFromAwardsRequest"];
+            };
+        };
+        responses: {
+            /** @description Purchase orders drafted from the provided awards. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            purchase_orders: components["schemas"]["PurchaseOrder"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description Plan upgrade required to create purchase orders. */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
     listPurchaseOrders: {
         parameters: {
             query?: {
@@ -7769,6 +8413,29 @@ export interface operations {
             };
         };
     };
+    cancelPurchaseOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Purchase order cancelled. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
     listPurchaseOrderChangeOrders: {
         parameters: {
             query?: never;
@@ -7822,6 +8489,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    downloadPurchaseOrderDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+                documentId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Purchase order PDF stream. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Document not found for purchase order. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    exportPurchaseOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Purchase order PDF ready for download. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["ExportPurchaseOrderResponse"];
+                    };
                 };
             };
         };
@@ -8602,6 +9325,49 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
+        };
+    };
+    listRfqAwardCandidates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfqId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Flattened quote candidates per RFQ line with converted price hints. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            rfq: {
+                                id: number;
+                                number: string;
+                                title?: string | null;
+                                status: string;
+                                currency: string;
+                                is_partially_awarded: boolean;
+                            };
+                            company_currency: string;
+                            lines: components["schemas"]["RfqAwardCandidateLine"][];
+                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                            meta: {
+                                quotes?: number;
+                                suppliers?: number;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     awardRfqLines: {

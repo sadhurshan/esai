@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +21,7 @@ import { useUoms } from '@/hooks/api/use-uoms';
 import { useBaseUomQuantity } from '@/hooks/use-uom-conversion-helper';
 import { RfqTypeEnum, type CreateRfqRequestItemsInner } from '@/sdk';
 import type { Supplier } from '@/types/sourcing';
+import { consumeLowStockRfqPrefill } from '@/lib/low-stock-rfq-prefill';
 
 const lineSchema = z.object({
     partName: z.string().min(1, 'Part name is required.'),
@@ -439,6 +441,8 @@ export function RfqCreateWizard() {
 
     const { control } = form;
     const linesFieldArray = useFieldArray({ control, name: 'lines' });
+    const [prefillContext, setPrefillContext] = useState<{ count: number } | null>(null);
+    const lowStockPrefillApplied = useRef(false);
     const reviewSnapshot = useWatch<WizardFormValues>({ control });
     const isSubmitting =
         isFinalizing ||
@@ -481,6 +485,39 @@ export function RfqCreateWizard() {
             console.warn('Failed to restore RFQ wizard draft from storage', error);
         }
     }, [canCreateRfq, form]);
+
+    useEffect(() => {
+        if (lowStockPrefillApplied.current) {
+            return;
+        }
+
+        const prefills = consumeLowStockRfqPrefill();
+        if (!prefills || prefills.length === 0) {
+            return;
+        }
+
+        lowStockPrefillApplied.current = true;
+
+        const mappedLines = prefills.map((item) => ({
+            partName: item.sku ? `${item.name} (${item.sku})` : item.name,
+            spec: '',
+            quantity: item.quantity > 0 ? item.quantity : 1,
+            uom: item.uom && item.uom.length > 0 ? item.uom : 'ea',
+            targetPrice: undefined,
+            requiredDate: item.requiredDate ?? '',
+        }));
+
+        if (mappedLines.length > 0) {
+            linesFieldArray.replace(mappedLines);
+            setPrefillContext({ count: mappedLines.length });
+            publishToast({
+                variant: 'success',
+                title: 'Prefilled from inventory',
+                description: `Imported ${mappedLines.length} low-stock item${mappedLines.length === 1 ? '' : 's'} from Inventory alerts.`,
+            });
+            setStepIndex((index) => (index < 1 ? 1 : index));
+        }
+    }, [linesFieldArray, setStepIndex]);
 
     useEffect(() => {
         if (!canCreateRfq) {
@@ -836,6 +873,25 @@ export function RfqCreateWizard() {
                             <CardTitle>Line items</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4">
+                            {prefillContext ? (
+                                <Alert>
+                                    <AlertTitle>Imported from Inventory alerts</AlertTitle>
+                                    <AlertDescription className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                        <span>
+                                            {prefillContext.count} low-stock item{prefillContext.count === 1 ? '' : 's'} were added automatically. Review and adjust quantities before publishing.
+                                        </span>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setPrefillContext(null)}
+                                        >
+                                            Dismiss
+                                        </Button>
+                                    </AlertDescription>
+                                </Alert>
+                            ) : null}
+
                             {linesFieldArray.fields.map((field, index) => (
                                 <WizardLineFields
                                     key={field.id}

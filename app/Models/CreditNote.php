@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Enums\CreditNoteStatus;
+use App\Models\CreditNoteLine;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CreditNote extends Model
@@ -72,5 +74,10 @@ class CreditNote extends Model
     {
         return $this->belongsToMany(Document::class, 'credit_note_documents')
             ->withTimestamps();
+    }
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(CreditNoteLine::class);
     }
 }

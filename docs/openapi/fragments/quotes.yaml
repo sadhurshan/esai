@@ -19,7 +19,7 @@ components:
           type: integer
         status:
           type: string
-          enum: [draft, submitted, awarded, withdrawn, expired]
+          enum: [draft, submitted, awarded, withdrawn, expired, lost]
         currency:
           type: string
         unit_price:
@@ -100,7 +100,6 @@ components:
         - id
         - quote_id
         - rfq_item_id
-        - quantity
         - unit_price_minor
       properties:
         id:
@@ -112,21 +111,55 @@ components:
         rfq_item_id:
           type: string
           format: uuid
-        description:
+        currency:
           type: string
-          nullable: true
         quantity:
-          type: integer
-        uom:
-          type: string
+          type: number
+          format: float
         unit_price:
-          type: string
+          type: number
+          format: float
         unit_price_minor:
           type: integer
+        line_subtotal:
+          type: number
+          format: float
+        line_subtotal_minor:
+          type: integer
+        tax_total:
+          type: number
+          format: float
+        tax_total_minor:
+          type: integer
         line_total:
-          type: string
+          type: number
+          format: float
         line_total_minor:
           type: integer
+        lead_time_days:
+          type: integer
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        taxes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              tax_code_id:
+                type: integer
+              rate_percent:
+                type: number
+                format: float
+              amount_minor:
+                type: integer
     QuoteRevision:
       type: object
       required:
@@ -150,6 +183,68 @@ components:
           format: date-time
           nullable: true
         note:
+          type: string
+          nullable: true
+    QuoteLineRequest:
+      type: object
+      required:
+        - rfq_item_id
+        - lead_time_days
+      properties:
+        rfq_item_id:
+          type: string
+          format: uuid
+        unit_price_minor:
+          type: integer
+          nullable: true
+        unit_price:
+          type: number
+          format: float
+          nullable: true
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: true
+        lead_time_days:
+          type: integer
+          minimum: 0
+        note:
+          type: string
+          nullable: true
+        tax_code_ids:
+          type: array
+          items:
+            type: integer
+        status:
+          type: string
+          nullable: true
+    QuoteLineUpdateRequest:
+      type: object
+      properties:
+        unit_price_minor:
+          type: integer
+          nullable: true
+        unit_price:
+          type: number
+          format: float
+          nullable: true
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: true
+        lead_time_days:
+          type: integer
+          minimum: 0
+        note:
+          type: string
+          nullable: true
+        tax_code_ids:
+          type: array
+          items:
+            type: integer
+        status:
           type: string
           nullable: true
 paths:
@@ -219,6 +314,10 @@ paths:
                 note:
                   type: string
                   nullable: true
+                status:
+                  type: string
+                  enum: [draft, submitted]
+                  default: submitted
                 items:
                   type: array
                   minItems: 1
@@ -226,16 +325,36 @@ paths:
                     type: object
                     required:
                       - rfq_item_id
-                      - unit_price_minor
-                      - quantity
+                      - lead_time_days
                     properties:
                       rfq_item_id:
                         type: string
                         format: uuid
-                      quantity:
-                        type: integer
                       unit_price_minor:
                         type: integer
+                        nullable: true
+                      unit_price:
+                        type: number
+                        format: float
+                        nullable: true
+                      currency:
+                        type: string
+                        minLength: 3
+                        maxLength: 3
+                        nullable: true
+                      lead_time_days:
+                        type: integer
+                        minimum: 0
+                      note:
+                        type: string
+                        nullable: true
+                      tax_code_ids:
+                        type: array
+                        items:
+                          type: integer
+                      status:
+                        type: string
+                        nullable: true
                 attachments:
                   type: array
                   items:
@@ -371,3 +490,209 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/quotes/{quoteId}:
+    parameters:
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Quotes
+      summary: Fetch a single quote
+      operationId: showQuote
+      responses:
+        '200':
+          description: Quote details including lines, attachments, and revisions.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/quotes/{quoteId}/submit:
+    post:
+      tags:
+        - Quotes
+      summary: Submit a draft quote
+      operationId: submitDraftQuote
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Quote submitted successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Quote'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/quotes/{quoteId}/lines:
+    parameters:
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Quotes
+      summary: Add line to draft quote
+      operationId: addQuoteLine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteLineRequest'
+      responses:
+        '201':
+          description: Line added and totals recalculated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Quote'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/quotes/{quoteId}/lines/{quoteItemId}:
+    parameters:
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: quoteItemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - Quotes
+      summary: Update an existing quote line
+      operationId: updateQuoteLine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteLineUpdateRequest'
+      responses:
+        '200':
+          description: Line updated and totals recalculated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Quote'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Quotes
+      summary: Remove a quote line
+      operationId: deleteQuoteLine
+      responses:
+        '200':
+          description: Updated quote after removal.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Quote'
+  /api/supplier/quotes:
+    get:
+      tags:
+        - Quotes
+      summary: List quotes for the authenticated supplier company
+      operationId: listSupplierQuotes
+      parameters:
+        - name: rfq_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Comma-delimited list of statuses to include.
+        - name: rfq_number
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [created_at, submitted_at, total_minor]
+      responses:
+        '200':
+          description: Supplier quotes list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Quote'
+                          meta:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              per_page:
+                                type: integer
+                              current_page:
+                                type: integer
+                              last_page:
+                                type: integer

@@ -58,6 +58,19 @@ class QuotePolicy
         return $this->revise($user, $quote);
     }
 
+    public function view(User $user, Quote $quote): bool
+    {
+        if ($this->belongsToBuyer($user, $quote) && $this->hasBuyerRole($user)) {
+            return true;
+        }
+
+        if ($this->belongsToSupplier($user, $quote) && $this->hasSupplierRole($user)) {
+            return true;
+        }
+
+        return in_array($user->role, ['platform_super', 'platform_support'], true);
+    }
+
     public function viewRevisions(User $user, Quote $quote): bool
     {
         if ($this->belongsToBuyer($user, $quote) && $this->hasBuyerRole($user)) {

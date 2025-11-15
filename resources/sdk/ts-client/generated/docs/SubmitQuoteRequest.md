@@ -12,6 +12,7 @@ Name | Type
 `leadTimeDays` | number
 `minOrderQty` | number
 `note` | string
+`status` | string
 `items` | [Array&lt;SubmitQuoteRequestItemsInner&gt;](SubmitQuoteRequestItemsInner.md)
 `attachments` | Array&lt;string&gt;
 
@@ -28,6 +29,7 @@ const example = {
   "leadTimeDays": null,
   "minOrderQty": null,
   "note": null,
+  "status": null,
   "items": null,
   "attachments": null,
 } satisfies SubmitQuoteRequest

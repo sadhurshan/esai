@@ -19,6 +19,9 @@ import type {
   ApiSuccessResponse,
   ListQuoteRevisions200Response,
   ListQuotesForRfq200Response,
+  ListSupplierQuotes200Response,
+  QuoteLineRequest,
+  QuoteLineUpdateRequest,
   SubmitQuote201Response,
   SubmitQuoteRequest,
   SubmitQuoteRevisionRequest,
@@ -33,6 +36,12 @@ import {
     ListQuoteRevisions200ResponseToJSON,
     ListQuotesForRfq200ResponseFromJSON,
     ListQuotesForRfq200ResponseToJSON,
+    ListSupplierQuotes200ResponseFromJSON,
+    ListSupplierQuotes200ResponseToJSON,
+    QuoteLineRequestFromJSON,
+    QuoteLineRequestToJSON,
+    QuoteLineUpdateRequestFromJSON,
+    QuoteLineUpdateRequestToJSON,
     SubmitQuote201ResponseFromJSON,
     SubmitQuote201ResponseToJSON,
     SubmitQuoteRequestFromJSON,
@@ -43,6 +52,16 @@ import {
     WithdrawQuoteRequestToJSON,
 } from '../models/index';
 
+export interface AddQuoteLineRequest {
+    quoteId: string;
+    quoteLineRequest: QuoteLineRequest;
+}
+
+export interface DeleteQuoteLineRequest {
+    quoteId: string;
+    quoteItemId: string;
+}
+
 export interface ListQuoteRevisionsRequest {
     rfqId: string;
     quoteId: string;
@@ -50,6 +69,23 @@ export interface ListQuoteRevisionsRequest {
 
 export interface ListQuotesForRfqRequest {
     rfqId: string;
+}
+
+export interface ListSupplierQuotesRequest {
+    rfqId?: string;
+    status?: string;
+    rfqNumber?: string;
+    page?: number;
+    perPage?: number;
+    sort?: ListSupplierQuotesSortEnum;
+}
+
+export interface ShowQuoteRequest {
+    quoteId: string;
+}
+
+export interface SubmitDraftQuoteRequest {
+    quoteId: string;
 }
 
 export interface SubmitQuoteOperationRequest {
@@ -60,6 +96,12 @@ export interface SubmitQuoteRevisionOperationRequest {
     rfqId: string;
     quoteId: string;
     submitQuoteRevisionRequest: SubmitQuoteRevisionRequest;
+}
+
+export interface UpdateQuoteLineRequest {
+    quoteId: string;
+    quoteItemId: string;
+    quoteLineUpdateRequest: QuoteLineUpdateRequest;
 }
 
 export interface WithdrawQuoteOperationRequest {
@@ -75,6 +117,38 @@ export interface WithdrawQuoteOperationRequest {
  * @interface QuotesApiInterface
  */
 export interface QuotesApiInterface {
+    /**
+     * 
+     * @summary Add line to draft quote
+     * @param {string} quoteId 
+     * @param {QuoteLineRequest} quoteLineRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    addQuoteLineRaw(requestParameters: AddQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>>;
+
+    /**
+     * Add line to draft quote
+     */
+    addQuoteLine(requestParameters: AddQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response>;
+
+    /**
+     * 
+     * @summary Remove a quote line
+     * @param {string} quoteId 
+     * @param {string} quoteItemId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    deleteQuoteLineRaw(requestParameters: DeleteQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>>;
+
+    /**
+     * Remove a quote line
+     */
+    deleteQuoteLine(requestParameters: DeleteQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response>;
+
     /**
      * 
      * @summary List quote revisions
@@ -105,6 +179,56 @@ export interface QuotesApiInterface {
      * List quotes for RFQ
      */
     listQuotesForRfq(requestParameters: ListQuotesForRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListQuotesForRfq200Response>;
+
+    /**
+     * 
+     * @summary List quotes for the authenticated supplier company
+     * @param {string} [rfqId] 
+     * @param {string} [status] 
+     * @param {string} [rfqNumber] 
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {'created_at' | 'submitted_at' | 'total_minor'} [sort] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    listSupplierQuotesRaw(requestParameters: ListSupplierQuotesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSupplierQuotes200Response>>;
+
+    /**
+     * List quotes for the authenticated supplier company
+     */
+    listSupplierQuotes(requestParameters: ListSupplierQuotesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSupplierQuotes200Response>;
+
+    /**
+     * 
+     * @summary Fetch a single quote
+     * @param {string} quoteId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    showQuoteRaw(requestParameters: ShowQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>>;
+
+    /**
+     * Fetch a single quote
+     */
+    showQuote(requestParameters: ShowQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response>;
+
+    /**
+     * 
+     * @summary Submit a draft quote
+     * @param {string} quoteId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    submitDraftQuoteRaw(requestParameters: SubmitDraftQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>>;
+
+    /**
+     * Submit a draft quote
+     */
+    submitDraftQuote(requestParameters: SubmitDraftQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response>;
 
     /**
      * 
@@ -140,6 +264,23 @@ export interface QuotesApiInterface {
 
     /**
      * 
+     * @summary Update an existing quote line
+     * @param {string} quoteId 
+     * @param {string} quoteItemId 
+     * @param {QuoteLineUpdateRequest} quoteLineUpdateRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuotesApiInterface
+     */
+    updateQuoteLineRaw(requestParameters: UpdateQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>>;
+
+    /**
+     * Update an existing quote line
+     */
+    updateQuoteLine(requestParameters: UpdateQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response>;
+
+    /**
+     * 
      * @summary Withdraw quote
      * @param {string} rfqId 
      * @param {string} quoteId 
@@ -161,6 +302,122 @@ export interface QuotesApiInterface {
  * 
  */
 export class QuotesApi extends runtime.BaseAPI implements QuotesApiInterface {
+
+    /**
+     * Add line to draft quote
+     */
+    async addQuoteLineRaw(requestParameters: AddQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>> {
+        if (requestParameters['quoteId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteId',
+                'Required parameter "quoteId" was null or undefined when calling addQuoteLine().'
+            );
+        }
+
+        if (requestParameters['quoteLineRequest'] == null) {
+            throw new runtime.RequiredError(
+                'quoteLineRequest',
+                'Required parameter "quoteLineRequest" was null or undefined when calling addQuoteLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/quotes/{quoteId}/lines`;
+        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: QuoteLineRequestToJSON(requestParameters['quoteLineRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubmitQuote201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Add line to draft quote
+     */
+    async addQuoteLine(requestParameters: AddQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response> {
+        const response = await this.addQuoteLineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Remove a quote line
+     */
+    async deleteQuoteLineRaw(requestParameters: DeleteQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>> {
+        if (requestParameters['quoteId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteId',
+                'Required parameter "quoteId" was null or undefined when calling deleteQuoteLine().'
+            );
+        }
+
+        if (requestParameters['quoteItemId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteItemId',
+                'Required parameter "quoteItemId" was null or undefined when calling deleteQuoteLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/quotes/{quoteId}/lines/{quoteItemId}`;
+        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+        urlPath = urlPath.replace(`{${"quoteItemId"}}`, encodeURIComponent(String(requestParameters['quoteItemId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubmitQuote201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Remove a quote line
+     */
+    async deleteQuoteLine(requestParameters: DeleteQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response> {
+        const response = await this.deleteQuoteLineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * List quote revisions
@@ -265,6 +522,169 @@ export class QuotesApi extends runtime.BaseAPI implements QuotesApiInterface {
      */
     async listQuotesForRfq(requestParameters: ListQuotesForRfqRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListQuotesForRfq200Response> {
         const response = await this.listQuotesForRfqRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List quotes for the authenticated supplier company
+     */
+    async listSupplierQuotesRaw(requestParameters: ListSupplierQuotesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSupplierQuotes200Response>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['rfqId'] != null) {
+            queryParameters['rfq_id'] = requestParameters['rfqId'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['rfqNumber'] != null) {
+            queryParameters['rfq_number'] = requestParameters['rfqNumber'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['perPage'] != null) {
+            queryParameters['per_page'] = requestParameters['perPage'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/supplier/quotes`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListSupplierQuotes200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List quotes for the authenticated supplier company
+     */
+    async listSupplierQuotes(requestParameters: ListSupplierQuotesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSupplierQuotes200Response> {
+        const response = await this.listSupplierQuotesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Fetch a single quote
+     */
+    async showQuoteRaw(requestParameters: ShowQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>> {
+        if (requestParameters['quoteId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteId',
+                'Required parameter "quoteId" was null or undefined when calling showQuote().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/quotes/{quoteId}`;
+        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubmitQuote201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Fetch a single quote
+     */
+    async showQuote(requestParameters: ShowQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response> {
+        const response = await this.showQuoteRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Submit a draft quote
+     */
+    async submitDraftQuoteRaw(requestParameters: SubmitDraftQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>> {
+        if (requestParameters['quoteId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteId',
+                'Required parameter "quoteId" was null or undefined when calling submitDraftQuote().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/quotes/{quoteId}/submit`;
+        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubmitQuote201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Submit a draft quote
+     */
+    async submitDraftQuote(requestParameters: SubmitDraftQuoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response> {
+        const response = await this.submitDraftQuoteRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -387,6 +807,73 @@ export class QuotesApi extends runtime.BaseAPI implements QuotesApiInterface {
     }
 
     /**
+     * Update an existing quote line
+     */
+    async updateQuoteLineRaw(requestParameters: UpdateQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubmitQuote201Response>> {
+        if (requestParameters['quoteId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteId',
+                'Required parameter "quoteId" was null or undefined when calling updateQuoteLine().'
+            );
+        }
+
+        if (requestParameters['quoteItemId'] == null) {
+            throw new runtime.RequiredError(
+                'quoteItemId',
+                'Required parameter "quoteItemId" was null or undefined when calling updateQuoteLine().'
+            );
+        }
+
+        if (requestParameters['quoteLineUpdateRequest'] == null) {
+            throw new runtime.RequiredError(
+                'quoteLineUpdateRequest',
+                'Required parameter "quoteLineUpdateRequest" was null or undefined when calling updateQuoteLine().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/quotes/{quoteId}/lines/{quoteItemId}`;
+        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+        urlPath = urlPath.replace(`{${"quoteItemId"}}`, encodeURIComponent(String(requestParameters['quoteItemId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: QuoteLineUpdateRequestToJSON(requestParameters['quoteLineUpdateRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubmitQuote201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update an existing quote line
+     */
+    async updateQuoteLine(requestParameters: UpdateQuoteLineRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubmitQuote201Response> {
+        const response = await this.updateQuoteLineRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Withdraw quote
      */
     async withdrawQuoteRaw(requestParameters: WithdrawQuoteOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -454,3 +941,13 @@ export class QuotesApi extends runtime.BaseAPI implements QuotesApiInterface {
     }
 
 }
+
+/**
+ * @export
+ */
+export const ListSupplierQuotesSortEnum = {
+    CreatedAt: 'created_at',
+    SubmittedAt: 'submitted_at',
+    TotalMinor: 'total_minor'
+} as const;
+export type ListSupplierQuotesSortEnum = typeof ListSupplierQuotesSortEnum[keyof typeof ListSupplierQuotesSortEnum];

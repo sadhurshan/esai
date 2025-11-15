@@ -9,13 +9,20 @@ Name | Type
 `id` | string
 `quoteId` | string
 `rfqItemId` | string
-`description` | string
+`currency` | string
 `quantity` | number
-`uom` | string
-`unitPrice` | string
+`unitPrice` | number
 `unitPriceMinor` | number
-`lineTotal` | string
+`lineSubtotal` | number
+`lineSubtotalMinor` | number
+`taxTotal` | number
+`taxTotalMinor` | number
+`lineTotal` | number
 `lineTotalMinor` | number
+`leadTimeDays` | number
+`note` | string
+`status` | string
+`taxes` | [Array&lt;QuoteItemTaxesInner&gt;](QuoteItemTaxesInner.md)
 
 ## Example
 
@@ -27,13 +34,20 @@ const example = {
   "id": null,
   "quoteId": null,
   "rfqItemId": null,
-  "description": null,
+  "currency": null,
   "quantity": null,
-  "uom": null,
   "unitPrice": null,
   "unitPriceMinor": null,
+  "lineSubtotal": null,
+  "lineSubtotalMinor": null,
+  "taxTotal": null,
+  "taxTotalMinor": null,
   "lineTotal": null,
   "lineTotalMinor": null,
+  "leadTimeDays": null,
+  "note": null,
+  "status": null,
+  "taxes": null,
 } satisfies QuoteItem
 
 console.log(example)

@@ -36,16 +36,20 @@ export function useInviteSuppliers() {
                 return { invited: 0, responses: [] } satisfies InviteSuppliersResult;
             }
 
-            const response = await rfqsApi.inviteSupplierToRfq({
-                rfqId: String(rfqId),
-                inviteSupplierToRfqRequest: {
-                    supplierIds: uniqueSupplierIds,
-                },
-            });
+            const responses = await Promise.all(
+                uniqueSupplierIds.map((supplierId) =>
+                    rfqsApi.inviteSupplierToRfq({
+                        rfqId: String(rfqId),
+                        inviteSupplierToRfqRequest: {
+                            supplierId,
+                        },
+                    }),
+                ),
+            );
 
             return {
                 invited: uniqueSupplierIds.length,
-                responses: [response],
+                responses,
             } satisfies InviteSuppliersResult;
         },
         onSuccess: (_result, variables) => {

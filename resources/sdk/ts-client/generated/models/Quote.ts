@@ -203,7 +203,8 @@ export const QuoteStatusEnum = {
     Submitted: 'submitted',
     Awarded: 'awarded',
     Withdrawn: 'withdrawn',
-    Expired: 'expired'
+    Expired: 'expired',
+    Lost: 'lost'
 } as const;
 export type QuoteStatusEnum = typeof QuoteStatusEnum[keyof typeof QuoteStatusEnum];
 

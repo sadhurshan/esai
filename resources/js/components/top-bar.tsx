@@ -1,4 +1,3 @@
-import { Branding } from '@/config/branding';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {

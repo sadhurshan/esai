@@ -109,6 +109,7 @@ class SubmitQuoteAction
                 'rfq_id' => (int) $data['rfq_id'],
                 'supplier_id' => (int) $data['supplier_id'],
                 'submitted_by' => $data['submitted_by'] ?? null,
+                'submitted_at' => (($data['status'] ?? 'submitted') === 'submitted') ? now() : null,
                 'currency' => $currency,
                 'unit_price' => $averageUnitMoney->toDecimal($minorUnit),
                 'min_order_qty' => $data['min_order_qty'] ?? null,

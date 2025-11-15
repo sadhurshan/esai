@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { SubmitQuoteRequestItemsInner } from './SubmitQuoteRequestItemsInner';
+import type { SubmitQuoteRevisionRequestItemsInner } from './SubmitQuoteRevisionRequestItemsInner';
 import {
-    SubmitQuoteRequestItemsInnerFromJSON,
-    SubmitQuoteRequestItemsInnerFromJSONTyped,
-    SubmitQuoteRequestItemsInnerToJSON,
-    SubmitQuoteRequestItemsInnerToJSONTyped,
-} from './SubmitQuoteRequestItemsInner';
+    SubmitQuoteRevisionRequestItemsInnerFromJSON,
+    SubmitQuoteRevisionRequestItemsInnerFromJSONTyped,
+    SubmitQuoteRevisionRequestItemsInnerToJSON,
+    SubmitQuoteRevisionRequestItemsInnerToJSONTyped,
+} from './SubmitQuoteRevisionRequestItemsInner';
 
 /**
  * 
@@ -35,10 +35,10 @@ export interface SubmitQuoteRevisionRequest {
     note: string;
     /**
      * 
-     * @type {Array<SubmitQuoteRequestItemsInner>}
+     * @type {Array<SubmitQuoteRevisionRequestItemsInner>}
      * @memberof SubmitQuoteRevisionRequest
      */
-    items: Array<SubmitQuoteRequestItemsInner>;
+    items: Array<SubmitQuoteRevisionRequestItemsInner>;
 }
 
 /**
@@ -61,7 +61,7 @@ export function SubmitQuoteRevisionRequestFromJSONTyped(json: any, ignoreDiscrim
     return {
         
         'note': json['note'],
-        'items': ((json['items'] as Array<any>).map(SubmitQuoteRequestItemsInnerFromJSON)),
+        'items': ((json['items'] as Array<any>).map(SubmitQuoteRevisionRequestItemsInnerFromJSON)),
     };
 }
 
@@ -77,7 +77,7 @@ export function SubmitQuoteRevisionRequestToJSONTyped(value?: SubmitQuoteRevisio
     return {
         
         'note': value['note'],
-        'items': ((value['items'] as Array<any>).map(SubmitQuoteRequestItemsInnerToJSON)),
+        'items': ((value['items'] as Array<any>).map(SubmitQuoteRevisionRequestItemsInnerToJSON)),
     };
 }
 

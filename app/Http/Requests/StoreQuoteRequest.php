@@ -68,6 +68,7 @@ class StoreQuoteRequest extends ApiFormRequest
             'rfq_id' => ['required', 'integer', 'exists:rfqs,id'],
             'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
             'currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+            'status' => ['nullable', Rule::in(['draft', 'submitted'])],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'min_order_qty' => ['nullable', 'integer', 'min:1'],
             'lead_time_days' => ['required', 'integer', 'min:1'],

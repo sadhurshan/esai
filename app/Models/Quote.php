@@ -37,6 +37,7 @@ class Quote extends Model
         'subtotal_minor',
         'tax_amount_minor',
         'total_minor',
+        'submitted_at',
     ];
 
     protected $casts = [
@@ -51,6 +52,7 @@ class Quote extends Model
         'subtotal_minor' => 'integer',
         'tax_amount_minor' => 'integer',
         'total_minor' => 'integer',
+        'submitted_at' => 'datetime',
     ];
 
     public function rfq(): BelongsTo

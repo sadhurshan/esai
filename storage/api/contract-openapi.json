@@ -346,6 +346,168 @@
                     }
                 ]
             },
+            "AuthForgotPasswordRequest": {
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthLoginRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "remember": {
+                        "type": "boolean",
+                        "description": "When true the session cookie is kept beyond the current browser session."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthResetPasswordRequest": {
+                "type": "object",
+                "required": [
+                    "token",
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "description": "Token issued via the password reset email."
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "minLength": 8
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password",
+                        "description": "Must match `password`."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthSession": {
+                "type": "object",
+                "required": [
+                    "token",
+                    "user",
+                    "feature_flags"
+                ],
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "description": "Session identifier echoed in the `XSRF-TOKEN` cookie for SPA clients."
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/AuthSessionUser"
+                    },
+                    "company": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuthSessionCompany"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "feature_flags": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        },
+                        "description": "Flattened feature flag map for the authenticated company."
+                    },
+                    "plan": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Active plan code assigned to the company, if any."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthSessionCompany": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Current buyer onboarding status."
+                    },
+                    "plan": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Plan code applied to the company."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthSessionUser": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "Role assigned to the user (buyer_admin, supplier_user, etc.)."
+                    },
+                    "company_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
             "AuthToken": {
                 "type": "object",
                 "required": [
@@ -1646,7 +1808,8 @@
                             "submitted",
                             "awarded",
                             "withdrawn",
-                            "expired"
+                            "expired",
+                            "lost"
                         ]
                     },
                     "currency": {
@@ -1763,7 +1926,6 @@
                     "id",
                     "quote_id",
                     "rfq_item_id",
-                    "quantity",
                     "unit_price_minor"
                 ],
                 "properties": {
@@ -1779,27 +1941,158 @@
                         "type": "string",
                         "format": "uuid"
                     },
-                    "description": {
-                        "type": "string",
-                        "nullable": true
+                    "currency": {
+                        "type": "string"
                     },
                     "quantity": {
-                        "type": "integer"
-                    },
-                    "uom": {
-                        "type": "string"
+                        "type": "number",
+                        "format": "float"
                     },
                     "unit_price": {
-                        "type": "string"
+                        "type": "number",
+                        "format": "float"
                     },
                     "unit_price_minor": {
                         "type": "integer"
                     },
+                    "line_subtotal": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "line_subtotal_minor": {
+                        "type": "integer"
+                    },
+                    "tax_total": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "tax_total_minor": {
+                        "type": "integer"
+                    },
                     "line_total": {
-                        "type": "string"
+                        "type": "number",
+                        "format": "float"
                     },
                     "line_total_minor": {
                         "type": "integer"
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "taxes": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "tax_code_id": {
+                                    "type": "integer"
+                                },
+                                "rate_percent": {
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "amount_minor": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "QuoteLineRequest": {
+                "type": "object",
+                "required": [
+                    "rfq_item_id",
+                    "lead_time_days"
+                ],
+                "properties": {
+                    "rfq_item_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "unit_price": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "nullable": true
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "tax_code_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "QuoteLineUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "unit_price_minor": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "unit_price": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "nullable": true
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "tax_code_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -4782,6 +5075,232 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Send password reset link",
+                "description": "Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.",
+                "operationId": "authForgotPassword",
+                "security": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthForgotPasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reset email dispatched (or suppressed for privacy).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid email payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Create an authenticated session",
+                "description": "Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.",
+                "operationId": "authLogin",
+                "security": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthLoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Authenticated session payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AuthSession"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials supplied.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Terminate the authenticated session",
+                "operationId": "authLogout",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session destroyed successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No active session.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Inspect the current authenticated session",
+                "description": "Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.",
+                "operationId": "authSession",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session metadata.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AuthSession"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid session.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reset password with token",
+                "description": "Verifies the password reset token issued via email and sets a new password for the user.",
+                "operationId": "authResetPassword",
+                "security": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthResetPasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid reset token or password payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
                                 }
                             }
                         }
@@ -9367,6 +9886,14 @@
                                         "type": "string",
                                         "nullable": true
                                     },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "draft",
+                                            "submitted"
+                                        ],
+                                        "default": "submitted"
+                                    },
                                     "items": {
                                         "type": "array",
                                         "minItems": 1,
@@ -9374,19 +9901,45 @@
                                             "type": "object",
                                             "required": [
                                                 "rfq_item_id",
-                                                "unit_price_minor",
-                                                "quantity"
+                                                "lead_time_days"
                                             ],
                                             "properties": {
                                                 "rfq_item_id": {
                                                     "type": "string",
                                                     "format": "uuid"
                                                 },
-                                                "quantity": {
-                                                    "type": "integer"
-                                                },
                                                 "unit_price_minor": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "unit_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "currency": {
+                                                    "type": "string",
+                                                    "minLength": 3,
+                                                    "maxLength": 3,
+                                                    "nullable": true
+                                                },
+                                                "lead_time_days": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "note": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "tax_code_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "nullable": true
                                                 }
                                             }
                                         }
@@ -9406,6 +9959,207 @@
                 "responses": {
                     "201": {
                         "description": "Quote submitted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Quote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/quotes/{quoteId}": {
+            "get": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Fetch a single quote",
+                "operationId": "showQuote",
+                "responses": {
+                    "200": {
+                        "description": "Quote details including lines, attachments, and revisions.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Quote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ]
+        },
+        "/api/quotes/{quoteId}/lines": {
+            "parameters": [
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Add line to draft quote",
+                "operationId": "addQuoteLine",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QuoteLineRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Line added and totals recalculated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Quote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/quotes/{quoteId}/lines/{quoteItemId}": {
+            "delete": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Remove a quote line",
+                "operationId": "deleteQuoteLine",
+                "responses": {
+                    "200": {
+                        "description": "Updated quote after removal.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Quote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "quoteItemId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Update an existing quote line",
+                "operationId": "updateQuoteLine",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QuoteLineUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Line updated and totals recalculated.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9460,6 +10214,53 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/quotes/{quoteId}/submit": {
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Submit a draft quote",
+                "operationId": "submitDraftQuote",
+                "parameters": [
+                    {
+                        "name": "quoteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quote submitted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Quote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
                     }
                 }
             }
@@ -11774,6 +12575,115 @@
                     }
                 }
             ]
+        },
+        "/api/supplier/quotes": {
+            "get": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "List quotes for the authenticated supplier company",
+                "operationId": "listSupplierQuotes",
+                "parameters": [
+                    {
+                        "name": "rfq_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "description": "Comma-delimited list of statuses to include."
+                        }
+                    },
+                    {
+                        "name": "rfq_number",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created_at",
+                                "submitted_at",
+                                "total_minor"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier quotes list.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items",
+                                                        "meta"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Quote"
+                                                            }
+                                                        },
+                                                        "meta": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "last_page": {
+                                                                    "type": "integer"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/api/suppliers": {
             "get": {

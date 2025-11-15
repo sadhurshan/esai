@@ -7,7 +7,7 @@
 Name | Type
 ------------ | -------------
 `note` | string
-`items` | [Array&lt;SubmitQuoteRequestItemsInner&gt;](SubmitQuoteRequestItemsInner.md)
+`items` | [Array&lt;SubmitQuoteRevisionRequestItemsInner&gt;](SubmitQuoteRevisionRequestItemsInner.md)
 
 ## Example
 

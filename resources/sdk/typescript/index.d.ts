@@ -1964,6 +1964,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/quotes/{quoteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+            };
+            cookie?: never;
+        };
+        /** Fetch a single quote */
+        get: operations["showQuote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotes/{quoteId}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add line to draft quote */
+        post: operations["addQuoteLine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotes/{quoteId}/lines/{quoteItemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+                quoteItemId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update an existing quote line */
+        put: operations["updateQuoteLine"];
+        post?: never;
+        /** Remove a quote line */
+        delete: operations["deleteQuoteLine"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/quotes/{quoteId}/recalculate": {
         parameters: {
             query?: never;
@@ -1975,6 +2034,23 @@ export interface paths {
         put?: never;
         /** Recalculate quote totals */
         post: operations["recalcQuoteTotals"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotes/{quoteId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a draft quote */
+        post: operations["submitDraftQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2543,6 +2619,23 @@ export interface paths {
         post?: never;
         /** Delete supplier application */
         delete: operations["deleteSupplierApplication"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/supplier/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List quotes for the authenticated supplier company */
+        get: operations["listSupplierQuotes"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3148,7 +3241,7 @@ export interface components {
             rfq_id: number;
             supplier_id: number;
             /** @enum {string} */
-            status: "draft" | "submitted" | "awarded" | "withdrawn" | "expired";
+            status: "draft" | "submitted" | "awarded" | "withdrawn" | "expired" | "lost";
             currency: string;
             /** Format: float */
             unit_price?: number;
@@ -3190,13 +3283,54 @@ export interface components {
             quote_id: string;
             /** Format: uuid */
             rfq_item_id: string;
-            description?: string | null;
-            quantity: number;
-            uom?: string;
-            unit_price?: string;
+            currency?: string;
+            /** Format: float */
+            quantity?: number;
+            /** Format: float */
+            unit_price?: number;
             unit_price_minor: number;
-            line_total?: string;
+            /** Format: float */
+            line_subtotal?: number;
+            line_subtotal_minor?: number;
+            /** Format: float */
+            tax_total?: number;
+            tax_total_minor?: number;
+            /** Format: float */
+            line_total?: number;
             line_total_minor?: number;
+            lead_time_days?: number | null;
+            note?: string | null;
+            status?: string | null;
+            taxes?: {
+                /** Format: uuid */
+                id?: string;
+                tax_code_id?: number;
+                /** Format: float */
+                rate_percent?: number;
+                amount_minor?: number;
+            }[];
+        };
+        QuoteLineRequest: {
+            /** Format: uuid */
+            rfq_item_id: string;
+            unit_price_minor?: number | null;
+            /** Format: float */
+            unit_price?: number | null;
+            currency?: string | null;
+            lead_time_days: number;
+            note?: string | null;
+            tax_code_ids?: number[];
+            status?: string | null;
+        };
+        QuoteLineUpdateRequest: {
+            unit_price_minor?: number | null;
+            /** Format: float */
+            unit_price?: number | null;
+            currency?: string | null;
+            lead_time_days?: number;
+            note?: string | null;
+            tax_code_ids?: number[];
+            status?: string | null;
         };
         QuoteRevision: {
             /** Format: uuid */
@@ -7987,11 +8121,22 @@ export interface operations {
                     lead_time_days?: number | null;
                     min_order_qty?: number | null;
                     note?: string | null;
+                    /**
+                     * @default submitted
+                     * @enum {string}
+                     */
+                    status?: "draft" | "submitted";
                     items: {
                         /** Format: uuid */
                         rfq_item_id: string;
-                        quantity: number;
-                        unit_price_minor: number;
+                        unit_price_minor?: number | null;
+                        /** Format: float */
+                        unit_price?: number | null;
+                        currency?: string | null;
+                        lead_time_days: number;
+                        note?: string | null;
+                        tax_code_ids?: number[];
+                        status?: string | null;
                     }[];
                     attachments?: string[];
                 };
@@ -8010,6 +8155,115 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationError"];
+        };
+    };
+    showQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quote details including lines, attachments, and revisions. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Quote"];
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    addQuoteLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteLineRequest"];
+            };
+        };
+        responses: {
+            /** @description Line added and totals recalculated. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Quote"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    updateQuoteLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+                quoteItemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteLineUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Line updated and totals recalculated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Quote"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteQuoteLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+                quoteItemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Updated quote after removal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Quote"];
+                    };
+                };
+            };
         };
     };
     recalcQuoteTotals: {
@@ -8032,6 +8286,31 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
+        };
+    };
+    submitDraftQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quoteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quote submitted successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Quote"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
         };
     };
     listRfqs: {
@@ -9266,6 +9545,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    listSupplierQuotes: {
+        parameters: {
+            query?: {
+                rfq_id?: string;
+                status?: string;
+                rfq_number?: string;
+                page?: components["parameters"]["PageQuery"];
+                per_page?: components["parameters"]["PerPageQuery"];
+                sort?: "created_at" | "submitted_at" | "total_minor";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Supplier quotes list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items: components["schemas"]["Quote"][];
+                            meta: {
+                                total?: number;
+                                per_page?: number;
+                                current_page?: number;
+                                last_page?: number;
+                            };
+                        };
+                    };
                 };
             };
         };

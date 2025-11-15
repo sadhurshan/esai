@@ -54,12 +54,6 @@ export interface RfqLinePayload {
      * @type {string}
      * @memberof RfqLinePayload
      */
-    requiredDate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RfqLinePayload
-     */
     notes?: string;
     /**
      * Reference to an uploaded CAD document.
@@ -93,7 +87,6 @@ export function RfqLinePayloadFromJSONTyped(json: any, ignoreDiscriminator: bool
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
-        'requiredDate': json['required_date'] == null ? undefined : json['required_date'],
         'notes': json['notes'] == null ? undefined : json['notes'],
         'cadDocumentId': json['cad_document_id'] == null ? undefined : json['cad_document_id'],
     };
@@ -115,7 +108,6 @@ export function RfqLinePayloadToJSONTyped(value?: RfqLinePayload | null, ignoreD
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],
-        'required_date': value['requiredDate'],
         'notes': value['notes'],
         'cad_document_id': value['cadDocumentId'],
     };

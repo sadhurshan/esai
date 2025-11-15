@@ -34,12 +34,14 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RFQController;
 use App\Http\Controllers\Api\PoChangeOrderController;
 use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\QuoteLineController;
 use App\Http\Controllers\Api\RfqClarificationController;
 use App\Http\Controllers\Api\QuoteRevisionController;
 use App\Http\Controllers\Api\RfqAwardController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\SupplierQuoteController;
 use App\Http\Controllers\Api\SupplierApplicationController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
@@ -159,7 +161,17 @@ Route::prefix('orders')->group(function (): void {
     Route::get('{order}', [OrderController::class, 'show']);
 });
 
+Route::get('quotes/{quote}', [QuoteController::class, 'show']);
 Route::post('quotes', [QuoteController::class, 'store'])->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
+Route::prefix('quotes/{quote}')
+    ->middleware(['ensure.supplier.approved'])
+    ->group(function (): void {
+        Route::post('submit', [QuoteController::class, 'submitDraft']);
+        Route::post('lines', [QuoteLineController::class, 'store']);
+        Route::put('lines/{quoteItem}', [QuoteLineController::class, 'update']);
+        Route::delete('lines/{quoteItem}', [QuoteLineController::class, 'destroy']);
+    });
+Route::get('supplier/quotes', [SupplierQuoteController::class, 'index'])->middleware(['ensure.supplier.approved']);
 
 Route::middleware('web')->group(function (): void {
     Route::prefix('purchase-orders')->group(function (): void {

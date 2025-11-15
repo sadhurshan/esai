@@ -105,8 +105,260 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Create an authenticated session
+      description: Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
+      operationId: authLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Authenticated session payload.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthSession'
+        '422':
+          description: Invalid credentials supplied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Inspect the current authenticated session
+      description: Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
+      operationId: authSession
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Session metadata.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthSession'
+        '401':
+          description: Missing or invalid session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Terminate the authenticated session
+      operationId: authLogout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Session destroyed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '401':
+          description: No active session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Send password reset link
+      description: Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
+      operationId: authForgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset email dispatched (or suppressed for privacy).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '422':
+          description: Invalid email payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset password with token
+      description: Verifies the password reset token issued via email and sets a new password for the user.
+      operationId: authResetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '422':
+          description: Invalid reset token or password payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 components:
   schemas:
+    AuthLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        remember:
+          type: boolean
+          description: When true the session cookie is kept beyond the current browser session.
+      additionalProperties: false
+    AuthForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+      additionalProperties: false
+    AuthResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - email
+        - password
+        - password_confirmation
+      properties:
+        token:
+          type: string
+          description: Token issued via the password reset email.
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        password_confirmation:
+          type: string
+          format: password
+          description: Must match `password`.
+      additionalProperties: false
+    AuthSession:
+      type: object
+      required:
+        - token
+        - user
+        - feature_flags
+      properties:
+        token:
+          type: string
+          description: Session identifier echoed in the `XSRF-TOKEN` cookie for SPA clients.
+        user:
+          $ref: '#/components/schemas/AuthSessionUser'
+        company:
+          allOf:
+            - $ref: '#/components/schemas/AuthSessionCompany'
+          nullable: true
+        feature_flags:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: Flattened feature flag map for the authenticated company.
+        plan:
+          type: string
+          nullable: true
+          description: Active plan code assigned to the company, if any.
+      additionalProperties: false
+    AuthSessionUser:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          description: Role assigned to the user (buyer_admin, supplier_user, etc.).
+        company_id:
+          type: integer
+          format: int64
+          nullable: true
+      additionalProperties: false
+    AuthSessionCompany:
+      type: object
+      required:
+        - id
+        - name
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        status:
+          type: string
+          description: Current buyer onboarding status.
+        plan:
+          type: string
+          nullable: true
+          description: Plan code applied to the company.
+      additionalProperties: false
     AuthToken:
       type: object
       required:

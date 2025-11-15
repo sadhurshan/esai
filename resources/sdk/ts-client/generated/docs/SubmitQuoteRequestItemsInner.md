@@ -7,8 +7,13 @@
 Name | Type
 ------------ | -------------
 `rfqItemId` | string
-`quantity` | number
 `unitPriceMinor` | number
+`unitPrice` | number
+`currency` | string
+`leadTimeDays` | number
+`note` | string
+`taxCodeIds` | Array&lt;number&gt;
+`status` | string
 
 ## Example
 
@@ -18,8 +23,13 @@ import type { SubmitQuoteRequestItemsInner } from ''
 // TODO: Update the object below with actual values
 const example = {
   "rfqItemId": null,
-  "quantity": null,
   "unitPriceMinor": null,
+  "unitPrice": null,
+  "currency": null,
+  "leadTimeDays": null,
+  "note": null,
+  "taxCodeIds": null,
+  "status": null,
 } satisfies SubmitQuoteRequestItemsInner
 
 console.log(example)

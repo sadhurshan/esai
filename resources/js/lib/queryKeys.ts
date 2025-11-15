@@ -1,4 +1,16 @@
 export const queryKeys = {
+    quotes: {
+        root: () => ['quotes'] as const,
+        rfq: (rfqId: string | number) => ['quotes', 'rfq', String(rfqId)] as const,
+        list: (rfqId: string | number, filters?: Record<string, unknown>) =>
+            ['quotes', 'rfq', String(rfqId), 'list', filters ?? {}] as const,
+        detail: (quoteId: string | number) => ['quotes', 'detail', String(quoteId)] as const,
+        lines: (quoteId: string | number) => ['quotes', 'lines', String(quoteId)] as const,
+        revisions: (rfqId: string | number, quoteId: string | number) =>
+            ['quotes', 'revisions', String(rfqId), String(quoteId)] as const,
+        supplierRoot: () => ['quotes', 'supplier'] as const,
+        supplierList: (params?: Record<string, unknown>) => ['quotes', 'supplier', 'list', params ?? {}] as const,
+    },
     suppliers: {
         list: (params?: Record<string, unknown>) => ['suppliers', 'list', params ?? {}] as const,
     },
@@ -45,6 +57,14 @@ export const queryKeys = {
 
 export type QueryKey = ReturnType<
     | (typeof queryKeys)['suppliers']['list']
+    | (typeof queryKeys)['quotes']['root']
+    | (typeof queryKeys)['quotes']['rfq']
+    | (typeof queryKeys)['quotes']['list']
+    | (typeof queryKeys)['quotes']['detail']
+    | (typeof queryKeys)['quotes']['lines']
+    | (typeof queryKeys)['quotes']['revisions']
+    | (typeof queryKeys)['quotes']['supplierRoot']
+    | (typeof queryKeys)['quotes']['supplierList']
     | (typeof queryKeys)['rfqs']['root']
     | (typeof queryKeys)['rfqs']['list']
     | (typeof queryKeys)['rfqs']['detail']

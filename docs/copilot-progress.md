@@ -1,3 +1,8 @@
+## 2025-11-15 09:10
+- Extended `docs/openapi/fragments/quotes.yaml` to cover quote detail, supplier listing, draft submission, and line-level CRUD endpoints so the frontend SDK can call the new Laravel APIs.
+- Added `QuoteLineRequest`/`QuoteLineUpdateRequest` schemas plus richer `Quote`/`QuoteItem` payloads that include totals, lead times, attachments, and taxes to mirror the backend resources.
+- Follow-up: regenerate the TS SDK/REST client (`npm run sdk:generate`) before wiring the new React Query hooks so they rely on the refreshed contract.
+
 ## 2025-11-14 00:46
 - Added Vitest unit coverage for RFQ data hooks and the creation wizard, including query mocks and step validation assertions.
 - Configured Vitest in `vite.config.ts` with path aliases, jsdom environment, vmThreads pool, and test setup bootstrap.

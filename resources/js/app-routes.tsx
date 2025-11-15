@@ -3,7 +3,12 @@ import { RequireAuth } from '@/components/require-auth';
 import { AppLayout } from '@/layouts/app-layout';
 import { DashboardPage } from '@/pages/dashboard';
 import { RfqCreateWizard, RfqDetailPage, RfqListPage } from '@/pages/rfqs';
-import { QuoteListPage } from '@/pages/quotes';
+import {
+    QuoteDetailPage,
+    QuoteListPage,
+    SupplierQuoteCreatePage,
+    SupplierQuoteEditPage,
+} from '@/pages/quotes';
 import { PurchaseOrderDetailPage, PurchaseOrderListPage } from '@/pages/purchase-orders';
 import { InvoiceListPage } from '@/pages/invoices';
 import { InventoryPage } from '@/pages/inventory';
@@ -31,7 +36,11 @@ export function AppRoutes(): ReactElement {
                     <Route path="rfqs" element={<RfqListPage />} />
                     <Route path="rfqs/new" element={<RfqCreateWizard />} />
                     <Route path="rfqs/:id" element={<RfqDetailPage />} />
+                    <Route path="rfqs/:rfqId/quotes" element={<QuoteListPage />} />
                     <Route path="quotes" element={<QuoteListPage />} />
+                    <Route path="quotes/:quoteId" element={<QuoteDetailPage />} />
+                    <Route path="suppliers/rfqs/:rfqId/quotes/new" element={<SupplierQuoteCreatePage />} />
+                    <Route path="suppliers/quotes/:quoteId" element={<SupplierQuoteEditPage />} />
                     <Route path="purchase-orders" element={<PurchaseOrderListPage />} />
                     <Route path="purchase-orders/:purchaseOrderId" element={<PurchaseOrderDetailPage />} />
                     <Route path="invoices" element={<InvoiceListPage />} />

@@ -155,6 +155,9 @@ docs/ListSavedSearches200Response.md
 docs/ListSavedSearches200ResponseAllOfData.md
 docs/ListSupplierApplications200Response.md
 docs/ListSupplierApplications200ResponseAllOfData.md
+docs/ListSupplierQuotes200Response.md
+docs/ListSupplierQuotes200ResponseAllOfData.md
+docs/ListSupplierQuotes200ResponseAllOfDataMeta.md
 docs/ListSuppliers200Response.md
 docs/ListSuppliers200ResponseAllOfData.md
 docs/ListTaxCodes200Response.md
@@ -185,6 +188,9 @@ docs/PurchaseOrdersApi.md
 docs/Quote.md
 docs/QuoteAttachmentsInner.md
 docs/QuoteItem.md
+docs/QuoteItemTaxesInner.md
+docs/QuoteLineRequest.md
+docs/QuoteLineUpdateRequest.md
 docs/QuoteRevision.md
 docs/QuoteSummary.md
 docs/QuotesApi.md
@@ -227,6 +233,7 @@ docs/SubmitQuote201Response.md
 docs/SubmitQuoteRequest.md
 docs/SubmitQuoteRequestItemsInner.md
 docs/SubmitQuoteRevisionRequest.md
+docs/SubmitQuoteRevisionRequestItemsInner.md
 docs/SuccessEnvelope.md
 docs/Supplier.md
 docs/SupplierApplication.md
@@ -369,6 +376,9 @@ models/ListSavedSearches200Response.ts
 models/ListSavedSearches200ResponseAllOfData.ts
 models/ListSupplierApplications200Response.ts
 models/ListSupplierApplications200ResponseAllOfData.ts
+models/ListSupplierQuotes200Response.ts
+models/ListSupplierQuotes200ResponseAllOfData.ts
+models/ListSupplierQuotes200ResponseAllOfDataMeta.ts
 models/ListSuppliers200Response.ts
 models/ListSuppliers200ResponseAllOfData.ts
 models/ListTaxCodes200Response.ts
@@ -394,6 +404,9 @@ models/PurchaseOrderSupplier.ts
 models/Quote.ts
 models/QuoteAttachmentsInner.ts
 models/QuoteItem.ts
+models/QuoteItemTaxesInner.ts
+models/QuoteLineRequest.ts
+models/QuoteLineUpdateRequest.ts
 models/QuoteRevision.ts
 models/QuoteSummary.ts
 models/RateLimitRule.ts
@@ -432,6 +445,7 @@ models/SubmitQuote201Response.ts
 models/SubmitQuoteRequest.ts
 models/SubmitQuoteRequestItemsInner.ts
 models/SubmitQuoteRevisionRequest.ts
+models/SubmitQuoteRevisionRequestItemsInner.ts
 models/SuccessEnvelope.ts
 models/Supplier.ts
 models/SupplierApplication.ts

@@ -94,6 +94,14 @@ class WebhookService
     }
 
     /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function sendTestEvent(WebhookSubscription $subscription, string $event, array $payload = []): void
+    {
+        DispatchWebhookJob::dispatch($subscription->id, $event, $payload);
+    }
+
+    /**
      * @param  array<string, mixed>|null  $policy
      * @return array<string, mixed>
      */

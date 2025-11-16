@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\Rfq\InviteSuppliersToRfqAction;
-use App\Enums\CompanySupplierStatus;
 use App\Http\Requests\StoreInvitationRequest;
 use App\Http\Resources\RfqInvitationResource;
 use App\Models\RFQ;
@@ -21,9 +20,7 @@ class RfqInvitationController extends ApiController
 
         abort_if(
             $user === null
-            || $user->company_id !== $rfq->company_id
-            || $user->company === null
-            || $user->company->supplier_status !== CompanySupplierStatus::Approved,
+            || $user->company_id !== $rfq->company_id,
             403
         );
 
@@ -45,9 +42,7 @@ class RfqInvitationController extends ApiController
         $user = $request->user();
         abort_if(
             $user === null
-            || $user->company_id !== $rfq->company_id
-            || $user->company === null
-            || $user->company->supplier_status !== CompanySupplierStatus::Approved,
+            || $user->company_id !== $rfq->company_id,
             403
         );
 

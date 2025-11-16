@@ -137,6 +137,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Self-register a buyer company and primary owner
+      description: Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+      operationId: authRegister
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SelfRegistrationRequest'
+      responses:
+        '200':
+          description: Registration succeeded and the caller is authenticated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token:
+                            type: string
+                          user:
+                            $ref: '#/components/schemas/AuthSessionUser'
+                          company:
+                            $ref: '#/components/schemas/AuthSessionCompany'
+        '409':
+          description: Attempted to register while already authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Invalid registration payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/auth/me:
     get:
       tags:
@@ -288,6 +333,83 @@ components:
           type: string
           format: password
           description: Must match `password`.
+      additionalProperties: false
+    SelfRegistrationRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - password_confirmation
+        - company_name
+        - company_domain
+        - registration_no
+        - tax_id
+        - website
+        - company_documents
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        email:
+          type: string
+          format: email
+          maxLength: 191
+        password:
+          type: string
+          format: password
+          minLength: 8
+        password_confirmation:
+          type: string
+          format: password
+          description: Must match `password`.
+        company_name:
+          type: string
+          maxLength: 160
+        company_domain:
+          type: string
+          description: Public email domain used for verification.
+          pattern: '^(?!-)(?:[a-z0-9-]+\.)+[a-z]{2,}$'
+        registration_no:
+          type: string
+          maxLength: 120
+        tax_id:
+          type: string
+          maxLength: 120
+        website:
+          type: string
+          format: uri
+          maxLength: 191
+        address:
+          type: string
+          maxLength: 500
+          nullable: true
+        phone:
+          type: string
+          maxLength: 60
+          nullable: true
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code.
+          minLength: 2
+          maxLength: 2
+          nullable: true
+        company_documents:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: object
+            required:
+              - type
+              - file
+            properties:
+              type:
+                type: string
+                enum: [registration, tax, esg, other]
+              file:
+                type: string
+                format: binary
       additionalProperties: false
     AuthSession:
       type: object

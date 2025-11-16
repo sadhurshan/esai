@@ -13,12 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useGrn } from '@/hooks/api/receiving/use-grn';
 import { useAttachGrnFile } from '@/hooks/api/receiving/use-attach-grn-file';
 import type { DocumentAttachment, GrnLine } from '@/types/sourcing';
-import { formatDate } from '@/lib/format';
 
 export function ReceivingDetailPage() {
+    const { formatDate } = useFormatting();
     const { grnId: grnIdParam } = useParams<{ grnId?: string }>();
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
@@ -288,6 +289,7 @@ function MetadataItem({ label, value }: { label: string; value: string | number 
 }
 
 function GrnLineRow({ line }: { line: GrnLine }) {
+    const { formatNumber } = useFormatting();
     const varianceVariant = line.variance === 'over' ? 'destructive' : line.variance === 'short' ? 'secondary' : 'outline';
 
     return (
@@ -296,9 +298,9 @@ function GrnLineRow({ line }: { line: GrnLine }) {
                 <p className="font-medium text-foreground">{line.description ?? `PO line #${line.poLineId}`}</p>
                 <p className="text-xs text-muted-foreground">Line {line.lineNo ?? line.poLineId}</p>
             </td>
-            <td className="py-3 pr-4">{formatQuantity(line.orderedQty, line.uom)}</td>
-            <td className="py-3 pr-4">{formatQuantity(line.previouslyReceived, line.uom)}</td>
-            <td className="py-3 pr-4 font-semibold text-foreground">{formatQuantity(line.qtyReceived, line.uom)}</td>
+            <td className="py-3 pr-4">{formatQuantity(line.orderedQty, line.uom, formatNumber)}</td>
+            <td className="py-3 pr-4">{formatQuantity(line.previouslyReceived, line.uom, formatNumber)}</td>
+            <td className="py-3 pr-4 font-semibold text-foreground">{formatQuantity(line.qtyReceived, line.uom, formatNumber)}</td>
             <td className="py-3 pr-4">{line.uom ?? '—'}</td>
             <td className="py-3 pr-4">
                 {line.variance ? (
@@ -313,11 +315,11 @@ function GrnLineRow({ line }: { line: GrnLine }) {
     );
 }
 
-function formatQuantity(value?: number | null, uom?: string | null): string {
+function formatQuantity(value: number | null | undefined, uom: string | null | undefined, formatNumber: (val: number, options?: Intl.NumberFormatOptions & { fallback?: string }) => string): string {
     if (value === null || value === undefined || Number.isNaN(value)) {
         return '—';
     }
-    const formatted = Math.abs(value) >= 1 ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : value.toFixed(3);
+    const formatted = formatNumber(value, { maximumFractionDigits: Math.abs(value) >= 1 ? 2 : 3 });
     return `${formatted} ${uom ?? ''}`.trim();
 }
 

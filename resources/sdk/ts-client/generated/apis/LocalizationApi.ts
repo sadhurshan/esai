@@ -15,18 +15,21 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApiErrorResponse,
   ApiSuccessResponse,
   ConvertQuantity200Response,
   ConvertQuantityForPart200Response,
   ConvertQuantityRequest,
   ListUomConversions200Response,
   ListUoms200Response,
-  LocaleSetting,
-  ShowLocaleSettings200Response,
+  LocalizationSettings,
+  ShowLocalizationSettings200Response,
   Uom,
   UpsertUomConversionRequest,
 } from '../models/index';
 import {
+    ApiErrorResponseFromJSON,
+    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
     ApiSuccessResponseToJSON,
     ConvertQuantity200ResponseFromJSON,
@@ -39,10 +42,10 @@ import {
     ListUomConversions200ResponseToJSON,
     ListUoms200ResponseFromJSON,
     ListUoms200ResponseToJSON,
-    LocaleSettingFromJSON,
-    LocaleSettingToJSON,
-    ShowLocaleSettings200ResponseFromJSON,
-    ShowLocaleSettings200ResponseToJSON,
+    LocalizationSettingsFromJSON,
+    LocalizationSettingsToJSON,
+    ShowLocalizationSettings200ResponseFromJSON,
+    ShowLocalizationSettings200ResponseToJSON,
     UomFromJSON,
     UomToJSON,
     UpsertUomConversionRequestFromJSON,
@@ -78,8 +81,8 @@ export interface ListUomsRequest {
     dimension?: string;
 }
 
-export interface UpdateLocaleSettingsRequest {
-    localeSetting: LocaleSetting;
+export interface LocalizationApiUpdateLocalizationSettingsRequest {
+    localizationSettings: LocalizationSettings;
 }
 
 export interface UpdateUomRequest {
@@ -195,32 +198,32 @@ export interface LocalizationApiInterface {
 
     /**
      * 
-     * @summary Retrieve locale settings
+     * @summary Retrieve localization settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    showLocaleSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocaleSettings200Response>>;
+    showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
-     * Retrieve locale settings
+     * Retrieve localization settings
      */
-    showLocaleSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocaleSettings200Response>;
+    showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
 
     /**
      * 
-     * @summary Update locale settings
-     * @param {LocaleSetting} localeSetting 
+     * @summary Update localization settings
+     * @param {LocalizationSettings} localizationSettings 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    updateLocaleSettingsRaw(requestParameters: UpdateLocaleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateLocalizationSettingsRaw(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
-     * Update locale settings
+     * Update localization settings
      */
-    updateLocaleSettings(requestParameters: UpdateLocaleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateLocalizationSettings(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
 
     /**
      * 
@@ -592,9 +595,9 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
     }
 
     /**
-     * Retrieve locale settings
+     * Retrieve localization settings
      */
-    async showLocaleSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocaleSettings200Response>> {
+    async showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -612,7 +615,7 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
             }
         }
 
-        let urlPath = `/api/localization/settings`;
+        let urlPath = `/api/settings/localization`;
 
         const response = await this.request({
             path: urlPath,
@@ -621,25 +624,25 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocaleSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
     }
 
     /**
-     * Retrieve locale settings
+     * Retrieve localization settings
      */
-    async showLocaleSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocaleSettings200Response> {
-        const response = await this.showLocaleSettingsRaw(initOverrides);
+    async showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
+        const response = await this.showLocalizationSettingsRaw(initOverrides);
         return await response.value();
     }
 
     /**
-     * Update locale settings
+     * Update localization settings
      */
-    async updateLocaleSettingsRaw(requestParameters: UpdateLocaleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
-        if (requestParameters['localeSetting'] == null) {
+    async updateLocalizationSettingsRaw(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
+        if (requestParameters['localizationSettings'] == null) {
             throw new runtime.RequiredError(
-                'localeSetting',
-                'Required parameter "localeSetting" was null or undefined when calling updateLocaleSettings().'
+                'localizationSettings',
+                'Required parameter "localizationSettings" was null or undefined when calling updateLocalizationSettings().'
             );
         }
 
@@ -662,24 +665,24 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
             }
         }
 
-        let urlPath = `/api/localization/settings`;
+        let urlPath = `/api/settings/localization`;
 
         const response = await this.request({
             path: urlPath,
-            method: 'PUT',
+            method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
-            body: LocaleSettingToJSON(requestParameters['localeSetting']),
+            body: LocalizationSettingsToJSON(requestParameters['localizationSettings']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
     }
 
     /**
-     * Update locale settings
+     * Update localization settings
      */
-    async updateLocaleSettings(requestParameters: UpdateLocaleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateLocaleSettingsRaw(requestParameters, initOverrides);
+    async updateLocalizationSettings(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
+        const response = await this.updateLocalizationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

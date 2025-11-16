@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useDashboardMetrics, type DashboardMetrics } from '@/hooks/api/use-dashboard-metrics';
 import { publishToast } from '@/components/ui/use-toast';
 import { HttpError } from '@/sdk';
@@ -60,8 +61,10 @@ const METRIC_DEFINITIONS: MetricConfig[] = [
 ];
 
 export function DashboardPage() {
-    const { state, notifyPlanLimit, clearPlanLimit } = useAuth();
-    const analyticsEnabled = state.featureFlags.analytics_enabled !== false;
+    const { state, notifyPlanLimit, clearPlanLimit, hasFeature } = useAuth();
+    const { formatNumber } = useFormatting();
+    const planCode = state.plan?.toLowerCase();
+    const analyticsEnabled = hasFeature('analytics_enabled') || planCode === 'community';
     const navigate = useNavigate();
     const metricsQuery = useDashboardMetrics(analyticsEnabled);
     const errorToastRef = useRef(false);
@@ -119,12 +122,14 @@ export function DashboardPage() {
                         <CardDescription>{definition.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-semibold tracking-tight">{value.toLocaleString()}</p>
+                        <p className="text-3xl font-semibold tracking-tight">
+                            {formatNumber(value, { maximumFractionDigits: 0 })}
+                        </p>
                     </CardContent>
                 </Card>
             );
         });
-    }, [metricsQuery.data]);
+    }, [formatNumber, metricsQuery.data]);
 
     return (
         <div className="flex flex-1 flex-col gap-6">

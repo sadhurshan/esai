@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'checkout_success_url' => env('STRIPE_CHECKOUT_SUCCESS_URL'),
+        'checkout_cancel_url' => env('STRIPE_CHECKOUT_CANCEL_URL'),
+        'fallback_checkout_url' => env('STRIPE_CHECKOUT_FALLBACK_URL'),
+        'prices' => [
+            'community' => env('STRIPE_PRICE_COMMUNITY'),
+            'starter' => env('STRIPE_PRICE_STARTER'),
+            'growth' => env('STRIPE_PRICE_GROWTH'),
+            'enterprise' => env('STRIPE_PRICE_ENTERPRISE'),
+        ],
+        'past_due_grace_days' => (int) env('STRIPE_PAST_DUE_GRACE_DAYS', 7),
+    ],
+
 ];

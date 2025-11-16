@@ -24,7 +24,7 @@ it('allows a company owner to apply for supplier status and a platform admin to 
     ]);
 
     $company = Company::factory()->create([
-        'status' => CompanyStatus::PendingVerification,
+        'status' => CompanyStatus::Active,
         'supplier_status' => CompanySupplierStatus::None,
         'is_verified' => false,
         'verified_at' => null,
@@ -71,7 +71,7 @@ it('allows a company owner to apply for supplier status and a platform admin to 
         'notes' => 'Ready to support rush aerospace projects.',
     ];
 
-    $submitResponse = $this->postJson('/api/supplier-applications', $payload);
+    $submitResponse = $this->postJson('/api/me/apply-supplier', $payload);
 
     $submitResponse
         ->assertOk()
@@ -85,7 +85,7 @@ it('allows a company owner to apply for supplier status and a platform admin to 
     $company->refresh();
 
     expect($application->status)->toBe(SupplierApplicationStatus::Pending)
-        ->and($company->supplier_status)->toBe(CompanySupplierStatus::None)
+        ->and($company->supplier_status)->toBe(CompanySupplierStatus::Pending)
         ->and($company->supplier_profile_completed_at)->not->toBeNull()
         ->and($company->directory_visibility)->toBe('private');
 
@@ -121,4 +121,84 @@ it('allows a company owner to apply for supplier status and a platform admin to 
         ->and($supplier->city)->toBe('Seattle')
         ->and($supplier->capabilities['methods'])->toContain('cnc_machining')
         ->and($supplier->verified_at)->not->toBeNull();
+});
+
+it('blocks non-owner users from submitting supplier applications', function (): void {
+    $owner = User::factory()->create([
+        'role' => 'owner',
+    ]);
+
+    $company = Company::factory()->create([
+        'status' => CompanyStatus::Active,
+        'supplier_status' => CompanySupplierStatus::None,
+        'owner_user_id' => $owner->id,
+    ]);
+
+    $owner->forceFill(['company_id' => $company->id])->save();
+
+    $buyerAdmin = User::factory()->create([
+        'role' => 'buyer_admin',
+        'company_id' => $company->id,
+    ]);
+
+    DB::table('company_user')->insert([
+        ['company_id' => $company->id, 'user_id' => $owner->id, 'role' => $owner->role, 'created_at' => now(), 'updated_at' => now()],
+        ['company_id' => $company->id, 'user_id' => $buyerAdmin->id, 'role' => $buyerAdmin->role, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    actingAs($buyerAdmin);
+
+    $response = $this->postJson('/api/me/apply-supplier', [
+        'capabilities' => ['methods' => ['cnc_machining']],
+        'address' => '456 Industrial Ave',
+    ]);
+
+    $response->assertForbidden();
+
+    expect(SupplierApplication::query()->count())->toBe(0)
+        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::None);
+});
+
+it('blocks supplier application if the company is still pending approval', function (): void {
+    $owner = User::factory()->create([
+        'role' => 'owner',
+    ]);
+
+    $company = Company::factory()->create([
+        'status' => CompanyStatus::PendingVerification,
+        'supplier_status' => CompanySupplierStatus::None,
+        'owner_user_id' => $owner->id,
+    ]);
+
+    $owner->forceFill(['company_id' => $company->id])->save();
+
+    DB::table('company_user')->insert([
+        'company_id' => $company->id,
+        'user_id' => $owner->id,
+        'role' => $owner->role,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    actingAs($owner);
+
+    $response = $this->postJson('/api/me/apply-supplier', [
+        'capabilities' => [
+            'methods' => ['cnc_machining'],
+        ],
+        'address' => '789 Pending Way',
+        'country' => 'US',
+        'city' => 'Austin',
+        'moq' => 5,
+        'lead_time_days' => 7,
+        'contact' => [
+            'name' => 'Pending Owner',
+            'email' => 'pending@example.com',
+        ],
+    ]);
+
+    $response->assertStatus(403)->assertJsonPath('errors.company.0', 'Company approval pending. A platform admin must verify your documents first.');
+
+    expect(SupplierApplication::query()->count())->toBe(0)
+        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::None);
 });

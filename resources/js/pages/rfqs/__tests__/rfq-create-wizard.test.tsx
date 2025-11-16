@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/dom';
+import { screen, waitFor, within } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -33,7 +33,21 @@ vi.mock('@/hooks/api/rfqs', () => ({
 
 vi.mock('@/hooks/api/useSuppliers', () => ({
     useSuppliers: () => ({
-        data: { items: [] },
+        data: {
+            items: [
+                {
+                    id: 1,
+                    companyId: 101,
+                    name: 'Acme Fabrication',
+                    status: 'approved',
+                    capabilities: { methods: ['CNC machining'] },
+                    ratingAvg: 4.8,
+                    contact: {},
+                    address: { city: 'Austin', country: 'USA' },
+                    geo: {},
+                },
+            ],
+        },
         isLoading: false,
     }),
 }));
@@ -128,8 +142,6 @@ describe('RfqCreateWizard', () => {
         renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Manufacturing method'), 'CNC machining');
-        await user.type(screen.getByLabelText('Material'), '6061-T6 Aluminum');
         await user.type(screen.getByLabelText('Client company'), 'Elements Supply');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
@@ -139,6 +151,8 @@ describe('RfqCreateWizard', () => {
         await user.click(screen.getByRole('button', { name: /next/i }));
 
         expect(await screen.findByText('Part name is required.')).toBeInTheDocument();
+        expect(await screen.findByText('Manufacturing method is required.')).toBeInTheDocument();
+        expect(await screen.findByText('Material is required.')).toBeInTheDocument();
         expect(createRfqMock).not.toHaveBeenCalled();
     });
 
@@ -152,18 +166,27 @@ describe('RfqCreateWizard', () => {
         const { container } = renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Manufacturing method'), 'CNC machining');
-        await user.type(screen.getByLabelText('Material'), '6061-T6 Aluminum');
         await user.type(screen.getByLabelText('Client company'), 'Elements Supply');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
         await user.type(screen.getByLabelText(/Part \/ description/i), 'Bracket 001');
+        await user.type(screen.getByLabelText('Manufacturing method'), 'CNC machining');
+        await user.type(screen.getByLabelText('Material'), '6061-T6 Aluminum');
         await user.type(screen.getByLabelText('Required date'), '2100-01-05');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        await user.type(screen.getByLabelText('Supplier emails or IDs'), 'supplier@example.com');
+        const browseButton = screen.getByRole('button', { name: /browse directory/i });
+        await user.click(browseButton);
+
+        const directoryDialog = await screen.findByRole('dialog', { name: /browse supplier directory/i });
+        const addButton = within(directoryDialog).getByRole('button', { name: /^add$/i });
+        await user.click(addButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('Acme Fabrication')).toBeInTheDocument();
+        });
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -198,7 +221,7 @@ describe('RfqCreateWizard', () => {
         );
         expect(inviteSuppliersMock).toHaveBeenCalledWith({
             rfqId: 'rfq-999',
-            supplierIds: ['supplier@example.com'],
+            supplierIds: ['1'],
         });
         expect(uploadAttachmentMock).toHaveBeenCalledWith({
             rfqId: 'rfq-999',

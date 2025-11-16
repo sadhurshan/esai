@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { BadgeCheck, Download, FileWarning, Loader2, Paperclip, Printer, ShieldAlert } from 'lucide-react';
 
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { MoneyCell } from '@/components/quotes/money-cell';
@@ -98,6 +99,7 @@ export function CreditNoteDetailPage() {
     const canEditLines = Boolean(credit && credit.status === 'draft');
     const isLineFormDirty = creditLinesForm.formState.isDirty;
     const isLineFormValid = creditLinesForm.formState.isValid;
+    const showCreditNumberPreview = Boolean(credit && credit.status === 'draft');
 
     const postButtonLabel = (() => {
         if (!credit) {
@@ -217,6 +219,13 @@ export function CreditNoteDetailPage() {
                         <Skeleton className="h-8 w-40" />
                     )}
                     <p className="text-sm text-muted-foreground">Track supplier-issued credits tied to invoices.</p>
+                    {showCreditNumberPreview ? (
+                        <DocumentNumberPreview
+                            docType="credit"
+                            className="mt-3 max-w-md"
+                            hint="Final credit number is assigned when you post this note."
+                        />
+                    ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => navigate('/app/credit-notes')}>

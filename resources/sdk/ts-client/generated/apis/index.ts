@@ -22,5 +22,6 @@ export * from './QuotesApi';
 export * from './RFQsApi';
 export * from './RiskApi';
 export * from './SearchApi';
+export * from './SettingsApi';
 export * from './SuppliersApi';
 export * from './WebhooksApi';

@@ -27,6 +27,7 @@ class WebhookDeliveryController extends Controller
 
         $deliveries = WebhookDelivery::query()
             ->with('subscription:id,company_id,url')
+            ->when($request->filled('subscription_id'), fn (Builder $query) => $query->where('subscription_id', $request->input('subscription_id')))
             ->when($request->filled('company_id'), function (Builder $query) use ($request): void {
                 $query->whereHas('subscription', fn (Builder $builder) => $builder->where('company_id', $request->input('company_id')));
             })

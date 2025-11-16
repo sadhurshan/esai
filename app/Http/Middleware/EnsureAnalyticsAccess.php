@@ -38,8 +38,19 @@ class EnsureAnalyticsAccess
 
         $plan = $company->plan;
 
-        if ($plan === null || ! $plan->analytics_enabled) {
+        if ($plan === null) {
             return $this->upgradeRequiredResponse();
+        }
+
+        if ($plan->code === 'community') {
+            return $next($request);
+        }
+
+        if (! $plan->analytics_enabled) {
+            return $this->upgradeRequiredResponse(
+                null,
+                'Current plan does not include analytics features.'
+            );
         }
 
         return $next($request);

@@ -11,6 +11,36 @@ import type { Quote, RfqItem } from '@/sdk';
 const mockNavigate = vi.fn();
 const mockParams: Record<string, string | undefined> = {};
 
+vi.mock('@/contexts/formatting-context', () => ({
+    useFormatting: () => ({
+        locale: 'en-US',
+        timezone: 'UTC',
+        currency: 'USD',
+        displayFx: false,
+        rawSettings: {
+            timezone: 'UTC',
+            locale: 'en-US',
+            dateFormat: 'YYYY-MM-DD',
+            numberFormat: '1,234.56',
+            currency: { primary: 'USD', displayFx: false },
+            uom: { baseUom: 'EA', maps: {} },
+        },
+        formatNumber: (value: number | string | null | undefined) => (value ?? '—').toString(),
+        formatMoney: (value: number | string | null | undefined) => `$${value ?? '—'}`,
+        formatDate: () => '2024-01-01',
+    }),
+}));
+
+vi.mock('@/hooks/api/settings', () => ({
+    useNumberingSettings: () => ({
+        data: {
+            quote: { prefix: 'QT-', seqLen: 4, next: 42, reset: 'never' },
+        },
+        isLoading: false,
+        isError: false,
+    }),
+}));
+
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
     return {

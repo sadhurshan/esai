@@ -123,9 +123,15 @@ export function LoginPage() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="justify-center">
-                    <p className="text-xs text-muted-foreground">
+                <CardFooter className="flex flex-col gap-2 text-center text-xs text-muted-foreground">
+                    <p>
                         Need help accessing your account? Contact your workspace administrator.
+                    </p>
+                    <p>
+                        New to Elements Supply?{' '}
+                        <Link to="/register" className="font-medium text-brand-primary hover:underline">
+                            Create a workspace
+                        </Link>
                     </p>
                 </CardFooter>
             </Card>

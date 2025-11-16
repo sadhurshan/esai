@@ -6,6 +6,7 @@ import { MoneyCell } from './money-cell';
 import { DeliveryLeadTimeChip } from './delivery-leadtime-chip';
 import type { Quote, QuoteItem, RfqItem } from '@/sdk';
 import { cn } from '@/lib/utils';
+import { useFormatting } from '@/contexts/formatting-context';
 
 interface QuoteCompareTableProps {
     open: boolean;
@@ -27,6 +28,7 @@ interface LineDefinition {
 const FALLBACK_ORDER = Number.MAX_SAFE_INTEGER;
 
 export function QuoteCompareTable({ open, onOpenChange, quotes, rfqItems, shortlistedQuoteIds }: QuoteCompareTableProps) {
+    const { formatNumber } = useFormatting();
     const lineDefinitions = useMemo<LineDefinition[]>(() => {
         const map = new Map<string, LineDefinition>();
 
@@ -169,9 +171,9 @@ export function QuoteCompareTable({ open, onOpenChange, quotes, rfqItems, shortl
                                                             <span>
                                                                 Line {line.lineNo ?? '—'} · {line.label}
                                                             </span>
-                                                            {line.quantity ? (
+                                                            {Number.isFinite(line.quantity) ? (
                                                                 <span className="text-xs text-muted-foreground">
-                                                                    Qty {line.quantity.toLocaleString()} {line.uom ?? ''}
+                                                                    Qty {formatNumber(line.quantity ?? 0)} {line.uom ?? ''}
                                                                 </span>
                                                             ) : null}
                                                             {line.spec ? (

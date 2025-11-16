@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { PurchaseOrderLine } from '@/types/sourcing';
-import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { useFormatting } from '@/contexts/formatting-context';
 
 interface PoLineTableProps {
     lines: PurchaseOrderLine[];
@@ -23,36 +23,15 @@ export function PoLineTable({
     totalMinor,
     className,
 }: PoLineTableProps) {
-    const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
-    const currencyCode = currency ?? 'USD';
+    const { formatMoney, formatNumber, formatDate, currency: tenantCurrency } = useFormatting();
+    const currencyCode = currency ?? tenantCurrency;
 
-    const moneyFormatter = useMemo(() => {
-        try {
-            return new Intl.NumberFormat(locale, {
-                style: 'currency',
-                currency: currencyCode,
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-        } catch (error) {
-            void error;
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-        }
-    }, [currencyCode, locale]);
-
-    const formatMoney = (amountMinor?: number, fallbackMajor?: number | null) => {
-        if (amountMinor !== undefined && amountMinor !== null) {
-            return moneyFormatter.format(amountMinor / MINOR_FACTOR);
-        }
-        if (fallbackMajor !== undefined && fallbackMajor !== null) {
-            return moneyFormatter.format(fallbackMajor);
-        }
-        return '—';
+    const formatMoneyFromMinor = (amountMinor?: number | null, fallbackMajor?: number | null) => {
+        const majorAmount =
+            amountMinor !== undefined && amountMinor !== null
+                ? amountMinor / MINOR_FACTOR
+                : fallbackMajor ?? null;
+        return formatMoney(majorAmount, { currency: currencyCode });
     };
 
     const derivedTotals = useMemo(() => {
@@ -113,13 +92,20 @@ export function PoLineTable({
                                         <td className="px-3 py-2">
                                             <p className="font-medium text-foreground">{line.description || '—'}</p>
                                         </td>
-                                        <td className="px-3 py-2 text-right font-semibold">{line.quantity}</td>
+                                        <td className="px-3 py-2 text-right font-semibold">
+                                            {formatNumber(line.quantity, { maximumFractionDigits: 3 })}
+                                        </td>
                                         <td className="px-3 py-2 text-left text-muted-foreground">{line.uom}</td>
                                         <td className="px-3 py-2 text-right">
-                                            {formatMoney(line.unitPriceMinor, line.unitPrice)}
+                                            {formatMoneyFromMinor(line.unitPriceMinor, line.unitPrice ?? null)}
                                         </td>
                                         <td className="px-3 py-2 text-right font-semibold">
-                                            {formatMoney(line.lineTotalMinor, (line.unitPrice ?? 0) * line.quantity)}
+                                            {formatMoneyFromMinor(
+                                                line.lineTotalMinor,
+                                                typeof line.unitPrice === 'number'
+                                                    ? line.unitPrice * line.quantity
+                                                    : null,
+                                            )}
                                         </td>
                                         <td className="px-3 py-2 text-left text-muted-foreground">{formatDate(line.deliveryDate)}</td>
                                     </tr>
@@ -130,7 +116,7 @@ export function PoLineTable({
                                     <td colSpan={4} />
                                     <td className="px-3 py-2 text-right text-sm text-muted-foreground">Subtotal</td>
                                     <td className="px-3 py-2 text-right font-semibold">
-                                        {formatMoney(totals.subtotal)}
+                                        {formatMoneyFromMinor(totals.subtotal)}
                                     </td>
                                     <td />
                                 </tr>
@@ -138,7 +124,7 @@ export function PoLineTable({
                                     <td colSpan={4} />
                                     <td className="px-3 py-2 text-right text-sm text-muted-foreground">Tax</td>
                                     <td className="px-3 py-2 text-right font-semibold">
-                                        {formatMoney(totals.tax)}
+                                        {formatMoneyFromMinor(totals.tax)}
                                     </td>
                                     <td />
                                 </tr>
@@ -146,7 +132,7 @@ export function PoLineTable({
                                     <td colSpan={4} />
                                     <td className="px-3 py-2 text-right text-sm text-muted-foreground">Grand total</td>
                                     <td className="px-3 py-2 text-right font-semibold">
-                                        {formatMoney(totals.total)}
+                                        {formatMoneyFromMinor(totals.total)}
                                     </td>
                                     <td />
                                 </tr>

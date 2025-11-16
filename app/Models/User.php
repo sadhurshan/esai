@@ -99,7 +99,15 @@ class User extends Authenticatable
             $admin = $this->platformAdmin()->first();
         }
 
-        if ($admin === null || ! $admin->enabled) {
+        $resolvedRole = null;
+
+        if ($admin !== null && $admin->enabled) {
+            $resolvedRole = $admin->role;
+        } else {
+            $resolvedRole = $this->derivePlatformRoleFromAttributes();
+        }
+
+        if ($resolvedRole === null) {
             return false;
         }
 
@@ -107,11 +115,20 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($admin->role === PlatformAdminRole::Super) {
+        if ($resolvedRole === PlatformAdminRole::Super) {
             return true;
         }
 
-        return $admin->role === $role;
+        return $resolvedRole === $role;
+    }
+
+    private function derivePlatformRoleFromAttributes(): ?PlatformAdminRole
+    {
+        return match ($this->role) {
+            'platform_super' => PlatformAdminRole::Super,
+            'platform_support' => PlatformAdminRole::Support,
+            default => null,
+        };
     }
 
 

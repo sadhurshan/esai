@@ -76,10 +76,6 @@ export interface RecalcCreditNoteTotalsRequest {
     creditNoteId: string;
 }
 
-export interface RecalcInvoiceTotalsRequest {
-    invoiceId: string;
-}
-
 export interface RecalcPurchaseOrderTotalsRequest {
     purchaseOrderId: string;
 }
@@ -207,21 +203,6 @@ export interface MoneyApiInterface {
      * Recalculate credit note totals
      */
     recalcCreditNoteTotals(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
-    /**
-     * 
-     * @summary Recalculate invoice totals
-     * @param {string} invoiceId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof MoneyApiInterface
-     */
-    recalcInvoiceTotalsRaw(requestParameters: RecalcInvoiceTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
-
-    /**
-     * Recalculate invoice totals
-     */
-    recalcInvoiceTotals(requestParameters: RecalcInvoiceTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
 
     /**
      * 
@@ -650,55 +631,6 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
      */
     async recalcCreditNoteTotals(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.recalcCreditNoteTotalsRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Recalculate invoice totals
-     */
-    async recalcInvoiceTotalsRaw(requestParameters: RecalcInvoiceTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
-        if (requestParameters['invoiceId'] == null) {
-            throw new runtime.RequiredError(
-                'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling recalcInvoiceTotals().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-
-        let urlPath = `/api/invoices/{invoiceId}/recalculate`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Recalculate invoice totals
-     */
-    async recalcInvoiceTotals(requestParameters: RecalcInvoiceTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.recalcInvoiceTotalsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

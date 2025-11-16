@@ -2,35 +2,56 @@
 
 namespace App\Http\Controllers\Api\Billing;
 
+use App\Exceptions\StripeWebhookException;
 use App\Http\Controllers\Api\ApiController;
 use App\Models\AuditLog;
+use App\Services\Billing\StripeWebhookService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StripeWebhookController extends ApiController
 {
+    public function __construct(private readonly StripeWebhookService $stripeWebhookService)
+    {
+    }
+
     public function invoicePaymentSucceeded(Request $request): JsonResponse
     {
-        $this->recordWebhook('invoice.payment_succeeded', $request->all());
-
-        // TODO: clarify with spec - map Stripe events to billing state transitions.
-        return $this->ok(['received' => true]);
+        return $this->handle($request, 'invoice.payment_succeeded', fn ($event) => $this->stripeWebhookService->handleInvoicePaymentSucceeded($event));
     }
 
     public function invoicePaymentFailed(Request $request): JsonResponse
     {
-        $this->recordWebhook('invoice.payment_failed', $request->all());
-
-        // TODO: clarify with spec - trigger dunning and downgrade workflows.
-        return $this->ok(['received' => true]);
+        return $this->handle($request, 'invoice.payment_failed', fn ($event) => $this->stripeWebhookService->handleInvoicePaymentFailed($event));
     }
 
     public function customerSubscriptionUpdated(Request $request): JsonResponse
     {
-        $this->recordWebhook('customer.subscription.updated', $request->all());
+        return $this->handle($request, 'customer.subscription.updated', fn ($event) => $this->stripeWebhookService->handleCustomerSubscriptionUpdated($event));
+    }
 
-        // TODO: clarify with spec - sync subscription status and plan changes.
-        return $this->ok(['received' => true]);
+    private function handle(Request $request, string $expectedEvent, callable $callback): JsonResponse
+    {
+        try {
+            $event = $this->stripeWebhookService->verify($request, $expectedEvent);
+        } catch (StripeWebhookException $exception) {
+            Log::warning('Stripe webhook rejected', [
+                'expected' => $expectedEvent,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return $this->fail($exception->getMessage(), 400);
+        }
+
+        $this->recordWebhook($expectedEvent, $request->all());
+
+        $result = $callback($event);
+
+        return $this->ok([
+            'received' => true,
+            'processed' => $result !== null,
+        ]);
     }
 
     private function recordWebhook(string $event, array $payload): void

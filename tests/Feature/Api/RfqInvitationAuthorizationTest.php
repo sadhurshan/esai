@@ -19,9 +19,10 @@ uses(RefreshDatabase::class);
 
 function createSubscribedCompany(array $overrides = []): Company
 {
-    $plan = Plan::factory()->create([
-        'code' => 'starter',
-    ]);
+    $plan = Plan::firstOrCreate(
+        ['code' => 'starter'],
+        Plan::factory()->make(['code' => 'starter'])->getAttributes()
+    );
 
     $company = Company::factory()->create(array_merge([
         'status' => CompanyStatus::Active->value,
@@ -46,9 +47,13 @@ function createSubscribedCompany(array $overrides = []): Company
     return $company;
 }
 
-it('returns forbidden when company supplier status is not approved', function (): void {
+it('returns forbidden when RFQ belongs to another company', function (): void {
     $company = createSubscribedCompany([
-        'supplier_status' => CompanySupplierStatus::Pending->value,
+        'supplier_status' => CompanySupplierStatus::Approved->value,
+    ]);
+
+    $foreignCompany = createSubscribedCompany([
+        'supplier_status' => CompanySupplierStatus::Approved->value,
     ]);
 
     $owner = User::factory()->owner()->create([
@@ -63,9 +68,9 @@ it('returns forbidden when company supplier status is not approved', function ()
         'updated_at' => now(),
     ]);
 
-    $rfq = RFQ::factory()->for($company)->create([
+    $rfq = RFQ::factory()->for($foreignCompany)->create([
         'status' => 'open',
-        'created_by' => $owner->id,
+        'created_by' => User::factory()->for($foreignCompany)->create()->id,
     ]);
 
     $supplier = Supplier::factory()->create([

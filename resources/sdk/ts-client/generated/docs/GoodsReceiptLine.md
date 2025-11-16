@@ -7,12 +7,24 @@
 Name | Type
 ------------ | -------------
 `id` | number
+`goodsReceiptNoteId` | number
 `purchaseOrderLineId` | number
-`quantityReceived` | number
-`quantityAccepted` | number
-`quantityRejected` | number
-`rejectionReason` | string
-`attachments` | [Array&lt;GoodsReceiptLineAttachmentsInner&gt;](GoodsReceiptLineAttachmentsInner.md)
+`poLineId` | number
+`lineNo` | string
+`description` | string
+`orderedQty` | number
+`receivedQty` | number
+`acceptedQty` | number
+`rejectedQty` | number
+`previouslyReceived` | number
+`remainingQty` | number
+`defectNotes` | string
+`notes` | string
+`uom` | string
+`unitPriceMinor` | number
+`currency` | string
+`variance` | object
+`attachments` | [Array&lt;DocumentAttachment&gt;](DocumentAttachment.md)
 
 ## Example
 
@@ -22,11 +34,23 @@ import type { GoodsReceiptLine } from ''
 // TODO: Update the object below with actual values
 const example = {
   "id": null,
+  "goodsReceiptNoteId": null,
   "purchaseOrderLineId": null,
-  "quantityReceived": null,
-  "quantityAccepted": null,
-  "quantityRejected": null,
-  "rejectionReason": null,
+  "poLineId": null,
+  "lineNo": null,
+  "description": null,
+  "orderedQty": null,
+  "receivedQty": null,
+  "acceptedQty": null,
+  "rejectedQty": null,
+  "previouslyReceived": null,
+  "remainingQty": null,
+  "defectNotes": null,
+  "notes": null,
+  "uom": null,
+  "unitPriceMinor": null,
+  "currency": null,
+  "variance": null,
   "attachments": null,
 } satisfies GoodsReceiptLine
 

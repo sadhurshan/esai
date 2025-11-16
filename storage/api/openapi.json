@@ -105,6 +105,10 @@
             "description": "File uploads and document staging APIs"
         },
         {
+            "name": "Settings",
+            "description": "Tenant-level configuration (company profile, localization, numbering)"
+        },
+        {
             "name": "Localization",
             "description": "Localization settings, units of measure, and conversions"
         },
@@ -583,6 +587,41 @@
                     }
                 }
             },
+            "CompanyAddress": {
+                "type": "object",
+                "required": [
+                    "line1",
+                    "country"
+                ],
+                "properties": {
+                    "attention": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "line1": {
+                        "type": "string"
+                    },
+                    "line2": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "city": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "state": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "postal_code": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string"
+                    }
+                }
+            },
             "CompanyGoodsReceiptLineInput": {
                 "type": "object",
                 "required": [
@@ -663,6 +702,60 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "CompanySettings": {
+                "type": "object",
+                "required": [
+                    "legal_name",
+                    "display_name",
+                    "bill_to",
+                    "ship_from"
+                ],
+                "properties": {
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "tax_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "registration_number": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "emails": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    },
+                    "phones": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "bill_to": {
+                        "$ref": "#/components/schemas/CompanyAddress"
+                    },
+                    "ship_from": {
+                        "$ref": "#/components/schemas/CompanyAddress"
+                    },
+                    "logo_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "mark_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
                     }
                 }
             },
@@ -915,6 +1008,23 @@
                     }
                 }
             },
+            "CurrencyPreferences": {
+                "type": "object",
+                "required": [
+                    "primary",
+                    "display_fx"
+                ],
+                "properties": {
+                    "primary": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3
+                    },
+                    "display_fx": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "CursorMeta": {
                 "type": "object",
                 "description": "Pagination metadata for cursor endpoints.",
@@ -976,6 +1086,95 @@
                     }
                 }
             },
+            "Document": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "company_id",
+                    "documentable_type",
+                    "documentable_id",
+                    "kind",
+                    "category",
+                    "filename",
+                    "mime",
+                    "size_bytes",
+                    "hash",
+                    "is_expired",
+                    "is_public",
+                    "download_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "company_id": {
+                        "type": "integer"
+                    },
+                    "documentable_type": {
+                        "type": "string"
+                    },
+                    "documentable_id": {
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "mime": {
+                        "type": "string"
+                    },
+                    "size_bytes": {
+                        "type": "integer"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "watermark": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "is_expired": {
+                        "type": "boolean"
+                    },
+                    "is_public": {
+                        "type": "boolean"
+                    },
+                    "download_url": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
             "DocumentAttachment": {
                 "type": "object",
                 "required": [
@@ -1012,6 +1211,89 @@
                         "nullable": true
                     }
                 }
+            },
+            "DocumentUploadRequest": {
+                "type": "object",
+                "required": [
+                    "entity",
+                    "entity_id",
+                    "kind",
+                    "category",
+                    "file"
+                ],
+                "properties": {
+                    "entity": {
+                        "type": "string",
+                        "description": "Target entity slug to associate with the uploaded document.",
+                        "enum": [
+                            "rfq",
+                            "quote",
+                            "po",
+                            "invoice",
+                            "supplier",
+                            "part"
+                        ]
+                    },
+                    "entity_id": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "rfq",
+                            "quote",
+                            "po",
+                            "grn_attachment",
+                            "invoice",
+                            "supplier",
+                            "part",
+                            "cad",
+                            "manual",
+                            "certificate",
+                            "esg_pack",
+                            "other"
+                        ]
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "technical",
+                            "commercial",
+                            "qa",
+                            "logistics",
+                            "financial",
+                            "communication",
+                            "esg",
+                            "other"
+                        ]
+                    },
+                    "visibility": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Visibility must match the configured `documents.allowed_visibilities` list (private, company, public)."
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    },
+                    "watermark": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "nullable": true
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary"
+                    }
+                },
+                "additionalProperties": false
             },
             "EnvelopeMeta": {
                 "allOf": [
@@ -1771,39 +2053,38 @@
                     }
                 }
             },
-            "LocaleSetting": {
+            "LocalizationSettings": {
                 "type": "object",
                 "required": [
-                    "locale",
                     "timezone",
-                    "number_format",
+                    "locale",
                     "date_format",
-                    "first_day_of_week",
-                    "weekend_days"
+                    "number_format",
+                    "currency",
+                    "uom"
                 ],
                 "properties": {
-                    "locale": {
-                        "type": "string"
-                    },
                     "timezone": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "IANA timezone identifier applied to tenant data."
                     },
-                    "number_format": {
-                        "type": "string"
+                    "locale": {
+                        "type": "string",
+                        "description": "BCP\u201147 locale for formatting dates and numerics."
                     },
                     "date_format": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Display pattern (e.g. YYYY-MM-DD, MM/DD/YYYY)."
                     },
-                    "first_day_of_week": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 6
+                    "number_format": {
+                        "type": "string",
+                        "description": "Thousand separator style (e.g. 1,234.56)."
                     },
-                    "weekend_days": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
+                    "currency": {
+                        "$ref": "#/components/schemas/CurrencyPreferences"
+                    },
+                    "uom": {
+                        "$ref": "#/components/schemas/UomMappings"
                     }
                 }
             },
@@ -1925,6 +2206,72 @@
                     }
                 }
             },
+            "NumberingRule": {
+                "type": "object",
+                "required": [
+                    "prefix",
+                    "seq_len",
+                    "next",
+                    "reset"
+                ],
+                "properties": {
+                    "prefix": {
+                        "type": "string",
+                        "maxLength": 12
+                    },
+                    "seq_len": {
+                        "type": "integer",
+                        "minimum": 3,
+                        "maximum": 10
+                    },
+                    "next": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "reset": {
+                        "type": "string",
+                        "enum": [
+                            "never",
+                            "yearly"
+                        ]
+                    },
+                    "sample": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "NumberingSettings": {
+                "type": "object",
+                "required": [
+                    "rfq",
+                    "quote",
+                    "po",
+                    "invoice",
+                    "grn",
+                    "credit"
+                ],
+                "properties": {
+                    "rfq": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    },
+                    "quote": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    },
+                    "po": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    },
+                    "invoice": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    },
+                    "grn": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    },
+                    "credit": {
+                        "$ref": "#/components/schemas/NumberingRule"
+                    }
+                }
+            },
             "PageMeta": {
                 "type": "object",
                 "description": "Page/offset pagination metadata.",
@@ -2014,6 +2361,167 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "PlanCatalogEntry": {
+                "type": "object",
+                "required": [
+                    "code",
+                    "name",
+                    "analytics_enabled",
+                    "exports_enabled",
+                    "localization_enabled",
+                    "multi_currency_enabled",
+                    "tax_engine_enabled",
+                    "is_free"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "price_usd": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "rfqs_per_month": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "invoices_per_month": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "users_max": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "storage_gb": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "erp_integrations_max": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "analytics_enabled": {
+                        "type": "boolean"
+                    },
+                    "analytics_history_months": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "risk_scores_enabled": {
+                        "type": "boolean"
+                    },
+                    "risk_history_months": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "approvals_enabled": {
+                        "type": "boolean"
+                    },
+                    "approval_levels_limit": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "rma_enabled": {
+                        "type": "boolean"
+                    },
+                    "rma_monthly_limit": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "credit_notes_enabled": {
+                        "type": "boolean"
+                    },
+                    "global_search_enabled": {
+                        "type": "boolean"
+                    },
+                    "quote_revisions_enabled": {
+                        "type": "boolean"
+                    },
+                    "digital_twin_enabled": {
+                        "type": "boolean"
+                    },
+                    "maintenance_enabled": {
+                        "type": "boolean"
+                    },
+                    "inventory_enabled": {
+                        "type": "boolean"
+                    },
+                    "inventory_history_months": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "pr_enabled": {
+                        "type": "boolean"
+                    },
+                    "multi_currency_enabled": {
+                        "type": "boolean"
+                    },
+                    "tax_engine_enabled": {
+                        "type": "boolean"
+                    },
+                    "localization_enabled": {
+                        "type": "boolean"
+                    },
+                    "exports_enabled": {
+                        "type": "boolean"
+                    },
+                    "export_row_limit": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "data_export_enabled": {
+                        "type": "boolean"
+                    },
+                    "export_history_days": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_free": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "PlanSelectionResult": {
+                "type": "object",
+                "required": [
+                    "company",
+                    "plan"
+                ],
+                "properties": {
+                    "company": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "plan",
+                            "billing_status",
+                            "requires_plan_selection"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "plan": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "billing_status": {
+                                "type": "string"
+                            },
+                            "requires_plan_selection": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "plan": {
+                        "$ref": "#/components/schemas/PlanCatalogEntry"
                     }
                 }
             },
@@ -3571,6 +4079,20 @@
                         "type": "string",
                         "nullable": true
                     },
+                    "method": {
+                        "type": "string"
+                    },
+                    "material": {
+                        "type": "string"
+                    },
+                    "tolerance": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "finish": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "quantity": {
                         "type": "integer",
                         "minimum": 1
@@ -3638,6 +4160,8 @@
                 "type": "object",
                 "required": [
                     "part_name",
+                    "method",
+                    "material",
                     "quantity"
                 ],
                 "properties": {
@@ -3645,6 +4169,20 @@
                         "type": "string"
                     },
                     "spec": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "method": {
+                        "type": "string"
+                    },
+                    "material": {
+                        "type": "string"
+                    },
+                    "tolerance": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "finish": {
                         "type": "string",
                         "nullable": true
                     },
@@ -3818,6 +4356,109 @@
                     }
                 }
             },
+            "SelfRegistrationRequest": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "password_confirmation",
+                    "company_name",
+                    "company_domain",
+                    "registration_no",
+                    "tax_id",
+                    "website",
+                    "company_documents"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 160
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 191
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "minLength": 8
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password",
+                        "description": "Must match `password`."
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "maxLength": 160
+                    },
+                    "company_domain": {
+                        "type": "string",
+                        "description": "Public email domain used for verification.",
+                        "pattern": "^(?!-)(?:[a-z0-9-]+\\.)+[a-z]{2,}$"
+                    },
+                    "registration_no": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "tax_id": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "maxLength": 191
+                    },
+                    "address": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 60,
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "ISO 3166-1 alpha-2 country code.",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "nullable": true
+                    },
+                    "company_documents": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "type",
+                                "file"
+                            ],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "registration",
+                                        "tax",
+                                        "esg",
+                                        "other"
+                                    ]
+                                },
+                                "file": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
             "SuccessEnvelope": {
                 "type": "object",
                 "required": [
@@ -3898,6 +4539,156 @@
                         "nullable": true
                     }
                 }
+            },
+            "SupplierApplicationPayload": {
+                "type": "object",
+                "required": [
+                    "capabilities"
+                ],
+                "properties": {
+                    "capabilities": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "methods": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                }
+                            },
+                            "materials": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                }
+                            },
+                            "tolerances": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                }
+                            },
+                            "finishes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                }
+                            },
+                            "industries": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 160
+                                }
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    },
+                    "address": {
+                        "type": "string",
+                        "maxLength": 191,
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "nullable": true
+                    },
+                    "city": {
+                        "type": "string",
+                        "maxLength": 160,
+                        "nullable": true
+                    },
+                    "moq": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "min_order_qty": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "geo": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "lat": {
+                                "type": "number",
+                                "format": "double"
+                            },
+                            "lng": {
+                                "type": "number",
+                                "format": "double"
+                            }
+                        }
+                    },
+                    "certifications": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 160
+                        },
+                        "nullable": true
+                    },
+                    "facilities": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "maxLength": 191,
+                        "nullable": true
+                    },
+                    "contact": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "maxLength": 160
+                            },
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "maxLength": 191
+                            },
+                            "phone": {
+                                "type": "string",
+                                "maxLength": 60
+                            }
+                        }
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "documents": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
             },
             "TaxCode": {
                 "type": "object",
@@ -4026,6 +4817,24 @@
                         "type": "number",
                         "format": "float",
                         "nullable": true
+                    }
+                }
+            },
+            "UomMappings": {
+                "type": "object",
+                "required": [
+                    "base_uom",
+                    "maps"
+                ],
+                "properties": {
+                    "base_uom": {
+                        "type": "string"
+                    },
+                    "maps": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -6365,6 +7174,82 @@
                 }
             }
         },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Self-register a buyer company and primary owner",
+                "description": "Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.",
+                "operationId": "authRegister",
+                "security": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SelfRegistrationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registration succeeded and the caller is authenticated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "token": {
+                                                            "type": "string"
+                                                        },
+                                                        "user": {
+                                                            "$ref": "#/components/schemas/AuthSessionUser"
+                                                        },
+                                                        "company": {
+                                                            "$ref": "#/components/schemas/AuthSessionCompany"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Attempted to register while already authenticated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid registration payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/reset-password": {
             "post": {
                 "tags": [
@@ -6992,6 +7877,60 @@
                     }
                 }
             ]
+        },
+        "/api/company/plan-selection": {
+            "post": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Select a subscription plan for the authenticated company",
+                "operationId": "selectCompanyPlan",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "plan_code"
+                                ],
+                                "properties": {
+                                    "plan_code": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan selection saved for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/PlanSelectionResult"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
         },
         "/api/copilot/analytics": {
             "post": {
@@ -8634,27 +9573,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "type": "object",
-                                "required": [
-                                    "file",
-                                    "documentable_type",
-                                    "documentable_id"
-                                ],
-                                "properties": {
-                                    "file": {
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "documentable_type": {
-                                        "type": "string"
-                                    },
-                                    "documentable_id": {
-                                        "type": "integer"
-                                    },
-                                    "label": {
-                                        "type": "string"
-                                    }
-                                }
+                                "$ref": "#/components/schemas/DocumentUploadRequest"
                             }
                         }
                     }
@@ -8665,13 +9584,88 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Document"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
                     }
                 }
             }
+        },
+        "/api/documents/{document}": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Show document metadata",
+                "operationId": "showDocument",
+                "responses": {
+                    "200": {
+                        "description": "Document metadata and download link for authorized viewers.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Document"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Caller is not authorized to view the requested document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found within the tenant scope.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "document",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
         },
         "/api/exports": {
             "get": {
@@ -9730,68 +10724,6 @@
                 }
             }
         },
-        "/api/localization/settings": {
-            "get": {
-                "tags": [
-                    "Localization"
-                ],
-                "summary": "Retrieve locale settings",
-                "operationId": "showLocaleSettings",
-                "responses": {
-                    "200": {
-                        "description": "Current locale configuration for the company.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/ApiSuccessResponse"
-                                        },
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "data": {
-                                                    "$ref": "#/components/schemas/LocaleSetting"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Localization"
-                ],
-                "summary": "Update locale settings",
-                "operationId": "updateLocaleSettings",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/LocaleSetting"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Locale settings updated.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/localization/uom/convert": {
             "post": {
                 "tags": [
@@ -10125,6 +11057,70 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/apply-supplier": {
+            "post": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Submit a supplier application for the authenticated company",
+                "description": "Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.",
+                "operationId": "selfApplySupplierApplication",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SupplierApplicationPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier application submitted for review.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SupplierApplication"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Missing permissions or company context.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Payload failed validation or a pending application already exists.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
                                 }
                             }
                         }
@@ -10833,6 +11829,47 @@
                     }
                 }
             ]
+        },
+        "/api/plans": {
+            "get": {
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "List publicly available subscription plans",
+                "operationId": "listPlansCatalog",
+                "responses": {
+                    "200": {
+                        "description": "Catalog of buyer subscription plans.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/PlanCatalogEntry"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         "/api/pos/from-awards": {
             "post": {
@@ -12818,9 +13855,6 @@
                                 "required": [
                                     "item_name",
                                     "type",
-                                    "quantity",
-                                    "material",
-                                    "method",
                                     "client_company",
                                     "status",
                                     "items"
@@ -12835,23 +13869,6 @@
                                             "ready_made",
                                             "manufacture"
                                         ]
-                                    },
-                                    "quantity": {
-                                        "type": "integer"
-                                    },
-                                    "material": {
-                                        "type": "string"
-                                    },
-                                    "method": {
-                                        "type": "string"
-                                    },
-                                    "tolerance": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "finish": {
-                                        "type": "string",
-                                        "nullable": true
                                     },
                                     "client_company": {
                                         "type": "string"
@@ -12889,6 +13906,8 @@
                                             "type": "object",
                                             "required": [
                                                 "part_name",
+                                                "method",
+                                                "material",
                                                 "quantity"
                                             ],
                                             "properties": {
@@ -12896,6 +13915,20 @@
                                                     "type": "string"
                                                 },
                                                 "spec": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "method": {
+                                                    "type": "string"
+                                                },
+                                                "material": {
+                                                    "type": "string"
+                                                },
+                                                "tolerance": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "finish": {
                                                     "type": "string",
                                                     "nullable": true
                                                 },
@@ -13035,23 +14068,6 @@
                                     },
                                     "type": {
                                         "type": "string"
-                                    },
-                                    "quantity": {
-                                        "type": "integer"
-                                    },
-                                    "material": {
-                                        "type": "string"
-                                    },
-                                    "method": {
-                                        "type": "string"
-                                    },
-                                    "tolerance": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "finish": {
-                                        "type": "string",
-                                        "nullable": true
                                     },
                                     "status": {
                                         "type": "string",
@@ -14974,6 +15990,239 @@
                 }
             }
         },
+        "/api/settings/company": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Retrieve company profile settings",
+                "operationId": "showCompanySettings",
+                "responses": {
+                    "200": {
+                        "description": "Current company profile settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CompanySettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update company profile settings",
+                "operationId": "updateCompanySettings",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompanySettings"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated company profile settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CompanySettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/settings/localization": {
+            "get": {
+                "tags": [
+                    "Settings",
+                    "Localization"
+                ],
+                "summary": "Retrieve localization settings",
+                "operationId": "showLocalizationSettings",
+                "responses": {
+                    "200": {
+                        "description": "Current localization preferences for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/LocalizationSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Settings",
+                    "Localization"
+                ],
+                "summary": "Update localization settings",
+                "operationId": "updateLocalizationSettings",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LocalizationSettings"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated localization settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/LocalizationSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/settings/numbering": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Retrieve document numbering rules",
+                "operationId": "showNumberingSettings",
+                "responses": {
+                    "200": {
+                        "description": "Current numbering configuration for all document types.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/NumberingSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update document numbering rules",
+                "operationId": "updateNumberingSettings",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NumberingSettings"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated numbering configuration.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/NumberingSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/supplier-applications": {
             "get": {
                 "tags": [
@@ -15025,19 +16274,30 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "type": "object",
-                                "additionalProperties": true
+                                "$ref": "#/components/schemas/SupplierApplicationPayload"
                             }
                         }
                     }
                 },
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Supplier application submitted.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SupplierApplication"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

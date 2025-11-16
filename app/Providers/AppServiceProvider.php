@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\ApiKey;
+use App\Models\AuditLog;
 use App\Models\Asset;
 use App\Models\Company;
 use App\Models\CompanyFeatureFlag;
@@ -15,7 +16,9 @@ use App\Models\MaintenanceProcedure;
 use App\Models\Notification;
 use App\Models\NotificationPreference;
 use App\Models\Plan;
+use App\Models\PlatformAdmin;
 use App\Models\Quote;
+use App\Models\RoleTemplate;
 use App\Models\RateLimit;
 use App\Models\RFQ;
 use App\Models\SupplierApplication;
@@ -24,11 +27,14 @@ use App\Models\TaxCode;
 use App\Models\WebhookDelivery;
 use App\Models\WebhookSubscription;
 use App\Policies\Admin\ApiKeyPolicy as AdminApiKeyPolicy;
+use App\Policies\Admin\AuditLogPolicy as AdminAuditLogPolicy;
 use App\Policies\Admin\CompanyFeatureFlagPolicy as AdminCompanyFeatureFlagPolicy;
 use App\Policies\Admin\CompanyPolicy as AdminCompanyPolicy;
 use App\Policies\Admin\EmailTemplatePolicy as AdminEmailTemplatePolicy;
+use App\Policies\Admin\AnalyticsPolicy as AdminAnalyticsPolicy;
 use App\Policies\Admin\PlanPolicy as AdminPlanPolicy;
 use App\Policies\Admin\RateLimitPolicy as AdminRateLimitPolicy;
+use App\Policies\Admin\RoleTemplatePolicy as AdminRoleTemplatePolicy;
 use App\Policies\Admin\WebhookDeliveryPolicy as AdminWebhookDeliveryPolicy;
 use App\Policies\Admin\WebhookSubscriptionPolicy as AdminWebhookSubscriptionPolicy;
 use App\Policies\AssetPolicy;
@@ -63,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Plan::class, AdminPlanPolicy::class);
+        Gate::policy(PlatformAdmin::class, AdminAnalyticsPolicy::class);
         Gate::policy(Company::class, AdminCompanyPolicy::class);
         Gate::policy(CompanyFeatureFlag::class, AdminCompanyFeatureFlagPolicy::class);
         Gate::policy(EmailTemplate::class, AdminEmailTemplatePolicy::class);
@@ -70,6 +77,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RateLimit::class, AdminRateLimitPolicy::class);
         Gate::policy(WebhookSubscription::class, AdminWebhookSubscriptionPolicy::class);
         Gate::policy(WebhookDelivery::class, AdminWebhookDeliveryPolicy::class);
+        Gate::policy(RoleTemplate::class, AdminRoleTemplatePolicy::class);
+        Gate::policy(AuditLog::class, AdminAuditLogPolicy::class);
 
         Gate::policy(Quote::class, QuotePolicy::class);
         Gate::policy(SupplierApplication::class, SupplierApplicationPolicy::class);

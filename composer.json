@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "opis/json-schema": "2.5",
+        "stripe/stripe-php": "^18.2",
         "symfony/yaml": "7"
     },
     "require-dev": {

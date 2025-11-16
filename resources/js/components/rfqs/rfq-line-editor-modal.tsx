@@ -20,6 +20,10 @@ import { publishToast } from '@/components/ui/use-toast';
 const rfqLineSchema = z.object({
     partName: z.string().min(1, 'Part name is required.'),
     spec: z.string().optional(),
+    method: z.string().min(1, 'Manufacturing method is required.'),
+    material: z.string().min(1, 'Material is required.'),
+    tolerance: z.string().optional(),
+    finish: z.string().optional(),
     quantity: z.coerce
         .number({ invalid_type_error: 'Quantity must be a number.' })
         .positive('Quantity must be greater than zero.'),
@@ -72,6 +76,10 @@ export function RfqLineEditorModal({
         defaultValues: {
             partName: '',
             spec: '',
+            method: '',
+            material: '',
+            tolerance: '',
+            finish: '',
             quantity: 1,
             uom: 'ea',
             targetPrice: undefined,
@@ -91,6 +99,10 @@ export function RfqLineEditorModal({
             form.reset({
                 partName: initialValues.partName ?? '',
                 spec: initialValues.spec ?? '',
+                method: initialValues.method ?? '',
+                material: initialValues.material ?? '',
+                tolerance: initialValues.tolerance ?? '',
+                finish: initialValues.finish ?? '',
                 quantity: initialValues.quantity ?? 1,
                 uom: initialValues.uom ?? 'ea',
                 targetPrice: initialValues.targetPrice,
@@ -139,6 +151,36 @@ export function RfqLineEditorModal({
                             placeholder="Outline key tolerances, finish requirements, or inspection needs."
                             rows={3}
                         />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label htmlFor="method">Manufacturing method</Label>
+                            <Input id="method" {...form.register('method')} placeholder="CNC machining" />
+                            {form.formState.errors.method ? (
+                                <p className="text-sm text-destructive">{form.formState.errors.method.message}</p>
+                            ) : null}
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="material">Material</Label>
+                            <Input id="material" {...form.register('material')} placeholder="6061-T6 Aluminum" />
+                            {form.formState.errors.material ? (
+                                <p className="text-sm text-destructive">{form.formState.errors.material.message}</p>
+                            ) : null}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label htmlFor="tolerance">Tolerance (optional)</Label>
+                            <Input id="tolerance" {...form.register('tolerance')} placeholder="±0.05 mm" />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="finish">Finish (optional)</Label>
+                            <Input id="finish" {...form.register('finish')} placeholder="Anodized" />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

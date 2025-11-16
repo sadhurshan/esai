@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { Badge } from '@/components/ui/badge';
 import { useMovements } from '@/hooks/api/inventory/use-movements';
 import type { StockMovementSummary } from '@/types/inventory';
@@ -56,6 +57,7 @@ const movementTypeOptions: Array<{ label: string; value: MovementFilterState['ty
 export function MovementListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
+    const { formatDate, formatNumber } = useFormatting();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const inventoryEnabled = hasFeature('inventory_enabled');
 
@@ -102,6 +104,7 @@ export function MovementListPage() {
                 key: 'lineCount',
                 title: 'Lines',
                 align: 'center',
+                render: (movement) => formatNumber(movement.lineCount ?? 0, { maximumFractionDigits: 0 }),
             },
             {
                 key: 'locations',
@@ -122,7 +125,7 @@ export function MovementListPage() {
             {
                 key: 'movedAt',
                 title: 'Moved at',
-                render: (movement) => new Date(movement.movedAt).toLocaleString(),
+                render: (movement) => formatDate(movement.movedAt, { dateStyle: 'medium', timeStyle: 'short' }),
             },
             {
                 key: 'status',
@@ -146,7 +149,7 @@ export function MovementListPage() {
                 ),
             },
         ],
-        [],
+        [formatDate, formatNumber],
     );
 
     const handleFilterChange = <K extends keyof MovementFilterState>(key: K, value: MovementFilterState[K]) => {
@@ -317,7 +320,7 @@ export function MovementListPage() {
                         ? 'Loading results…'
                         : data.length === 0
                             ? 'No results'
-                            : `${data.length} results`}
+                            : `${formatNumber(data.length, { maximumFractionDigits: 0 })} results`}
                 </p>
                 <div className="flex items-center gap-2">
                     <Button type="button" variant="outline" size="sm" disabled={!prevCursor} onClick={() => setCursor(prevCursor)}>

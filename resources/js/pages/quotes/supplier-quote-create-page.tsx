@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { FilePlus, FileText, Loader2 } from 'lucide-react';
 
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -477,6 +478,7 @@ function ReviewPanel({
                         Draft in progress
                     </div>
                 </div>
+                <DocumentNumberPreview docType="quote" className="w-full" />
             </CardContent>
         </Card>
     );

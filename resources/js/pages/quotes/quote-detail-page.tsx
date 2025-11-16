@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useQuote } from '@/hooks/api/quotes/use-quote';
 import type { Quote, QuoteAttachmentsInner, QuoteItem, QuoteRevision } from '@/sdk';
 import { publishToast } from '@/components/ui/use-toast';
+import { useFormatting } from '@/contexts/formatting-context';
 
 interface TimelineEntry {
     id: string;
@@ -34,6 +35,7 @@ const TIMELINE_LABELS: Record<string, string> = {
 };
 
 export function QuoteDetailPage() {
+    const { formatDate } = useFormatting();
     const { quoteId } = useParams<{ quoteId: string }>();
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
@@ -225,7 +227,7 @@ export function QuoteDetailPage() {
                     <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         <QuoteStatusBadge status={quote.status} />
                         <span>Revision {quote.revisionNo ?? 1}</span>
-                        {quote.submittedAt ? <span>Submitted {formatDateTime(quote.submittedAt)}</span> : null}
+                        {quote.submittedAt ? <span>Submitted {formatDate(quote.submittedAt)}</span> : null}
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -300,6 +302,7 @@ export function QuoteDetailPage() {
 }
 
 function QuoteOverviewCard({ quote }: { quote: Quote }) {
+    const { formatDate } = useFormatting();
     return (
         <Card className="border-sidebar-border/60 bg-card/80">
             <CardHeader>
@@ -312,7 +315,7 @@ function QuoteOverviewCard({ quote }: { quote: Quote }) {
                 </div>
                 <div className="space-y-1 text-sm">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Submitted at</p>
-                    <p className="text-base font-semibold text-foreground">{formatDateTime(quote.submittedAt)}</p>
+                    <p className="text-base font-semibold text-foreground">{formatDate(quote.submittedAt)}</p>
                 </div>
                 <div className="space-y-1 text-sm">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Subtotal</p>
@@ -337,6 +340,7 @@ function QuoteOverviewCard({ quote }: { quote: Quote }) {
 }
 
 function QuoteLinesTable({ items, currency }: { items: QuoteItem[]; currency?: string | null }) {
+    const { formatNumber } = useFormatting();
     if (items.length === 0) {
         return (
             <EmptyState
@@ -373,7 +377,9 @@ function QuoteLinesTable({ items, currency }: { items: QuoteItem[]; currency?: s
                                     Line {item.rfqItemId}
                                 </td>
                                 <td className="px-4 py-4 align-top text-sm text-muted-foreground">
-                                    {item.quantity?.toLocaleString() ?? '—'}
+                                    {typeof item.quantity === 'number'
+                                        ? formatNumber(item.quantity, { maximumFractionDigits: 3 })
+                                        : '—'}
                                 </td>
                                 <td className="px-4 py-4 align-top">
                                     <MoneyCell amountMinor={item.unitPriceMinor} currency={item.currency ?? currency} label="" />
@@ -433,6 +439,7 @@ function QuoteAttachmentsPanel({ attachments }: { attachments: QuoteAttachmentsI
 }
 
 function QuoteRevisionsPanel({ revisions }: { revisions: QuoteRevision[] }) {
+    const { formatDate } = useFormatting();
     if (revisions.length === 0) {
         return (
             <EmptyState
@@ -453,7 +460,12 @@ function QuoteRevisionsPanel({ revisions }: { revisions: QuoteRevision[] }) {
                     <div className="flex flex-wrap items-center gap-3">
                         <Badge variant="secondary">Rev {revision.revisionNo}</Badge>
                         <QuoteStatusBadge status={revision.status} />
-                        <span className="text-sm text-muted-foreground">{formatDateTime(revision.submittedAt)}</span>
+                        <span className="text-sm text-muted-foreground">
+                            {formatDate(revision.submittedAt, {
+                                dateStyle: 'medium',
+                                timeStyle: 'short',
+                            })}
+                        </span>
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">{revision.note ?? 'No notes provided.'}</p>
                     {/* TODO: clarify with spec how to highlight total or line changes once the API returns revision diff metadata. */}
@@ -464,6 +476,7 @@ function QuoteRevisionsPanel({ revisions }: { revisions: QuoteRevision[] }) {
 }
 
 function QuoteTimeline({ entries }: { entries: TimelineEntry[] }) {
+    const { formatDate } = useFormatting();
     if (entries.length === 0) {
         return (
             <EmptyState
@@ -479,7 +492,7 @@ function QuoteTimeline({ entries }: { entries: TimelineEntry[] }) {
             {entries.map((entry) => (
                 <div key={entry.id} className="flex gap-4">
                     <div className="flex flex-col items-center">
-                        <span className="text-xs text-muted-foreground">{formatDateTime(entry.timestamp)}</span>
+                            <span className="text-xs text-muted-foreground">{formatDate(entry.timestamp)}</span>
                         <span className="mt-1 h-full w-px bg-sidebar-border/60" aria-hidden="true" />
                     </div>
                     <div className="flex-1 rounded-xl border border-sidebar-border/60 bg-card/70 px-4 py-3">
@@ -545,18 +558,3 @@ function formatFileSize(bytes?: number | null): string {
     return `${value.toFixed(1)} ${units[unitIndex]}`;
 }
 
-function formatDateTime(value?: Date | string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    const date = typeof value === 'string' ? new Date(value) : value;
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-
-    return date.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
-}

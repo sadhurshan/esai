@@ -21,6 +21,14 @@ import {
     Settings,
     ShieldAlert,
     Scale,
+    Building2,
+    Layers2,
+    ListChecks,
+    KeyRound,
+    RadioTower,
+    Activity,
+    ScrollText,
+    Users,
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
@@ -34,10 +42,13 @@ interface NavItem {
     roles?: string[];
     matchExact?: boolean;
     disabledMessage?: string;
+    requiresAdminConsole?: boolean;
 }
 
+const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
+
 // TODO: confirm feature flag keys against /docs/billing_plans.md once frontend gating matrix is finalised.
-const NAV_ITEMS: NavItem[] = [
+const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Dashboard', to: '/app', icon: LayoutDashboard, matchExact: true },
     { label: 'RFQs', to: '/app/rfqs', icon: FileSpreadsheet },
     { label: 'Quotes', to: '/app/quotes', icon: FileText },
@@ -47,19 +58,37 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory.access' },
     { label: 'Assets', to: '/app/assets', icon: Factory, featureKey: 'digital_twin.access' },
     { label: 'Orders', to: '/app/orders', icon: PackageSearch },
+    { label: 'Suppliers', to: '/app/suppliers', icon: Users },
     { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
     { label: 'Analytics', to: '/app/analytics', icon: LineChart, featureKey: 'analytics.access' },
     { label: 'Settings', to: '/app/settings', icon: Settings },
-    { label: 'Admin Console', to: '/app/admin', icon: ShieldCheck, roles: ['platform_super', 'platform_support'] },
+    { label: 'Admin Console', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true },
+];
+
+const ADMIN_NAV_ITEMS: NavItem[] = [
+    { label: 'Admin Dashboard', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true, matchExact: true },
+    { label: 'Company Approvals', to: '/app/admin/company-approvals', icon: Building2, requiresAdminConsole: true },
+    { label: 'Plans & Features', to: '/app/admin/plans', icon: Layers2, requiresAdminConsole: true },
+    { label: 'Roles & Permissions', to: '/app/admin/roles', icon: ListChecks, requiresAdminConsole: true },
+    { label: 'API Keys', to: '/app/admin/api-keys', icon: KeyRound, requiresAdminConsole: true },
+    { label: 'Webhooks', to: '/app/admin/webhooks', icon: RadioTower, requiresAdminConsole: true },
+    { label: 'Rate Limits', to: '/app/admin/rate-limits', icon: Activity, requiresAdminConsole: true },
+    { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
 ];
 
 export function SidebarNav() {
-    const { hasFeature, state } = useAuth();
+    const { hasFeature, state, canAccessAdminConsole } = useAuth();
     const location = useLocation();
     const role = state.user?.role ?? null;
+    const isPlatformOperator = role ? PLATFORM_ROLES.has(role) : false;
 
     const items = useMemo(() => {
-        return NAV_ITEMS.filter((item) => {
+        const sourceItems = isPlatformOperator ? ADMIN_NAV_ITEMS : WORKSPACE_NAV_ITEMS;
+        return sourceItems.filter((item) => {
+            if (item.requiresAdminConsole && !canAccessAdminConsole) {
+                return false;
+            }
+
             if (item.roles && (!role || !item.roles.includes(role))) {
                 return false;
             }
@@ -70,12 +99,12 @@ export function SidebarNav() {
 
             return true;
         });
-    }, [hasFeature, role]);
+    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, role]);
 
     return (
         <SidebarContent>
             <SidebarGroup className="px-2 py-0">
-                <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+                <SidebarGroupLabel>{isPlatformOperator ? 'Admin Console' : 'Workspace'}</SidebarGroupLabel>
                 <SidebarMenu>
                     {items.map((item) => {
                         const match = matchPath({ path: item.to, end: item.matchExact ?? false }, location.pathname);

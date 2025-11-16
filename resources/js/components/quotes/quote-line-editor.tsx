@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-schema';
 import type { RfqItem } from '@/sdk';
+import { useFormatting } from '@/contexts/formatting-context';
 
 interface QuoteLineEditorProps {
     form: UseFormReturn<SupplierQuoteFormValues>;
@@ -24,6 +25,7 @@ export function QuoteLineEditor({ form, rfqLines, currency, disabled = false }: 
     const { fields } = useFieldArray({ control, name: 'lines' });
     const [bulkLeadTime, setBulkLeadTime] = useState('');
     const [bulkDiscountPercent, setBulkDiscountPercent] = useState('');
+    const { formatNumber } = useFormatting();
 
     const rfqLineLookup = useMemo(() => {
         return rfqLines.reduce<Record<string, RfqItem>>((acc, item) => {
@@ -126,6 +128,9 @@ export function QuoteLineEditor({ form, rfqLines, currency, disabled = false }: 
                 {fields.map((field, index) => {
                     const rfqLine = rfqLineLookup[String(field.rfqItemId)] ?? null;
                     const lineErrors = formState.errors.lines?.[index];
+                    const quantityLabel = Number.isFinite(rfqLine?.quantity)
+                        ? `${formatNumber(rfqLine?.quantity ?? 0)} ${rfqLine?.uom ?? ''}`.trim()
+                        : '—';
 
                     return (
                         <Card key={field.id} className="border-sidebar-border/60">
@@ -177,9 +182,7 @@ export function QuoteLineEditor({ form, rfqLines, currency, disabled = false }: 
                                     </div>
                                     <div className="space-y-1 text-sm text-muted-foreground">
                                         <p className="font-medium text-foreground">Quantity</p>
-                                        <p>
-                                            {rfqLine?.quantity?.toLocaleString() ?? '—'} {rfqLine?.uom ?? ''}
-                                        </p>
+                                        <p>{quantityLabel}</p>
                                     </div>
                                     <div className="space-y-1 text-sm text-muted-foreground">
                                         <p className="font-medium text-foreground">Specification</p>

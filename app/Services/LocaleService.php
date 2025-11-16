@@ -27,12 +27,16 @@ class LocaleService
         $setting = CompanyLocaleSetting::firstOrCreate(
             ['company_id' => $company->id],
             [
-                'locale' => 'en',
+                'locale' => 'en-US',
                 'timezone' => 'UTC',
-                'number_format' => 'system',
-                'date_format' => 'system',
+                'number_format' => '1,234.56',
+                'date_format' => 'YYYY-MM-DD',
                 'first_day_of_week' => 1,
                 'weekend_days' => [6, 0],
+                'currency_primary' => 'USD',
+                'currency_display_fx' => false,
+                'uom_base' => 'EA',
+                'uom_maps' => [],
             ]
         );
 
@@ -45,11 +49,13 @@ class LocaleService
     {
         $setting = $this->getForCompany($company);
 
-        $locale = $setting->locale ?: 'en';
+        $locale = $setting->locale ?: 'en-US';
         $timezone = $setting->timezone ?: 'UTC';
 
-        App::setLocale($locale);
-        Carbon::setLocale($locale);
+        $frameworkLocale = $this->resolveFrameworkLocale($locale);
+
+        App::setLocale($frameworkLocale);
+        Carbon::setLocale($frameworkLocale);
         Config::set('app.timezone', $timezone);
         date_default_timezone_set($timezone);
 
@@ -67,5 +73,17 @@ class LocaleService
     public function recordCreation(CompanyLocaleSetting $setting): void
     {
         $this->auditLogger->created($setting, $setting->toArray());
+    }
+
+    private function resolveFrameworkLocale(?string $locale): string
+    {
+        if ($locale === null || $locale === '') {
+            return 'en';
+        }
+
+        $normalized = str_replace('_', '-', $locale);
+        $segment = strtok($normalized, '-') ?: $normalized;
+
+        return strtolower($segment) ?: 'en';
     }
 }

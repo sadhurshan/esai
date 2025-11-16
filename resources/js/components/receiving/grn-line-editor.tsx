@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useFormatting, type FormattingContextValue } from '@/contexts/formatting-context';
 
 export interface GrnLineFormValue {
     id?: string | number;
@@ -42,6 +43,7 @@ interface GrnLineEditorProps<FormValues extends GrnFormLike> {
 
 export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled = false }: GrnLineEditorProps<FormValues>) {
     const { control, register, setValue, formState } = form;
+    const { formatNumber } = useFormatting();
     const linesPath = 'lines' as ArrayPath<FormValues>;
     const { fields: rawFields } = useFieldArray<FormValues, typeof linesPath, 'id'>({ control, name: linesPath });
     const fields = rawFields as Array<(typeof rawFields)[number] & GrnLineFormValue>;
@@ -84,19 +86,19 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                     <div>
                         <p className="text-xs uppercase tracking-wide text-foreground/70">Ordered</p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalOrdered)} units
+                            {formatQty(orderedTotals.totalOrdered, formatNumber)} units
                         </p>
                     </div>
                     <div>
                         <p className="text-xs uppercase tracking-wide text-foreground/70">Received to date</p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalPreviously)} units
+                            {formatQty(orderedTotals.totalPreviously, formatNumber)} units
                         </p>
                     </div>
                     <div>
                         <p className="text-xs uppercase tracking-wide text-foreground/70">Planned in this GRN</p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalPlanned)} units
+                            {formatQty(orderedTotals.totalPlanned, formatNumber)} units
                         </p>
                     </div>
                 </CardContent>
@@ -123,8 +125,8 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                             `lines.${index}.qtyReceived` as Path<FormValues>,
                             target as PathValue<FormValues, Path<FormValues>>,
                             {
-                            shouldDirty: true,
-                            shouldTouch: true,
+                                shouldDirty: true,
+                                shouldTouch: true,
                             },
                         );
                     };
@@ -148,19 +150,19 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Ordered</p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(ordered)} {uom}
+                                            {formatQty(ordered, formatNumber)} {uom}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Received</p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(previously)} {uom}
+                                            {formatQty(previously, formatNumber)} {uom}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Remaining</p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(remaining ?? 0)} {uom}
+                                            {formatQty(remaining ?? 0, formatNumber)} {uom}
                                         </p>
                                     </div>
                                 </div>
@@ -198,7 +200,7 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                                 {isOverReceipt ? (
                                                     <span className="flex items-center gap-1">
                                                         <AlertTriangle className="h-3.5 w-3.5" />
-                                                        Over by {formatQty(plannedQty - (remaining ?? 0))} {uom}
+                                                        Over by {formatQty(plannedQty - (remaining ?? 0), formatNumber)} {uom}
                                                     </span>
                                                 ) : (
                                                     `Leave blank or enter 0 if nothing arrived.`
@@ -229,12 +231,27 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
     );
 }
 
-function formatQty(value: number | null | undefined): string {
+function formatQty(
+    value: number | null | undefined,
+    formatter?: FormattingContextValue['formatNumber'],
+): string {
     if (value === null || value === undefined || Number.isNaN(value)) {
         return '0';
     }
-    if (Math.abs(value) >= 1) {
+
+    const absValue = Math.abs(value);
+
+    if (formatter) {
+        const formatted = formatter(value, {
+            minimumFractionDigits: absValue >= 1 ? 0 : 3,
+            maximumFractionDigits: absValue >= 1 ? 2 : 3,
+        });
+        return absValue >= 1 ? formatted : formatted.replace(/0+$/, '').replace(/\.$/, '') || '0';
+    }
+
+    if (absValue >= 1) {
         return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
+
     return value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') || '0';
 }

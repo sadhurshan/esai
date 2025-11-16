@@ -24,25 +24,31 @@ export interface AcknowledgePurchaseOrderRequest {
      * @type {string}
      * @memberof AcknowledgePurchaseOrderRequest
      */
-    action: AcknowledgePurchaseOrderRequestActionEnum;
+    decision: AcknowledgePurchaseOrderRequestDecisionEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AcknowledgePurchaseOrderRequest
+     */
+    reason?: string;
 }
 
 
 /**
  * @export
  */
-export const AcknowledgePurchaseOrderRequestActionEnum = {
-    Accept: 'accept',
-    Reject: 'reject'
+export const AcknowledgePurchaseOrderRequestDecisionEnum = {
+    Acknowledged: 'acknowledged',
+    Declined: 'declined'
 } as const;
-export type AcknowledgePurchaseOrderRequestActionEnum = typeof AcknowledgePurchaseOrderRequestActionEnum[keyof typeof AcknowledgePurchaseOrderRequestActionEnum];
+export type AcknowledgePurchaseOrderRequestDecisionEnum = typeof AcknowledgePurchaseOrderRequestDecisionEnum[keyof typeof AcknowledgePurchaseOrderRequestDecisionEnum];
 
 
 /**
  * Check if a given object implements the AcknowledgePurchaseOrderRequest interface.
  */
 export function instanceOfAcknowledgePurchaseOrderRequest(value: object): value is AcknowledgePurchaseOrderRequest {
-    if (!('action' in value) || value['action'] === undefined) return false;
+    if (!('decision' in value) || value['decision'] === undefined) return false;
     return true;
 }
 
@@ -56,7 +62,8 @@ export function AcknowledgePurchaseOrderRequestFromJSONTyped(json: any, ignoreDi
     }
     return {
         
-        'action': json['action'],
+        'decision': json['decision'],
+        'reason': json['reason'] == null ? undefined : json['reason'],
     };
 }
 
@@ -71,7 +78,8 @@ export function AcknowledgePurchaseOrderRequestToJSONTyped(value?: AcknowledgePu
 
     return {
         
-        'action': value['action'],
+        'decision': value['decision'],
+        'reason': value['reason'],
     };
 }
 

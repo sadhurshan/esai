@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { GoodsReceiptLineAttachmentsInner } from './GoodsReceiptLineAttachmentsInner';
+import type { DocumentAttachment } from './DocumentAttachment';
 import {
-    GoodsReceiptLineAttachmentsInnerFromJSON,
-    GoodsReceiptLineAttachmentsInnerFromJSONTyped,
-    GoodsReceiptLineAttachmentsInnerToJSON,
-    GoodsReceiptLineAttachmentsInnerToJSONTyped,
-} from './GoodsReceiptLineAttachmentsInner';
+    DocumentAttachmentFromJSON,
+    DocumentAttachmentFromJSONTyped,
+    DocumentAttachmentToJSON,
+    DocumentAttachmentToJSONTyped,
+} from './DocumentAttachment';
 
 /**
  * 
@@ -38,37 +38,109 @@ export interface GoodsReceiptLine {
      * @type {number}
      * @memberof GoodsReceiptLine
      */
+    goodsReceiptNoteId?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
     purchaseOrderLineId: number;
     /**
      * 
      * @type {number}
      * @memberof GoodsReceiptLine
      */
-    quantityReceived: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof GoodsReceiptLine
-     */
-    quantityAccepted?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof GoodsReceiptLine
-     */
-    quantityRejected?: number;
+    poLineId?: number;
     /**
      * 
      * @type {string}
      * @memberof GoodsReceiptLine
      */
-    rejectionReason?: string;
+    lineNo?: string;
     /**
      * 
-     * @type {Array<GoodsReceiptLineAttachmentsInner>}
+     * @type {string}
      * @memberof GoodsReceiptLine
      */
-    attachments?: Array<GoodsReceiptLineAttachmentsInner>;
+    description?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    orderedQty?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    receivedQty: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    acceptedQty?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    rejectedQty?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    previouslyReceived?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    remainingQty?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof GoodsReceiptLine
+     */
+    defectNotes?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GoodsReceiptLine
+     */
+    notes?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GoodsReceiptLine
+     */
+    uom?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof GoodsReceiptLine
+     */
+    unitPriceMinor?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof GoodsReceiptLine
+     */
+    currency?: string;
+    /**
+     * 
+     * @type {object}
+     * @memberof GoodsReceiptLine
+     */
+    variance?: object;
+    /**
+     * 
+     * @type {Array<DocumentAttachment>}
+     * @memberof GoodsReceiptLine
+     */
+    attachments?: Array<DocumentAttachment>;
 }
 
 /**
@@ -77,7 +149,7 @@ export interface GoodsReceiptLine {
 export function instanceOfGoodsReceiptLine(value: object): value is GoodsReceiptLine {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('purchaseOrderLineId' in value) || value['purchaseOrderLineId'] === undefined) return false;
-    if (!('quantityReceived' in value) || value['quantityReceived'] === undefined) return false;
+    if (!('receivedQty' in value) || value['receivedQty'] === undefined) return false;
     return true;
 }
 
@@ -92,12 +164,24 @@ export function GoodsReceiptLineFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'id': json['id'],
+        'goodsReceiptNoteId': json['goods_receipt_note_id'] == null ? undefined : json['goods_receipt_note_id'],
         'purchaseOrderLineId': json['purchase_order_line_id'],
-        'quantityReceived': json['quantity_received'],
-        'quantityAccepted': json['quantity_accepted'] == null ? undefined : json['quantity_accepted'],
-        'quantityRejected': json['quantity_rejected'] == null ? undefined : json['quantity_rejected'],
-        'rejectionReason': json['rejection_reason'] == null ? undefined : json['rejection_reason'],
-        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(GoodsReceiptLineAttachmentsInnerFromJSON)),
+        'poLineId': json['po_line_id'] == null ? undefined : json['po_line_id'],
+        'lineNo': json['line_no'] == null ? undefined : json['line_no'],
+        'description': json['description'] == null ? undefined : json['description'],
+        'orderedQty': json['ordered_qty'] == null ? undefined : json['ordered_qty'],
+        'receivedQty': json['received_qty'],
+        'acceptedQty': json['accepted_qty'] == null ? undefined : json['accepted_qty'],
+        'rejectedQty': json['rejected_qty'] == null ? undefined : json['rejected_qty'],
+        'previouslyReceived': json['previously_received'] == null ? undefined : json['previously_received'],
+        'remainingQty': json['remaining_qty'] == null ? undefined : json['remaining_qty'],
+        'defectNotes': json['defect_notes'] == null ? undefined : json['defect_notes'],
+        'notes': json['notes'] == null ? undefined : json['notes'],
+        'uom': json['uom'] == null ? undefined : json['uom'],
+        'unitPriceMinor': json['unit_price_minor'] == null ? undefined : json['unit_price_minor'],
+        'currency': json['currency'] == null ? undefined : json['currency'],
+        'variance': json['variance'] == null ? undefined : json['variance'],
+        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(DocumentAttachmentFromJSON)),
     };
 }
 
@@ -113,12 +197,24 @@ export function GoodsReceiptLineToJSONTyped(value?: GoodsReceiptLine | null, ign
     return {
         
         'id': value['id'],
+        'goods_receipt_note_id': value['goodsReceiptNoteId'],
         'purchase_order_line_id': value['purchaseOrderLineId'],
-        'quantity_received': value['quantityReceived'],
-        'quantity_accepted': value['quantityAccepted'],
-        'quantity_rejected': value['quantityRejected'],
-        'rejection_reason': value['rejectionReason'],
-        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(GoodsReceiptLineAttachmentsInnerToJSON)),
+        'po_line_id': value['poLineId'],
+        'line_no': value['lineNo'],
+        'description': value['description'],
+        'ordered_qty': value['orderedQty'],
+        'received_qty': value['receivedQty'],
+        'accepted_qty': value['acceptedQty'],
+        'rejected_qty': value['rejectedQty'],
+        'previously_received': value['previouslyReceived'],
+        'remaining_qty': value['remainingQty'],
+        'defect_notes': value['defectNotes'],
+        'notes': value['notes'],
+        'uom': value['uom'],
+        'unit_price_minor': value['unitPriceMinor'],
+        'currency': value['currency'],
+        'variance': value['variance'],
+        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(DocumentAttachmentToJSON)),
     };
 }
 

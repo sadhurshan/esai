@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Api\Auth\AuthSessionController;
 use App\Http\Controllers\Api\Auth\PasswordResetController;
+use App\Http\Controllers\Api\Auth\SelfRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'app')->name('home');
 
 Route::prefix('api/auth')->group(function (): void {
     Route::post('login', [AuthSessionController::class, 'store'])->middleware('guest');
+    Route::post('register', [SelfRegistrationController::class, 'register'])->middleware('guest');
 
     Route::middleware('auth')->group(function (): void {
         Route::get('me', [AuthSessionController::class, 'show']);

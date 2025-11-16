@@ -16,10 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { use3WayMatch } from '@/hooks/api/matching/use-3-way-match';
 import { useMatchCandidates } from '@/hooks/api/matching/use-match-candidates';
 import type { MatchCandidate, MatchResolutionInput, Supplier } from '@/types/sourcing';
-import { formatCurrencyMinor } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
 const STATUS_OPTIONS = [
@@ -39,6 +39,7 @@ type CursorMeta = {
 
 export const MatchWorkbenchPage = () => {
     const { hasFeature, state } = useAuth();
+    const { formatMoney, formatNumber } = useFormatting();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const matchingEnabled = hasFeature('finance_enabled');
 
@@ -124,6 +125,11 @@ export const MatchWorkbenchPage = () => {
             </div>
         );
     }
+
+    const formatCandidateMoney = (amountMinor?: number | null, currency?: string | null) =>
+        formatMoney(typeof amountMinor === 'number' ? amountMinor / 100 : null, {
+            currency: currency ?? undefined,
+        });
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -241,7 +247,7 @@ export const MatchWorkbenchPage = () => {
                         <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-muted-foreground">Variance queue</p>
                             <Badge variant="outline" className="text-xs font-mono">
-                                {matchCandidatesQuery.isLoading ? '…' : `${candidates.length} items`}
+                                {matchCandidatesQuery.isLoading ? '…' : `${formatNumber(candidates.length, { maximumFractionDigits: 0 })} items`}
                             </Badge>
                         </div>
                         <Separator />
@@ -284,9 +290,9 @@ export const MatchWorkbenchPage = () => {
                                         </Badge>
                                     </div>
                                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                        <span>PO {formatCurrencyMinor(candidate.poTotalMinor, candidate.currency)}</span>
-                                        <span>Received {formatCurrencyMinor(candidate.receivedTotalMinor, candidate.currency)}</span>
-                                        <span>Invoiced {formatCurrencyMinor(candidate.invoicedTotalMinor, candidate.currency)}</span>
+                                        <span>PO {formatCandidateMoney(candidate.poTotalMinor, candidate.currency)}</span>
+                                        <span>Received {formatCandidateMoney(candidate.receivedTotalMinor, candidate.currency)}</span>
+                                        <span>Invoiced {formatCandidateMoney(candidate.invoicedTotalMinor, candidate.currency)}</span>
                                     </div>
                                     <div className="mt-3 flex flex-wrap items-center gap-2">
                                         {candidate.lines.slice(0, 2).map((line) =>
@@ -296,7 +302,7 @@ export const MatchWorkbenchPage = () => {
                                         )}
                                         {candidate.lines.length > 2 && (
                                             <Badge variant="outline" className="text-xs">
-                                                +{candidate.lines.length - 2} more lines
+                                                +{formatNumber(candidate.lines.length - 2, { maximumFractionDigits: 0 })} more lines
                                             </Badge>
                                         )}
                                     </div>

@@ -651,6 +651,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Self-register a buyer company and primary owner
+         * @description Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+         */
+        post: operations["authRegister"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/reset-password": {
         parameters: {
             query?: never;
@@ -834,6 +854,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/company/plan-selection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select a subscription plan for the authenticated company */
+        post: operations["selectCompanyPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/copilot/analytics": {
         parameters: {
             query?: never;
@@ -955,6 +992,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/credit-notes/{creditNoteId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload attachment for credit note */
+        post: operations["attachCreditNoteFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/credit-notes/{creditNoteId}/issue": {
         parameters: {
             query?: never;
@@ -966,6 +1020,23 @@ export interface paths {
         put?: never;
         /** Issue credit note to supplier */
         post: operations["issueCreditNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credit-notes/{creditNoteId}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update credit note lines */
+        put: operations["updateCreditNoteLines"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1361,6 +1432,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{document}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document: number;
+            };
+            cookie?: never;
+        };
+        /** Show document metadata */
+        get: operations["showDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/exports": {
         parameters: {
             query?: never;
@@ -1527,6 +1617,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List invoices for company */
+        get: operations["listInvoices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices/from-po": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create invoice from purchase order reference */
+        post: operations["createInvoiceFromPo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/invoices/{invoiceId}": {
         parameters: {
             query?: never;
@@ -1548,6 +1672,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/invoices/{invoiceId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload supporting file for invoice */
+        post: operations["attachInvoiceFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/invoices/{invoiceId}/recalculate": {
         parameters: {
             query?: never;
@@ -1558,7 +1699,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Recalculate invoice totals */
-        post: operations["recalcInvoiceTotals"];
+        post: operations["recalculateInvoice"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1575,24 +1716,6 @@ export interface paths {
         /** Convert quantity using part base unit */
         get: operations["convertQuantityForPart"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/localization/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Retrieve locale settings */
-        get: operations["showLocaleSettings"];
-        /** Update locale settings */
-        put: operations["updateLocaleSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1668,6 +1791,26 @@ export interface paths {
         post?: never;
         /** Delete unit of measure */
         delete: operations["deleteUom"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/apply-supplier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a supplier application for the authenticated company
+         * @description Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+         */
+        post: operations["selfApplySupplierApplication"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1890,6 +2033,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List publicly available subscription plans */
+        get: operations["listPlansCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/pos/from-awards": {
         parameters: {
             query?: never;
@@ -2014,6 +2174,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/purchase-orders/{purchaseOrderId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        /** List purchase order timeline events */
+        get: operations["listPurchaseOrderEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/purchase-orders/{purchaseOrderId}/export": {
         parameters: {
             query?: never;
@@ -2075,7 +2254,14 @@ export interface paths {
     };
     "/api/purchase-orders/{purchaseOrderId}/invoices": {
         parameters: {
-            query?: never;
+            query?: {
+                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components["parameters"]["PageQuery"];
+                status?: "pending" | "paid" | "overdue" | "disputed";
+                supplier_id?: number;
+                from?: string;
+                to?: string;
+            };
             header?: never;
             path: {
                 purchaseOrderId: string;
@@ -2250,6 +2436,60 @@ export interface paths {
         put?: never;
         /** Submit a draft quote */
         post: operations["submitDraftQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receiving/grns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List company goods receipt notes */
+        get: operations["listCompanyGrns"];
+        put?: never;
+        /** Record a goods receipt note for a purchase order */
+        post: operations["storeCompanyGrn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receiving/grns/{grnId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grnId: number;
+            };
+            cookie?: never;
+        };
+        /** Show a goods receipt note */
+        get: operations["showCompanyGrn"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/receiving/grns/{grnId}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload attachment to goods receipt note */
+        post: operations["attachCompanyGrnFile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2802,6 +3042,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve company profile settings */
+        get: operations["showCompanySettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update company profile settings */
+        patch: operations["updateCompanySettings"];
+        trace?: never;
+    };
+    "/api/settings/localization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve localization settings */
+        get: operations["showLocalizationSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update localization settings */
+        patch: operations["updateLocalizationSettings"];
+        trace?: never;
+    };
+    "/api/settings/numbering": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve document numbering rules */
+        get: operations["showNumberingSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update document numbering rules */
+        patch: operations["updateNumberingSettings"];
+        trace?: never;
+    };
     "/api/supplier-applications": {
         parameters: {
             query?: never;
@@ -3131,6 +3425,21 @@ export interface components {
              */
             closed_at?: string | null;
         };
+        CompanyAddress: {
+            attention?: string | null;
+            line1: string;
+            line2?: string | null;
+            city?: string | null;
+            state?: string | null;
+            postal_code?: string | null;
+            country: string;
+        };
+        CompanyGoodsReceiptLineInput: {
+            po_line_id: number;
+            qty_received: number;
+            notes?: string | null;
+            uom?: string | null;
+        };
         CompanyProfile: {
             id: number;
             name: string;
@@ -3151,6 +3460,20 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
         };
+        CompanySettings: {
+            legal_name: string;
+            display_name: string;
+            tax_id?: string | null;
+            registration_number?: string | null;
+            emails?: string[];
+            phones?: string[];
+            bill_to: components["schemas"]["CompanyAddress"];
+            ship_from: components["schemas"]["CompanyAddress"];
+            /** Format: uri */
+            logo_url?: string | null;
+            /** Format: uri */
+            mark_url?: string | null;
+        };
         CreateAwardsRequest: {
             /** @description Numeric RFQ identifier. */
             rfq_id: number;
@@ -3170,32 +3493,58 @@ export interface components {
             company_id: number;
             invoice_id: number;
             purchase_order_id?: number | null;
+            grn_id?: number | null;
             credit_number: string;
+            currency: string;
+            amount: string;
+            amount_minor: number;
+            reason?: string;
             /** @enum {string} */
             status: "draft" | "pending_review" | "issued" | "approved" | "rejected";
-            reason?: string;
-            total: components["schemas"]["Money"];
-            balance_remaining?: components["schemas"]["Money"];
             review_comment?: string | null;
             issued_by?: number | null;
             approved_by?: number | null;
             /** Format: date-time */
-            issued_at?: string | null;
-            /** Format: date-time */
             approved_at?: string | null;
-            /** Format: date-time */
-            created_at?: string;
-            /** Format: date-time */
-            updated_at?: string;
+            attachments?: components["schemas"]["DocumentAttachment"][];
+            lines?: components["schemas"]["CreditNoteLine"][];
             invoice?: {
                 /** Format: uuid */
                 id?: string;
                 invoice_number?: string;
             } | null;
+            purchase_order?: {
+                id?: number;
+                po_number?: string;
+            } | null;
+            goods_receipt_note?: {
+                id?: number;
+                number?: string;
+            } | null;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
         };
         CreditNoteCollection: {
             items: components["schemas"]["CreditNote"][];
             meta: components["schemas"]["PageMeta"];
+        };
+        CreditNoteLine: {
+            id: number;
+            invoice_line_id: number;
+            description?: string | null;
+            qty_invoiced: number;
+            qty_to_credit: number;
+            qty_already_credited?: number | null;
+            unit_price_minor: number;
+            currency: string;
+            uom?: string | null;
+            total_minor?: number;
+        };
+        CurrencyPreferences: {
+            primary: string;
+            display_fx: boolean;
         };
         /** @description Pagination metadata for cursor endpoints. */
         CursorMeta: {
@@ -3216,6 +3565,72 @@ export interface components {
             unpaid_invoice_count: number;
             /** Format: int32 */
             low_stock_part_count: number;
+        };
+        Document: {
+            id: number;
+            company_id: number;
+            documentable_type: string;
+            documentable_id: number;
+            kind: string;
+            category: string;
+            visibility?: string | null;
+            version?: number | null;
+            filename: string;
+            mime: string;
+            size_bytes: number;
+            hash: string;
+            /** Format: date-time */
+            expires_at?: string | null;
+            meta?: {
+                [key: string]: unknown;
+            };
+            watermark?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            is_expired: boolean;
+            is_public: boolean;
+            /** Format: uri */
+            download_url: string;
+        };
+        DocumentAttachment: {
+            id: number;
+            filename: string;
+            mime: string;
+            size_bytes: number;
+            version?: number | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            meta?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        DocumentUploadRequest: {
+            /**
+             * @description Target entity slug to associate with the uploaded document.
+             * @enum {string}
+             */
+            entity: "rfq" | "quote" | "po" | "invoice" | "supplier" | "part";
+            entity_id: number;
+            /** @enum {string} */
+            kind: "rfq" | "quote" | "po" | "grn_attachment" | "invoice" | "supplier" | "part" | "cad" | "manual" | "certificate" | "esg_pack" | "other";
+            /** @enum {string} */
+            category: "technical" | "commercial" | "qa" | "logistics" | "financial" | "communication" | "esg" | "other";
+            /** @description Visibility must match the configured `documents.allowed_visibilities` list (private, company, public). */
+            visibility?: string | null;
+            /** Format: date-time */
+            expires_at?: string | null;
+            meta?: {
+                [key: string]: unknown;
+            } | null;
+            watermark?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: binary */
+            file: string;
         };
         /** @description Legacy alias for response metadata. */
         EnvelopeMeta: components["schemas"]["RequestMeta"];
@@ -3287,38 +3702,67 @@ export interface components {
         };
         GoodsReceiptLine: {
             id: number;
+            goods_receipt_note_id?: number;
             purchase_order_line_id: number;
-            quantity_received: number;
-            quantity_accepted?: number | null;
-            quantity_rejected?: number | null;
-            rejection_reason?: string | null;
-            attachments?: {
-                /** Format: uuid */
-                id?: string;
-                filename?: string;
-                mime?: string;
-                size_bytes?: number;
-            }[];
+            po_line_id?: number;
+            line_no?: string | null;
+            description?: string | null;
+            ordered_qty?: number | null;
+            received_qty: number;
+            accepted_qty?: number | null;
+            rejected_qty?: number | null;
+            previously_received?: number | null;
+            remaining_qty?: number | null;
+            defect_notes?: string | null;
+            notes?: string | null;
+            uom?: string | null;
+            unit_price_minor?: number | null;
+            currency?: string | null;
+            variance?: {
+                [key: string]: unknown;
+            } | null;
+            attachments?: components["schemas"]["DocumentAttachment"][];
         };
         GoodsReceiptNote: {
             id: number;
             company_id?: number;
             purchase_order_id: number;
-            number: string;
+            purchase_order_number?: string | null;
+            po_number?: string | null;
+            grn_number: string;
+            number?: string;
             /** @enum {string} */
-            status: "draft" | "inspecting" | "accepted" | "rejected";
+            status: "draft" | "inspecting" | "posted" | "variance" | "rejected";
             inspected_by_id?: number | null;
             /** Format: date-time */
             inspected_at?: string | null;
+            /** Format: date-time */
+            received_at?: string | null;
+            /** Format: date-time */
+            posted_at?: string | null;
+            reference?: string | null;
+            notes?: string | null;
+            supplier_id?: number | null;
+            supplier_name?: string | null;
             inspector?: {
                 id?: number;
                 name?: string;
             } | null;
+            created_by?: {
+                id?: number;
+                name?: string;
+            } | null;
+            lines_count?: number | null;
+            attachments_count?: number | null;
             lines?: components["schemas"]["GoodsReceiptLine"][];
+            attachments?: components["schemas"]["DocumentAttachment"][];
+            timeline?: {
+                [key: string]: unknown;
+            }[];
             /** Format: date-time */
-            created_at?: string;
+            created_at?: string | null;
             /** Format: date-time */
-            updated_at?: string;
+            updated_at?: string | null;
         };
         Invoice: {
             /** Format: uuid */
@@ -3327,13 +3771,15 @@ export interface components {
             purchase_order_id: number;
             supplier_id?: number | null;
             invoice_number: string;
+            /** Format: date */
+            invoice_date?: string | null;
             currency: string;
             /** @enum {string} */
-            status: "draft" | "submitted" | "approved" | "rejected" | "paid";
+            status: "pending" | "draft" | "submitted" | "approved" | "rejected" | "paid" | "overdue" | "disputed" | "posted";
             /** Format: float */
-            subtotal?: number;
+            subtotal: number;
             /** Format: float */
-            tax_amount?: number;
+            tax_amount: number;
             /** Format: float */
             total: number;
             match_summary?: {
@@ -3342,13 +3788,26 @@ export interface components {
                 price_mismatch?: number;
                 unmatched?: number;
             };
+            supplier?: {
+                id?: number;
+                name?: string | null;
+            } | null;
+            purchase_order?: {
+                id?: number;
+                po_number?: string;
+            } | null;
+            lines?: components["schemas"]["InvoiceLine"][];
+            matches?: components["schemas"]["InvoiceMatch"][];
             document?: {
                 /** Format: uuid */
                 id?: string;
                 filename?: string;
                 mime?: string;
                 size_bytes?: number;
+                /** Format: date-time */
+                created_at?: string | null;
             } | null;
+            attachments?: components["schemas"]["DocumentAttachment"][];
             /** Format: date-time */
             created_at?: string;
             /** Format: date-time */
@@ -3358,13 +3817,66 @@ export interface components {
             items: components["schemas"]["Invoice"][];
             meta: components["schemas"]["PageMeta"];
         };
-        LocaleSetting: {
-            locale: string;
+        InvoiceLine: {
+            id: string;
+            invoice_id?: string | null;
+            po_line_id?: string | null;
+            description: string;
+            quantity: number;
+            uom?: string | null;
+            currency?: string;
+            /** Format: float */
+            unit_price: number;
+            unit_price_minor?: number | null;
+            /** Format: float */
+            line_subtotal?: number;
+            /** Format: float */
+            tax_total?: number;
+            /** Format: float */
+            line_total?: number;
+            taxes?: {
+                id?: number;
+                tax_code_id?: number;
+                rate_percent?: number;
+                amount_minor?: number;
+                /** Format: float */
+                amount?: number;
+                sequence?: number;
+            }[];
+        };
+        InvoiceLineInput: {
+            po_line_id: number;
+            quantity: number;
+            /** Format: float */
+            unit_price?: number;
+            description?: string | null;
+            uom?: string | null;
+            tax_code_ids?: number[];
+        };
+        InvoiceMatch: {
+            id: number;
+            invoice_id?: number;
+            purchase_order_id?: number | null;
+            goods_receipt_note_id?: number | null;
+            /** @enum {string} */
+            result: "matched" | "qty_mismatch" | "price_mismatch" | "unmatched";
+            details?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            created_at?: string | null;
+        };
+        LocalizationSettings: {
+            /** @description IANA timezone identifier applied to tenant data. */
             timezone: string;
-            number_format: string;
+            /** @description BCP‑47 locale for formatting dates and numerics. */
+            locale: string;
+            /** @description Display pattern (e.g. YYYY-MM-DD, MM/DD/YYYY). */
             date_format: string;
-            first_day_of_week: number;
-            weekend_days: number[];
+            /** @description Thousand separator style (e.g. 1,234.56). */
+            number_format: string;
+            currency: components["schemas"]["CurrencyPreferences"];
+            uom: components["schemas"]["UomMappings"];
         };
         /** @description Monetary amount expressed in minor units. `amount` is derived from `amount_minor` and `currency` using the company rounding rules. */
         Money: {
@@ -3404,6 +3916,22 @@ export interface components {
             /** Format: date-time */
             updated_at?: string | null;
         };
+        NumberingRule: {
+            prefix: string;
+            seq_len: number;
+            next: number;
+            /** @enum {string} */
+            reset: "never" | "yearly";
+            sample?: string | null;
+        };
+        NumberingSettings: {
+            rfq: components["schemas"]["NumberingRule"];
+            quote: components["schemas"]["NumberingRule"];
+            po: components["schemas"]["NumberingRule"];
+            invoice: components["schemas"]["NumberingRule"];
+            grn: components["schemas"]["NumberingRule"];
+            credit: components["schemas"]["NumberingRule"];
+        };
         /** @description Page/offset pagination metadata. */
         PageMeta: {
             total: number;
@@ -3431,6 +3959,50 @@ export interface components {
             created_at?: string;
             /** Format: date-time */
             updated_at?: string;
+        };
+        PlanCatalogEntry: {
+            code: string;
+            name: string;
+            /** Format: float */
+            price_usd?: number | null;
+            rfqs_per_month?: number | null;
+            invoices_per_month?: number | null;
+            users_max?: number | null;
+            storage_gb?: number | null;
+            erp_integrations_max?: number | null;
+            analytics_enabled: boolean;
+            analytics_history_months?: number | null;
+            risk_scores_enabled?: boolean;
+            risk_history_months?: number | null;
+            approvals_enabled?: boolean;
+            approval_levels_limit?: number | null;
+            rma_enabled?: boolean;
+            rma_monthly_limit?: number | null;
+            credit_notes_enabled?: boolean;
+            global_search_enabled?: boolean;
+            quote_revisions_enabled?: boolean;
+            digital_twin_enabled?: boolean;
+            maintenance_enabled?: boolean;
+            inventory_enabled?: boolean;
+            inventory_history_months?: number | null;
+            pr_enabled?: boolean;
+            multi_currency_enabled: boolean;
+            tax_engine_enabled: boolean;
+            localization_enabled: boolean;
+            exports_enabled: boolean;
+            export_row_limit?: number | null;
+            data_export_enabled?: boolean;
+            export_history_days?: number | null;
+            is_free: boolean;
+        };
+        PlanSelectionResult: {
+            company: {
+                id: number;
+                plan: string | null;
+                billing_status: string;
+                requires_plan_selection: boolean;
+            };
+            plan: components["schemas"]["PlanCatalogEntry"];
         };
         PoChangeOrder: {
             id: number;
@@ -3466,6 +4038,8 @@ export interface components {
             po_number: string;
             /** @enum {string} */
             status: "draft" | "sent" | "acknowledged" | "fulfilled" | "closed" | "cancelled";
+            /** @enum {string} */
+            ack_status?: "draft" | "sent" | "acknowledged" | "declined";
             currency: string;
             incoterm?: string | null;
             /** Format: float */
@@ -3476,6 +4050,11 @@ export interface components {
             tax_amount_minor?: number;
             total?: string;
             total_minor: number;
+            /** Format: date-time */
+            sent_at?: string | null;
+            /** Format: date-time */
+            acknowledged_at?: string | null;
+            ack_reason?: string | null;
             revision_no?: number;
             rfq_id?: number | null;
             quote_id?: number | null;
@@ -3490,6 +4069,35 @@ export interface components {
             } | null;
             lines?: components["schemas"]["PurchaseOrderLine"][];
             change_orders?: components["schemas"]["PoChangeOrder"][];
+            deliveries?: components["schemas"]["PurchaseOrderDelivery"][];
+            latest_delivery?: {
+                id?: number;
+                purchase_order_id?: number;
+                /** @enum {string} */
+                channel?: "email" | "webhook";
+                /** @enum {string} */
+                status?: "queued" | "sent" | "failed";
+                recipients_to?: string[] | null;
+                recipients_cc?: string[] | null;
+                message?: string | null;
+                delivery_reference?: string | null;
+                response_meta?: {
+                    [key: string]: unknown;
+                } | null;
+                error_reason?: string | null;
+                /** Format: date-time */
+                sent_at?: string | null;
+                /** Format: date-time */
+                created_at?: string | null;
+                /** Format: date-time */
+                updated_at?: string | null;
+                sent_by?: {
+                    id?: number;
+                    name?: string;
+                    /** Format: email */
+                    email?: string;
+                } | null;
+            } | null;
             pdf_document_id?: number | null;
             pdf_document?: components["schemas"]["PurchaseOrderPdfDocument"] | null;
             /** Format: date-time */
@@ -3498,6 +4106,57 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
+        };
+        PurchaseOrderDelivery: {
+            id: number;
+            purchase_order_id: number;
+            /** @enum {string} */
+            channel: "email" | "webhook";
+            /** @enum {string} */
+            status: "queued" | "sent" | "failed";
+            recipients_to?: string[] | null;
+            recipients_cc?: string[] | null;
+            message?: string | null;
+            delivery_reference?: string | null;
+            response_meta?: {
+                [key: string]: unknown;
+            } | null;
+            error_reason?: string | null;
+            /** Format: date-time */
+            sent_at?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            sent_by?: {
+                id?: number;
+                name?: string;
+                /** Format: email */
+                email?: string;
+            } | null;
+        };
+        PurchaseOrderEvent: {
+            id: number;
+            purchase_order_id: number;
+            /** @enum {string} */
+            type: "sent" | "supplier_ack" | "supplier_decline" | "invoice_created" | "invoice_attachment";
+            summary: string;
+            description?: string | null;
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            actor?: {
+                id?: number;
+                name?: string;
+                /** Format: email */
+                email?: string | null;
+                /** @enum {string} */
+                type?: "buyer" | "supplier" | "system";
+            } | null;
+            /** Format: date-time */
+            occurred_at?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
         };
         PurchaseOrderLine: {
             id: number;
@@ -3520,6 +4179,8 @@ export interface components {
             line_total_minor: number;
             /** Format: date */
             delivery_date?: string | null;
+            invoiced_quantity?: number | null;
+            remaining_quantity?: number | null;
             taxes?: {
                 id?: number;
                 tax_code_id?: number;
@@ -3819,6 +4480,10 @@ export interface components {
             line_no: number;
             part_name: string;
             spec?: string | null;
+            method?: string;
+            material?: string;
+            tolerance?: string | null;
+            finish?: string | null;
             quantity: number;
             uom?: string | null;
             /** Format: float */
@@ -3840,6 +4505,10 @@ export interface components {
         RfqLinePayload: {
             part_name: string;
             spec?: string | null;
+            method: string;
+            material: string;
+            tolerance?: string | null;
+            finish?: string | null;
             quantity: number;
             uom?: string | null;
             /** Format: float */
@@ -3899,6 +4568,35 @@ export interface components {
             /** Format: uri */
             url: string;
         };
+        SelfRegistrationRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            /** Format: password */
+            password: string;
+            /**
+             * Format: password
+             * @description Must match `password`.
+             */
+            password_confirmation: string;
+            company_name: string;
+            /** @description Public email domain used for verification. */
+            company_domain: string;
+            registration_no: string;
+            tax_id: string;
+            /** Format: uri */
+            website: string;
+            address?: string | null;
+            phone?: string | null;
+            /** @description ISO 3166-1 alpha-2 country code. */
+            country?: string | null;
+            company_documents: {
+                /** @enum {string} */
+                type: "registration" | "tax" | "esg" | "other";
+                /** Format: binary */
+                file: string;
+            }[];
+        };
         /** @description Wrapper for all successful responses. `meta.request_id` always echoes the inbound `X-Request-Id` or an internally generated UUID. */
         SuccessEnvelope: {
             /** @enum {string} */
@@ -3925,6 +4623,40 @@ export interface components {
             status: string;
             /** Format: date-time */
             submitted_at?: string | null;
+        };
+        SupplierApplicationPayload: {
+            capabilities: {
+                methods?: string[];
+                materials?: string[];
+                tolerances?: string[];
+                finishes?: string[];
+                industries?: string[];
+            };
+            description?: string | null;
+            address?: string | null;
+            country?: string | null;
+            city?: string | null;
+            moq?: number | null;
+            min_order_qty?: number | null;
+            lead_time_days?: number | null;
+            geo?: {
+                /** Format: double */
+                lat?: number;
+                /** Format: double */
+                lng?: number;
+            } | null;
+            certifications?: string[] | null;
+            facilities?: string | null;
+            /** Format: uri */
+            website?: string | null;
+            contact?: {
+                name?: string;
+                /** Format: email */
+                email?: string;
+                phone?: string;
+            } | null;
+            notes?: string | null;
+            documents?: number[] | null;
         };
         TaxCode: {
             id: number;
@@ -3975,6 +4707,12 @@ export interface components {
             factor: number;
             /** Format: float */
             offset?: number | null;
+        };
+        UomMappings: {
+            base_uom: string;
+            maps: {
+                [key: string]: string;
+            };
         };
         WebhookDelivery: {
             /** Format: uuid */
@@ -5583,6 +6321,54 @@ export interface operations {
             };
         };
     };
+    authRegister: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["SelfRegistrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Registration succeeded and the caller is authenticated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            token?: string;
+                            user?: components["schemas"]["AuthSessionUser"];
+                            company?: components["schemas"]["AuthSessionCompany"];
+                        };
+                    };
+                };
+            };
+            /** @description Attempted to register while already authenticated. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Invalid registration payload. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
     authResetPassword: {
         parameters: {
             query?: never;
@@ -5968,6 +6754,35 @@ export interface operations {
             };
         };
     };
+    selectCompanyPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    plan_code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Plan selection saved for the tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["PlanSelectionResult"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
     copilotAnalytics: {
         parameters: {
             query?: never;
@@ -6153,6 +6968,40 @@ export interface operations {
             };
         };
     };
+    attachCreditNoteFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                creditNoteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Credit note attachment uploaded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            credit_note?: components["schemas"]["CreditNote"];
+                            attachment?: components["schemas"]["DocumentAttachment"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     issueCreditNote: {
         parameters: {
             query?: never;
@@ -6171,6 +7020,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    updateCreditNoteLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                creditNoteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    lines: {
+                        invoice_line_id: number;
+                        qty_to_credit: number;
+                        description?: string | null;
+                        uom?: string | null;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Credit note lines updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["CreditNote"];
+                    };
                 };
             };
         };
@@ -7100,13 +7984,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                    documentable_type: string;
-                    documentable_id: number;
-                    label?: string;
-                };
+                "multipart/form-data": components["schemas"]["DocumentUploadRequest"];
             };
         };
         responses: {
@@ -7116,7 +7994,51 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Document"];
+                    };
+                };
+            };
+        };
+    };
+    showDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Document metadata and download link for authorized viewers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Document"];
+                    };
+                };
+            };
+            /** @description Caller is not authorized to view the requested document. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Document not found within the tenant scope. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };
@@ -7436,6 +8358,81 @@ export interface operations {
             };
         };
     };
+    listInvoices: {
+        parameters: {
+            query?: {
+                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components["parameters"]["PageQuery"];
+                status?: "pending" | "paid" | "overdue" | "disputed";
+                supplier_id?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated invoices for the active company. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["InvoiceCollection"];
+                    };
+                };
+            };
+        };
+    };
+    createInvoiceFromPo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    po_id: number;
+                    supplier_id?: number | null;
+                    invoice_number?: string | null;
+                    /** Format: date */
+                    invoice_date?: string | null;
+                    currency?: string | null;
+                    /** Format: binary */
+                    document?: string | null;
+                    lines: ({
+                        po_line_id: number;
+                        quantity?: number | null;
+                        qty_invoiced?: number | null;
+                        /** Format: float */
+                        unit_price?: number | null;
+                        unit_price_minor?: number | null;
+                        description?: string | null;
+                        uom?: string | null;
+                        tax_code_ids?: number[];
+                    } & (unknown | unknown))[];
+                };
+            };
+        };
+        responses: {
+            /** @description Invoice created from purchase order lines. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Invoice"];
+                    };
+                };
+            };
+        };
+    };
     showInvoice: {
         parameters: {
             query?: never;
@@ -7473,14 +8470,16 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    invoice_number?: string;
-                    status?: string;
-                    /** Format: float */
-                    subtotal?: number;
-                    /** Format: float */
-                    tax_amount?: number;
-                    /** Format: float */
-                    total?: number;
+                    /** @enum {string} */
+                    status?: "pending" | "paid" | "overdue" | "disputed";
+                    lines?: {
+                        id: number;
+                        description?: string;
+                        quantity?: number;
+                        /** Format: float */
+                        unit_price?: number;
+                        tax_code_ids?: number[];
+                    }[];
                 };
             };
         };
@@ -7491,7 +8490,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Invoice"];
+                    };
                 };
             };
         };
@@ -7518,7 +8519,41 @@ export interface operations {
             };
         };
     };
-    recalcInvoiceTotals: {
+    attachInvoiceFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoiceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Invoice attachment uploaded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            invoice?: components["schemas"]["Invoice"];
+                            attachment?: components["schemas"]["DocumentAttachment"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    recalculateInvoice: {
         parameters: {
             query?: never;
             header?: never;
@@ -7529,13 +8564,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Invoice totals recalculated. */
+            /** @description Recalculated invoice summary. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["Invoice"];
+                    };
                 };
             };
         };
@@ -7568,52 +8605,6 @@ export interface operations {
                             base_uom: string;
                         };
                     };
-                };
-            };
-        };
-    };
-    showLocaleSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current locale configuration for the company. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["LocaleSetting"];
-                    };
-                };
-            };
-        };
-    };
-    updateLocaleSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LocaleSetting"];
-            };
-        };
-        responses: {
-            /** @description Locale settings updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
                 };
             };
         };
@@ -7807,6 +8798,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccessResponse"];
+                };
+            };
+        };
+    };
+    selfApplySupplierApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierApplicationPayload"];
+            };
+        };
+        responses: {
+            /** @description Supplier application submitted for review. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["SupplierApplication"];
+                    };
+                };
+            };
+            /** @description Missing permissions or company context. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+            /** @description Payload failed validation or a pending application already exists. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponse"];
                 };
             };
         };
@@ -8290,6 +9325,30 @@ export interface operations {
             };
         };
     };
+    listPlansCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Catalog of buyer subscription plans. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["PlanCatalogEntry"][];
+                        };
+                    };
+                };
+            };
+        };
+    };
     createPurchaseOrdersFromAwards: {
         parameters: {
             query?: never;
@@ -8397,7 +9456,8 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    action: "accept" | "reject";
+                    decision: "acknowledged" | "declined";
+                    reason?: string | null;
                 };
             };
         };
@@ -8408,7 +9468,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["PurchaseOrder"];
+                    };
                 };
             };
         };
@@ -8521,6 +9583,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
+        };
+    };
+    listPurchaseOrderEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Timeline entries for the purchase order. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["PurchaseOrderEvent"][];
+                        };
+                    };
                 };
             };
         };
@@ -8698,7 +9786,14 @@ export interface operations {
     };
     listInvoicesForPurchaseOrder: {
         parameters: {
-            query?: never;
+            query?: {
+                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components["parameters"]["PageQuery"];
+                status?: "pending" | "paid" | "overdue" | "disputed";
+                supplier_id?: number;
+                from?: string;
+                to?: string;
+            };
             header?: never;
             path: {
                 purchaseOrderId: string;
@@ -8722,7 +9817,14 @@ export interface operations {
     };
     createInvoiceForPurchaseOrder: {
         parameters: {
-            query?: never;
+            query?: {
+                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components["parameters"]["PageQuery"];
+                status?: "pending" | "paid" | "overdue" | "disputed";
+                supplier_id?: number;
+                from?: string;
+                to?: string;
+            };
             header?: never;
             path: {
                 purchaseOrderId: string;
@@ -8732,22 +9834,19 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": {
-                    invoice_number: string;
-                    currency: string;
-                    /** Format: float */
-                    subtotal?: number;
-                    /** Format: float */
-                    tax_amount?: number;
-                    /** Format: float */
-                    total: number;
+                    invoice_number?: string;
+                    /** Format: date */
+                    invoice_date?: string;
+                    currency?: string;
                     /** Format: binary */
-                    file: string;
+                    document?: string;
+                    lines: components["schemas"]["InvoiceLineInput"][];
                 };
             };
         };
         responses: {
             /** @description Invoice captured. */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8790,7 +9889,18 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    channel: "email" | "webhook";
+                    /** @description Required when channel is email. */
+                    to?: string[];
+                    cc?: string[];
+                    message?: string;
+                };
+            };
+        };
         responses: {
             /** @description Purchase order issued. */
             200: {
@@ -8798,7 +9908,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            purchase_order?: components["schemas"]["PurchaseOrder"];
+                            delivery?: components["schemas"]["PurchaseOrderDelivery"];
+                        };
+                    };
                 };
             };
             422: components["responses"]["ValidationError"];
@@ -9036,6 +10151,135 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    listCompanyGrns: {
+        parameters: {
+            query?: {
+                per_page?: components["parameters"]["PerPageQuery"];
+                /** @description Cursor token for pagination. */
+                cursor?: components["parameters"]["CursorQuery"];
+                purchase_order_id?: number;
+                supplier_id?: number;
+                status?: "draft" | "posted" | "variance" | "all";
+                received_from?: string;
+                received_to?: string;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cursor paginated goods receipt notes scoped to the authenticated company. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: {
+                            items: components["schemas"]["GoodsReceiptNote"][];
+                            meta: {
+                                per_page?: number;
+                                next_cursor?: string | null;
+                                prev_cursor?: string | null;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    storeCompanyGrn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    purchase_order_id: number;
+                    /** Format: date-time */
+                    received_at?: string | null;
+                    reference?: string | null;
+                    notes?: string | null;
+                    /** @enum {string|null} */
+                    status?: "draft" | "posted" | null;
+                    lines: components["schemas"]["CompanyGoodsReceiptLineInput"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Goods receipt stored. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["GoodsReceiptNote"];
+                    };
+                };
+            };
+        };
+    };
+    showCompanyGrn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grnId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Goods receipt details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["GoodsReceiptNote"];
+                    };
+                };
+            };
+        };
+    };
+    attachCompanyGrnFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grnId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Attachment uploaded and goods receipt note updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["GoodsReceiptNote"];
+                    };
+                };
+            };
+        };
+    };
     listRfqs: {
         parameters: {
             query?: {
@@ -9079,11 +10323,6 @@ export interface operations {
                     item_name: string;
                     /** @enum {string} */
                     type: "ready_made" | "manufacture";
-                    quantity: number;
-                    material: string;
-                    method: string;
-                    tolerance?: string | null;
-                    finish?: string | null;
                     client_company: string;
                     /** @enum {string} */
                     status: "awaiting" | "open" | "closed" | "awarded" | "cancelled";
@@ -9096,6 +10335,10 @@ export interface operations {
                     items: {
                         part_name: string;
                         spec?: string | null;
+                        method: string;
+                        material: string;
+                        tolerance?: string | null;
+                        finish?: string | null;
                         quantity: number;
                         uom?: string | null;
                         /** Format: float */
@@ -9158,11 +10401,6 @@ export interface operations {
                 "multipart/form-data": {
                     item_name?: string;
                     type?: string;
-                    quantity?: number;
-                    material?: string;
-                    method?: string;
-                    tolerance?: string | null;
-                    finish?: string | null;
                     /** @enum {string} */
                     status?: "awaiting" | "open" | "closed" | "awarded" | "cancelled";
                     is_open_bidding?: boolean;
@@ -10219,6 +11457,153 @@ export interface operations {
             };
         };
     };
+    showCompanySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current company profile settings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["CompanySettings"];
+                    };
+                };
+            };
+        };
+    };
+    updateCompanySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanySettings"];
+            };
+        };
+        responses: {
+            /** @description Updated company profile settings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["CompanySettings"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    showLocalizationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current localization preferences for the tenant. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["LocalizationSettings"];
+                    };
+                };
+            };
+        };
+    };
+    updateLocalizationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalizationSettings"];
+            };
+        };
+        responses: {
+            /** @description Updated localization settings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["LocalizationSettings"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    showNumberingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current numbering configuration for all document types. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["NumberingSettings"];
+                    };
+                };
+            };
+        };
+    };
+    updateNumberingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NumberingSettings"];
+            };
+        };
+        responses: {
+            /** @description Updated numbering configuration. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["NumberingSettings"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
     listSupplierApplications: {
         parameters: {
             query?: never;
@@ -10252,19 +11637,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["SupplierApplicationPayload"];
             };
         };
         responses: {
             /** @description Supplier application submitted. */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                        data?: components["schemas"]["SupplierApplication"];
+                    };
                 };
             };
         };

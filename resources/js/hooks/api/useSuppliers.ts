@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { Paged, Supplier } from '@/types/sourcing';
+import type { Paged, Supplier, SupplierDocument, SupplierDocumentType } from '@/types/sourcing';
 
 export interface SupplierQueryParams extends Record<string, unknown> {
     q?: string;
@@ -20,13 +20,29 @@ export interface SupplierQueryParams extends Record<string, unknown> {
     per_page?: number;
 }
 
-type SupplierResponse = Paged<{
+export interface SupplierDocumentResponse {
+    id: number;
+    supplier_id: number;
+    company_id: number;
+    type: SupplierDocumentType;
+    status: 'valid' | 'expiring' | 'expired';
+    path: string;
+    mime: string;
+    size_bytes: number;
+    issued_at?: string | null;
+    expires_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface SupplierApiPayload {
     id: number;
     company_id: number;
     name: string;
     status: 'pending' | 'approved' | 'rejected' | 'suspended';
     capabilities: Supplier['capabilities'] | null;
     rating_avg: string | number | null;
+    risk_grade?: string | null;
     contact?: {
         email?: string | null;
         phone?: string | null;
@@ -41,12 +57,32 @@ type SupplierResponse = Paged<{
         lat?: string | number | null;
         lng?: string | number | null;
     } | null;
+    branding?: {
+        logo_url?: string | null;
+        mark_url?: string | null;
+    } | null;
+    company?: {
+        id: number;
+        name: string;
+        website?: string | null;
+        country?: string | null;
+        supplier_status?: string | null;
+        is_verified?: boolean | null;
+    } | null;
+    certificates?: {
+        valid?: number;
+        expiring?: number;
+        expired?: number;
+    } | null;
+    documents?: SupplierDocumentResponse[] | null;
     lead_time_days?: number | null;
     moq?: number | null;
     verified_at?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
-}>;
+}
+
+type SupplierResponse = Paged<SupplierApiPayload>;
 
 const coerceNumber = (value: unknown): number | null => {
     if (value === null || value === undefined) {
@@ -58,13 +94,29 @@ const coerceNumber = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
 };
 
-const mapSupplier = (payload: SupplierResponse['items'][number]): Supplier => ({
+const mapSupplierDocument = (payload: SupplierDocumentResponse): SupplierDocument => ({
+    id: payload.id,
+    supplierId: payload.supplier_id,
+    companyId: payload.company_id,
+    type: payload.type,
+    status: payload.status,
+    path: payload.path,
+    mime: payload.mime,
+    sizeBytes: payload.size_bytes,
+    issuedAt: payload.issued_at ?? null,
+    expiresAt: payload.expires_at ?? null,
+    createdAt: payload.created_at ?? null,
+    updatedAt: payload.updated_at ?? null,
+});
+
+export const mapSupplier = (payload: SupplierApiPayload): Supplier => ({
     id: payload.id,
     companyId: payload.company_id,
     name: payload.name,
     status: payload.status,
     capabilities: payload.capabilities ?? {},
     ratingAvg: Number(payload.rating_avg ?? 0),
+    riskGrade: payload.risk_grade ?? null,
     contact: {
         email: payload.contact?.email ?? null,
         phone: payload.contact?.phone ?? null,
@@ -84,6 +136,26 @@ const mapSupplier = (payload: SupplierResponse['items'][number]): Supplier => ({
     verifiedAt: payload.verified_at ?? null,
     createdAt: payload.created_at ?? null,
     updatedAt: payload.updated_at ?? null,
+    branding: {
+        logoUrl: payload.branding?.logo_url ?? null,
+        markUrl: payload.branding?.mark_url ?? null,
+    },
+    certificates: {
+        valid: payload.certificates?.valid ?? 0,
+        expiring: payload.certificates?.expiring ?? 0,
+        expired: payload.certificates?.expired ?? 0,
+    },
+    company: payload.company
+        ? {
+              id: payload.company.id,
+              name: payload.company.name,
+              website: payload.company.website ?? null,
+              country: payload.company.country ?? null,
+              supplierStatus: payload.company.supplier_status ?? null,
+              isVerified: payload.company.is_verified ?? null,
+          }
+        : null,
+    documents: payload.documents ? payload.documents.map(mapSupplierDocument) : null,
 });
 
 type SupplierResult = { items: Supplier[]; meta: SupplierResponse['meta'] };

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
 use App\Models\Customer;
@@ -76,6 +77,7 @@ function actingAsSubscribedUser(): User
         'primary_contact_name' => 'Primary Contact',
         'primary_contact_email' => 'primary@example.com',
         'primary_contact_phone' => '+1-555-0100',
+        'status' => CompanyStatus::Active,
     ]);
 
     $customer = Customer::factory()->create([
@@ -102,9 +104,6 @@ it('creates an rfq with cad upload', function () {
     $payload = [
         'item_name' => 'Gearbox Housing',
         'type' => 'manufacture',
-        'quantity' => 120,
-        'material' => 'Aluminum 7075-T6',
-        'method' => 'CNC Milling',
         'client_company' => 'Elements Supply AI',
         'status' => 'awaiting',
         'deadline_at' => now()->addDays(14)->toDateString(),
@@ -119,6 +118,10 @@ it('creates an rfq with cad upload', function () {
                 'quantity' => 60,
                 'uom' => 'pcs',
                 'target_price' => 125.50,
+                'method' => 'CNC Milling',
+                'material' => 'Aluminum 7075-T6',
+                'tolerance' => '±0.01 mm',
+                'finish' => 'Anodized',
             ],
             [
                 'part_name' => 'Cover Plate',
@@ -126,6 +129,10 @@ it('creates an rfq with cad upload', function () {
                 'quantity' => 60,
                 'uom' => 'pcs',
                 'target_price' => 48.20,
+                'method' => 'Sheet Metal',
+                'material' => 'Stainless Steel 304',
+                'tolerance' => null,
+                'finish' => 'Powder Coat',
             ],
         ],
     ];

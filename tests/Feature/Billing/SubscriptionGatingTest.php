@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompanyStatus;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
@@ -23,6 +24,7 @@ it('blocks rfq creation when monthly limit exceeded', function (): void {
         'plan_id' => $plan->id,
         'plan_code' => $plan->code,
         'rfqs_monthly_used' => 5,
+        'status' => CompanyStatus::Active,
     ]);
 
     $customer = Customer::factory()->create([
@@ -42,11 +44,19 @@ it('blocks rfq creation when monthly limit exceeded', function (): void {
     $response = postJson('/api/rfqs', [
         'item_name' => 'Housing',
         'type' => 'manufacture',
-        'quantity' => 1,
-        'material' => 'Aluminum',
-        'method' => 'CNC Milling',
         'client_company' => 'Test Co',
         'status' => 'awaiting',
+        'items' => [
+            [
+                'part_name' => 'Housing line',
+                'quantity' => 1,
+                'uom' => 'pcs',
+                'method' => 'CNC Milling',
+                'material' => 'Aluminum',
+                'tolerance' => null,
+                'finish' => null,
+            ],
+        ],
     ]);
 
     $response->assertStatus(402)

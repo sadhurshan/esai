@@ -23,10 +23,11 @@ import { useExportPo } from '@/hooks/api/pos/use-export-po';
 import { usePoEvents } from '@/hooks/api/pos/use-events';
 import { useCreateInvoice, type CreateInvoiceInput } from '@/hooks/api/invoices/use-create-invoice';
 import { publishToast } from '@/components/ui/use-toast';
-import { formatDate } from '@/lib/format';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 
 export function PoDetailPage() {
+    const { formatDate } = useFormatting();
     const params = useParams<{ purchaseOrderId: string }>();
     const navigate = useNavigate();
     const poId = Number(params.purchaseOrderId);

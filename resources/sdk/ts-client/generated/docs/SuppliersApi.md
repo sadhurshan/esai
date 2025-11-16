@@ -12,6 +12,7 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**listSupplierApplications**](SuppliersApi.md#listsupplierapplications) | **GET** /api/supplier-applications | List supplier applications |
 | [**listSupplierEsg**](SuppliersApi.md#listsupplieresg) | **GET** /api/suppliers/{supplierId}/esg | List ESG records for supplier |
 | [**listSuppliers**](SuppliersApi.md#listsuppliers) | **GET** /api/suppliers | List suppliers for current company |
+| [**selfApplySupplierApplication**](SuppliersApi.md#selfapplysupplierapplication) | **POST** /api/me/apply-supplier | Submit a supplier application for the authenticated company |
 | [**showSelfServiceSupplierApplicationStatus**](SuppliersApi.md#showselfservicesupplierapplicationstatus) | **GET** /api/me/supplier-application/status | Get supplier self-service application status |
 | [**showSupplier**](SuppliersApi.md#showsupplier) | **GET** /api/suppliers/{supplierId} | Show supplier |
 | [**showSupplierApplication**](SuppliersApi.md#showsupplierapplication) | **GET** /api/supplier-applications/{applicationId} | Show supplier application |
@@ -22,7 +23,7 @@ All URIs are relative to *https://api.elements-supply.ai*
 
 ## createSupplierApplication
 
-> ApiSuccessResponse createSupplierApplication(requestBody)
+> SelfApplySupplierApplication200Response createSupplierApplication(supplierApplicationPayload)
 
 Submit supplier application
 
@@ -46,8 +47,8 @@ async function example() {
   const api = new SuppliersApi(config);
 
   const body = {
-    // { [key: string]: any; }
-    requestBody: Object,
+    // SupplierApplicationPayload
+    supplierApplicationPayload: ...,
   } satisfies CreateSupplierApplicationRequest;
 
   try {
@@ -67,11 +68,11 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **requestBody** | `{ [key: string]: any; }` |  | |
+| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |  | |
 
 ### Return type
 
-[**ApiSuccessResponse**](ApiSuccessResponse.md)
+[**SelfApplySupplierApplication200Response**](SelfApplySupplierApplication200Response.md)
 
 ### Authorization
 
@@ -86,7 +87,7 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **201** | Supplier application submitted. |  -  |
+| **200** | Supplier application submitted. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -578,6 +579,81 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## selfApplySupplierApplication
+
+> SelfApplySupplierApplication200Response selfApplySupplierApplication(supplierApplicationPayload)
+
+Submit a supplier application for the authenticated company
+
+Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+
+### Example
+
+```ts
+import {
+  Configuration,
+  SuppliersApi,
+} from '';
+import type { SelfApplySupplierApplicationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new SuppliersApi(config);
+
+  const body = {
+    // SupplierApplicationPayload
+    supplierApplicationPayload: ...,
+  } satisfies SelfApplySupplierApplicationRequest;
+
+  try {
+    const data = await api.selfApplySupplierApplication(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |  | |
+
+### Return type
+
+[**SelfApplySupplierApplication200Response**](SelfApplySupplierApplication200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Supplier application submitted for review. |  -  |
+| **403** | Missing permissions or company context. |  -  |
+| **422** | Payload failed validation or a pending application already exists. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## showSelfServiceSupplierApplicationStatus
 
 > ApiSuccessResponse showSelfServiceSupplierApplicationStatus()
@@ -714,7 +790,7 @@ example().catch(console.error);
 
 ## showSupplierApplication
 
-> ShowSupplierApplication200Response showSupplierApplication(applicationId)
+> SelfApplySupplierApplication200Response showSupplierApplication(applicationId)
 
 Show supplier application
 
@@ -763,7 +839,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**ShowSupplierApplication200Response**](ShowSupplierApplication200Response.md)
+[**SelfApplySupplierApplication200Response**](SelfApplySupplierApplication200Response.md)
 
 ### Authorization
 

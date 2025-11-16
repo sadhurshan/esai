@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useFormatting, type FormattingContextValue } from '@/contexts/formatting-context';
 import type { InventoryItemSummary, InventoryLocationOption } from '@/types/inventory';
 import type { MovementType } from '@/sdk';
 import { LocationSelect } from './location-select';
@@ -62,6 +63,7 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
     itemSummaries,
     defaultDestinationId,
 }: MovementLineEditorProps<FormValues>) {
+    const { formatNumber } = useFormatting();
     const { control, register, setValue, formState } = form;
     const linesPath = 'lines' as ArrayPath<FormValues>;
     const { fields, append, remove } = useFieldArray<FormValues, typeof linesPath, 'id'>({ control, name: linesPath });
@@ -131,10 +133,16 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-xs uppercase tracking-wide text-muted-foreground">
                 <span>
-                    Lines <span className="font-semibold text-foreground">{summary.count}</span>
+                    Lines{' '}
+                    <span className="font-semibold text-foreground">
+                        {formatNumber(summary.count, { maximumFractionDigits: 0 })}
+                    </span>
                 </span>
                 <span>
-                    Total quantity <span className="font-semibold text-foreground">{summary.totalQty}</span>
+                    Total quantity{' '}
+                    <span className="font-semibold text-foreground">
+                        {formatQty(summary.totalQty, formatNumber)}
+                    </span>
                 </span>
             </div>
 
@@ -214,7 +222,7 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
                                         ) : null}
                                         {itemOnHand !== null ? (
                                             <p className="text-xs text-muted-foreground">
-                                                On-hand: {itemOnHand.toLocaleString(undefined, { maximumFractionDigits: 3 })}
+                                                On-hand: {formatQty(itemOnHand, formatNumber, 3)}
                                                 {itemSummary?.defaultUom ? ` ${itemSummary.defaultUom}` : ''}
                                             </p>
                                         ) : null}
@@ -350,4 +358,17 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
             </div>
         </div>
     );
+}
+
+function formatQty(
+    value: number | null | undefined,
+    formatter: FormattingContextValue['formatNumber'],
+    forcedPrecision?: number,
+) {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '0';
+    }
+
+    const precision = forcedPrecision ?? (Math.abs(value) >= 1 ? 2 : 3);
+    return formatter(value, { maximumFractionDigits: precision, fallback: '0' });
 }

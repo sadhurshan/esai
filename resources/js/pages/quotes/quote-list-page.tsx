@@ -16,6 +16,7 @@ import { MoneyCell } from '@/components/quotes/money-cell';
 import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
 import { QuoteCompareTable } from '@/components/quotes/quote-compare-table';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useRfq } from '@/hooks/api/rfqs/use-rfq';
 import { useQuotes, type QuoteListSort, type UseQuotesFilters } from '@/hooks/api/quotes/use-quotes';
 import type { Quote, QuoteStatusEnum } from '@/sdk';
@@ -67,6 +68,7 @@ export function QuoteListPage() {
 
     const { data: moneySettings } = useMoneySettings();
     const companyMinorUnit = moneySettings?.pricingCurrency?.minorUnit ?? moneySettings?.baseCurrency?.minorUnit ?? DEFAULT_MINOR_UNIT;
+    const { formatDate } = useFormatting();
 
     useEffect(() => {
         const handle = window.setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 250);
@@ -301,7 +303,11 @@ export function QuoteListPage() {
             {
                 key: 'submitted_at',
                 title: 'Submitted at',
-                render: (quote) => formatDateTime(quote.submittedAt),
+                render: (quote) =>
+                    formatDate(quote.submittedAt, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                    }),
             },
             {
                 key: 'revision',
@@ -338,7 +344,7 @@ export function QuoteListPage() {
                 },
             },
         ];
-    }, [selectedQuoteIds, shortlistedQuoteIds, toggleSelection, toggleShortlist]);
+    }, [formatDate, selectedQuoteIds, shortlistedQuoteIds, toggleSelection, toggleShortlist]);
 
     if (featureFlagsLoaded && !quotesFeatureEnabled) {
         return (
@@ -408,7 +414,12 @@ export function QuoteListPage() {
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Due date</p>
-                    <p className="text-base font-semibold text-foreground">{formatDateTime(rfq?.deadlineAt)}</p>
+                    <p className="text-base font-semibold text-foreground">
+                        {formatDate(rfq?.deadlineAt, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                        })}
+                    </p>
                 </div>
                 <div className="space-y-1">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Lines</p>
@@ -534,22 +545,6 @@ export function QuoteListPage() {
             />
         </div>
     );
-}
-
-function formatDateTime(value?: Date | string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    const date = typeof value === 'string' ? new Date(value) : value;
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-
-    return date.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
 }
 
 function getSupplierName(quote: Quote): string {

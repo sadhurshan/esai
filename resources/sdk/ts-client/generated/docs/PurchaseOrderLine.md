@@ -21,7 +21,9 @@ Name | Type
 `lineTotal` | number
 `lineTotalMinor` | number
 `deliveryDate` | Date
-`taxes` | [Array&lt;PurchaseOrderLineTaxesInner&gt;](PurchaseOrderLineTaxesInner.md)
+`invoicedQuantity` | number
+`remainingQuantity` | number
+`taxes` | [Array&lt;InvoiceLineTaxesInner&gt;](InvoiceLineTaxesInner.md)
 
 ## Example
 
@@ -45,6 +47,8 @@ const example = {
   "lineTotal": null,
   "lineTotalMinor": null,
   "deliveryDate": null,
+  "invoicedQuantity": null,
+  "remainingQuantity": null,
   "taxes": null,
 } satisfies PurchaseOrderLine
 

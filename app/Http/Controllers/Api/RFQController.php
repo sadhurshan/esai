@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\RFQPublishRequest;
 use App\Http\Requests\RFQStoreRequest;
 use App\Http\Requests\RFQUpdateRequest;
 use App\Http\Resources\RFQResource;
@@ -135,6 +136,11 @@ class RFQController extends ApiController
                 return $this->fail('Unauthorized', 403);
             }
 
+            $payload['quantity'] = $this->sumLineQuantities($items);
+            $payload['method'] = $this->resolveLineValue($items, 'method');
+            $payload['material'] = $this->resolveLineValue($items, 'material');
+            $payload['tolerance'] = $this->resolveLineValue($items, 'tolerance');
+            $payload['finish'] = $this->resolveLineValue($items, 'finish');
             $payload['number'] = $this->generateNumber();
             $payload['status'] = $payload['status'] ?? 'awaiting';
             $payload['is_open_bidding'] = (bool) ($payload['is_open_bidding'] ?? false);
@@ -157,6 +163,10 @@ class RFQController extends ApiController
                         'line_no' => $lineNo++,
                         'part_name' => $item['part_name'],
                         'spec' => $item['spec'] ?? null,
+                        'method' => $item['method'],
+                        'material' => $item['material'],
+                        'tolerance' => $item['tolerance'] ?? null,
+                        'finish' => $item['finish'] ?? null,
                         'quantity' => $item['quantity'],
                         'uom' => $item['uom'] ?? 'pcs',
                         'target_price' => $item['target_price'] ?? null,
@@ -169,6 +179,64 @@ class RFQController extends ApiController
             $rfq->load('items');
 
             return $this->ok((new RFQResource($rfq))->toArray($request), 'RFQ created')->setStatusCode(201);
+        } catch (\Throwable $throwable) {
+            report($throwable);
+
+            return $this->fail('Server error', 500);
+        }
+    }
+
+    public function publish(string $rfqId, RFQPublishRequest $request): JsonResponse
+    {
+        try {
+            $rfq = RFQ::find($rfqId);
+
+            if (! $rfq) {
+                return $this->fail('Not found', 404);
+            }
+
+            $user = $request->user();
+
+            if ($user === null || $user->company_id === null || (int) $rfq->company_id !== (int) $user->company_id) {
+                return $this->fail('Forbidden', 403);
+            }
+
+            if (! in_array($rfq->status, ['awaiting', 'draft'], true)) {
+                return $this->fail('Only draft RFQs can be published.', 422, [
+                    'status' => ['RFQ is currently '.$rfq->status.'.'],
+                ]);
+            }
+
+            $data = $request->validated();
+            $dueAt = Carbon::parse($data['due_at']);
+            $publishAt = isset($data['publish_at']) && $data['publish_at'] !== null
+                ? Carbon::parse($data['publish_at'])
+                : Carbon::now();
+
+            if ($publishAt->greaterThan($dueAt)) {
+                $publishAt = $dueAt->copy();
+            }
+
+            $rfq->fill([
+                'deadline_at' => $dueAt,
+                'due_at' => $dueAt,
+                'close_at' => $dueAt,
+                'publish_at' => $publishAt,
+                'sent_at' => $publishAt,
+                'status' => 'open',
+            ]);
+            $rfq->save();
+
+            $user->loadMissing('company');
+            $company = $user->company;
+
+            if ($company && (int) $company->id === (int) $rfq->company_id) {
+                $company->increment('rfqs_monthly_used');
+            }
+
+            // TODO: queue supplier notifications once publish workflows are wired to notifications service.
+
+            return $this->ok((new RFQResource($rfq->fresh(['items'])))->toArray($request), 'RFQ published');
         } catch (\Throwable $throwable) {
             report($throwable);
 
@@ -303,5 +371,39 @@ class RFQController extends ApiController
         return $query
             ->whereIn('status', ['awaiting', 'awarded', 'closed', 'cancelled'])
             ->whereNotNull('sent_at');
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function sumLineQuantities(array $items): int
+    {
+        $total = 0;
+
+        foreach ($items as $item) {
+            $total += (int) ($item['quantity'] ?? 0);
+        }
+
+        return max($total, 0);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function resolveLineValue(array $items, string $key): ?string
+    {
+        foreach ($items as $item) {
+            $value = $item[$key] ?? null;
+
+            if (is_string($value)) {
+                $trimmed = trim($value);
+
+                if ($trimmed !== '') {
+                    return $trimmed;
+                }
+            }
+        }
+
+        return null;
     }
 }

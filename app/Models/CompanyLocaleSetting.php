@@ -20,11 +20,17 @@ class CompanyLocaleSetting extends Model
         'date_format',
         'first_day_of_week',
         'weekend_days',
+        'currency_primary',
+        'currency_display_fx',
+        'uom_base',
+        'uom_maps',
     ];
 
     protected $casts = [
         'first_day_of_week' => 'integer',
         'weekend_days' => 'array',
+        'currency_display_fx' => 'boolean',
+        'uom_maps' => 'array',
     ];
 
     public function company(): BelongsTo

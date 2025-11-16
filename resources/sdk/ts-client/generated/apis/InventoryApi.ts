@@ -19,10 +19,12 @@ import type {
   ApproveCreditNoteRequest,
   CreateGrnRequest,
   CreateRmaRequest,
+  ListCompanyGrns200Response,
   ListGrns200Response,
   ListRmas200Response,
   ShowGrn200Response,
   ShowRma200Response,
+  StoreCompanyGrnRequest,
   UpdateGrnRequest,
 } from '../models/index';
 import {
@@ -34,6 +36,8 @@ import {
     CreateGrnRequestToJSON,
     CreateRmaRequestFromJSON,
     CreateRmaRequestToJSON,
+    ListCompanyGrns200ResponseFromJSON,
+    ListCompanyGrns200ResponseToJSON,
     ListGrns200ResponseFromJSON,
     ListGrns200ResponseToJSON,
     ListRmas200ResponseFromJSON,
@@ -42,9 +46,16 @@ import {
     ShowGrn200ResponseToJSON,
     ShowRma200ResponseFromJSON,
     ShowRma200ResponseToJSON,
+    StoreCompanyGrnRequestFromJSON,
+    StoreCompanyGrnRequestToJSON,
     UpdateGrnRequestFromJSON,
     UpdateGrnRequestToJSON,
 } from '../models/index';
+
+export interface AttachCompanyGrnFileRequest {
+    grnId: number;
+    file: Blob;
+}
 
 export interface CreateGrnOperationRequest {
     purchaseOrderId: number;
@@ -61,6 +72,17 @@ export interface DeleteGrnRequest {
     grnId: number;
 }
 
+export interface ListCompanyGrnsRequest {
+    perPage?: number;
+    cursor?: string;
+    purchaseOrderId?: number;
+    supplierId?: number;
+    status?: ListCompanyGrnsStatusEnum;
+    receivedFrom?: Date;
+    receivedTo?: Date;
+    search?: string;
+}
+
 export interface ListGrnsRequest {
     purchaseOrderId: number;
 }
@@ -70,6 +92,10 @@ export interface ReviewRmaRequest {
     approveCreditNoteRequest: ApproveCreditNoteRequest;
 }
 
+export interface ShowCompanyGrnRequest {
+    grnId: number;
+}
+
 export interface ShowGrnRequest {
     purchaseOrderId: number;
     grnId: number;
@@ -77,6 +103,10 @@ export interface ShowGrnRequest {
 
 export interface ShowRmaRequest {
     rmaId: string;
+}
+
+export interface StoreCompanyGrnOperationRequest {
+    storeCompanyGrnRequest: StoreCompanyGrnRequest;
 }
 
 export interface UpdateGrnOperationRequest {
@@ -92,6 +122,22 @@ export interface UpdateGrnOperationRequest {
  * @interface InventoryApiInterface
  */
 export interface InventoryApiInterface {
+    /**
+     * 
+     * @summary Upload attachment to goods receipt note
+     * @param {number} grnId 
+     * @param {Blob} file 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryApiInterface
+     */
+    attachCompanyGrnFileRaw(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+
+    /**
+     * Upload attachment to goods receipt note
+     */
+    attachCompanyGrnFile(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+
     /**
      * 
      * @summary Create goods receipt note
@@ -142,6 +188,28 @@ export interface InventoryApiInterface {
 
     /**
      * 
+     * @summary List company goods receipt notes
+     * @param {number} [perPage] 
+     * @param {string} [cursor] Cursor token for pagination.
+     * @param {number} [purchaseOrderId] 
+     * @param {number} [supplierId] 
+     * @param {'draft' | 'posted' | 'variance' | 'all'} [status] 
+     * @param {Date} [receivedFrom] 
+     * @param {Date} [receivedTo] 
+     * @param {string} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryApiInterface
+     */
+    listCompanyGrnsRaw(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCompanyGrns200Response>>;
+
+    /**
+     * List company goods receipt notes
+     */
+    listCompanyGrns(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCompanyGrns200Response>;
+
+    /**
+     * 
      * @summary List goods receipt notes for purchase order
      * @param {number} purchaseOrderId 
      * @param {*} [options] Override http request option.
@@ -187,6 +255,21 @@ export interface InventoryApiInterface {
 
     /**
      * 
+     * @summary Show a goods receipt note
+     * @param {number} grnId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryApiInterface
+     */
+    showCompanyGrnRaw(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+
+    /**
+     * Show a goods receipt note
+     */
+    showCompanyGrn(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+
+    /**
+     * 
      * @summary Show goods receipt note
      * @param {number} purchaseOrderId 
      * @param {number} grnId 
@@ -218,6 +301,21 @@ export interface InventoryApiInterface {
 
     /**
      * 
+     * @summary Record a goods receipt note for a purchase order
+     * @param {StoreCompanyGrnRequest} storeCompanyGrnRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryApiInterface
+     */
+    storeCompanyGrnRaw(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+
+    /**
+     * Record a goods receipt note for a purchase order
+     */
+    storeCompanyGrn(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+
+    /**
+     * 
      * @summary Update goods receipt note
      * @param {number} purchaseOrderId 
      * @param {number} grnId 
@@ -239,6 +337,83 @@ export interface InventoryApiInterface {
  * 
  */
 export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterface {
+
+    /**
+     * Upload attachment to goods receipt note
+     */
+    async attachCompanyGrnFileRaw(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+        if (requestParameters['grnId'] == null) {
+            throw new runtime.RequiredError(
+                'grnId',
+                'Required parameter "grnId" was null or undefined when calling attachCompanyGrnFile().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling attachCompanyGrnFile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+
+        let urlPath = `/api/receiving/grns/{grnId}/attachments`;
+        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload attachment to goods receipt note
+     */
+    async attachCompanyGrnFile(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
+        const response = await this.attachCompanyGrnFileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Create goods receipt note
@@ -416,6 +591,79 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
     }
 
     /**
+     * List company goods receipt notes
+     */
+    async listCompanyGrnsRaw(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCompanyGrns200Response>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['perPage'] != null) {
+            queryParameters['per_page'] = requestParameters['perPage'];
+        }
+
+        if (requestParameters['cursor'] != null) {
+            queryParameters['cursor'] = requestParameters['cursor'];
+        }
+
+        if (requestParameters['purchaseOrderId'] != null) {
+            queryParameters['purchase_order_id'] = requestParameters['purchaseOrderId'];
+        }
+
+        if (requestParameters['supplierId'] != null) {
+            queryParameters['supplier_id'] = requestParameters['supplierId'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['receivedFrom'] != null) {
+            queryParameters['received_from'] = requestParameters['receivedFrom'];
+        }
+
+        if (requestParameters['receivedTo'] != null) {
+            queryParameters['received_to'] = requestParameters['receivedTo'];
+        }
+
+        if (requestParameters['search'] != null) {
+            queryParameters['search'] = requestParameters['search'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/receiving/grns`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListCompanyGrns200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List company goods receipt notes
+     */
+    async listCompanyGrns(requestParameters: ListCompanyGrnsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCompanyGrns200Response> {
+        const response = await this.listCompanyGrnsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List goods receipt notes for purchase order
      */
     async listGrnsRaw(requestParameters: ListGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListGrns200Response>> {
@@ -565,6 +813,55 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
     }
 
     /**
+     * Show a goods receipt note
+     */
+    async showCompanyGrnRaw(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+        if (requestParameters['grnId'] == null) {
+            throw new runtime.RequiredError(
+                'grnId',
+                'Required parameter "grnId" was null or undefined when calling showCompanyGrn().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/receiving/grns/{grnId}`;
+        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Show a goods receipt note
+     */
+    async showCompanyGrn(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
+        const response = await this.showCompanyGrnRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Show goods receipt note
      */
     async showGrnRaw(requestParameters: ShowGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
@@ -671,6 +968,57 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
     }
 
     /**
+     * Record a goods receipt note for a purchase order
+     */
+    async storeCompanyGrnRaw(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+        if (requestParameters['storeCompanyGrnRequest'] == null) {
+            throw new runtime.RequiredError(
+                'storeCompanyGrnRequest',
+                'Required parameter "storeCompanyGrnRequest" was null or undefined when calling storeCompanyGrn().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/receiving/grns`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: StoreCompanyGrnRequestToJSON(requestParameters['storeCompanyGrnRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Record a goods receipt note for a purchase order
+     */
+    async storeCompanyGrn(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
+        const response = await this.storeCompanyGrnRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Update goods receipt note
      */
     async updateGrnRaw(requestParameters: UpdateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -738,3 +1086,14 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
     }
 
 }
+
+/**
+ * @export
+ */
+export const ListCompanyGrnsStatusEnum = {
+    Draft: 'draft',
+    Posted: 'posted',
+    Variance: 'variance',
+    All: 'all'
+} as const;
+export type ListCompanyGrnsStatusEnum = typeof ListCompanyGrnsStatusEnum[keyof typeof ListCompanyGrnsStatusEnum];

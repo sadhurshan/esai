@@ -10,6 +10,10 @@ Name | Type
 `lineNo` | number
 `partName` | string
 `spec` | string
+`method` | string
+`material` | string
+`tolerance` | string
+`finish` | string
 `quantity` | number
 `uom` | string
 `targetPrice` | number
@@ -25,6 +29,10 @@ const example = {
   "lineNo": null,
   "partName": null,
   "spec": null,
+  "method": null,
+  "material": null,
+  "tolerance": null,
+  "finish": null,
   "quantity": null,
   "uom": null,
   "targetPrice": null,

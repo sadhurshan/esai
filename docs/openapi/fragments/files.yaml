@@ -75,25 +75,162 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              required:
-                - file
-                - documentable_type
-                - documentable_id
-              properties:
-                file:
-                  type: string
-                  format: binary
-                documentable_type:
-                  type: string
-                documentable_id:
-                  type: integer
-                label:
-                  type: string
+              $ref: '#/components/schemas/DocumentUploadRequest'
       responses:
         '201':
           description: Document stored and linked to record.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Document'
+  /api/documents/{document}:
+    parameters:
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Documents
+      summary: Show document metadata
+      operationId: showDocument
+      responses:
+        '200':
+          description: Document metadata and download link for authorized viewers.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Document'
+        '403':
+          description: Caller is not authorized to view the requested document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Document not found within the tenant scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+components:
+  schemas:
+    Document:
+      type: object
+      required:
+        - id
+        - company_id
+        - documentable_type
+        - documentable_id
+        - kind
+        - category
+        - filename
+        - mime
+        - size_bytes
+        - hash
+        - is_expired
+        - is_public
+        - download_url
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        documentable_type:
+          type: string
+        documentable_id:
+          type: integer
+        kind:
+          type: string
+        category:
+          type: string
+        visibility:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          nullable: true
+        filename:
+          type: string
+        mime:
+          type: string
+        size_bytes:
+          type: integer
+        hash:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        meta:
+          type: object
+          additionalProperties: true
+        watermark:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        is_expired:
+          type: boolean
+        is_public:
+          type: boolean
+        download_url:
+          type: string
+          format: uri
+    DocumentUploadRequest:
+      type: object
+      required:
+        - entity
+        - entity_id
+        - kind
+        - category
+        - file
+      properties:
+        entity:
+          type: string
+          description: Target entity slug to associate with the uploaded document.
+          enum: [rfq, quote, po, invoice, supplier, part]
+        entity_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum: [rfq, quote, po, grn_attachment, invoice, supplier, part, cad, manual, certificate, esg_pack, other]
+        category:
+          type: string
+          enum: [technical, commercial, qa, logistics, financial, communication, esg, other]
+        visibility:
+          type: string
+          nullable: true
+          description: Visibility must match the configured `documents.allowed_visibilities` list (private, company, public).
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        meta:
+          type: object
+          additionalProperties: true
+          nullable: true
+        watermark:
+          type: object
+          additionalProperties: true
+          nullable: true
+        file:
+          type: string
+          format: binary
+      additionalProperties: false

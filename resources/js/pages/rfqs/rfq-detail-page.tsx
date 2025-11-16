@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,8 +47,10 @@ import {
     useUpdateLine,
     useRfqSuppliers,
     useRfqTimeline,
+    useUpdateRfq,
 } from '@/hooks/api/rfqs';
 import type { Rfq, RfqInvitation, RfqItem, RfqLinePayload, RfqTimelineEntry } from '@/sdk';
+import { RfqTypeEnum } from '@/sdk';
 
 interface PublishFormState {
     dueAt: string;
@@ -61,6 +64,22 @@ const DEFAULT_PUBLISH_FORM: PublishFormState = {
     publishAt: '',
     notifySuppliers: true,
     message: '',
+};
+
+interface EditDetailsFormState {
+    itemName: string;
+    type: RfqTypeEnum;
+    deadlineAt: string;
+    isOpenBidding: boolean;
+    notes: string;
+}
+
+const DEFAULT_EDIT_FORM: EditDetailsFormState = {
+    itemName: '',
+    type: RfqTypeEnum.Manufacture,
+    deadlineAt: '',
+    isOpenBidding: false,
+    notes: '',
 };
 
 const TIMELINE_EVENT_LABELS: Record<string, string> = {
@@ -329,6 +348,43 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
     );
 }
 
+type InvitationSupplierProfile = {
+    id?: number | string | null;
+    name?: string | null;
+    city?: string | null;
+    country?: string | null;
+    capabilities?: { methods?: string[] | null } | null;
+};
+
+function getInvitationSupplier(invitation: RfqInvitation): InvitationSupplierProfile | null {
+    const enriched = invitation as RfqInvitation & { supplier?: InvitationSupplierProfile | null };
+    return enriched.supplier ?? null;
+}
+
+function formatInvitationLocation(invitation: RfqInvitation): string | null {
+    const supplier = getInvitationSupplier(invitation);
+    const city = supplier?.city?.trim();
+    const country = supplier?.country?.trim();
+
+    if (city && country) {
+        return `${city}, ${country}`;
+    }
+
+    return city || country || null;
+}
+
+function extractInvitationMethods(invitation: RfqInvitation): string[] {
+    const methods = getInvitationSupplier(invitation)?.capabilities?.methods;
+    if (!Array.isArray(methods)) {
+        return [];
+    }
+
+    return methods
+        .filter((method): method is string => typeof method === 'string' && method.trim().length > 0)
+        .map((method) => method.trim())
+        .slice(0, 3);
+}
+
 function SuppliersList({ invitations }: { invitations: RfqInvitation[] }) {
     if (invitations.length === 0) {
         return <p className="text-sm text-muted-foreground">No suppliers invited yet.</p>;
@@ -336,20 +392,33 @@ function SuppliersList({ invitations }: { invitations: RfqInvitation[] }) {
 
     return (
         <ul className="space-y-3">
-            {invitations.map((invitation) => (
-                <li key={invitation.id} className="flex items-center justify-between rounded-md border p-3">
-                    <div>
-                        <p className="text-sm font-medium text-foreground">{invitation.supplierId}</p>
-                        <p className="text-xs text-muted-foreground">
-                            Invited {toRelativeDate(invitation.invitedAt)}
-                            {invitation.respondedAt ? ` • Responded ${toRelativeDate(invitation.respondedAt)}` : ''}
-                        </p>
-                    </div>
-                    <Badge variant={invitation.status === 'responded' ? 'default' : 'secondary'} className="capitalize">
-                        {invitation.status.replace(/_/g, ' ')}
-                    </Badge>
-                </li>
-            ))}
+            {invitations.map((invitation) => {
+                const supplier = getInvitationSupplier(invitation);
+                const supplierName = supplier?.name ?? `Supplier #${invitation.supplierId}`;
+                const location = formatInvitationLocation(invitation) ?? 'Location unavailable';
+                const methods = extractInvitationMethods(invitation);
+
+                return (
+                    <li key={invitation.id} className="rounded-md border p-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium text-foreground">{supplierName}</p>
+                                <p className="text-xs text-muted-foreground">{location}</p>
+                                {methods.length > 0 ? (
+                                    <p className="text-xs text-muted-foreground">Methods: {methods.join(', ')}</p>
+                                ) : null}
+                                <p className="text-xs text-muted-foreground">
+                                    Invited {toRelativeDate(invitation.invitedAt)}
+                                    {invitation.respondedAt ? ` • Responded ${toRelativeDate(invitation.respondedAt)}` : ''}
+                                </p>
+                            </div>
+                            <Badge variant={invitation.status === 'responded' ? 'default' : 'secondary'} className="self-start capitalize">
+                                {invitation.status.replace(/_/g, ' ')}
+                            </Badge>
+                        </div>
+                    </li>
+                );
+            })}
         </ul>
     );
 }
@@ -411,6 +480,8 @@ export function RfqDetailPage() {
     const [isLineEditorOpen, setLineEditorOpen] = useState(false);
     const [editingLine, setEditingLine] = useState<RfqItem | null>(null);
     const [pendingDeleteLine, setPendingDeleteLine] = useState<RfqItem | null>(null);
+    const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+    const [editForm, setEditForm] = useState<EditDetailsFormState>(DEFAULT_EDIT_FORM);
 
     const { hasFeature, state: authState } = useAuth();
     const featureFlagsLoaded = Object.keys(authState.featureFlags ?? {}).length > 0;
@@ -429,6 +500,18 @@ export function RfqDetailPage() {
     const publishMutation = usePublishRfq();
     const amendMutation = useAmendRfq();
     const closeMutation = useCloseRfq();
+    const updateRfqMutation = useUpdateRfq({
+        onSuccess: () => {
+            publishToast({
+                variant: 'success',
+                title: 'RFQ updated',
+                description: 'Changes saved successfully.',
+            });
+            setEditDialogOpen(false);
+            setEditForm(DEFAULT_EDIT_FORM);
+            void rfqQuery.refetch();
+        },
+    });
 
     const isLoading = rfqQuery.isLoading || !rfqId;
     const rfq = rfqQuery.data ?? null;
@@ -481,6 +564,10 @@ export function RfqDetailPage() {
         const payload: RfqLinePayload = {
             partName: values.partName.trim(),
             spec: values.spec?.trim() || undefined,
+            method: values.method.trim(),
+            material: values.material.trim(),
+            tolerance: values.tolerance?.trim() || undefined,
+            finish: values.finish?.trim() || undefined,
             quantity: values.quantity,
             uom: values.uom?.trim() || undefined,
             targetPrice: typeof values.targetPrice === 'number' ? values.targetPrice : undefined,
@@ -730,11 +817,82 @@ export function RfqDetailPage() {
     };
 
     const handleEditDetails = () => {
-        publishToast({
-            variant: 'destructive',
-            title: 'Edit flow pending',
-            description: 'Editing RFQ metadata will be wired once the update endpoint is available.',
+        if (!rfq) {
+            return;
+        }
+
+        const deadlineDate = rfq.deadlineAt ? new Date(rfq.deadlineAt) : null;
+
+        setEditForm({
+            itemName: rfq.itemName ?? '',
+            type: rfq.type ?? RfqTypeEnum.Manufacture,
+            deadlineAt: toDateTimeLocalInput(deadlineDate),
+            isOpenBidding: Boolean(rfq.isOpenBidding),
+            notes: rfq.notes ?? '',
         });
+        setEditDialogOpen(true);
+    };
+
+    const handleEditDialogOpenChange = (open: boolean) => {
+        setEditDialogOpen(open);
+        if (!open) {
+            setEditForm(DEFAULT_EDIT_FORM);
+        }
+    };
+
+    const handleUpdateRfq = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!rfqId) {
+            publishToast({
+                variant: 'destructive',
+                title: 'RFQ unavailable',
+                description: 'Unable to update this RFQ right now.',
+            });
+            return;
+        }
+
+        const trimmedName = editForm.itemName.trim();
+        if (!trimmedName) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Title required',
+                description: 'Provide a descriptive item name before saving.',
+            });
+            return;
+        }
+
+        let parsedDeadline: Date | undefined;
+        if (editForm.deadlineAt) {
+            const candidate = new Date(editForm.deadlineAt);
+            if (Number.isNaN(candidate.getTime())) {
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Invalid due date',
+                    description: 'Double-check the due date value and try again.',
+                });
+                return;
+            }
+            parsedDeadline = candidate;
+        }
+
+        try {
+            await updateRfqMutation.mutateAsync({
+                rfqId,
+                itemName: trimmedName,
+                type: editForm.type,
+                isOpenBidding: editForm.isOpenBidding,
+                notes: editForm.notes.trim() || undefined,
+                deadlineAt: parsedDeadline,
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to save changes right now.';
+            publishToast({
+                variant: 'destructive',
+                title: 'Update failed',
+                description: message,
+            });
+        }
     };
 
     if (isLoading) {
@@ -1020,6 +1178,10 @@ export function RfqDetailPage() {
                         ? {
                               partName: editingLine.partName,
                               spec: editingLine.spec ?? '',
+                              method: editingLine.method ?? '',
+                              material: editingLine.material ?? '',
+                              tolerance: editingLine.tolerance ?? '',
+                              finish: editingLine.finish ?? '',
                               quantity: editingLine.quantity,
                               uom: editingLine.uom ?? 'ea',
                               targetPrice: editingLine.targetPrice ?? undefined,
@@ -1054,6 +1216,109 @@ export function RfqDetailPage() {
                 onOpenChange={setInviteDialogOpen}
                 rfqId={rfq.id}
             />
+
+            <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit RFQ details</DialogTitle>
+                        <DialogDescription>Update the RFQ title, due date, visibility, or buyer notes.</DialogDescription>
+                    </DialogHeader>
+
+                    <form className="grid gap-4" onSubmit={handleUpdateRfq}>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-item-name">Item name</Label>
+                            <Input
+                                id="edit-item-name"
+                                value={editForm.itemName}
+                                onChange={(event) =>
+                                    setEditForm((state) => ({
+                                        ...state,
+                                        itemName: event.target.value,
+                                    }))
+                                }
+                                placeholder="e.g. CNC machined bracket"
+                                required
+                            />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-type">RFQ type</Label>
+                            <Select
+                                value={editForm.type}
+                                onValueChange={(value: RfqTypeEnum) =>
+                                    setEditForm((state) => ({
+                                        ...state,
+                                        type: value,
+                                    }))
+                                }
+                            >
+                                <SelectTrigger id="edit-type">
+                                    <SelectValue placeholder="Select a type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={RfqTypeEnum.Manufacture}>Manufacture</SelectItem>
+                                    <SelectItem value={RfqTypeEnum.ReadyMade}>Ready made</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-deadline">Due date</Label>
+                            <Input
+                                id="edit-deadline"
+                                type="datetime-local"
+                                value={editForm.deadlineAt}
+                                onChange={(event) =>
+                                    setEditForm((state) => ({
+                                        ...state,
+                                        deadlineAt: event.target.value,
+                                    }))
+                                }
+                            />
+                            <p className="text-xs text-muted-foreground">Leave blank if the RFQ doesn’t have a due date yet.</p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="edit-open-bidding"
+                                checked={editForm.isOpenBidding}
+                                onCheckedChange={(checked) =>
+                                    setEditForm((state) => ({
+                                        ...state,
+                                        isOpenBidding: Boolean(checked),
+                                    }))
+                                }
+                            />
+                            <Label htmlFor="edit-open-bidding">Public (open bidding) RFQ</Label>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-notes">Buyer notes</Label>
+                            <Textarea
+                                id="edit-notes"
+                                rows={4}
+                                value={editForm.notes}
+                                onChange={(event) =>
+                                    setEditForm((state) => ({
+                                        ...state,
+                                        notes: event.target.value,
+                                    }))
+                                }
+                                placeholder="Optional context for invitees or internal teammates."
+                            />
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => handleEditDialogOpenChange(false)} disabled={updateRfqMutation.isPending}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={updateRfqMutation.isPending}>
+                                {updateRfqMutation.isPending ? 'Saving…' : 'Save changes'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={isPublishDialogOpen} onOpenChange={setPublishDialogOpen}>
                 <DialogContent>

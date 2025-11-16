@@ -63,6 +63,8 @@ tags:
     description: AI-assisted workflows and prompt catalogues
   - name: Documents
     description: File uploads and document staging APIs
+  - name: Settings
+    description: Tenant-level configuration (company profile, localization, numbering)
   - name: Localization
     description: Localization settings, units of measure, and conversions
   - name: Money
@@ -95,6 +97,7 @@ x-fragments:
     - notifications.yaml
     - copilot.yaml
     - files.yaml
+    - settings.yaml
     - localization.yaml
     - money_tax.yaml
     - approvals.yaml

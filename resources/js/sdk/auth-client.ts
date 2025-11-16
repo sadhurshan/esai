@@ -32,6 +32,29 @@ export interface ResetPasswordRequest {
     password_confirmation: string;
 }
 
+export type RegisterDocumentType = 'registration' | 'tax' | 'esg' | 'other';
+
+export interface RegisterDocumentPayload {
+    type: RegisterDocumentType;
+    file: File;
+}
+
+export interface RegisterRequest {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    company_name: string;
+    company_domain: string;
+    address?: string | null;
+    phone?: string | null;
+    country?: string | null;
+    registration_no?: string | null;
+    tax_id?: string | null;
+    website?: string | null;
+    company_documents?: RegisterDocumentPayload[];
+}
+
 export interface AuthSessionResponse {
     user?: Record<string, unknown>;
     company?: Record<string, unknown> | null;
@@ -86,6 +109,21 @@ export class AuthApi extends BaseAPI {
         });
 
         return parseJson<AuthSessionResponse>(response);
+    }
+
+    async register(payload: RegisterRequest | FormData): Promise<LoginResponse> {
+        const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+        const response = await this.request({
+            path: '/api/auth/register',
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+            },
+            body: payload,
+        });
+
+        return parseJson<LoginResponse>(response);
     }
 
     async logout(): Promise<void> {

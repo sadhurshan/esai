@@ -38,6 +38,118 @@ components:
           type: string
           format: date-time
           nullable: true
+    SupplierApplicationPayload:
+      type: object
+      required:
+        - capabilities
+      properties:
+        capabilities:
+          type: object
+          additionalProperties: false
+          properties:
+            methods:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            materials:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            tolerances:
+              type: array
+              items:
+                type: string
+                maxLength: 120
+            finishes:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            industries:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        address:
+          type: string
+          maxLength: 191
+          nullable: true
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          nullable: true
+        city:
+          type: string
+          maxLength: 160
+          nullable: true
+        moq:
+          type: integer
+          minimum: 1
+          nullable: true
+        min_order_qty:
+          type: integer
+          minimum: 1
+          nullable: true
+        lead_time_days:
+          type: integer
+          minimum: 1
+          nullable: true
+        geo:
+          type: object
+          nullable: true
+          properties:
+            lat:
+              type: number
+              format: double
+            lng:
+              type: number
+              format: double
+        certifications:
+          type: array
+          items:
+            type: string
+            maxLength: 160
+          nullable: true
+        facilities:
+          type: string
+          maxLength: 500
+          nullable: true
+        website:
+          type: string
+          format: uri
+          maxLength: 191
+          nullable: true
+        contact:
+          type: object
+          nullable: true
+          properties:
+            name:
+              type: string
+              maxLength: 160
+            email:
+              type: string
+              format: email
+              maxLength: 191
+            phone:
+              type: string
+              maxLength: 60
+        notes:
+          type: string
+          maxLength: 255
+          nullable: true
+        documents:
+          type: array
+          items:
+            type: integer
+          nullable: true
+      additionalProperties: false
 paths:
   /api/suppliers:
     get:
@@ -219,15 +331,19 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
+              $ref: '#/components/schemas/SupplierApplicationPayload'
       responses:
-        '201':
+        '200':
           description: Supplier application submitted.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SupplierApplication'
   /api/supplier-applications/{applicationId}:
     parameters:
       - name: applicationId
@@ -277,6 +393,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/me/apply-supplier:
+    post:
+      tags:
+        - Suppliers
+      summary: Submit a supplier application for the authenticated company
+      description: Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+      operationId: selfApplySupplierApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierApplicationPayload'
+      responses:
+        '200':
+          description: Supplier application submitted for review.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SupplierApplication'
+        '403':
+          description: Missing permissions or company context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Payload failed validation or a pending application already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/me/supplier/visibility:
     put:
       tags:

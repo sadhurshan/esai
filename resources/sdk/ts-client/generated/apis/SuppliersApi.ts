@@ -15,27 +15,33 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApiErrorResponse,
   ApiSuccessResponse,
   ListSupplierApplications200Response,
   ListSuppliers200Response,
+  SelfApplySupplierApplication200Response,
   ShowSupplier200Response,
-  ShowSupplierApplication200Response,
+  SupplierApplicationPayload,
 } from '../models/index';
 import {
+    ApiErrorResponseFromJSON,
+    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
     ApiSuccessResponseToJSON,
     ListSupplierApplications200ResponseFromJSON,
     ListSupplierApplications200ResponseToJSON,
     ListSuppliers200ResponseFromJSON,
     ListSuppliers200ResponseToJSON,
+    SelfApplySupplierApplication200ResponseFromJSON,
+    SelfApplySupplierApplication200ResponseToJSON,
     ShowSupplier200ResponseFromJSON,
     ShowSupplier200ResponseToJSON,
-    ShowSupplierApplication200ResponseFromJSON,
-    ShowSupplierApplication200ResponseToJSON,
+    SupplierApplicationPayloadFromJSON,
+    SupplierApplicationPayloadToJSON,
 } from '../models/index';
 
 export interface CreateSupplierApplicationRequest {
-    requestBody: { [key: string]: any; };
+    supplierApplicationPayload: SupplierApplicationPayload;
 }
 
 export interface CreateSupplierEsgRequest {
@@ -58,6 +64,10 @@ export interface ExportSupplierEsgRequest {
 
 export interface ListSupplierEsgRequest {
     supplierId: number;
+}
+
+export interface SelfApplySupplierApplicationRequest {
+    supplierApplicationPayload: SupplierApplicationPayload;
 }
 
 export interface ShowSupplierRequest {
@@ -88,17 +98,17 @@ export interface SuppliersApiInterface {
     /**
      * 
      * @summary Submit supplier application
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {SupplierApplicationPayload} supplierApplicationPayload 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
 
     /**
      * Submit supplier application
      */
-    createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
 
     /**
      * 
@@ -206,6 +216,22 @@ export interface SuppliersApiInterface {
     listSuppliers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSuppliers200Response>;
 
     /**
+     * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+     * @summary Submit a supplier application for the authenticated company
+     * @param {SupplierApplicationPayload} supplierApplicationPayload 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SuppliersApiInterface
+     */
+    selfApplySupplierApplicationRaw(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
+
+    /**
+     * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+     * Submit a supplier application for the authenticated company
+     */
+    selfApplySupplierApplication(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
+
+    /**
      * 
      * @summary Get supplier self-service application status
      * @param {*} [options] Override http request option.
@@ -242,12 +268,12 @@ export interface SuppliersApiInterface {
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSupplierApplication200Response>>;
+    showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
 
     /**
      * Show supplier application
      */
-    showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSupplierApplication200Response>;
+    showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
 
     /**
      * 
@@ -291,11 +317,11 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
     /**
      * Submit supplier application
      */
-    async createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
-        if (requestParameters['requestBody'] == null) {
+    async createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
+        if (requestParameters['supplierApplicationPayload'] == null) {
             throw new runtime.RequiredError(
-                'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createSupplierApplication().'
+                'supplierApplicationPayload',
+                'Required parameter "supplierApplicationPayload" was null or undefined when calling createSupplierApplication().'
             );
         }
 
@@ -325,16 +351,16 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters['requestBody'],
+            body: SupplierApplicationPayloadToJSON(requestParameters['supplierApplicationPayload']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
     }
 
     /**
      * Submit supplier application
      */
-    async createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
         const response = await this.createSupplierApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -685,6 +711,59 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
     }
 
     /**
+     * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+     * Submit a supplier application for the authenticated company
+     */
+    async selfApplySupplierApplicationRaw(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
+        if (requestParameters['supplierApplicationPayload'] == null) {
+            throw new runtime.RequiredError(
+                'supplierApplicationPayload',
+                'Required parameter "supplierApplicationPayload" was null or undefined when calling selfApplySupplierApplication().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/me/apply-supplier`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SupplierApplicationPayloadToJSON(requestParameters['supplierApplicationPayload']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
+     * Submit a supplier application for the authenticated company
+     */
+    async selfApplySupplierApplication(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
+        const response = await this.selfApplySupplierApplicationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get supplier self-service application status
      */
     async showSelfServiceSupplierApplicationStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
@@ -777,7 +856,7 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
     /**
      * Show supplier application
      */
-    async showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSupplierApplication200Response>> {
+    async showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
         if (requestParameters['applicationId'] == null) {
             throw new runtime.RequiredError(
                 'applicationId',
@@ -812,13 +891,13 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowSupplierApplication200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
     }
 
     /**
      * Show supplier application
      */
-    async showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSupplierApplication200Response> {
+    async showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
         const response = await this.showSupplierApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }

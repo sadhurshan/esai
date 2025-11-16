@@ -45,6 +45,30 @@ export interface RfqItem {
     spec?: string;
     /**
      * 
+     * @type {string}
+     * @memberof RfqItem
+     */
+    method?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqItem
+     */
+    material?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqItem
+     */
+    tolerance?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqItem
+     */
+    finish?: string;
+    /**
+     * 
      * @type {number}
      * @memberof RfqItem
      */
@@ -88,6 +112,10 @@ export function RfqItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'lineNo': json['line_no'],
         'partName': json['part_name'],
         'spec': json['spec'] == null ? undefined : json['spec'],
+        'method': json['method'] == null ? undefined : json['method'],
+        'material': json['material'] == null ? undefined : json['material'],
+        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
+        'finish': json['finish'] == null ? undefined : json['finish'],
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
@@ -109,6 +137,10 @@ export function RfqItemToJSONTyped(value?: RfqItem | null, ignoreDiscriminator: 
         'line_no': value['lineNo'],
         'part_name': value['partName'],
         'spec': value['spec'],
+        'method': value['method'],
+        'material': value['material'],
+        'tolerance': value['tolerance'],
+        'finish': value['finish'],
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],

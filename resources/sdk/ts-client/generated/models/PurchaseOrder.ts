@@ -27,6 +27,13 @@ import {
     PurchaseOrderPdfDocumentToJSON,
     PurchaseOrderPdfDocumentToJSONTyped,
 } from './PurchaseOrderPdfDocument';
+import type { PurchaseOrderDelivery } from './PurchaseOrderDelivery';
+import {
+    PurchaseOrderDeliveryFromJSON,
+    PurchaseOrderDeliveryFromJSONTyped,
+    PurchaseOrderDeliveryToJSON,
+    PurchaseOrderDeliveryToJSONTyped,
+} from './PurchaseOrderDelivery';
 import type { PurchaseOrderRfq } from './PurchaseOrderRfq';
 import {
     PurchaseOrderRfqFromJSON,
@@ -34,13 +41,20 @@ import {
     PurchaseOrderRfqToJSON,
     PurchaseOrderRfqToJSONTyped,
 } from './PurchaseOrderRfq';
-import type { PurchaseOrderSupplier } from './PurchaseOrderSupplier';
+import type { InvoiceSupplier } from './InvoiceSupplier';
 import {
-    PurchaseOrderSupplierFromJSON,
-    PurchaseOrderSupplierFromJSONTyped,
-    PurchaseOrderSupplierToJSON,
-    PurchaseOrderSupplierToJSONTyped,
-} from './PurchaseOrderSupplier';
+    InvoiceSupplierFromJSON,
+    InvoiceSupplierFromJSONTyped,
+    InvoiceSupplierToJSON,
+    InvoiceSupplierToJSONTyped,
+} from './InvoiceSupplier';
+import type { PurchaseOrderLatestDelivery } from './PurchaseOrderLatestDelivery';
+import {
+    PurchaseOrderLatestDeliveryFromJSON,
+    PurchaseOrderLatestDeliveryFromJSONTyped,
+    PurchaseOrderLatestDeliveryToJSON,
+    PurchaseOrderLatestDeliveryToJSONTyped,
+} from './PurchaseOrderLatestDelivery';
 import type { PoChangeOrder } from './PoChangeOrder';
 import {
     PoChangeOrderFromJSON,
@@ -79,6 +93,12 @@ export interface PurchaseOrder {
      * @memberof PurchaseOrder
      */
     status: PurchaseOrderStatusEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof PurchaseOrder
+     */
+    ackStatus?: PurchaseOrderAckStatusEnum;
     /**
      * 
      * @type {string}
@@ -135,6 +155,24 @@ export interface PurchaseOrder {
     totalMinor: number;
     /**
      * 
+     * @type {Date}
+     * @memberof PurchaseOrder
+     */
+    sentAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof PurchaseOrder
+     */
+    acknowledgedAt?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof PurchaseOrder
+     */
+    ackReason?: string;
+    /**
+     * 
      * @type {number}
      * @memberof PurchaseOrder
      */
@@ -153,10 +191,10 @@ export interface PurchaseOrder {
     quoteId?: number;
     /**
      * 
-     * @type {PurchaseOrderSupplier}
+     * @type {InvoiceSupplier}
      * @memberof PurchaseOrder
      */
-    supplier?: PurchaseOrderSupplier;
+    supplier?: InvoiceSupplier;
     /**
      * 
      * @type {PurchaseOrderRfq}
@@ -175,6 +213,18 @@ export interface PurchaseOrder {
      * @memberof PurchaseOrder
      */
     changeOrders?: Array<PoChangeOrder>;
+    /**
+     * 
+     * @type {Array<PurchaseOrderDelivery>}
+     * @memberof PurchaseOrder
+     */
+    deliveries?: Array<PurchaseOrderDelivery>;
+    /**
+     * 
+     * @type {PurchaseOrderLatestDelivery}
+     * @memberof PurchaseOrder
+     */
+    latestDelivery?: PurchaseOrderLatestDelivery;
     /**
      * 
      * @type {number}
@@ -221,6 +271,17 @@ export const PurchaseOrderStatusEnum = {
 } as const;
 export type PurchaseOrderStatusEnum = typeof PurchaseOrderStatusEnum[keyof typeof PurchaseOrderStatusEnum];
 
+/**
+ * @export
+ */
+export const PurchaseOrderAckStatusEnum = {
+    Draft: 'draft',
+    Sent: 'sent',
+    Acknowledged: 'acknowledged',
+    Declined: 'declined'
+} as const;
+export type PurchaseOrderAckStatusEnum = typeof PurchaseOrderAckStatusEnum[keyof typeof PurchaseOrderAckStatusEnum];
+
 
 /**
  * Check if a given object implements the PurchaseOrder interface.
@@ -249,6 +310,7 @@ export function PurchaseOrderFromJSONTyped(json: any, ignoreDiscriminator: boole
         'companyId': json['company_id'],
         'poNumber': json['po_number'],
         'status': json['status'],
+        'ackStatus': json['ack_status'] == null ? undefined : json['ack_status'],
         'currency': json['currency'],
         'incoterm': json['incoterm'] == null ? undefined : json['incoterm'],
         'taxPercent': json['tax_percent'] == null ? undefined : json['tax_percent'],
@@ -258,13 +320,18 @@ export function PurchaseOrderFromJSONTyped(json: any, ignoreDiscriminator: boole
         'taxAmountMinor': json['tax_amount_minor'] == null ? undefined : json['tax_amount_minor'],
         'total': json['total'] == null ? undefined : json['total'],
         'totalMinor': json['total_minor'],
+        'sentAt': json['sent_at'] == null ? undefined : (new Date(json['sent_at'])),
+        'acknowledgedAt': json['acknowledged_at'] == null ? undefined : (new Date(json['acknowledged_at'])),
+        'ackReason': json['ack_reason'] == null ? undefined : json['ack_reason'],
         'revisionNo': json['revision_no'] == null ? undefined : json['revision_no'],
         'rfqId': json['rfq_id'] == null ? undefined : json['rfq_id'],
         'quoteId': json['quote_id'] == null ? undefined : json['quote_id'],
-        'supplier': json['supplier'] == null ? undefined : PurchaseOrderSupplierFromJSON(json['supplier']),
+        'supplier': json['supplier'] == null ? undefined : InvoiceSupplierFromJSON(json['supplier']),
         'rfq': json['rfq'] == null ? undefined : PurchaseOrderRfqFromJSON(json['rfq']),
         'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(PurchaseOrderLineFromJSON)),
         'changeOrders': json['change_orders'] == null ? undefined : ((json['change_orders'] as Array<any>).map(PoChangeOrderFromJSON)),
+        'deliveries': json['deliveries'] == null ? undefined : ((json['deliveries'] as Array<any>).map(PurchaseOrderDeliveryFromJSON)),
+        'latestDelivery': json['latest_delivery'] == null ? undefined : PurchaseOrderLatestDeliveryFromJSON(json['latest_delivery']),
         'pdfDocumentId': json['pdf_document_id'] == null ? undefined : json['pdf_document_id'],
         'pdfDocument': json['pdf_document'] == null ? undefined : PurchaseOrderPdfDocumentFromJSON(json['pdf_document']),
         'cancelledAt': json['cancelled_at'] == null ? undefined : (new Date(json['cancelled_at'])),
@@ -288,6 +355,7 @@ export function PurchaseOrderToJSONTyped(value?: PurchaseOrder | null, ignoreDis
         'company_id': value['companyId'],
         'po_number': value['poNumber'],
         'status': value['status'],
+        'ack_status': value['ackStatus'],
         'currency': value['currency'],
         'incoterm': value['incoterm'],
         'tax_percent': value['taxPercent'],
@@ -297,13 +365,18 @@ export function PurchaseOrderToJSONTyped(value?: PurchaseOrder | null, ignoreDis
         'tax_amount_minor': value['taxAmountMinor'],
         'total': value['total'],
         'total_minor': value['totalMinor'],
+        'sent_at': value['sentAt'] == null ? value['sentAt'] : value['sentAt'].toISOString(),
+        'acknowledged_at': value['acknowledgedAt'] == null ? value['acknowledgedAt'] : value['acknowledgedAt'].toISOString(),
+        'ack_reason': value['ackReason'],
         'revision_no': value['revisionNo'],
         'rfq_id': value['rfqId'],
         'quote_id': value['quoteId'],
-        'supplier': PurchaseOrderSupplierToJSON(value['supplier']),
+        'supplier': InvoiceSupplierToJSON(value['supplier']),
         'rfq': PurchaseOrderRfqToJSON(value['rfq']),
         'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(PurchaseOrderLineToJSON)),
         'change_orders': value['changeOrders'] == null ? undefined : ((value['changeOrders'] as Array<any>).map(PoChangeOrderToJSON)),
+        'deliveries': value['deliveries'] == null ? undefined : ((value['deliveries'] as Array<any>).map(PurchaseOrderDeliveryToJSON)),
+        'latest_delivery': PurchaseOrderLatestDeliveryToJSON(value['latestDelivery']),
         'pdf_document_id': value['pdfDocumentId'],
         'pdf_document': PurchaseOrderPdfDocumentToJSON(value['pdfDocument']),
         'cancelled_at': value['cancelledAt'] == null ? value['cancelledAt'] : value['cancelledAt'].toISOString(),

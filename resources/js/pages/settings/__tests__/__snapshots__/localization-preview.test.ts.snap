@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildLocalizationPreview > reflects locale, timezone, and FX toggle differences 1`] = `
+{
+  "currency": "12.345,67 €",
+  "date": "15/03/2025",
+  "datetime": "Samstag, 15. März 2025 um 15:34",
+  "fxTooltip": "FX tooltip enabled · conversions visible to buyers",
+  "number": "1.234.567,89",
+}
+`;
+
+exports[`buildLocalizationPreview > renders consistent preview for default locale 1`] = `
+{
+  "currency": "$12,345.67",
+  "date": "2025-03-15",
+  "datetime": "Saturday, March 15, 2025 at 2:34 PM",
+  "fxTooltip": "FX tooltip disabled",
+  "number": "1,234,567.89",
+}
+`;

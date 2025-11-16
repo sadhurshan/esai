@@ -10,6 +10,7 @@ Name | Type
 `companyId` | number
 `poNumber` | string
 `status` | string
+`ackStatus` | string
 `currency` | string
 `incoterm` | string
 `taxPercent` | number
@@ -19,13 +20,18 @@ Name | Type
 `taxAmountMinor` | number
 `total` | string
 `totalMinor` | number
+`sentAt` | Date
+`acknowledgedAt` | Date
+`ackReason` | string
 `revisionNo` | number
 `rfqId` | number
 `quoteId` | number
-`supplier` | [PurchaseOrderSupplier](PurchaseOrderSupplier.md)
+`supplier` | [InvoiceSupplier](InvoiceSupplier.md)
 `rfq` | [PurchaseOrderRfq](PurchaseOrderRfq.md)
 `lines` | [Array&lt;PurchaseOrderLine&gt;](PurchaseOrderLine.md)
 `changeOrders` | [Array&lt;PoChangeOrder&gt;](PoChangeOrder.md)
+`deliveries` | [Array&lt;PurchaseOrderDelivery&gt;](PurchaseOrderDelivery.md)
+`latestDelivery` | [PurchaseOrderLatestDelivery](PurchaseOrderLatestDelivery.md)
 `pdfDocumentId` | number
 `pdfDocument` | [PurchaseOrderPdfDocument](PurchaseOrderPdfDocument.md)
 `cancelledAt` | Date
@@ -43,6 +49,7 @@ const example = {
   "companyId": null,
   "poNumber": null,
   "status": null,
+  "ackStatus": null,
   "currency": null,
   "incoterm": null,
   "taxPercent": null,
@@ -52,6 +59,9 @@ const example = {
   "taxAmountMinor": null,
   "total": null,
   "totalMinor": null,
+  "sentAt": null,
+  "acknowledgedAt": null,
+  "ackReason": null,
   "revisionNo": null,
   "rfqId": null,
   "quoteId": null,
@@ -59,6 +69,8 @@ const example = {
   "rfq": null,
   "lines": null,
   "changeOrders": null,
+  "deliveries": null,
+  "latestDelivery": null,
   "pdfDocumentId": null,
   "pdfDocument": null,
   "cancelledAt": null,

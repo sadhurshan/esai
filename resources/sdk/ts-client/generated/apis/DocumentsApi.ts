@@ -15,12 +15,30 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApiErrorResponse,
   ApiSuccessResponse,
+  StoreDocument201Response,
 } from '../models/index';
 import {
+    ApiErrorResponseFromJSON,
+    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
     ApiSuccessResponseToJSON,
+    StoreDocument201ResponseFromJSON,
+    StoreDocument201ResponseToJSON,
 } from '../models/index';
+
+function objectToJSON(value: unknown) {
+    if (value == null) {
+        return value;
+    }
+
+    if (typeof value === 'object' && typeof (value as { toJSON?: () => unknown }).toJSON === 'function') {
+        return (value as { toJSON: () => unknown }).toJSON();
+    }
+
+    return value;
+}
 
 export interface DownloadQuoteAttachmentsRequest {
     quoteId: number;
@@ -30,11 +48,20 @@ export interface DownloadRfqCadRequest {
     rfqId: number;
 }
 
+export interface ShowDocumentRequest {
+    document: number;
+}
+
 export interface StoreDocumentRequest {
+    entity: StoreDocumentEntityEnum;
+    entityId: number;
+    kind: StoreDocumentKindEnum;
+    category: StoreDocumentCategoryEnum;
     file: Blob;
-    documentableType: string;
-    documentableId: number;
-    label?: string;
+    visibility?: string;
+    expiresAt?: Date;
+    meta?: object;
+    watermark?: object;
 }
 
 export interface UploadFileRequest {
@@ -80,21 +107,41 @@ export interface DocumentsApiInterface {
 
     /**
      * 
-     * @summary Persist document to entity
-     * @param {Blob} file 
-     * @param {string} documentableType 
-     * @param {number} documentableId 
-     * @param {string} [label] 
+     * @summary Show document metadata
+     * @param {number} document 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showDocumentRaw(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>>;
+
+    /**
+     * Show document metadata
+     */
+    showDocument(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response>;
+
+    /**
+     * 
+     * @summary Persist document to entity
+     * @param {string} entity Target entity slug to associate with the uploaded document.
+     * @param {number} entityId 
+     * @param {string} kind 
+     * @param {string} category 
+     * @param {Blob} file 
+     * @param {string} [visibility] Visibility must match the configured &#x60;documents.allowed_visibilities&#x60; list (private, company, public).
+     * @param {Date} [expiresAt] 
+     * @param {object} [meta] 
+     * @param {object} [watermark] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DocumentsApiInterface
+     */
+    storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>>;
 
     /**
      * Persist document to entity
      */
-    storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response>;
 
     /**
      * 
@@ -217,27 +264,90 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
     }
 
     /**
+     * Show document metadata
+     */
+    async showDocumentRaw(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>> {
+        if (requestParameters['document'] == null) {
+            throw new runtime.RequiredError(
+                'document',
+                'Required parameter "document" was null or undefined when calling showDocument().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/documents/{document}`;
+        urlPath = urlPath.replace(`{${"document"}}`, encodeURIComponent(String(requestParameters['document'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => StoreDocument201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Show document metadata
+     */
+    async showDocument(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response> {
+        const response = await this.showDocumentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Persist document to entity
      */
-    async storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>> {
+        if (requestParameters['entity'] == null) {
+            throw new runtime.RequiredError(
+                'entity',
+                'Required parameter "entity" was null or undefined when calling storeDocument().'
+            );
+        }
+
+        if (requestParameters['entityId'] == null) {
+            throw new runtime.RequiredError(
+                'entityId',
+                'Required parameter "entityId" was null or undefined when calling storeDocument().'
+            );
+        }
+
+        if (requestParameters['kind'] == null) {
+            throw new runtime.RequiredError(
+                'kind',
+                'Required parameter "kind" was null or undefined when calling storeDocument().'
+            );
+        }
+
+        if (requestParameters['category'] == null) {
+            throw new runtime.RequiredError(
+                'category',
+                'Required parameter "category" was null or undefined when calling storeDocument().'
+            );
+        }
+
         if (requestParameters['file'] == null) {
             throw new runtime.RequiredError(
                 'file',
                 'Required parameter "file" was null or undefined when calling storeDocument().'
-            );
-        }
-
-        if (requestParameters['documentableType'] == null) {
-            throw new runtime.RequiredError(
-                'documentableType',
-                'Required parameter "documentableType" was null or undefined when calling storeDocument().'
-            );
-        }
-
-        if (requestParameters['documentableId'] == null) {
-            throw new runtime.RequiredError(
-                'documentableId',
-                'Required parameter "documentableId" was null or undefined when calling storeDocument().'
             );
         }
 
@@ -273,20 +383,40 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
             formParams = new URLSearchParams();
         }
 
+        if (requestParameters['entity'] != null) {
+            formParams.append('entity', requestParameters['entity'] as any);
+        }
+
+        if (requestParameters['entityId'] != null) {
+            formParams.append('entity_id', requestParameters['entityId'] as any);
+        }
+
+        if (requestParameters['kind'] != null) {
+            formParams.append('kind', requestParameters['kind'] as any);
+        }
+
+        if (requestParameters['category'] != null) {
+            formParams.append('category', requestParameters['category'] as any);
+        }
+
+        if (requestParameters['visibility'] != null) {
+            formParams.append('visibility', requestParameters['visibility'] as any);
+        }
+
+        if (requestParameters['expiresAt'] != null) {
+            formParams.append('expires_at', (requestParameters['expiresAt'] as any).toISOString());
+        }
+
+        if (requestParameters['meta'] != null) {
+            formParams.append('meta', new Blob([JSON.stringify(objectToJSON(requestParameters['meta']))], { type: "application/json", }));
+                    }
+
+        if (requestParameters['watermark'] != null) {
+            formParams.append('watermark', new Blob([JSON.stringify(objectToJSON(requestParameters['watermark']))], { type: "application/json", }));
+                    }
+
         if (requestParameters['file'] != null) {
             formParams.append('file', requestParameters['file'] as any);
-        }
-
-        if (requestParameters['documentableType'] != null) {
-            formParams.append('documentable_type', requestParameters['documentableType'] as any);
-        }
-
-        if (requestParameters['documentableId'] != null) {
-            formParams.append('documentable_id', requestParameters['documentableId'] as any);
-        }
-
-        if (requestParameters['label'] != null) {
-            formParams.append('label', requestParameters['label'] as any);
         }
 
 
@@ -300,13 +430,13 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
             body: formParams,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => StoreDocument201ResponseFromJSON(jsonValue));
     }
 
     /**
      * Persist document to entity
      */
-    async storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response> {
         const response = await this.storeDocumentRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -381,3 +511,48 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
     }
 
 }
+
+/**
+ * @export
+ */
+export const StoreDocumentEntityEnum = {
+    Rfq: 'rfq',
+    Quote: 'quote',
+    Po: 'po',
+    Invoice: 'invoice',
+    Supplier: 'supplier',
+    Part: 'part'
+} as const;
+export type StoreDocumentEntityEnum = typeof StoreDocumentEntityEnum[keyof typeof StoreDocumentEntityEnum];
+/**
+ * @export
+ */
+export const StoreDocumentKindEnum = {
+    Rfq: 'rfq',
+    Quote: 'quote',
+    Po: 'po',
+    GrnAttachment: 'grn_attachment',
+    Invoice: 'invoice',
+    Supplier: 'supplier',
+    Part: 'part',
+    Cad: 'cad',
+    Manual: 'manual',
+    Certificate: 'certificate',
+    EsgPack: 'esg_pack',
+    Other: 'other'
+} as const;
+export type StoreDocumentKindEnum = typeof StoreDocumentKindEnum[keyof typeof StoreDocumentKindEnum];
+/**
+ * @export
+ */
+export const StoreDocumentCategoryEnum = {
+    Technical: 'technical',
+    Commercial: 'commercial',
+    Qa: 'qa',
+    Logistics: 'logistics',
+    Financial: 'financial',
+    Communication: 'communication',
+    Esg: 'esg',
+    Other: 'other'
+} as const;
+export type StoreDocumentCategoryEnum = typeof StoreDocumentCategoryEnum[keyof typeof StoreDocumentCategoryEnum];

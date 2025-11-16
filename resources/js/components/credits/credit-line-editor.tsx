@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MoneyCell } from '@/components/quotes/money-cell';
-import { formatCurrencyMinor } from '@/lib/money';
+import { useFormatting, type FormattingContextValue } from '@/contexts/formatting-context';
 
 export interface CreditLineFormValue {
     id?: string;
@@ -46,6 +46,7 @@ export function CreditLineEditor<FormValues extends CreditLinesFormLike>({
     currency,
     disabled = false,
 }: CreditLineEditorProps<FormValues>) {
+    const { formatNumber, formatMoney } = useFormatting();
     const { control, register, setValue, formState } = form;
     const linesPath = 'lines' as ArrayPath<FormValues>;
     const { fields: rawFields } = useFieldArray<FormValues, typeof linesPath, 'id'>({ control, name: linesPath });
@@ -93,14 +94,19 @@ export function CreditLineEditor<FormValues extends CreditLinesFormLike>({
                     <CardTitle>Credit summary</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 text-sm md:grid-cols-3">
-                    <SummaryItem label="Invoice qty" value={`${formatQty(totals.orderedQty)} units`} />
-                    <SummaryItem label="Remaining" value={`${formatQty(totals.remainingQty)} units`} />
+                    <SummaryItem label="Invoice qty" value={`${formatQty(totals.orderedQty, formatNumber)} units`} />
+                    <SummaryItem label="Remaining" value={`${formatQty(totals.remainingQty, formatNumber)} units`} />
                     <div>
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Selected total</p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatCurrencyMinor(totals.selectedMinor, currency ?? undefined)}
+                            {formatMoney(
+                                typeof totals.selectedMinor === 'number' ? totals.selectedMinor / 100 : null,
+                                { currency: currency ?? undefined },
+                            )}
                         </p>
-                        <p className="text-xs text-muted-foreground">{formatQty(totals.selectedQty)} units to credit</p>
+                        <p className="text-xs text-muted-foreground">
+                            {formatQty(totals.selectedQty, formatNumber)} units to credit
+                        </p>
                     </div>
                 </CardContent>
             </Card>
@@ -156,13 +162,13 @@ export function CreditLineEditor<FormValues extends CreditLinesFormLike>({
                                         </div>
                                     </td>
                                     <td className="py-3 px-3 align-top text-right font-medium">
-                                        {formatQty(qtyInvoiced)}
+                                        {formatQty(qtyInvoiced, formatNumber)}
                                     </td>
                                     <td className="py-3 px-3 align-top text-right text-muted-foreground">
-                                        {formatQty(qtyCredited)}
+                                        {formatQty(qtyCredited, formatNumber)}
                                     </td>
                                     <td className="py-3 px-3 align-top text-right">
-                                        <p className="font-medium text-foreground">{formatQty(remaining)}</p>
+                                        <p className="font-medium text-foreground">{formatQty(remaining, formatNumber)}</p>
                                         <p className="text-xs text-muted-foreground">remaining</p>
                                     </td>
                                     <td className="py-3 px-3 align-top">
@@ -197,7 +203,7 @@ export function CreditLineEditor<FormValues extends CreditLinesFormLike>({
                                                 <p className="text-xs text-destructive">{lineErrors.qtyToCredit.message}</p>
                                             ) : (
                                                 <p className="text-xs text-muted-foreground">
-                                                    ≤ {formatQty(remaining)} {field.uom ?? 'units'}
+                                                    ≤ {formatQty(remaining, formatNumber)} {field.uom ?? 'units'}
                                                 </p>
                                             )}
                                         </div>
@@ -232,14 +238,11 @@ function SummaryItem({ label, value }: SummaryItemProps) {
     );
 }
 
-function formatQty(value: number | null | undefined): string {
+function formatQty(value: number | null | undefined, formatter: FormattingContextValue['formatNumber']): string {
     if (value === null || value === undefined || Number.isNaN(value)) {
         return '0';
     }
 
-    if (Math.abs(value) >= 1) {
-        return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-    }
-
-    return value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') || '0';
+    const precision = Math.abs(value) >= 1 ? 2 : 3;
+    return formatter(value, { maximumFractionDigits: precision, fallback: '0' });
 }

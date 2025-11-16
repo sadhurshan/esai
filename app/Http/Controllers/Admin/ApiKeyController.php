@@ -45,6 +45,7 @@ class ApiKeyController extends Controller
             'message' => 'API key created.',
             'data' => [
                 'api_key' => ApiKeyResource::make($result['api_key']),
+                'token' => $result['plain_text_token'],
                 'plain_text_token' => $result['plain_text_token'],
             ],
         ], Response::HTTP_CREATED);
@@ -59,6 +60,7 @@ class ApiKeyController extends Controller
             'message' => 'API key rotated.',
             'data' => [
                 'api_key' => ApiKeyResource::make($result['api_key']),
+                'token' => $result['plain_text_token'],
                 'plain_text_token' => $result['plain_text_token'],
             ],
         ]);

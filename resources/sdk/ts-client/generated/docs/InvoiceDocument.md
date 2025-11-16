@@ -10,6 +10,7 @@ Name | Type
 `filename` | string
 `mime` | string
 `sizeBytes` | number
+`createdAt` | Date
 
 ## Example
 
@@ -22,6 +23,7 @@ const example = {
   "filename": null,
   "mime": null,
   "sizeBytes": null,
+  "createdAt": null,
 } satisfies InvoiceDocument
 
 console.log(example)

@@ -1,31 +1,5 @@
 components:
   schemas:
-    LocaleSetting:
-      type: object
-      required:
-        - locale
-        - timezone
-        - number_format
-        - date_format
-        - first_day_of_week
-        - weekend_days
-      properties:
-        locale:
-          type: string
-        timezone:
-          type: string
-        number_format:
-          type: string
-        date_format:
-          type: string
-        first_day_of_week:
-          type: integer
-          minimum: 0
-          maximum: 6
-        weekend_days:
-          type: array
-          items:
-            type: integer
     Uom:
       type: object
       required:
@@ -65,42 +39,6 @@ components:
           format: float
           nullable: true
 paths:
-  /api/localization/settings:
-    get:
-      tags:
-        - Localization
-      summary: Retrieve locale settings
-      operationId: showLocaleSettings
-      responses:
-        '200':
-          description: Current locale configuration for the company.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/LocaleSetting'
-    put:
-      tags:
-        - Localization
-      summary: Update locale settings
-      operationId: updateLocaleSettings
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LocaleSetting'
-      responses:
-        '200':
-          description: Locale settings updated.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
   /api/localization/uoms:
     get:
       tags:

@@ -11,20 +11,12 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRfqs, type RfqStatusFilter } from '@/hooks/api/use-rfqs';
-import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Files, PlusCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { NavLink, Link } from 'react-router-dom';
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-
-function formatDateSafe(value?: Date): string {
-    if (!value) {
-        return '—';
-    }
-
-    return formatDate(value.toISOString());
-}
+import { useFormatting } from '@/contexts/formatting-context';
 
 function getStatusPresentation(status?: string) {
     switch (status) {
@@ -52,6 +44,7 @@ const STATUS_OPTIONS: { value: RfqStatusFilter; label: string }[] = [
 ];
 
 export function RfqListPage() {
+    const { formatNumber, formatDate } = useFormatting();
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<RfqStatusFilter>('all');
     const [searchInput, setSearchInput] = useState('');
@@ -252,7 +245,9 @@ export function RfqListPage() {
                                               </div>
                                           </td>
                                           <td className="px-4 py-4 align-top text-muted-foreground">
-                                              <span className="font-medium text-foreground">{rfq.quantity.toLocaleString()}</span>
+                                              <span className="font-medium text-foreground">
+                                                  {formatNumber(rfq.quantity, { maximumFractionDigits: 0 })}
+                                              </span>
                                           </td>
                                           <td className="px-4 py-4 align-top">
                                               <div className="flex flex-col text-xs text-muted-foreground">
@@ -263,9 +258,9 @@ export function RfqListPage() {
                                           <td className="px-4 py-4 align-top text-xs text-muted-foreground">
                                               <div className="flex flex-col">
                                                   <span className="font-medium text-foreground">
-                                                      {formatDateSafe(rfq.sentAt)}
+                                                      {formatDate(rfq.sentAt)}
                                                   </span>
-                                                  <span>Due {formatDateSafe(rfq.deadlineAt)}</span>
+                                                  <span>Due {formatDate(rfq.deadlineAt)}</span>
                                               </div>
                                           </td>
                                           <td className="px-4 py-4 align-top text-right">

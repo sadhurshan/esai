@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,10 @@ import { consumeLowStockRfqPrefill } from '@/lib/low-stock-rfq-prefill';
 const lineSchema = z.object({
     partName: z.string().min(1, 'Part name is required.'),
     spec: z.string().optional(),
+    method: z.string().min(1, 'Manufacturing method is required.'),
+    material: z.string().min(1, 'Material is required.'),
+    tolerance: z.string().optional(),
+    finish: z.string().optional(),
     quantity: z.coerce
         .number({ invalid_type_error: 'Quantity must be numeric.' })
         .positive('Quantity must be greater than zero.'),
@@ -49,23 +54,23 @@ const lineSchema = z.object({
         }, 'Required date cannot be in the past.'),
 });
 
+const supplierSelectionSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    location: z.string().optional(),
+    methods: z.array(z.string()).optional(),
+});
+
 const wizardSchema = z
     .object({
     title: z.string().min(1, 'Title is required.'),
     summary: z.string().optional(),
     type: z.nativeEnum(RfqTypeEnum),
-    method: z.string().min(1, 'Manufacturing method is required.'),
-    material: z.string().min(1, 'Material is required.'),
-    quantity: z.coerce
-        .number({ invalid_type_error: 'Quantity must be numeric.' })
-        .positive('Quantity must be greater than zero.'),
     clientCompany: z.string().min(1, 'Client company is required.'),
-    tolerance: z.string().optional(),
-    finish: z.string().optional(),
     openBidding: z.boolean().default(false),
     notes: z.string().optional(),
     lines: z.array(lineSchema).min(1, 'Add at least one line item.'),
-    supplierInputs: z.string().optional(),
+    suppliers: z.array(supplierSelectionSchema).default([]),
     publishNow: z.boolean().default(false),
     incoterm: z.string().optional(),
     paymentTerms: z.string().optional(),
@@ -128,6 +133,7 @@ const wizardSchema = z
         }
     });
 
+type WizardSupplier = z.infer<typeof supplierSelectionSchema>;
 type WizardFormValues = z.infer<typeof wizardSchema>;
 
 const STEPS = [
@@ -146,15 +152,15 @@ const LOCAL_STORAGE_KEY = 'esai.rfq-wizard-state';
 type AttachmentKey = `${string}-${number}-${number}`;
 
 const STEP_FIELDS: Record<StepId, (keyof WizardFormValues)[]> = {
-    basics: ['title', 'summary', 'type', 'method', 'material', 'quantity', 'clientCompany', 'tolerance', 'finish', 'notes', 'openBidding'],
+    basics: ['title', 'summary', 'type', 'clientCompany', 'notes', 'openBidding'],
     lines: ['lines'],
-    suppliers: ['supplierInputs'],
+    suppliers: ['suppliers'],
     terms: ['publishAt', 'dueDate', 'incoterm', 'paymentTerms'],
     attachments: [],
     review: ['publishNow'],
 };
 
-function parseSupplierList(input?: string): string[] {
+function parseLegacySupplierList(input?: string): string[] {
     if (!input) {
         return [];
     }
@@ -162,11 +168,51 @@ function parseSupplierList(input?: string): string[] {
     return Array.from(
         new Set(
             input
-                .split(/\r?\n|,/) // support newline or comma separated values
+                .split(/\r?\n|,/)
                 .map((entry) => entry.trim())
                 .filter((entry) => entry.length > 0),
         ),
     );
+}
+
+function normalizeStoredSupplier(selection: Partial<WizardSupplier> | undefined): WizardSupplier | null {
+    if (!selection || !selection.id) {
+        return null;
+    }
+
+    const methods = Array.isArray(selection.methods)
+        ? selection.methods.filter((method): method is string => typeof method === 'string' && method.length > 0).slice(0, 3)
+        : undefined;
+
+    return {
+        id: String(selection.id),
+        name: selection.name ?? `Supplier ${selection.id}`,
+        location: selection.location ?? undefined,
+        methods,
+    } satisfies WizardSupplier;
+}
+
+function formatSupplierLocation(supplier: Supplier): string | undefined {
+    const city = supplier.address.city?.trim();
+    const country = supplier.address.country?.trim();
+    if (city && country) {
+        return `${city}, ${country}`;
+    }
+
+    return city || country || undefined;
+}
+
+function buildSupplierSelection(supplier: Supplier): WizardSupplier {
+    const methods = supplier.capabilities.methods && supplier.capabilities.methods.length > 0
+        ? supplier.capabilities.methods.slice(0, 3)
+        : undefined;
+
+    return {
+        id: String(supplier.id),
+        name: supplier.name,
+        location: formatSupplierLocation(supplier),
+        methods,
+    } satisfies WizardSupplier;
 }
 
 interface WizardLineFieldsProps {
@@ -234,6 +280,49 @@ function WizardLineFields({ index, form, onRemove, canRemove }: WizardLineFields
                     placeholder="Attach tolerances, inspection checkpoints, or reference drawings."
                     {...register(`lines.${index}.spec`)}
                 />
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-2">
+                    <Label htmlFor={`lines.${index}.method`}>Manufacturing method</Label>
+                    <Input
+                        id={`lines.${index}.method`}
+                        placeholder="CNC machining"
+                        {...register(`lines.${index}.method`)}
+                        aria-invalid={lineErrors?.method ? 'true' : undefined}
+                    />
+                    {lineErrors?.method ? (
+                        <p className="text-sm text-destructive">{lineErrors.method.message}</p>
+                    ) : null}
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor={`lines.${index}.material`}>Material</Label>
+                    <Input
+                        id={`lines.${index}.material`}
+                        placeholder="6061-T6 Aluminum"
+                        {...register(`lines.${index}.material`)}
+                        aria-invalid={lineErrors?.material ? 'true' : undefined}
+                    />
+                    {lineErrors?.material ? (
+                        <p className="text-sm text-destructive">{lineErrors.material.message}</p>
+                    ) : null}
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor={`lines.${index}.tolerance`}>Tolerance (optional)</Label>
+                    <Input
+                        id={`lines.${index}.tolerance`}
+                        placeholder="±0.05 mm"
+                        {...register(`lines.${index}.tolerance`)}
+                    />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor={`lines.${index}.finish`}>Finish (optional)</Label>
+                    <Input
+                        id={`lines.${index}.finish`}
+                        placeholder="Anodized"
+                        {...register(`lines.${index}.finish`)}
+                    />
+                </div>
             </div>
 
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-4">
@@ -363,25 +452,24 @@ function createDefaultWizardValues(): WizardFormValues {
         title: '',
         summary: '',
         type: RfqTypeEnum.Manufacture,
-        method: '',
-        material: '',
-        quantity: 1,
         clientCompany: '',
-        tolerance: '',
-        finish: '',
         openBidding: false,
         notes: '',
         lines: [
             {
                 partName: '',
                 spec: '',
+                method: '',
+                material: '',
+                tolerance: '',
+                finish: '',
                 quantity: 1,
                 uom: 'ea',
                 targetPrice: undefined,
                 requiredDate: '',
             },
         ],
-        supplierInputs: '',
+        suppliers: [],
         publishNow: false,
         incoterm: '',
         paymentTerms: '',
@@ -399,9 +487,9 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
 });
 
-function formatDateLabel(value?: string | null, includeTime = false): string {
+function formatDateLabel(value?: string, includeTime = false): string {
     if (!value) {
-        return includeTime ? 'Not scheduled' : 'Not set';
+        return '—';
     }
 
     const parsed = new Date(value);
@@ -432,6 +520,7 @@ export function RfqCreateWizard() {
     const canInviteSuppliers = allowFeature('rfqs.suppliers.invite');
     const canManageAttachments = allowFeature('rfqs.attachments.manage');
     const canBrowseSupplierDirectory = allowFeature('suppliers.directory.browse');
+    const canUseSupplierDirectory = canInviteSuppliers && canBrowseSupplierDirectory;
 
     const form = useForm<WizardFormValues>({
         resolver: zodResolver(wizardSchema),
@@ -440,6 +529,7 @@ export function RfqCreateWizard() {
     });
 
     const { control } = form;
+    const selectedSuppliers = (useWatch({ control, name: 'suppliers' }) ?? []) as WizardSupplier[];
     const linesFieldArray = useFieldArray({ control, name: 'lines' });
     const [prefillContext, setPrefillContext] = useState<{ count: number } | null>(null);
     const lowStockPrefillApplied = useRef(false);
@@ -466,7 +556,7 @@ export function RfqCreateWizard() {
                 return;
             }
 
-            const stored = JSON.parse(raw) as Partial<WizardFormValues>;
+            const stored = JSON.parse(raw) as Partial<WizardFormValues> & { supplierInputs?: string };
             const restoredLines =
                 stored.lines && stored.lines.length > 0
                     ? stored.lines.map((line) => ({
@@ -474,10 +564,28 @@ export function RfqCreateWizard() {
                           requiredDate: line.requiredDate ?? '',
                       }))
                     : form.getValues().lines;
+
+            const normalizedSuppliers: WizardSupplier[] = Array.isArray(stored.suppliers)
+                ? stored.suppliers
+                      .map((entry) => normalizeStoredSupplier(entry))
+                      .filter((entry): entry is WizardSupplier => Boolean(entry))
+                : [];
+
+            if (normalizedSuppliers.length === 0 && typeof stored.supplierInputs === 'string') {
+                const legacyIds = parseLegacySupplierList(stored.supplierInputs);
+                normalizedSuppliers.push(
+                    ...legacyIds.map((id) => ({
+                        id,
+                        name: id,
+                    })),
+                );
+            }
+
             form.reset({
                 ...form.getValues(),
                 ...stored,
                 lines: restoredLines,
+                suppliers: normalizedSuppliers,
                 publishAt: stored.publishAt ?? form.getValues().publishAt,
                 dueDate: stored.dueDate ?? form.getValues().dueDate,
             });
@@ -501,6 +609,10 @@ export function RfqCreateWizard() {
         const mappedLines = prefills.map((item) => ({
             partName: item.sku ? `${item.name} (${item.sku})` : item.name,
             spec: '',
+            method: '',
+            material: '',
+            tolerance: '',
+            finish: '',
             quantity: item.quantity > 0 ? item.quantity : 1,
             uom: item.uom && item.uom.length > 0 ? item.uom : 'ea',
             targetPrice: undefined,
@@ -623,14 +735,14 @@ export function RfqCreateWizard() {
     };
 
     const handleSupplierSelectedFromDirectory = (supplier: Supplier) => {
-        if (!canInviteSuppliers) {
+        if (!canUseSupplierDirectory) {
             return;
         }
 
-        const existing = parseSupplierList(form.getValues('supplierInputs'));
+        const current = form.getValues('suppliers') ?? [];
         const identifier = String(supplier.id);
 
-        if (existing.includes(identifier)) {
+        if (current.some((entry) => entry.id === identifier)) {
             publishToast({
                 variant: 'default',
                 title: 'Supplier already added',
@@ -639,13 +751,19 @@ export function RfqCreateWizard() {
             return;
         }
 
-        const next = [...existing, identifier];
-        form.setValue('supplierInputs', next.join('\n'), { shouldDirty: true, shouldTouch: true });
+        const selection = buildSupplierSelection(supplier);
+        form.setValue('suppliers', [...current, selection], { shouldDirty: true, shouldTouch: true });
         publishToast({
             variant: 'success',
             title: 'Supplier added',
             description: `${supplier.name} will receive an invitation once the RFQ is created.`,
         });
+    };
+
+    const handleRemoveSupplier = (supplierId: string) => {
+        const current = form.getValues('suppliers') ?? [];
+        const next = current.filter((supplier) => supplier.id !== supplierId);
+        form.setValue('suppliers', next, { shouldDirty: true, shouldTouch: true });
     };
 
     const onSubmit = form.handleSubmit(async (values) => {
@@ -672,21 +790,20 @@ export function RfqCreateWizard() {
         const payload = {
             itemName: values.title,
             type: values.type,
-            quantity: values.quantity,
-            material: values.material,
-            method: values.method,
             clientCompany: values.clientCompany,
             status: 'awaiting' as const,
             items: values.lines.map<CreateRfqRequestItemsInner>((line) => ({
                 partName: line.partName,
                 spec: line.spec,
+                method: line.method,
+                material: line.material,
+                tolerance: line.tolerance || undefined,
+                finish: line.finish || undefined,
                 quantity: line.quantity,
                 uom: line.uom,
                 targetPrice: line.targetPrice,
                 requiredDate: line.requiredDate,
             })),
-            tolerance: values.tolerance || undefined,
-            finish: values.finish || undefined,
             deadlineAt: dueAt,
             isOpenBidding: values.openBidding,
             notes: values.summary || undefined,
@@ -699,7 +816,7 @@ export function RfqCreateWizard() {
             const response = await createRfqMutation.mutateAsync(payload);
             const rfqId = response.data.id;
 
-            const supplierIds = parseSupplierList(values.supplierInputs);
+            const supplierIds = (values.suppliers ?? []).map((supplier) => supplier.id);
             if (supplierIds.length > 0) {
                 await inviteSuppliersMutation.mutateAsync({
                     rfqId,
@@ -790,6 +907,8 @@ export function RfqCreateWizard() {
                 </div>
             </div>
 
+            <DocumentNumberPreview docType="rfq" className="max-w-md" />
+
             <form className="flex flex-1 flex-col gap-6" onSubmit={onSubmit}>
                 {currentStep.id === 'basics' ? (
                     <Card>
@@ -833,29 +952,6 @@ export function RfqCreateWizard() {
                                     {form.formState.errors.clientCompany ? (
                                         <p className="text-sm text-destructive">{form.formState.errors.clientCompany.message}</p>
                                     ) : null}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="method">Manufacturing method</Label>
-                                    <Input id="method" placeholder="CNC machining" {...form.register('method')} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="material">Material</Label>
-                                    <Input id="material" placeholder="6061-T6 Aluminum" {...form.register('material')} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="quantity">Quantity</Label>
-                                    <Input id="quantity" type="number" min="1" step="1" {...form.register('quantity')} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="tolerance">Tolerance (optional)</Label>
-                                    <Input id="tolerance" placeholder="±0.05 mm" {...form.register('tolerance')} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="finish">Finish (optional)</Label>
-                                    <Input id="finish" placeholder="Anodized" {...form.register('finish')} />
                                 </div>
                             </div>
 
@@ -909,6 +1005,10 @@ export function RfqCreateWizard() {
                                     linesFieldArray.append({
                                         partName: '',
                                         spec: '',
+                                        method: '',
+                                        material: '',
+                                        tolerance: '',
+                                        finish: '',
                                         quantity: 1,
                                         uom: 'ea',
                                         targetPrice: undefined,
@@ -928,38 +1028,73 @@ export function RfqCreateWizard() {
                             <CardTitle>Suppliers</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4">
-                            <div className="grid gap-2">
+                            <div className="grid gap-3">
                                 <div className="flex items-center justify-between gap-2">
-                                    <Label htmlFor="supplierInputs">Supplier emails or IDs</Label>
-                                    {canInviteSuppliers && canBrowseSupplierDirectory ? (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setSupplierPickerOpen(true)}
-                                        >
-                                            Browse directory
-                                        </Button>
-                                    ) : null}
+                                    <div>
+                                        <Label>Suppliers</Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            {selectedSuppliers.length === 0
+                                                ? 'No suppliers selected yet.'
+                                                : `${selectedSuppliers.length} supplier${selectedSuppliers.length === 1 ? '' : 's'} selected.`}
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => (canUseSupplierDirectory ? setSupplierPickerOpen(true) : null)}
+                                        disabled={!canUseSupplierDirectory}
+                                    >
+                                        Browse directory
+                                    </Button>
                                 </div>
-                                <Textarea
-                                    id="supplierInputs"
-                                    rows={6}
-                                    placeholder={['supplier@example.com', 'SUP-123'].join('\n')}
-                                    disabled={!canInviteSuppliers}
-                                    {...form.register('supplierInputs')}
-                                />
-                                <p
-                                    className={`text-xs ${
-                                        canInviteSuppliers ? 'text-muted-foreground' : 'text-destructive'
-                                    }`}
-                                >
-                                    {canInviteSuppliers
-                                        ? canBrowseSupplierDirectory
-                                            ? 'Paste one supplier per line or browse the directory to add approved vendors.'
-                                            : 'Paste one supplier per line. Directory browsing requires an upgraded plan.'
-                                        : 'Upgrade your plan to invite suppliers to RFQs.'}
-                                </p>
+
+                                {canUseSupplierDirectory ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        Search your approved supplier directory and add participants. Remove them below as needed.
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-destructive">
+                                        {canInviteSuppliers
+                                            ? 'Directory browsing requires an upgraded plan.'
+                                            : 'Upgrade your plan to invite suppliers to RFQs.'}
+                                    </p>
+                                )}
+
+                                {selectedSuppliers.length === 0 ? (
+                                    <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                                        Suppliers can only be added through the directory. Use the button above to select participants.
+                                    </div>
+                                ) : (
+                                    <ul className="space-y-2">
+                                        {selectedSuppliers.map((supplier) => (
+                                            <li
+                                                key={supplier.id}
+                                                className="flex items-center justify-between rounded-md border p-3 text-sm"
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-foreground">{supplier.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {supplier.location ?? 'Location unavailable'}
+                                                    </p>
+                                                    {supplier.methods && supplier.methods.length > 0 ? (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Methods: {supplier.methods.join(', ')}
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveSupplier(supplier.id)}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -1075,7 +1210,9 @@ export function RfqCreateWizard() {
                                 <p className="font-semibold text-foreground">{reviewSnapshot.title}</p>
                                 <p className="text-muted-foreground">{reviewSnapshot.summary}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Method: {reviewSnapshot.method} • Material: {reviewSnapshot.material}
+                                    Type: {reviewSnapshot.type === RfqTypeEnum.Manufacture ? 'Manufacture' : 'Ready made'} •{' '}
+                                    {reviewSnapshot.openBidding ? 'Open bidding enabled' : 'Private invitations'} •{' '}
+                                    {(reviewSnapshot.lines?.length ?? 0)} line{(reviewSnapshot.lines?.length ?? 0) === 1 ? '' : 's'}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     Publish at: {formatDateLabel(reviewSnapshot.publishAt, true)} • Due: {formatDateLabel(reviewSnapshot.dueDate, true)}
@@ -1086,11 +1223,48 @@ export function RfqCreateWizard() {
                                 <p className="text-sm font-semibold text-foreground">Lines</p>
                                 <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
                                     {(reviewSnapshot.lines ?? []).map((line, index) => (
-                                        <li key={`${line.partName}-${index}`}>
-                                            {index + 1}. {line.partName} — {line.quantity} {line.uom} • Required by {formatDateLabel(line.requiredDate)}
+                                        <li key={`${line.partName}-${index}`} className="rounded-md border border-border p-3">
+                                            <p className="font-medium text-foreground">
+                                                {index + 1}. {line.partName}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {line.quantity} {line.uom} • Required by {formatDateLabel(line.requiredDate)}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Method: {line.method} • Material: {line.material}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {line.tolerance ? `Tolerance: ${line.tolerance}` : 'Tolerance: —'} •{' '}
+                                                {line.finish ? `Finish: ${line.finish}` : 'Finish: —'}
+                                            </p>
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+
+                            <div className="rounded-lg border p-4">
+                                <p className="text-sm font-semibold text-foreground">Suppliers</p>
+                                {reviewSnapshot.suppliers && reviewSnapshot.suppliers.length > 0 ? (
+                                    <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                                        {reviewSnapshot.suppliers.map((supplier, index) => (
+                                            <li key={`${supplier.id}-${index}`} className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-medium text-foreground">{supplier.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {supplier.location ?? 'Location unavailable'}
+                                                    </p>
+                                                </div>
+                                                {supplier.methods && supplier.methods.length > 0 ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Methods: {supplier.methods.join(', ')}
+                                                    </p>
+                                                ) : null}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="mt-2 text-sm text-muted-foreground">No suppliers selected.</p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -1127,7 +1301,7 @@ export function RfqCreateWizard() {
                 </div>
             </form>
         </div>
-            {canInviteSuppliers && canBrowseSupplierDirectory ? (
+            {canUseSupplierDirectory ? (
                 <SupplierDirectoryPicker
                     open={isSupplierPickerOpen}
                     onOpenChange={setSupplierPickerOpen}

@@ -202,10 +202,13 @@ it('prevents unauthorized roles from issuing or approving credit notes', functio
 
     actingAs($admin);
 
-    $creditId = postJson("/api/credit-notes/invoices/{$invoice->id}", [
+    $createResponse = postJson("/api/credit-notes/invoices/{$invoice->id}", [
         'reason' => 'Test credit',
         'amount' => 150.00,
-    ])->json('data.id');
+    ])->assertCreated();
+
+    $creditId = $createResponse->json('data.id');
+    expect($creditId)->not->toBeNull();
 
     $requester = User::factory()->create([
         'company_id' => $company->id,

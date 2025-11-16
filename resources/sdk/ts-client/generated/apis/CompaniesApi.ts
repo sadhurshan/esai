@@ -15,18 +15,30 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApiErrorResponse,
   ApiSuccessResponse,
+  ListPlansCatalog200Response,
   RegisterCompany201Response,
   RegisterCompanyRequest,
+  SelectCompanyPlan200Response,
+  SelectCompanyPlanRequest,
   UpdateCompanyRequest,
 } from '../models/index';
 import {
+    ApiErrorResponseFromJSON,
+    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
     ApiSuccessResponseToJSON,
+    ListPlansCatalog200ResponseFromJSON,
+    ListPlansCatalog200ResponseToJSON,
     RegisterCompany201ResponseFromJSON,
     RegisterCompany201ResponseToJSON,
     RegisterCompanyRequestFromJSON,
     RegisterCompanyRequestToJSON,
+    SelectCompanyPlan200ResponseFromJSON,
+    SelectCompanyPlan200ResponseToJSON,
+    SelectCompanyPlanRequestFromJSON,
+    SelectCompanyPlanRequestToJSON,
     UpdateCompanyRequestFromJSON,
     UpdateCompanyRequestToJSON,
 } from '../models/index';
@@ -56,6 +68,10 @@ export interface ListCompanyDocumentsRequest {
 
 export interface RegisterCompanyOperationRequest {
     registerCompanyRequest: RegisterCompanyRequest;
+}
+
+export interface SelectCompanyPlanOperationRequest {
+    selectCompanyPlanRequest: SelectCompanyPlanRequest;
 }
 
 export interface ShowCompanyRequest {
@@ -176,6 +192,20 @@ export interface CompaniesApiInterface {
 
     /**
      * 
+     * @summary List publicly available subscription plans
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    listPlansCatalogRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPlansCatalog200Response>>;
+
+    /**
+     * List publicly available subscription plans
+     */
+    listPlansCatalog(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPlansCatalog200Response>;
+
+    /**
+     * 
      * @summary Register company and request onboarding
      * @param {RegisterCompanyRequest} registerCompanyRequest 
      * @param {*} [options] Override http request option.
@@ -188,6 +218,21 @@ export interface CompaniesApiInterface {
      * Register company and request onboarding
      */
     registerCompany(requestParameters: RegisterCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RegisterCompany201Response>;
+
+    /**
+     * 
+     * @summary Select a subscription plan for the authenticated company
+     * @param {SelectCompanyPlanRequest} selectCompanyPlanRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompaniesApiInterface
+     */
+    selectCompanyPlanRaw(requestParameters: SelectCompanyPlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelectCompanyPlan200Response>>;
+
+    /**
+     * Select a subscription plan for the authenticated company
+     */
+    selectCompanyPlan(requestParameters: SelectCompanyPlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelectCompanyPlan200Response>;
 
     /**
      * 
@@ -600,6 +645,47 @@ export class CompaniesApi extends runtime.BaseAPI implements CompaniesApiInterfa
     }
 
     /**
+     * List publicly available subscription plans
+     */
+    async listPlansCatalogRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPlansCatalog200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/plans`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListPlansCatalog200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * List publicly available subscription plans
+     */
+    async listPlansCatalog(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPlansCatalog200Response> {
+        const response = await this.listPlansCatalogRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Register company and request onboarding
      */
     async registerCompanyRaw(requestParameters: RegisterCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RegisterCompany201Response>> {
@@ -647,6 +733,57 @@ export class CompaniesApi extends runtime.BaseAPI implements CompaniesApiInterfa
      */
     async registerCompany(requestParameters: RegisterCompanyOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RegisterCompany201Response> {
         const response = await this.registerCompanyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Select a subscription plan for the authenticated company
+     */
+    async selectCompanyPlanRaw(requestParameters: SelectCompanyPlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelectCompanyPlan200Response>> {
+        if (requestParameters['selectCompanyPlanRequest'] == null) {
+            throw new runtime.RequiredError(
+                'selectCompanyPlanRequest',
+                'Required parameter "selectCompanyPlanRequest" was null or undefined when calling selectCompanyPlan().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/company/plan-selection`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SelectCompanyPlanRequestToJSON(requestParameters['selectCompanyPlanRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SelectCompanyPlan200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Select a subscription plan for the authenticated company
+     */
+    async selectCompanyPlan(requestParameters: SelectCompanyPlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelectCompanyPlan200Response> {
+        const response = await this.selectCompanyPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

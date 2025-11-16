@@ -1,14 +1,17 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController as AdminApiKeyController;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyFeatureFlagController as AdminCompanyFeatureFlagController;
 use App\Http\Controllers\Admin\EmailTemplateController as AdminEmailTemplateController;
 use App\Http\Controllers\Admin\HealthController as AdminHealthController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
+use App\Http\Controllers\Admin\RoleTemplateController as AdminRoleTemplateController;
 use App\Http\Controllers\Admin\RateLimitController as AdminRateLimitController;
 use App\Http\Controllers\Admin\WebhookDeliveryController as AdminWebhookDeliveryController;
 use App\Http\Controllers\Admin\WebhookSubscriptionController as AdminWebhookSubscriptionController;
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AwardController;
 use App\Http\Controllers\Api\AwardLineController;
@@ -24,6 +27,8 @@ use App\Http\Controllers\Api\DocsController;
 use App\Http\Controllers\Api\MoneySettingsController;
 use App\Http\Controllers\Api\FxRateController;
 use App\Http\Controllers\Api\Localization\LocaleSettingsController;
+use App\Http\Controllers\Api\Settings\CompanySettingsController;
+use App\Http\Controllers\Api\Settings\NumberingSettingsController;
 use App\Http\Controllers\Api\Localization\UomController;
 use App\Http\Controllers\Api\Localization\UomConversionController;
 use App\Http\Controllers\Api\CompanyDocumentController;
@@ -40,6 +45,9 @@ use App\Http\Controllers\Api\RfqClarificationController;
 use App\Http\Controllers\Api\RfqAwardCandidateController;
 use App\Http\Controllers\Api\QuoteRevisionController;
 use App\Http\Controllers\Api\RfqAwardController;
+use App\Http\Controllers\Api\RfqLineController;
+use App\Http\Controllers\Api\RfqTimelineController;
+use App\Http\Controllers\Api\RfqAttachmentController;
 use App\Http\Controllers\Api\RfqInvitationController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\SupplierController;
@@ -61,6 +69,8 @@ use App\Http\Controllers\Api\PoTotalsController;
 use App\Http\Controllers\Api\InvoiceTotalsController;
 use App\Http\Controllers\Api\CreditTotalsController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\CompanyPlanController;
+use App\Http\Controllers\Api\PlanCatalogController;
 use App\Http\Controllers\Api\DigitalTwin\AssetBomController as DigitalTwinAssetBomController;
 use App\Http\Controllers\Api\DigitalTwin\AssetController as DigitalTwinAssetController;
 use App\Http\Controllers\Api\DigitalTwin\AssetMaintenanceController as DigitalTwinAssetMaintenanceController;
@@ -72,6 +82,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('health', [HealthController::class, '__invoke']);
 Route::get('docs/openapi.json', [DocsController::class, 'openApi']);
 Route::get('docs/postman.json', [DocsController::class, 'postman']);
+Route::get('plans', [PlanCatalogController::class, 'index']);
+
+Route::middleware(['auth'])->group(function (): void {
+    Route::post('company/plan-selection', [CompanyPlanController::class, 'store']);
+});
+
+Route::middleware(['auth', 'role:owner', 'ensure.company.approved'])->group(function (): void {
+    Route::post('me/apply-supplier', [SupplierApplicationController::class, 'selfApply']);
+});
 
 Route::middleware(['auth', 'admin.guard'])->prefix('admin')->group(function (): void {
     Route::apiResource('plans', AdminPlanController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
@@ -81,6 +100,9 @@ Route::middleware(['auth', 'admin.guard'])->prefix('admin')->group(function (): 
     Route::post('companies/{company}/feature-flags', [AdminCompanyFeatureFlagController::class, 'store']);
     Route::put('companies/{company}/feature-flags/{flag}', [AdminCompanyFeatureFlagController::class, 'update']);
     Route::delete('companies/{company}/feature-flags/{flag}', [AdminCompanyFeatureFlagController::class, 'destroy']);
+    Route::get('companies', [CompanyApprovalController::class, 'index']);
+    Route::post('companies/{company}/approve', [CompanyApprovalController::class, 'approve']);
+    Route::post('companies/{company}/reject', [CompanyApprovalController::class, 'reject']);
     Route::apiResource('email-templates', AdminEmailTemplateController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::post('email-templates/{email_template}/preview', [AdminEmailTemplateController::class, 'preview']);
     Route::get('api-keys', [AdminApiKeyController::class, 'index']);
@@ -90,9 +112,17 @@ Route::middleware(['auth', 'admin.guard'])->prefix('admin')->group(function (): 
     Route::delete('api-keys/{key}', [AdminApiKeyController::class, 'destroy']);
     Route::apiResource('rate-limits', AdminRateLimitController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::apiResource('webhook-subscriptions', AdminWebhookSubscriptionController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::post('webhook-subscriptions/{webhook_subscription}/test', [AdminWebhookSubscriptionController::class, 'test']);
     Route::get('webhook-deliveries', [AdminWebhookDeliveryController::class, 'index']);
     Route::post('webhook-deliveries/{delivery}/retry', [AdminWebhookDeliveryController::class, 'retry']);
     Route::get('health', [AdminHealthController::class, 'show']);
+    Route::get('roles', [AdminRoleTemplateController::class, 'index']);
+    Route::patch('roles/{roleTemplate}', [AdminRoleTemplateController::class, 'update']);
+    Route::get('audit', [AdminAuditLogController::class, 'index']);
+    Route::get('company-approvals', [CompanyApprovalController::class, 'index']);
+    Route::post('company-approvals/{company}/approve', [CompanyApprovalController::class, 'approve']);
+    Route::post('company-approvals/{company}/reject', [CompanyApprovalController::class, 'reject']);
+    Route::get('analytics/overview', [AdminAnalyticsController::class, 'overview']);
 });
 
 Route::prefix('files')->group(function (): void {
@@ -125,13 +155,22 @@ Route::prefix('supplier-applications')->group(function (): void {
 
 Route::prefix('rfqs')->group(function (): void {
     Route::get('/', [RFQController::class, 'index']);
-    Route::post('/', [RFQController::class, 'store'])->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+    Route::post('/', [RFQController::class, 'store'])
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved', 'ensure.subscribed']);
     Route::get('{rfq}', [RFQController::class, 'show']);
-    Route::put('{rfq}', [RFQController::class, 'update'])->middleware('ensure.company.onboarded');
-    Route::delete('{rfq}', [RFQController::class, 'destroy'])->middleware('ensure.company.onboarded');
+    Route::get('{rfq}/lines', [RfqLineController::class, 'index']);
+    Route::get('{rfq}/attachments', [RfqAttachmentController::class, 'index']);
+    Route::post('{rfq}/attachments', [RfqAttachmentController::class, 'store'])
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved', 'ensure.subscribed']);
+    Route::post('{rfq}/publish', [RFQController::class, 'publish'])
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved', 'ensure.subscribed']);
+    Route::get('{rfq}/timeline', RfqTimelineController::class);
+    Route::put('{rfq}', [RFQController::class, 'update'])->middleware(['ensure.company.onboarded', 'ensure.company.approved']);
+    Route::delete('{rfq}', [RFQController::class, 'destroy'])->middleware(['ensure.company.onboarded', 'ensure.company.approved']);
 
     Route::get('{rfq}/invitations', [RfqInvitationController::class, 'index']);
-    Route::post('{rfq}/invitations', [RfqInvitationController::class, 'store'])->middleware('ensure.company.onboarded');
+    Route::post('{rfq}/invitations', [RfqInvitationController::class, 'store'])
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved']);
 
     Route::get('{rfq}/quotes', [QuoteController::class, 'index']);
 
@@ -147,12 +186,12 @@ Route::prefix('rfqs')->group(function (): void {
             Route::post('/withdraw', [QuoteController::class, 'withdraw']);
         });
 
-    Route::post('{rfq}/award', [AwardController::class, 'store'])->middleware('ensure.company.onboarded');
+    Route::post('{rfq}/award', [AwardController::class, 'store'])->middleware(['ensure.company.onboarded', 'ensure.company.approved']);
     Route::post('{rfq}/award-lines', [RfqAwardController::class, 'awardLines'])
-        ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved', 'ensure.subscribed']);
 
     Route::prefix('{rfq}/clarifications')
-        ->middleware(['ensure.company.onboarded', 'ensure.subscribed'])
+        ->middleware(['ensure.company.onboarded', 'ensure.company.approved', 'ensure.subscribed'])
         ->group(function (): void {
             Route::get('/', [RfqClarificationController::class, 'index']);
             Route::post('/question', [RfqClarificationController::class, 'storeQuestion']);
@@ -256,12 +295,6 @@ Route::middleware('web')->group(function (): void {
         Route::delete('{company}/documents/{document}', [CompanyDocumentController::class, 'destroy']);
     });
 
-    Route::prefix('admin/companies')->group(function (): void {
-        Route::get('/', [CompanyApprovalController::class, 'index']);
-        Route::post('{company}/approve', [CompanyApprovalController::class, 'approve']);
-        Route::post('{company}/reject', [CompanyApprovalController::class, 'reject']);
-    });
-
     Route::prefix('admin/supplier-applications')->group(function (): void {
         Route::get('/', [SupplierApplicationReviewController::class, 'index']);
         Route::post('{application}/approve', [SupplierApplicationReviewController::class, 'approve']);
@@ -275,6 +308,21 @@ Route::get('documents/{document}', [DocumentController::class, 'show'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {
+    Route::prefix('settings')
+        ->middleware(['ensure.subscribed', 'buyer_admin_only'])
+        ->group(function (): void {
+            Route::get('company', [CompanySettingsController::class, 'show']);
+            Route::patch('company', [CompanySettingsController::class, 'update']);
+
+            Route::middleware('ensure.localization.access')->group(function (): void {
+                Route::get('localization', [LocaleSettingsController::class, 'show']);
+                Route::patch('localization', [LocaleSettingsController::class, 'update']);
+            });
+
+            Route::get('numbering', [NumberingSettingsController::class, 'show']);
+            Route::patch('numbering', [NumberingSettingsController::class, 'update']);
+        });
+
     Route::get('dashboard/metrics', [DashboardController::class, 'metrics'])
         ->middleware('ensure.analytics.access');
 

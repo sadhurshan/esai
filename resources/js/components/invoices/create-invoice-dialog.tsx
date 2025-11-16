@@ -3,6 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { PurchaseOrderDetail, PurchaseOrderLine } from '@/types/sourcing';
 import type { CreateInvoiceInput } from '@/hooks/api/invoices/use-create-invoice';
+import { useFormatting, type FormattingContextValue } from '@/contexts/formatting-context';
 
 const createInvoiceLineSchema = z.object({
     poLineId: z.number().int().positive(),
@@ -46,7 +48,7 @@ const createInvoiceFormSchema = z
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ['lines', index, 'qtyInvoiced'],
-                    message: `Cannot invoice more than ${line.remainingQuantity.toLocaleString()} units remaining.`,
+                    message: 'Cannot invoice more than the remaining quantity.',
                 });
             }
         });
@@ -78,6 +80,7 @@ export function CreateInvoiceDialog({
     isSubmitting = false,
 }: CreateInvoiceDialogProps) {
     const defaultValues = useMemo(() => buildDefaultValues(purchaseOrder), [purchaseOrder]);
+    const { formatNumber } = useFormatting();
 
     const form = useForm<CreateInvoiceFormValues>({
         resolver: zodResolver(createInvoiceFormSchema),
@@ -122,6 +125,7 @@ export function CreateInvoiceDialog({
                             ? `Invoice ${purchaseOrder.supplierName} for fulfilled goods.`
                             : 'Capture supplier invoice details for this PO.'}
                     </DialogDescription>
+                    <DocumentNumberPreview docType="invoice" className="mt-3" />
                 </DialogHeader>
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
@@ -195,7 +199,9 @@ export function CreateInvoiceDialog({
                                                     <p className="text-xs text-muted-foreground">{line.description ?? '—'}</p>
                                                 </td>
                                                 <td className="px-3 py-3 align-top">
-                                                    <div className="font-semibold text-foreground">{line.remainingQuantity.toLocaleString()}</div>
+                                                    <div className="font-semibold text-foreground">
+                                                        {formatQuantity(line.remainingQuantity ?? 0, formatNumber)}
+                                                    </div>
                                                     <p className="text-xs text-muted-foreground">units remaining</p>
                                                 </td>
                                                 <td className="px-3 py-3">
@@ -229,7 +235,7 @@ export function CreateInvoiceDialog({
                                                     ) : null}
                                                     {line.poUnitPrice != null && Math.abs(line.unitPrice - line.poUnitPrice) > 0.001 ? (
                                                         <p className="pt-1 text-xs text-amber-600">
-                                                            Differs from PO price {line.poUnitPrice.toFixed(2)}.
+                                                            Differs from PO price {formatUnitPrice(line.poUnitPrice ?? 0, formatNumber)}.
                                                         </p>
                                                     ) : null}
                                                 </td>
@@ -308,4 +314,15 @@ function toMinorUnits(amount: number): number {
         return 0;
     }
     return Math.round(amount * 100);
+}
+
+function formatQuantity(value: number, formatter: FormattingContextValue['formatNumber']) {
+    const safeValue = Number.isFinite(value) ? value : 0;
+    const precision = Math.abs(safeValue) >= 1 ? 2 : 3;
+    return formatter(safeValue, { maximumFractionDigits: precision, fallback: '0' });
+}
+
+function formatUnitPrice(value: number, formatter: FormattingContextValue['formatNumber']) {
+    const safeValue = Number.isFinite(value) ? value : 0;
+    return formatter(safeValue, { minimumFractionDigits: 2, maximumFractionDigits: 2, fallback: '0.00' });
 }

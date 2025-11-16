@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PurchaseOrderLineTaxesInner } from './PurchaseOrderLineTaxesInner';
+import type { InvoiceLineTaxesInner } from './InvoiceLineTaxesInner';
 import {
-    PurchaseOrderLineTaxesInnerFromJSON,
-    PurchaseOrderLineTaxesInnerFromJSONTyped,
-    PurchaseOrderLineTaxesInnerToJSON,
-    PurchaseOrderLineTaxesInnerToJSONTyped,
-} from './PurchaseOrderLineTaxesInner';
+    InvoiceLineTaxesInnerFromJSON,
+    InvoiceLineTaxesInnerFromJSONTyped,
+    InvoiceLineTaxesInnerToJSON,
+    InvoiceLineTaxesInnerToJSONTyped,
+} from './InvoiceLineTaxesInner';
 
 /**
  * 
@@ -119,10 +119,22 @@ export interface PurchaseOrderLine {
     deliveryDate?: Date;
     /**
      * 
-     * @type {Array<PurchaseOrderLineTaxesInner>}
+     * @type {number}
      * @memberof PurchaseOrderLine
      */
-    taxes?: Array<PurchaseOrderLineTaxesInner>;
+    invoicedQuantity?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof PurchaseOrderLine
+     */
+    remainingQuantity?: number;
+    /**
+     * 
+     * @type {Array<InvoiceLineTaxesInner>}
+     * @memberof PurchaseOrderLine
+     */
+    taxes?: Array<InvoiceLineTaxesInner>;
 }
 
 /**
@@ -162,7 +174,9 @@ export function PurchaseOrderLineFromJSONTyped(json: any, ignoreDiscriminator: b
         'lineTotal': json['line_total'] == null ? undefined : json['line_total'],
         'lineTotalMinor': json['line_total_minor'],
         'deliveryDate': json['delivery_date'] == null ? undefined : (new Date(json['delivery_date'])),
-        'taxes': json['taxes'] == null ? undefined : ((json['taxes'] as Array<any>).map(PurchaseOrderLineTaxesInnerFromJSON)),
+        'invoicedQuantity': json['invoiced_quantity'] == null ? undefined : json['invoiced_quantity'],
+        'remainingQuantity': json['remaining_quantity'] == null ? undefined : json['remaining_quantity'],
+        'taxes': json['taxes'] == null ? undefined : ((json['taxes'] as Array<any>).map(InvoiceLineTaxesInnerFromJSON)),
     };
 }
 
@@ -192,7 +206,9 @@ export function PurchaseOrderLineToJSONTyped(value?: PurchaseOrderLine | null, i
         'line_total': value['lineTotal'],
         'line_total_minor': value['lineTotalMinor'],
         'delivery_date': value['deliveryDate'] == null ? value['deliveryDate'] : value['deliveryDate'].toISOString().substring(0,10),
-        'taxes': value['taxes'] == null ? undefined : ((value['taxes'] as Array<any>).map(PurchaseOrderLineTaxesInnerToJSON)),
+        'invoiced_quantity': value['invoicedQuantity'],
+        'remaining_quantity': value['remainingQuantity'],
+        'taxes': value['taxes'] == null ? undefined : ((value['taxes'] as Array<any>).map(InvoiceLineTaxesInnerToJSON)),
     };
 }
 

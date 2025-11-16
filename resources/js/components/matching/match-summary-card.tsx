@@ -9,9 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { useFormatting } from '@/contexts/formatting-context';
 import type { MatchCandidate, MatchDiscrepancy, MatchResolutionInput } from '@/types/sourcing';
-
-import { formatCurrencyMinor } from '@/lib/money';
 
 import { DiscrepancyBadge } from './discrepancy-badge';
 
@@ -46,6 +45,7 @@ const ensureInvoiceId = (candidate?: MatchCandidate | null) => candidate?.invoic
 
 export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSummaryCardProps) => {
     const [decisions, setDecisions] = useState<DecisionState>(() => getInitialDecisions(candidate));
+    const { formatMoney, formatNumber, formatDate } = useFormatting();
 
     useEffect(() => {
         setDecisions(getInitialDecisions(candidate));
@@ -59,12 +59,20 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
         }
 
         return {
-            po: formatCurrencyMinor(candidate.poTotalMinor, candidate.currency),
-            received: formatCurrencyMinor(candidate.receivedTotalMinor, candidate.currency),
-            invoiced: formatCurrencyMinor(candidate.invoicedTotalMinor, candidate.currency),
-            variance: formatCurrencyMinor(candidate.varianceMinor, candidate.currency),
+            po: formatMoney(typeof candidate.poTotalMinor === 'number' ? candidate.poTotalMinor / 100 : null, {
+                currency: candidate.currency ?? undefined,
+            }),
+            received: formatMoney(typeof candidate.receivedTotalMinor === 'number' ? candidate.receivedTotalMinor / 100 : null, {
+                currency: candidate.currency ?? undefined,
+            }),
+            invoiced: formatMoney(typeof candidate.invoicedTotalMinor === 'number' ? candidate.invoicedTotalMinor / 100 : null, {
+                currency: candidate.currency ?? undefined,
+            }),
+            variance: formatMoney(typeof candidate.varianceMinor === 'number' ? candidate.varianceMinor / 100 : null, {
+                currency: candidate.currency ?? undefined,
+            }),
         };
-    }, [candidate]);
+    }, [candidate, formatMoney]);
 
     const handleDecisionChange = (
         lineId: string,
@@ -147,15 +155,20 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                 <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        Last activity {candidate.lastActivityAt ? new Date(candidate.lastActivityAt).toLocaleString() : '—'}
+                                Last activity {formatDate(candidate.lastActivityAt, { dateStyle: 'medium', timeStyle: 'short' })}
                     </span>
                     <span className="inline-flex items-center gap-1">
                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        {candidate.lines.reduce((acc, line) => acc + line.discrepancies.length, 0)} variances
+                                {formatNumber(
+                                    candidate.lines.reduce((acc, line) => acc + line.discrepancies.length, 0),
+                                    { maximumFractionDigits: 0 },
+                                )}{' '}
+                                variances
                     </span>
                     <span className="inline-flex items-center gap-1">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        {candidate.grns?.length ?? 0} GRNs ∙ {candidate.invoices?.length ?? 0} invoices
+                                {formatNumber(candidate.grns?.length ?? 0, { maximumFractionDigits: 0 })} GRNs ∙{' '}
+                                {formatNumber(candidate.invoices?.length ?? 0, { maximumFractionDigits: 0 })} invoices
                     </span>
                 </div>
             </CardHeader>
@@ -192,7 +205,8 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                                     <p className="text-sm text-muted-foreground">{line.itemDescription ?? 'Line item'}</p>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    Ordered {line.orderedQty} {line.uom ?? ''} ∙ Received {line.receivedQty ?? 0} ∙ Invoiced {line.invoicedQty ?? 0}
+                                    Ordered {formatNumber(line.orderedQty ?? 0)} {line.uom ?? ''} ∙ Received{' '}
+                                    {formatNumber(line.receivedQty ?? 0)} ∙ Invoiced {formatNumber(line.invoicedQty ?? 0)}
                                 </div>
                             </div>
                             <div className="mt-4 space-y-4">
@@ -203,8 +217,17 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                                             <div className="text-xs text-muted-foreground">
                                                 {(disc.difference ?? disc.amountMinor) && (
                                                     <span>
-                                                        Δ {disc.difference ?? ''}
-                                                        {disc.amountMinor ? ` / ${formatCurrencyMinor(disc.amountMinor, disc.currency)}` : ''}
+                                                        {disc.difference !== undefined && disc.difference !== null
+                                                            ? `Δ ${formatNumber(disc.difference)}`
+                                                            : ''}
+                                                        {disc.amountMinor
+                                                            ? ` / ${formatMoney(
+                                                                  typeof disc.amountMinor === 'number'
+                                                                      ? disc.amountMinor / 100
+                                                                      : null,
+                                                                  { currency: disc.currency ?? candidate.currency ?? undefined },
+                                                              )}`
+                                                            : ''}
                                                     </span>
                                                 )}
                                             </div>

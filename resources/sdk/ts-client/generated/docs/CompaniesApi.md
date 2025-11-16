@@ -10,7 +10,9 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**deleteInvitation**](CompaniesApi.md#deleteinvitation) | **DELETE** /api/invitations/{token} | Revoke invitation by token |
 | [**listCompanyDocuments**](CompaniesApi.md#listcompanydocuments) | **GET** /api/companies/{companyId}/documents | List company documents |
 | [**listInvitations**](CompaniesApi.md#listinvitations) | **GET** /api/invitations | List pending invitations for current company |
+| [**listPlansCatalog**](CompaniesApi.md#listplanscatalog) | **GET** /api/plans | List publicly available subscription plans |
 | [**registerCompany**](CompaniesApi.md#registercompanyoperation) | **POST** /api/companies | Register company and request onboarding |
+| [**selectCompanyPlan**](CompaniesApi.md#selectcompanyplanoperation) | **POST** /api/company/plan-selection | Select a subscription plan for the authenticated company |
 | [**showCompany**](CompaniesApi.md#showcompany) | **GET** /api/companies/{companyId} | Retrieve company profile |
 | [**showCurrentCompany**](CompaniesApi.md#showcurrentcompany) | **GET** /api/companies/current | Retrieve profile for authenticated company |
 | [**showInvitation**](CompaniesApi.md#showinvitation) | **GET** /api/invitations/{token} | Show invitation by token |
@@ -446,6 +448,69 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## listPlansCatalog
+
+> ListPlansCatalog200Response listPlansCatalog()
+
+List publicly available subscription plans
+
+### Example
+
+```ts
+import {
+  Configuration,
+  CompaniesApi,
+} from '';
+import type { ListPlansCatalogRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new CompaniesApi(config);
+
+  try {
+    const data = await api.listPlansCatalog();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**ListPlansCatalog200Response**](ListPlansCatalog200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Catalog of buyer subscription plans. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## registerCompany
 
 > RegisterCompany201Response registerCompany(registerCompanyRequest)
@@ -513,6 +578,78 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Company onboarding request accepted. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## selectCompanyPlan
+
+> SelectCompanyPlan200Response selectCompanyPlan(selectCompanyPlanRequest)
+
+Select a subscription plan for the authenticated company
+
+### Example
+
+```ts
+import {
+  Configuration,
+  CompaniesApi,
+} from '';
+import type { SelectCompanyPlanOperationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new CompaniesApi(config);
+
+  const body = {
+    // SelectCompanyPlanRequest
+    selectCompanyPlanRequest: ...,
+  } satisfies SelectCompanyPlanOperationRequest;
+
+  try {
+    const data = await api.selectCompanyPlan(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **selectCompanyPlanRequest** | [SelectCompanyPlanRequest](SelectCompanyPlanRequest.md) |  | |
+
+### Return type
+
+[**SelectCompanyPlan200Response**](SelectCompanyPlan200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Plan selection saved for the tenant. |  -  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

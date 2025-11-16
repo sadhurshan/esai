@@ -334,7 +334,7 @@ example().catch(console.error);
 
 ## createRfq
 
-> CreateRfq201Response createRfq(itemName, type, quantity, material, method, clientCompany, status, items, tolerance, finish, deadlineAt, isOpenBidding, notes, cad)
+> CreateRfq201Response createRfq(itemName, type, clientCompany, status, items, deadlineAt, isOpenBidding, notes, cad)
 
 Create RFQ
 
@@ -362,22 +362,12 @@ async function example() {
     itemName: itemName_example,
     // string
     type: type_example,
-    // number
-    quantity: 56,
-    // string
-    material: material_example,
-    // string
-    method: method_example,
     // string
     clientCompany: clientCompany_example,
     // string
     status: status_example,
     // Array<CreateRfqRequestItemsInner>
     items: ...,
-    // string (optional)
-    tolerance: tolerance_example,
-    // string (optional)
-    finish: finish_example,
     // Date (optional)
     deadlineAt: 2013-10-20T19:20:30+01:00,
     // boolean (optional)
@@ -407,14 +397,9 @@ example().catch(console.error);
 |------------- | ------------- | ------------- | -------------|
 | **itemName** | `string` |  | [Defaults to `undefined`] |
 | **type** | `ready_made`, `manufacture` |  | [Defaults to `undefined`] [Enum: ready_made, manufacture] |
-| **quantity** | `number` |  | [Defaults to `undefined`] |
-| **material** | `string` |  | [Defaults to `undefined`] |
-| **method** | `string` |  | [Defaults to `undefined`] |
 | **clientCompany** | `string` |  | [Defaults to `undefined`] |
 | **status** | `awaiting`, `open`, `closed`, `awarded`, `cancelled` |  | [Defaults to `undefined`] [Enum: awaiting, open, closed, awarded, cancelled] |
 | **items** | `Array<CreateRfqRequestItemsInner>` |  | |
-| **tolerance** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **finish** | `string` |  | [Optional] [Defaults to `undefined`] |
 | **deadlineAt** | `Date` |  | [Optional] [Defaults to `undefined`] |
 | **isOpenBidding** | `boolean` |  | [Optional] [Defaults to `undefined`] |
 | **notes** | `string` |  | [Optional] [Defaults to `undefined`] |
@@ -1782,7 +1767,7 @@ example().catch(console.error);
 
 ## updateRfq
 
-> CreateRfq201Response updateRfq(rfqId, itemName, type, quantity, material, method, tolerance, finish, status, isOpenBidding, notes, deadlineAt, cad)
+> CreateRfq201Response updateRfq(rfqId, itemName, type, status, isOpenBidding, notes, deadlineAt, cad)
 
 Update RFQ
 
@@ -1812,16 +1797,6 @@ async function example() {
     itemName: itemName_example,
     // string (optional)
     type: type_example,
-    // number (optional)
-    quantity: 56,
-    // string (optional)
-    material: material_example,
-    // string (optional)
-    method: method_example,
-    // string (optional)
-    tolerance: tolerance_example,
-    // string (optional)
-    finish: finish_example,
     // string (optional)
     status: status_example,
     // boolean (optional)
@@ -1854,11 +1829,6 @@ example().catch(console.error);
 | **rfqId** | `string` |  | [Defaults to `undefined`] |
 | **itemName** | `string` |  | [Optional] [Defaults to `undefined`] |
 | **type** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **quantity** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **material** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **method** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **tolerance** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **finish** | `string` |  | [Optional] [Defaults to `undefined`] |
 | **status** | `awaiting`, `open`, `closed`, `awarded`, `cancelled` |  | [Optional] [Defaults to `undefined`] [Enum: awaiting, open, closed, awarded, cancelled] |
 | **isOpenBidding** | `boolean` |  | [Optional] [Defaults to `undefined`] |
 | **notes** | `string` |  | [Optional] [Defaults to `undefined`] |

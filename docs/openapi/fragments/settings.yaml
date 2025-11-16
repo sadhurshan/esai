@@ -1,0 +1,337 @@
+components:
+  schemas:
+    CompanyAddress:
+      type: object
+      required:
+        - line1
+        - country
+      properties:
+        attention:
+          type: string
+          nullable: true
+        line1:
+          type: string
+        line2:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        postal_code:
+          type: string
+          nullable: true
+        country:
+          type: string
+    CompanySettings:
+      type: object
+      required:
+        - legal_name
+        - display_name
+        - bill_to
+        - ship_from
+      properties:
+        legal_name:
+          type: string
+        display_name:
+          type: string
+        tax_id:
+          type: string
+          nullable: true
+        registration_number:
+          type: string
+          nullable: true
+        emails:
+          type: array
+          items:
+            type: string
+            format: email
+        phones:
+          type: array
+          items:
+            type: string
+        bill_to:
+          $ref: '#/components/schemas/CompanyAddress'
+        ship_from:
+          $ref: '#/components/schemas/CompanyAddress'
+        logo_url:
+          type: string
+          format: uri
+          nullable: true
+        mark_url:
+          type: string
+          format: uri
+          nullable: true
+    CurrencyPreferences:
+      type: object
+      required:
+        - primary
+        - display_fx
+      properties:
+        primary:
+          type: string
+          minLength: 3
+          maxLength: 3
+        display_fx:
+          type: boolean
+    UomMappings:
+      type: object
+      required:
+        - base_uom
+        - maps
+      properties:
+        base_uom:
+          type: string
+        maps:
+          type: object
+          additionalProperties:
+            type: string
+    LocalizationSettings:
+      type: object
+      required:
+        - timezone
+        - locale
+        - date_format
+        - number_format
+        - currency
+        - uom
+      properties:
+        timezone:
+          type: string
+          description: IANA timezone identifier applied to tenant data.
+        locale:
+          type: string
+          description: BCP‑47 locale for formatting dates and numerics.
+        date_format:
+          type: string
+          description: Display pattern (e.g. YYYY-MM-DD, MM/DD/YYYY).
+        number_format:
+          type: string
+          description: Thousand separator style (e.g. 1,234.56).
+        currency:
+          $ref: '#/components/schemas/CurrencyPreferences'
+        uom:
+          $ref: '#/components/schemas/UomMappings'
+    NumberingRule:
+      type: object
+      required:
+        - prefix
+        - seq_len
+        - next
+        - reset
+      properties:
+        prefix:
+          type: string
+          maxLength: 12
+        seq_len:
+          type: integer
+          minimum: 3
+          maximum: 10
+        next:
+          type: integer
+          minimum: 1
+        reset:
+          type: string
+          enum: [never, yearly]
+        sample:
+          type: string
+          nullable: true
+    NumberingSettings:
+      type: object
+      required:
+        - rfq
+        - quote
+        - po
+        - invoice
+        - grn
+        - credit
+      properties:
+        rfq:
+          $ref: '#/components/schemas/NumberingRule'
+        quote:
+          $ref: '#/components/schemas/NumberingRule'
+        po:
+          $ref: '#/components/schemas/NumberingRule'
+        invoice:
+          $ref: '#/components/schemas/NumberingRule'
+        grn:
+          $ref: '#/components/schemas/NumberingRule'
+        credit:
+          $ref: '#/components/schemas/NumberingRule'
+paths:
+  /api/settings/company:
+    get:
+      tags:
+        - Settings
+      summary: Retrieve company profile settings
+      operationId: showCompanySettings
+      responses:
+        '200':
+          description: Current company profile settings.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanySettings'
+    patch:
+      tags:
+        - Settings
+      summary: Update company profile settings
+      operationId: updateCompanySettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanySettings'
+      responses:
+        '200':
+          description: Updated company profile settings.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanySettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/settings/localization:
+    get:
+      tags:
+        - Settings
+        - Localization
+      summary: Retrieve localization settings
+      operationId: showLocalizationSettings
+      responses:
+        '200':
+          description: Current localization preferences for the tenant.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationSettings'
+    patch:
+      tags:
+        - Settings
+        - Localization
+      summary: Update localization settings
+      operationId: updateLocalizationSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalizationSettings'
+      responses:
+        '200':
+          description: Updated localization settings.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationSettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/localization/settings:
+    get:
+      tags:
+        - Localization
+      summary: Retrieve localization settings
+      operationId: showCompanyLocalizationSettings
+      responses:
+        '200':
+          description: Current localization preferences for the tenant.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationSettings'
+    put:
+      tags:
+        - Localization
+      summary: Update localization settings
+      operationId: updateCompanyLocalizationSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalizationSettings'
+      responses:
+        '200':
+          description: Updated localization settings.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LocalizationSettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/settings/numbering:
+    get:
+      tags:
+        - Settings
+      summary: Retrieve document numbering rules
+      operationId: showNumberingSettings
+      responses:
+        '200':
+          description: Current numbering configuration for all document types.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/NumberingSettings'
+    patch:
+      tags:
+        - Settings
+      summary: Update document numbering rules
+      operationId: updateNumberingSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NumberingSettings'
+      responses:
+        '200':
+          description: Updated numbering configuration.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/NumberingSettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'

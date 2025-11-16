@@ -13,13 +13,27 @@
  */
 
 import { mapValues } from '../runtime';
-import type { Money } from './Money';
+import type { CreditNotePurchaseOrder } from './CreditNotePurchaseOrder';
 import {
-    MoneyFromJSON,
-    MoneyFromJSONTyped,
-    MoneyToJSON,
-    MoneyToJSONTyped,
-} from './Money';
+    CreditNotePurchaseOrderFromJSON,
+    CreditNotePurchaseOrderFromJSONTyped,
+    CreditNotePurchaseOrderToJSON,
+    CreditNotePurchaseOrderToJSONTyped,
+} from './CreditNotePurchaseOrder';
+import type { CreditNoteLine } from './CreditNoteLine';
+import {
+    CreditNoteLineFromJSON,
+    CreditNoteLineFromJSONTyped,
+    CreditNoteLineToJSON,
+    CreditNoteLineToJSONTyped,
+} from './CreditNoteLine';
+import type { DocumentAttachment } from './DocumentAttachment';
+import {
+    DocumentAttachmentFromJSON,
+    DocumentAttachmentFromJSONTyped,
+    DocumentAttachmentToJSON,
+    DocumentAttachmentToJSONTyped,
+} from './DocumentAttachment';
 import type { CreditNoteInvoice } from './CreditNoteInvoice';
 import {
     CreditNoteInvoiceFromJSON,
@@ -27,6 +41,13 @@ import {
     CreditNoteInvoiceToJSON,
     CreditNoteInvoiceToJSONTyped,
 } from './CreditNoteInvoice';
+import type { CreditNoteGoodsReceiptNote } from './CreditNoteGoodsReceiptNote';
+import {
+    CreditNoteGoodsReceiptNoteFromJSON,
+    CreditNoteGoodsReceiptNoteFromJSONTyped,
+    CreditNoteGoodsReceiptNoteToJSON,
+    CreditNoteGoodsReceiptNoteToJSONTyped,
+} from './CreditNoteGoodsReceiptNote';
 
 /**
  * 
@@ -60,6 +81,12 @@ export interface CreditNote {
     purchaseOrderId?: number;
     /**
      * 
+     * @type {number}
+     * @memberof CreditNote
+     */
+    grnId?: number;
+    /**
+     * 
      * @type {string}
      * @memberof CreditNote
      */
@@ -69,7 +96,19 @@ export interface CreditNote {
      * @type {string}
      * @memberof CreditNote
      */
-    status: CreditNoteStatusEnum;
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreditNote
+     */
+    amount: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreditNote
+     */
+    amountMinor: number;
     /**
      * 
      * @type {string}
@@ -78,16 +117,10 @@ export interface CreditNote {
     reason?: string;
     /**
      * 
-     * @type {Money}
+     * @type {string}
      * @memberof CreditNote
      */
-    total: Money;
-    /**
-     * 
-     * @type {Money}
-     * @memberof CreditNote
-     */
-    balanceRemaining?: Money;
+    status: CreditNoteStatusEnum;
     /**
      * 
      * @type {string}
@@ -111,13 +144,37 @@ export interface CreditNote {
      * @type {Date}
      * @memberof CreditNote
      */
-    issuedAt?: Date;
+    approvedAt?: Date;
     /**
      * 
-     * @type {Date}
+     * @type {Array<DocumentAttachment>}
      * @memberof CreditNote
      */
-    approvedAt?: Date;
+    attachments?: Array<DocumentAttachment>;
+    /**
+     * 
+     * @type {Array<CreditNoteLine>}
+     * @memberof CreditNote
+     */
+    lines?: Array<CreditNoteLine>;
+    /**
+     * 
+     * @type {CreditNoteInvoice}
+     * @memberof CreditNote
+     */
+    invoice?: CreditNoteInvoice;
+    /**
+     * 
+     * @type {CreditNotePurchaseOrder}
+     * @memberof CreditNote
+     */
+    purchaseOrder?: CreditNotePurchaseOrder;
+    /**
+     * 
+     * @type {CreditNoteGoodsReceiptNote}
+     * @memberof CreditNote
+     */
+    goodsReceiptNote?: CreditNoteGoodsReceiptNote;
     /**
      * 
      * @type {Date}
@@ -130,12 +187,6 @@ export interface CreditNote {
      * @memberof CreditNote
      */
     updatedAt?: Date;
-    /**
-     * 
-     * @type {CreditNoteInvoice}
-     * @memberof CreditNote
-     */
-    invoice?: CreditNoteInvoice;
 }
 
 
@@ -160,8 +211,10 @@ export function instanceOfCreditNote(value: object): value is CreditNote {
     if (!('companyId' in value) || value['companyId'] === undefined) return false;
     if (!('invoiceId' in value) || value['invoiceId'] === undefined) return false;
     if (!('creditNumber' in value) || value['creditNumber'] === undefined) return false;
+    if (!('currency' in value) || value['currency'] === undefined) return false;
+    if (!('amount' in value) || value['amount'] === undefined) return false;
+    if (!('amountMinor' in value) || value['amountMinor'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('total' in value) || value['total'] === undefined) return false;
     return true;
 }
 
@@ -179,19 +232,24 @@ export function CreditNoteFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'companyId': json['company_id'],
         'invoiceId': json['invoice_id'],
         'purchaseOrderId': json['purchase_order_id'] == null ? undefined : json['purchase_order_id'],
+        'grnId': json['grn_id'] == null ? undefined : json['grn_id'],
         'creditNumber': json['credit_number'],
-        'status': json['status'],
+        'currency': json['currency'],
+        'amount': json['amount'],
+        'amountMinor': json['amount_minor'],
         'reason': json['reason'] == null ? undefined : json['reason'],
-        'total': MoneyFromJSON(json['total']),
-        'balanceRemaining': json['balance_remaining'] == null ? undefined : MoneyFromJSON(json['balance_remaining']),
+        'status': json['status'],
         'reviewComment': json['review_comment'] == null ? undefined : json['review_comment'],
         'issuedBy': json['issued_by'] == null ? undefined : json['issued_by'],
         'approvedBy': json['approved_by'] == null ? undefined : json['approved_by'],
-        'issuedAt': json['issued_at'] == null ? undefined : (new Date(json['issued_at'])),
         'approvedAt': json['approved_at'] == null ? undefined : (new Date(json['approved_at'])),
+        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(DocumentAttachmentFromJSON)),
+        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(CreditNoteLineFromJSON)),
+        'invoice': json['invoice'] == null ? undefined : CreditNoteInvoiceFromJSON(json['invoice']),
+        'purchaseOrder': json['purchase_order'] == null ? undefined : CreditNotePurchaseOrderFromJSON(json['purchase_order']),
+        'goodsReceiptNote': json['goods_receipt_note'] == null ? undefined : CreditNoteGoodsReceiptNoteFromJSON(json['goods_receipt_note']),
         'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
-        'invoice': json['invoice'] == null ? undefined : CreditNoteInvoiceFromJSON(json['invoice']),
     };
 }
 
@@ -210,19 +268,24 @@ export function CreditNoteToJSONTyped(value?: CreditNote | null, ignoreDiscrimin
         'company_id': value['companyId'],
         'invoice_id': value['invoiceId'],
         'purchase_order_id': value['purchaseOrderId'],
+        'grn_id': value['grnId'],
         'credit_number': value['creditNumber'],
-        'status': value['status'],
+        'currency': value['currency'],
+        'amount': value['amount'],
+        'amount_minor': value['amountMinor'],
         'reason': value['reason'],
-        'total': MoneyToJSON(value['total']),
-        'balance_remaining': MoneyToJSON(value['balanceRemaining']),
+        'status': value['status'],
         'review_comment': value['reviewComment'],
         'issued_by': value['issuedBy'],
         'approved_by': value['approvedBy'],
-        'issued_at': value['issuedAt'] == null ? value['issuedAt'] : value['issuedAt'].toISOString(),
         'approved_at': value['approvedAt'] == null ? value['approvedAt'] : value['approvedAt'].toISOString(),
+        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(DocumentAttachmentToJSON)),
+        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(CreditNoteLineToJSON)),
+        'invoice': CreditNoteInvoiceToJSON(value['invoice']),
+        'purchase_order': CreditNotePurchaseOrderToJSON(value['purchaseOrder']),
+        'goods_receipt_note': CreditNoteGoodsReceiptNoteToJSON(value['goodsReceiptNote']),
         'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
         'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
-        'invoice': CreditNoteInvoiceToJSON(value['invoice']),
     };
 }
 

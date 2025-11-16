@@ -14,9 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useGrns } from '@/hooks/api/receiving/use-grns';
 import type { GoodsReceiptNoteSummary, Supplier } from '@/types/sourcing';
-import { formatDate } from '@/lib/format';
 import { GrnStatusBadge } from '@/components/receiving/grn-status-badge';
 
 const STATUS_FILTERS = [
@@ -36,6 +36,7 @@ type CursorMeta = {
 export function ReceivingListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
+    const { formatDate, formatNumber } = useFormatting();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const receivingEnabled = hasFeature('inventory_enabled');
 
@@ -109,7 +110,7 @@ export function ReceivingListPage() {
             {
                 key: 'linesCount',
                 title: 'Lines',
-                render: (grn) => grn.linesCount ?? '—',
+                render: (grn) => (typeof grn.linesCount === 'number' ? formatNumber(grn.linesCount, { maximumFractionDigits: 0 }) : '—'),
             },
             {
                 key: 'status',
@@ -121,7 +122,7 @@ export function ReceivingListPage() {
                 title: 'Attachments',
                 render: (grn) => (
                     <Badge variant="outline" className="font-mono text-xs">
-                        {grn.attachmentsCount ?? 0}
+                        {formatNumber(grn.attachmentsCount ?? 0, { maximumFractionDigits: 0 })}
                     </Badge>
                 ),
             },
@@ -136,7 +137,7 @@ export function ReceivingListPage() {
                 ),
             },
         ],
-        [],
+        [formatDate, formatNumber],
     );
 
     const handleResetFilters = () => {

@@ -1,9 +1,12 @@
 import { publishToast } from '@/components/ui/use-toast';
-import { AuthApi, type LoginRequest } from '@/sdk/auth-client';
+import { AuthApi, type LoginRequest, type RegisterDocumentPayload } from '@/sdk/auth-client';
 import { HttpError, createConfiguration } from '@/sdk';
 import { useCallback, useEffect, useMemo, useReducer, createContext, useContext, type ReactNode } from 'react';
 
 const STORAGE_KEY = 'esai.auth.state';
+const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
+const ADMIN_ROLES = new Set(['buyer_admin', 'platform_super', 'platform_support']);
+const ADMIN_CONSOLE_FEATURE_KEY = 'admin_console_enabled';
 
 interface AuthenticatedUser {
     id: number;
@@ -20,6 +23,12 @@ interface CompanySummary {
     name: string;
     status?: string;
     plan?: string | null;
+    supplier_status?: string | null;
+    directory_visibility?: string | null;
+    supplier_profile_completed_at?: string | null;
+    is_verified?: boolean;
+    billing_status?: string | null;
+    requires_plan_selection?: boolean;
     [key: string]: unknown;
 }
 
@@ -35,6 +44,7 @@ interface StoredAuthState {
     company?: CompanySummary | null;
     featureFlags?: Record<string, boolean>;
     plan?: string | null;
+    requiresPlanSelection?: boolean;
 }
 
 interface AuthState {
@@ -46,6 +56,7 @@ interface AuthState {
     plan: string | null;
     error: string | null;
     planLimit: PlanLimitNotice | null;
+    requiresPlanSelection: boolean;
 }
 
 interface LoginPayload {
@@ -54,11 +65,30 @@ interface LoginPayload {
     remember?: boolean;
 }
 
+interface RegisterPayload {
+    name: string;
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    companyName: string;
+    companyDomain: string;
+    address?: string | null;
+    phone?: string | null;
+    country?: string | null;
+    registrationNo: string;
+    taxId: string;
+    website: string;
+    companyDocuments: RegisterDocumentPayload[];
+}
+
 interface AuthContextValue {
     state: AuthState;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isAdmin: boolean;
+    canAccessAdminConsole: boolean;
     login: (payload: LoginPayload) => Promise<void>;
+    register: (payload: RegisterPayload) => Promise<void>;
     logout: () => void;
     refresh: () => Promise<void>;
     hasFeature: (key: string) => boolean;
@@ -77,6 +107,7 @@ type AuthAction =
               company?: CompanySummary | null;
               featureFlags?: Record<string, boolean>;
               plan?: string | null;
+              requiresPlanSelection?: boolean;
           };
       }
     | { type: 'LOGIN_FAILURE'; payload: { error: string } }
@@ -88,6 +119,7 @@ type AuthAction =
               company?: CompanySummary | null;
               featureFlags?: Record<string, boolean>;
               plan?: string | null;
+              requiresPlanSelection?: boolean;
           };
       }
     | { type: 'SET_PLAN_LIMIT'; payload: PlanLimitNotice | null };
@@ -103,6 +135,7 @@ const initialState: AuthState = {
     plan: null,
     error: null,
     planLimit: null,
+    requiresPlanSelection: false,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -124,6 +157,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 featureFlags,
                 plan: action.payload.plan ?? state.plan ?? null,
                 error: null,
+                requiresPlanSelection: action.payload.requiresPlanSelection ?? false,
             };
         }
         case 'LOGIN_FAILURE':
@@ -136,6 +170,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 featureFlags: {},
                 plan: null,
                 error: action.payload.error,
+                requiresPlanSelection: false,
             };
         case 'LOGOUT':
             return {
@@ -149,6 +184,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 company: action.payload.company ?? state.company,
                 featureFlags: action.payload.featureFlags ?? state.featureFlags,
                 plan: action.payload.plan ?? state.plan,
+                requiresPlanSelection:
+                    action.payload.requiresPlanSelection ?? state.requiresPlanSelection,
             };
         case 'SET_PLAN_LIMIT':
             return {
@@ -185,6 +222,7 @@ function readStoredState(): AuthState {
             plan: parsed.plan ?? null,
             error: null,
             planLimit: null,
+            requiresPlanSelection: parsed.requiresPlanSelection ?? false,
         };
     } catch (error) {
         console.error('Failed to parse stored auth state', error);
@@ -204,6 +242,7 @@ function writeStateToStorage(state: AuthState) {
             company: state.company ?? undefined,
             featureFlags: state.featureFlags,
             plan: state.plan ?? undefined,
+            requiresPlanSelection: state.requiresPlanSelection,
         };
 
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -268,8 +307,11 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
     const rawFlags = data.feature_flags ?? data.features;
     const featureFlags = normalizeFeatureFlags(rawFlags);
     const plan = (data.plan ?? company?.plan ?? null) as string | null;
+    const requiresPlanSelection = Boolean(
+        (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
+    );
 
-    return { token, user, company, featureFlags, plan };
+    return { token, user, company, featureFlags, plan, requiresPlanSelection };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -338,7 +380,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 };
 
                 const envelope = (await authClient.login(request)) as Record<string, unknown>;
-                const { token, user, company, featureFlags, plan } = normalizeAuthResponse(envelope);
+                const { token, user, company, featureFlags, plan, requiresPlanSelection } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
                     dispatch({
@@ -361,6 +403,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         company: company ?? null,
                         featureFlags,
                         plan: plan ?? null,
+                        requiresPlanSelection,
                     },
                 });
 
@@ -397,6 +440,116 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [authClient],
     );
 
+    const register = useCallback(
+        async ({
+            name,
+            email,
+            password,
+            passwordConfirmation,
+            companyName,
+            companyDomain,
+            address,
+            phone,
+            country,
+            registrationNo,
+            taxId,
+            website,
+            companyDocuments,
+        }: RegisterPayload) => {
+            dispatch({ type: 'LOGIN_REQUEST' });
+
+            try {
+                const normalizedDomain = companyDomain.trim().toLowerCase();
+                const normalizedCountry = country ? country.trim().toUpperCase() : undefined;
+                const formData = new FormData();
+                formData.append('name', name.trim());
+                formData.append('email', email.trim());
+                formData.append('password', password);
+                formData.append('password_confirmation', passwordConfirmation);
+                formData.append('company_name', companyName.trim());
+                formData.append('company_domain', normalizedDomain);
+                formData.append('registration_no', registrationNo.trim());
+                formData.append('tax_id', taxId.trim());
+                formData.append('website', website.trim());
+
+                if (address?.trim()) {
+                    formData.append('address', address.trim());
+                }
+
+                if (phone?.trim()) {
+                    formData.append('phone', phone.trim());
+                }
+
+                if (normalizedCountry) {
+                    formData.append('country', normalizedCountry);
+                }
+
+                companyDocuments.forEach((document, index) => {
+                    formData.append(`company_documents[${index}][type]`, document.type);
+                    formData.append(`company_documents[${index}][file]`, document.file);
+                });
+
+                const envelope = (await authClient.register(formData)) as Record<string, unknown>;
+                const { token, user, company, featureFlags, plan, requiresPlanSelection } = normalizeAuthResponse(envelope);
+
+                if (!token || !user) {
+                    dispatch({
+                        type: 'LOGIN_FAILURE',
+                        payload: { error: 'Registration response missing token or user.' },
+                    });
+                    publishToast({
+                        variant: 'destructive',
+                        title: 'Unexpected response',
+                        description: 'Registration response missing token or user.',
+                    });
+                    throw new Error('Registration response missing token or user.');
+                }
+
+                dispatch({
+                    type: 'LOGIN_SUCCESS',
+                    payload: {
+                        token,
+                        user,
+                        company: company ?? null,
+                        featureFlags,
+                        plan: plan ?? null,
+                        requiresPlanSelection,
+                    },
+                });
+
+                publishToast({
+                    variant: 'success',
+                    title: 'Workspace created',
+                    description: `Welcome to Elements Supply, ${user.name ?? user.email}`,
+                });
+            } catch (error) {
+                let message = 'Unable to complete registration at this time.';
+
+                if (error instanceof HttpError) {
+                    const body = error.body as Record<string, unknown> | undefined;
+                    if (body && typeof body.message === 'string' && body.message.length > 0) {
+                        message = body.message;
+                    }
+                } else if (error instanceof Error && error.message) {
+                    message = error.message;
+                }
+
+                dispatch({ type: 'LOGIN_FAILURE', payload: { error: message } });
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Registration failed',
+                    description: message,
+                });
+
+                if (error instanceof Error) {
+                    throw error;
+                }
+                throw new Error('Unable to register.');
+            }
+        },
+        [authClient],
+    );
+
     const refresh = useCallback(async () => {
         if (!state.token) {
             return;
@@ -408,6 +561,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const company = (data.company ?? data.tenant ?? null) as CompanySummary | null;
             const featureFlags = normalizeFeatureFlags(data.feature_flags ?? data.features);
             const plan = (data.plan ?? company?.plan ?? null) as string | null;
+            const requiresPlanSelection = Boolean(
+                (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
+            );
 
             dispatch({
                 type: 'SET_IDENTITIES',
@@ -416,6 +572,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     company: company ?? undefined,
                     featureFlags,
                     plan,
+                    requiresPlanSelection,
                 },
             });
         } catch (error) {
@@ -427,12 +584,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [authClient, logout, state.token]);
 
+    const userRole = state.user?.role ?? null;
+
+    const isAdmin = useMemo(() => {
+        const role = userRole;
+        if (!role) {
+            return false;
+        }
+        return ADMIN_ROLES.has(role);
+    }, [userRole]);
+
+    const canAccessAdminConsole = useMemo(() => {
+        const role = userRole;
+        if (!role) {
+            return false;
+        }
+
+        if (PLATFORM_ROLES.has(role)) {
+            return true;
+        }
+
+        return isAdmin && state.featureFlags[ADMIN_CONSOLE_FEATURE_KEY] === true;
+    }, [isAdmin, state.featureFlags, userRole]);
+
     const value = useMemo<AuthContextValue>(
         () => ({
             state,
             isAuthenticated: state.status === 'authenticated' && Boolean(state.token),
             isLoading: state.status === 'loading',
+            isAdmin,
+            canAccessAdminConsole,
             login,
+            register,
             logout,
             refresh,
             hasFeature,
@@ -440,7 +623,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             notifyPlanLimit,
             clearPlanLimit,
         }),
-        [state, login, logout, refresh, hasFeature, getAccessToken, notifyPlanLimit, clearPlanLimit],
+        [
+            state,
+            isAdmin,
+            canAccessAdminConsole,
+            login,
+            register,
+            logout,
+            refresh,
+            hasFeature,
+            getAccessToken,
+            notifyPlanLimit,
+            clearPlanLimit,
+        ],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

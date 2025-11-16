@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useInvoice } from '@/hooks/api/invoices/use-invoice';
 import { useAttachInvoiceFile } from '@/hooks/api/invoices/use-attach-invoice-file';
 import type { DocumentAttachment, InvoiceDetail } from '@/types/sourcing';
-import { formatDate } from '@/lib/format';
+import { useFormatting } from '@/contexts/formatting-context';
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
     draft: 'secondary',
@@ -30,6 +30,7 @@ const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'des
 };
 
 export function InvoiceDetailPage() {
+    const { formatDate, formatNumber } = useFormatting();
     const params = useParams<{ invoiceId?: string }>();
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
@@ -251,7 +252,9 @@ export function InvoiceDetailPage() {
                                         <tr key={line.id} className="border-t border-border/60">
                                             <td className="py-3 pr-4 font-medium text-foreground">{line.description}</td>
                                             <td className="py-3 pr-4 text-muted-foreground">#{line.poLineId}</td>
-                                            <td className="py-3 pr-4 text-right">{line.quantity.toLocaleString()}</td>
+                                            <td className="py-3 pr-4 text-right">
+                                                {formatNumber(line.quantity, { maximumFractionDigits: 3 })}
+                                            </td>
                                             <td className="py-3 pr-4 text-right">
                                                 <MoneyCell
                                                     amountMinor={line.unitPriceMinor ?? Math.round(line.unitPrice * 100)}

@@ -33,6 +33,30 @@ export interface RfqLinePayload {
     spec?: string;
     /**
      * 
+     * @type {string}
+     * @memberof RfqLinePayload
+     */
+    method: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqLinePayload
+     */
+    material: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqLinePayload
+     */
+    tolerance?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RfqLinePayload
+     */
+    finish?: string;
+    /**
+     * 
      * @type {number}
      * @memberof RfqLinePayload
      */
@@ -68,6 +92,8 @@ export interface RfqLinePayload {
  */
 export function instanceOfRfqLinePayload(value: object): value is RfqLinePayload {
     if (!('partName' in value) || value['partName'] === undefined) return false;
+    if (!('method' in value) || value['method'] === undefined) return false;
+    if (!('material' in value) || value['material'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
 }
@@ -84,6 +110,10 @@ export function RfqLinePayloadFromJSONTyped(json: any, ignoreDiscriminator: bool
         
         'partName': json['part_name'],
         'spec': json['spec'] == null ? undefined : json['spec'],
+        'method': json['method'],
+        'material': json['material'],
+        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
+        'finish': json['finish'] == null ? undefined : json['finish'],
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
@@ -105,6 +135,10 @@ export function RfqLinePayloadToJSONTyped(value?: RfqLinePayload | null, ignoreD
         
         'part_name': value['partName'],
         'spec': value['spec'],
+        'method': value['method'],
+        'material': value['material'],
+        'tolerance': value['tolerance'],
+        'finish': value['finish'],
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],

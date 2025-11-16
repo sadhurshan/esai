@@ -12,17 +12,18 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**downloadPurchaseOrderDocument**](PurchaseOrdersApi.md#downloadpurchaseorderdocument) | **GET** /api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download | Download purchase order PDF |
 | [**exportPurchaseOrder**](PurchaseOrdersApi.md#exportpurchaseorder) | **POST** /api/purchase-orders/{purchaseOrderId}/export | Generate PDF for purchase order |
 | [**listPurchaseOrderChangeOrders**](PurchaseOrdersApi.md#listpurchaseorderchangeorders) | **GET** /api/purchase-orders/{purchaseOrderId}/change-orders | List change orders for purchase order |
+| [**listPurchaseOrderEvents**](PurchaseOrdersApi.md#listpurchaseorderevents) | **GET** /api/purchase-orders/{purchaseOrderId}/events | List purchase order timeline events |
 | [**listPurchaseOrderShipments**](PurchaseOrdersApi.md#listpurchaseordershipments) | **GET** /api/purchase-orders/{purchaseOrderId}/shipments | List shipments linked to purchase order |
 | [**listPurchaseOrders**](PurchaseOrdersApi.md#listpurchaseorders) | **GET** /api/purchase-orders | List purchase orders |
 | [**rejectPurchaseOrderChangeOrder**](PurchaseOrdersApi.md#rejectpurchaseorderchangeorder) | **PUT** /api/change-orders/{changeOrderId}/reject | Reject change order |
-| [**sendPurchaseOrder**](PurchaseOrdersApi.md#sendpurchaseorder) | **POST** /api/purchase-orders/{purchaseOrderId}/send | Issue purchase order to supplier |
+| [**sendPurchaseOrder**](PurchaseOrdersApi.md#sendpurchaseorderoperation) | **POST** /api/purchase-orders/{purchaseOrderId}/send | Issue purchase order to supplier |
 | [**showPurchaseOrder**](PurchaseOrdersApi.md#showpurchaseorder) | **GET** /api/purchase-orders/{purchaseOrderId} | Retrieve purchase order |
 
 
 
 ## acknowledgePurchaseOrder
 
-> ApiSuccessResponse acknowledgePurchaseOrder(purchaseOrderId, acknowledgePurchaseOrderRequest)
+> ShowPurchaseOrder200Response acknowledgePurchaseOrder(purchaseOrderId, acknowledgePurchaseOrderRequest)
 
 Supplier acknowledges purchase order
 
@@ -74,7 +75,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**ApiSuccessResponse**](ApiSuccessResponse.md)
+[**ShowPurchaseOrder200Response**](ShowPurchaseOrder200Response.md)
 
 ### Authorization
 
@@ -603,6 +604,77 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## listPurchaseOrderEvents
+
+> ListPurchaseOrderEvents200Response listPurchaseOrderEvents(purchaseOrderId)
+
+List purchase order timeline events
+
+### Example
+
+```ts
+import {
+  Configuration,
+  PurchaseOrdersApi,
+} from '';
+import type { ListPurchaseOrderEventsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new PurchaseOrdersApi(config);
+
+  const body = {
+    // number
+    purchaseOrderId: 56,
+  } satisfies ListPurchaseOrderEventsRequest;
+
+  try {
+    const data = await api.listPurchaseOrderEvents(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ListPurchaseOrderEvents200Response**](ListPurchaseOrderEvents200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Timeline entries for the purchase order. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## listPurchaseOrderShipments
 
 > ApiSuccessResponse listPurchaseOrderShipments(purchaseOrderId)
@@ -827,7 +899,7 @@ example().catch(console.error);
 
 ## sendPurchaseOrder
 
-> ApiSuccessResponse sendPurchaseOrder(purchaseOrderId)
+> SendPurchaseOrder200Response sendPurchaseOrder(purchaseOrderId, sendPurchaseOrderRequest)
 
 Issue purchase order to supplier
 
@@ -838,7 +910,7 @@ import {
   Configuration,
   PurchaseOrdersApi,
 } from '';
-import type { SendPurchaseOrderRequest } from '';
+import type { SendPurchaseOrderOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
@@ -853,7 +925,9 @@ async function example() {
   const body = {
     // number
     purchaseOrderId: 56,
-  } satisfies SendPurchaseOrderRequest;
+    // SendPurchaseOrderRequest
+    sendPurchaseOrderRequest: ...,
+  } satisfies SendPurchaseOrderOperationRequest;
 
   try {
     const data = await api.sendPurchaseOrder(body);
@@ -873,10 +947,11 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **purchaseOrderId** | `number` |  | [Defaults to `undefined`] |
+| **sendPurchaseOrderRequest** | [SendPurchaseOrderRequest](SendPurchaseOrderRequest.md) |  | |
 
 ### Return type
 
-[**ApiSuccessResponse**](ApiSuccessResponse.md)
+[**SendPurchaseOrder200Response**](SendPurchaseOrder200Response.md)
 
 ### Authorization
 
@@ -884,7 +959,7 @@ example().catch(console.error);
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
 

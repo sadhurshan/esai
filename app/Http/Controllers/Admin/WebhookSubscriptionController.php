@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreWebhookSubscriptionRequest;
 use App\Http\Requests\Admin\UpdateWebhookSubscriptionRequest;
+use App\Http\Requests\Admin\TestWebhookSubscriptionRequest;
 use App\Http\Resources\Admin\WebhookSubscriptionResource;
 use App\Models\WebhookSubscription;
 use App\Services\Admin\WebhookService;
@@ -83,6 +84,19 @@ class WebhookSubscriptionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Webhook subscription deleted.',
+            'data' => null,
+        ]);
+    }
+
+    public function test(TestWebhookSubscriptionRequest $request, WebhookSubscription $webhookSubscription): JsonResponse
+    {
+        $payload = $request->validated();
+
+        $this->service->sendTestEvent($webhookSubscription, $payload['event'], $payload['payload'] ?? []);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Webhook test event queued.',
             'data' => null,
         ]);
     }

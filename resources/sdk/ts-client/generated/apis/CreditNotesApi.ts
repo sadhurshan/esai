@@ -17,23 +17,34 @@ import * as runtime from '../runtime';
 import type {
   ApiSuccessResponse,
   ApproveCreditNoteRequest,
+  AttachCreditNoteFile200Response,
   ListCreditNotes200Response,
   ShowCreditNote200Response,
+  UpdateCreditNoteLinesRequest,
 } from '../models/index';
 import {
     ApiSuccessResponseFromJSON,
     ApiSuccessResponseToJSON,
     ApproveCreditNoteRequestFromJSON,
     ApproveCreditNoteRequestToJSON,
+    AttachCreditNoteFile200ResponseFromJSON,
+    AttachCreditNoteFile200ResponseToJSON,
     ListCreditNotes200ResponseFromJSON,
     ListCreditNotes200ResponseToJSON,
     ShowCreditNote200ResponseFromJSON,
     ShowCreditNote200ResponseToJSON,
+    UpdateCreditNoteLinesRequestFromJSON,
+    UpdateCreditNoteLinesRequestToJSON,
 } from '../models/index';
 
 export interface ApproveCreditNoteOperationRequest {
     creditNoteId: string;
     approveCreditNoteRequest: ApproveCreditNoteRequest;
+}
+
+export interface AttachCreditNoteFileRequest {
+    creditNoteId: string;
+    file: Blob;
 }
 
 export interface CreateCreditNoteRequest {
@@ -60,6 +71,11 @@ export interface ShowCreditNoteRequest {
     creditNoteId: string;
 }
 
+export interface UpdateCreditNoteLinesOperationRequest {
+    creditNoteId: string;
+    updateCreditNoteLinesRequest: UpdateCreditNoteLinesRequest;
+}
+
 /**
  * CreditNotesApi - interface
  * 
@@ -82,6 +98,22 @@ export interface CreditNotesApiInterface {
      * Approve or reject credit note
      */
     approveCreditNote(requestParameters: ApproveCreditNoteOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * 
+     * @summary Upload attachment for credit note
+     * @param {string} creditNoteId 
+     * @param {Blob} file 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CreditNotesApiInterface
+     */
+    attachCreditNoteFileRaw(requestParameters: AttachCreditNoteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AttachCreditNoteFile200Response>>;
+
+    /**
+     * Upload attachment for credit note
+     */
+    attachCreditNoteFile(requestParameters: AttachCreditNoteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AttachCreditNoteFile200Response>;
 
     /**
      * 
@@ -151,6 +183,22 @@ export interface CreditNotesApiInterface {
      */
     showCreditNote(requestParameters: ShowCreditNoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCreditNote200Response>;
 
+    /**
+     * 
+     * @summary Update credit note lines
+     * @param {string} creditNoteId 
+     * @param {UpdateCreditNoteLinesRequest} updateCreditNoteLinesRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CreditNotesApiInterface
+     */
+    updateCreditNoteLinesRaw(requestParameters: UpdateCreditNoteLinesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCreditNote200Response>>;
+
+    /**
+     * Update credit note lines
+     */
+    updateCreditNoteLines(requestParameters: UpdateCreditNoteLinesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCreditNote200Response>;
+
 }
 
 /**
@@ -214,6 +262,83 @@ export class CreditNotesApi extends runtime.BaseAPI implements CreditNotesApiInt
      */
     async approveCreditNote(requestParameters: ApproveCreditNoteOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.approveCreditNoteRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Upload attachment for credit note
+     */
+    async attachCreditNoteFileRaw(requestParameters: AttachCreditNoteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AttachCreditNoteFile200Response>> {
+        if (requestParameters['creditNoteId'] == null) {
+            throw new runtime.RequiredError(
+                'creditNoteId',
+                'Required parameter "creditNoteId" was null or undefined when calling attachCreditNoteFile().'
+            );
+        }
+
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling attachCreditNoteFile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
+
+        let urlPath = `/api/credit-notes/{creditNoteId}/attachments`;
+        urlPath = urlPath.replace(`{${"creditNoteId"}}`, encodeURIComponent(String(requestParameters['creditNoteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AttachCreditNoteFile200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Upload attachment for credit note
+     */
+    async attachCreditNoteFile(requestParameters: AttachCreditNoteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AttachCreditNoteFile200Response> {
+        const response = await this.attachCreditNoteFileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -471,6 +596,65 @@ export class CreditNotesApi extends runtime.BaseAPI implements CreditNotesApiInt
      */
     async showCreditNote(requestParameters: ShowCreditNoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCreditNote200Response> {
         const response = await this.showCreditNoteRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update credit note lines
+     */
+    async updateCreditNoteLinesRaw(requestParameters: UpdateCreditNoteLinesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCreditNote200Response>> {
+        if (requestParameters['creditNoteId'] == null) {
+            throw new runtime.RequiredError(
+                'creditNoteId',
+                'Required parameter "creditNoteId" was null or undefined when calling updateCreditNoteLines().'
+            );
+        }
+
+        if (requestParameters['updateCreditNoteLinesRequest'] == null) {
+            throw new runtime.RequiredError(
+                'updateCreditNoteLinesRequest',
+                'Required parameter "updateCreditNoteLinesRequest" was null or undefined when calling updateCreditNoteLines().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/api/credit-notes/{creditNoteId}/lines`;
+        urlPath = urlPath.replace(`{${"creditNoteId"}}`, encodeURIComponent(String(requestParameters['creditNoteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateCreditNoteLinesRequestToJSON(requestParameters['updateCreditNoteLinesRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ShowCreditNote200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update credit note lines
+     */
+    async updateCreditNoteLines(requestParameters: UpdateCreditNoteLinesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCreditNote200Response> {
+        const response = await this.updateCreditNoteLinesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

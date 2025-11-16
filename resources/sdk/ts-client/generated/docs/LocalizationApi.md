@@ -10,8 +10,8 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**deleteUom**](LocalizationApi.md#deleteuom) | **DELETE** /api/localization/uoms/{uomCode} | Delete unit of measure |
 | [**listUomConversions**](LocalizationApi.md#listuomconversions) | **GET** /api/localization/uoms/conversions | List unit conversions |
 | [**listUoms**](LocalizationApi.md#listuoms) | **GET** /api/localization/uoms | List units of measure |
-| [**showLocaleSettings**](LocalizationApi.md#showlocalesettings) | **GET** /api/localization/settings | Retrieve locale settings |
-| [**updateLocaleSettings**](LocalizationApi.md#updatelocalesettings) | **PUT** /api/localization/settings | Update locale settings |
+| [**showLocalizationSettings**](LocalizationApi.md#showlocalizationsettings) | **GET** /api/settings/localization | Retrieve localization settings |
+| [**updateLocalizationSettings**](LocalizationApi.md#updatelocalizationsettings) | **PATCH** /api/settings/localization | Update localization settings |
 | [**updateUom**](LocalizationApi.md#updateuom) | **PUT** /api/localization/uoms/{uomCode} | Update unit of measure |
 | [**upsertUomConversion**](LocalizationApi.md#upsertuomconversionoperation) | **POST** /api/localization/uoms/conversions | Upsert unit conversion |
 
@@ -458,11 +458,11 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## showLocaleSettings
+## showLocalizationSettings
 
-> ShowLocaleSettings200Response showLocaleSettings()
+> ShowLocalizationSettings200Response showLocalizationSettings()
 
-Retrieve locale settings
+Retrieve localization settings
 
 ### Example
 
@@ -471,7 +471,7 @@ import {
   Configuration,
   LocalizationApi,
 } from '';
-import type { ShowLocaleSettingsRequest } from '';
+import type { ShowLocalizationSettingsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
@@ -484,7 +484,7 @@ async function example() {
   const api = new LocalizationApi(config);
 
   try {
-    const data = await api.showLocaleSettings();
+    const data = await api.showLocalizationSettings();
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -501,7 +501,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**ShowLocaleSettings200Response**](ShowLocaleSettings200Response.md)
+[**ShowLocalizationSettings200Response**](ShowLocalizationSettings200Response.md)
 
 ### Authorization
 
@@ -516,16 +516,16 @@ This endpoint does not need any parameter.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Current locale configuration for the company. |  -  |
+| **200** | Current localization preferences for the tenant. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
-## updateLocaleSettings
+## updateLocalizationSettings
 
-> ApiSuccessResponse updateLocaleSettings(localeSetting)
+> ShowLocalizationSettings200Response updateLocalizationSettings(localizationSettings)
 
-Update locale settings
+Update localization settings
 
 ### Example
 
@@ -534,7 +534,7 @@ import {
   Configuration,
   LocalizationApi,
 } from '';
-import type { UpdateLocaleSettingsRequest } from '';
+import type { UpdateLocalizationSettingsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
@@ -547,12 +547,12 @@ async function example() {
   const api = new LocalizationApi(config);
 
   const body = {
-    // LocaleSetting
-    localeSetting: ...,
-  } satisfies UpdateLocaleSettingsRequest;
+    // LocalizationSettings
+    localizationSettings: ...,
+  } satisfies UpdateLocalizationSettingsRequest;
 
   try {
-    const data = await api.updateLocaleSettings(body);
+    const data = await api.updateLocalizationSettings(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -568,11 +568,11 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **localeSetting** | [LocaleSetting](LocaleSetting.md) |  | |
+| **localizationSettings** | [LocalizationSettings](LocalizationSettings.md) |  | |
 
 ### Return type
 
-[**ApiSuccessResponse**](ApiSuccessResponse.md)
+[**ShowLocalizationSettings200Response**](ShowLocalizationSettings200Response.md)
 
 ### Authorization
 
@@ -587,7 +587,8 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Locale settings updated. |  -  |
+| **200** | Updated localization settings. |  -  |
+| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

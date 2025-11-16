@@ -1,3 +1,8 @@
+## 2025-11-16 11:20
+- Added the Community (free) plan to the billing seeder and exposed a public `/api/plans` catalog plus authenticated `/api/company/plan-selection` endpoint backed by a reusable `AssignCompanyPlanAction`.
+- Updated auth responses, middleware, and company billing helpers so free plans count as active while past-due customers are redirected to the new React plan selection flow.
+- Implemented the `/app/setup/plan` onboarding page, router guard, and storage-aware auth context flags so new or lapsed tenants must pick a plan before accessing the main application, along with Pest coverage for the middleware and selection API.
+
 ## 2025-11-15 09:10
 - Extended `docs/openapi/fragments/quotes.yaml` to cover quote detail, supplier listing, draft submission, and line-level CRUD endpoints so the frontend SDK can call the new Laravel APIs.
 - Added `QuoteLineRequest`/`QuoteLineUpdateRequest` schemas plus richer `Quote`/`QuoteItem` payloads that include totals, lead times, attachments, and taxes to mirror the backend resources.

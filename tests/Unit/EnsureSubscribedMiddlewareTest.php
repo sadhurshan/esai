@@ -51,6 +51,64 @@ test('middleware allows request when within limits and active', function (): voi
     expect($response->getContent())->toBe('ok');
 });
 
+test('middleware allows community plan without subscription', function (): void {
+
+    $plan = Plan::factory()->create([
+        'code' => 'community',
+        'price_usd' => 0,
+        'rfqs_per_month' => 3,
+        'users_max' => 3,
+        'storage_gb' => 1,
+    ]);
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+        'rfqs_monthly_used' => 1,
+        'storage_used_mb' => 100,
+    ]);
+
+    $user = User::factory()->for($company)->create();
+
+    $request = Request::create('/api/rfqs', 'POST');
+    $request->setUserResolver(static fn () => $user);
+
+    $middleware = new EnsureSubscribed();
+
+    $response = $middleware->handle($request, static fn () => new Response('ok'));
+
+    expect($response->getContent())->toBe('ok');
+});
+
+test('middleware allows complimentary plan with null price', function (): void {
+
+    $plan = Plan::factory()->create([
+        'code' => 'starter-free',
+        'price_usd' => null,
+        'rfqs_per_month' => 5,
+        'users_max' => 5,
+        'storage_gb' => 1,
+    ]);
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+        'rfqs_monthly_used' => 1,
+        'storage_used_mb' => 100,
+    ]);
+
+    $user = User::factory()->for($company)->create();
+
+    $request = Request::create('/api/rfqs', 'POST');
+    $request->setUserResolver(static fn () => $user);
+
+    $middleware = new EnsureSubscribed();
+
+    $response = $middleware->handle($request, static fn () => new Response('ok'));
+
+    expect($response->getContent())->toBe('ok');
+});
+
 test('middleware blocks when rfq limit exceeded', function (): void {
 
     $plan = Plan::factory()->create([

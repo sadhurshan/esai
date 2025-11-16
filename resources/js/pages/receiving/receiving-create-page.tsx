@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { PackageSearch, PackagePlus, Send } from 'lucide-react';
 
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
@@ -23,11 +24,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useCreateGrn } from '@/hooks/api/receiving/use-create-grn';
 import { usePurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 import { usePurchaseOrders } from '@/hooks/api/usePurchaseOrders';
 import type { PurchaseOrderDetail, PurchaseOrderLine, PurchaseOrderSummary } from '@/types/sourcing';
-import { formatDate } from '@/lib/format';
 
 const MAX_REFERENCE_LEN = 60;
 const MAX_NOTE_LEN = 500;
@@ -239,6 +240,8 @@ export function ReceivingCreatePage() {
                 </Button>
             </div>
 
+            <DocumentNumberPreview docType="grn" className="max-w-md" />
+
             {mutationError ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to save GRN</AlertTitle>
@@ -391,26 +394,6 @@ function mapPoLine(line: PurchaseOrderLine): GrnLineFormValue {
     };
 }
 
-function formatCurrencyMinor(amountMinor?: number | null, currency?: string | null): string {
-    if (!currency) {
-        return 'Total unavailable';
-    }
-
-    const major = typeof amountMinor === 'number' ? amountMinor / 100 : 0;
-
-    try {
-        return new Intl.NumberFormat(undefined, {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(major);
-    } catch (error) {
-        void error;
-        return `${major.toFixed(2)} ${currency}`;
-    }
-}
-
 interface PurchaseOrderPickerDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -429,6 +412,7 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 }
 
 function PurchaseOrderPickerDialog({ open, onOpenChange, onSelect }: PurchaseOrderPickerDialogProps) {
+    const { formatDate, formatMoney } = useFormatting();
     const [search, setSearch] = useState('');
     const debouncedSearch = useDebouncedValue(search);
 
@@ -474,27 +458,31 @@ function PurchaseOrderPickerDialog({ open, onOpenChange, onSelect }: PurchaseOrd
                     ) : null}
 
                     <div className="grid gap-3">
-                        {items.map((po) => (
-                            <div key={po.id} className="rounded-md border border-border/60 p-4">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                        <p className="text-sm font-semibold text-foreground">PO #{po.poNumber}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {po.supplierName ?? 'Unnamed supplier'} • {formatDate(po.createdAt)}
-                                        </p>
+                        {items.map((po) => {
+                            const totalDisplay = po.currency
+                                ? `${formatMoney((po.totalMinor ?? 0) / 100, { currency: po.currency })} total`
+                                : 'Total unavailable';
+
+                            return (
+                                <div key={po.id} className="rounded-md border border-border/60 p-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-sm font-semibold text-foreground">PO #{po.poNumber}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {po.supplierName ?? 'Unnamed supplier'} • {formatDate(po.createdAt)}
+                                            </p>
+                                        </div>
+                                        <PoStatusBadge status={po.status} />
                                     </div>
-                                    <PoStatusBadge status={po.status} />
-                                </div>
-                                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                                    <div className="text-sm text-muted-foreground">
-                                        {formatCurrencyMinor(po.totalMinor, po.currency)} total
+                                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                                        <div className="text-sm text-muted-foreground">{totalDisplay}</div>
+                                        <Button type="button" size="sm" onClick={() => onSelect(po)}>
+                                            Use PO
+                                        </Button>
                                     </div>
-                                    <Button type="button" size="sm" onClick={() => onSelect(po)}>
-                                        Use PO
-                                    </Button>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </DialogContent>

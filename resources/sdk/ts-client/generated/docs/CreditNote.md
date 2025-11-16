@@ -10,19 +10,24 @@ Name | Type
 `companyId` | number
 `invoiceId` | number
 `purchaseOrderId` | number
+`grnId` | number
 `creditNumber` | string
-`status` | string
+`currency` | string
+`amount` | string
+`amountMinor` | number
 `reason` | string
-`total` | [Money](Money.md)
-`balanceRemaining` | [Money](Money.md)
+`status` | string
 `reviewComment` | string
 `issuedBy` | number
 `approvedBy` | number
-`issuedAt` | Date
 `approvedAt` | Date
+`attachments` | [Array&lt;DocumentAttachment&gt;](DocumentAttachment.md)
+`lines` | [Array&lt;CreditNoteLine&gt;](CreditNoteLine.md)
+`invoice` | [CreditNoteInvoice](CreditNoteInvoice.md)
+`purchaseOrder` | [CreditNotePurchaseOrder](CreditNotePurchaseOrder.md)
+`goodsReceiptNote` | [CreditNoteGoodsReceiptNote](CreditNoteGoodsReceiptNote.md)
 `createdAt` | Date
 `updatedAt` | Date
-`invoice` | [CreditNoteInvoice](CreditNoteInvoice.md)
 
 ## Example
 
@@ -35,19 +40,24 @@ const example = {
   "companyId": null,
   "invoiceId": null,
   "purchaseOrderId": null,
+  "grnId": null,
   "creditNumber": null,
-  "status": null,
+  "currency": null,
+  "amount": null,
+  "amountMinor": null,
   "reason": null,
-  "total": null,
-  "balanceRemaining": null,
+  "status": null,
   "reviewComment": null,
   "issuedBy": null,
   "approvedBy": null,
-  "issuedAt": null,
   "approvedAt": null,
+  "attachments": null,
+  "lines": null,
+  "invoice": null,
+  "purchaseOrder": null,
+  "goodsReceiptNote": null,
   "createdAt": null,
   "updatedAt": null,
-  "invoice": null,
 } satisfies CreditNote
 
 console.log(example)

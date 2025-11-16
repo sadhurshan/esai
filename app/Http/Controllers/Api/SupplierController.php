@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\CompanySupplierStatus;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,8 @@ class SupplierController extends ApiController
     {
         try {
             $query = Supplier::query()
+                ->with(['company.profile'])
+                ->withCount($this->certificateCountAggregates())
                 ->select('suppliers.*')
                 ->join('companies', 'companies.id', '=', 'suppliers.company_id')
                 ->where('companies.supplier_status', CompanySupplierStatus::Approved->value)
@@ -107,6 +110,13 @@ class SupplierController extends ApiController
     {
         try {
             $supplier = Supplier::query()
+                ->with([
+                    'company.profile',
+                    'documents' => function ($documentQuery): void {
+                        $documentQuery->orderBy('expires_at')->orderBy('type');
+                    },
+                ])
+                ->withCount($this->certificateCountAggregates())
                 ->whereKey($supplierId)
                 ->whereHas('company', function ($companyQuery): void {
                     $companyQuery
@@ -126,5 +136,17 @@ class SupplierController extends ApiController
 
             return $this->fail('Server error', 500);
         }
+    }
+
+    /**
+     * @return array<string, callable>
+     */
+    private function certificateCountAggregates(): array
+    {
+        return [
+            'documents as valid_certificates_count' => static fn (Builder $query): Builder => $query->where('status', 'valid'),
+            'documents as expiring_certificates_count' => static fn (Builder $query): Builder => $query->where('status', 'expiring'),
+            'documents as expired_certificates_count' => static fn (Builder $query): Builder => $query->where('status', 'expired'),
+        ];
     }
 }

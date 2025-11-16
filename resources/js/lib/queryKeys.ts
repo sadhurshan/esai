@@ -18,6 +18,7 @@ export const queryKeys = {
     },
     suppliers: {
         list: (params?: Record<string, unknown>) => ['suppliers', 'list', params ?? {}] as const,
+        detail: (id: string | number) => ['suppliers', 'detail', String(id)] as const,
     },
     rfqs: {
         root: () => ['rfqs'] as const,
@@ -38,6 +39,11 @@ export const queryKeys = {
         settings: () => ['localization', 'settings'] as const,
         convert: (params: { from: string; to: string }) => ['localization', 'convert', params] as const,
         uoms: (dimension?: string | null) => ['localization', 'uoms', dimension ?? 'all'] as const,
+    },
+    settings: {
+        company: () => ['settings', 'company'] as const,
+        localization: () => ['settings', 'localization'] as const,
+        numbering: () => ['settings', 'numbering'] as const,
     },
     orders: {
         list: (params?: Record<string, unknown>) => ['orders', 'list', params ?? {}] as const,
@@ -80,7 +86,18 @@ export const queryKeys = {
         lowStock: (params?: Record<string, unknown>) => ['inventory', 'low-stock', params ?? {}] as const,
     },
     admin: {
+        companyApprovals: () => ['admin', 'company-approvals'] as const,
+        analyticsOverview: () => ['admin', 'analytics', 'overview'] as const,
         companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
+        plans: () => ['admin', 'plans'] as const,
+        plan: (id: string | number) => ['admin', 'plans', String(id)] as const,
+        roles: () => ['admin', 'roles'] as const,
+        apiKeys: () => ['admin', 'api-keys'] as const,
+        webhooks: () => ['admin', 'webhooks'] as const,
+        webhookDeliveries: (subscriptionId: string, params?: Record<string, unknown>) =>
+            ['admin', 'webhooks', subscriptionId, 'deliveries', params ?? {}] as const,
+        rateLimits: () => ['admin', 'rate-limits'] as const,
+        auditLog: (filters?: Record<string, unknown>) => ['admin', 'audit-log', filters ?? {}] as const,
     },
     me: {
         supplierStatus: () => ['me', 'supplier', 'status'] as const,
@@ -89,6 +106,7 @@ export const queryKeys = {
 
 export type QueryKey = ReturnType<
     | (typeof queryKeys)['suppliers']['list']
+    | (typeof queryKeys)['suppliers']['detail']
     | (typeof queryKeys)['quotes']['root']
     | (typeof queryKeys)['quotes']['rfq']
     | (typeof queryKeys)['quotes']['list']
@@ -115,6 +133,9 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['localization']['settings']
     | (typeof queryKeys)['localization']['convert']
     | (typeof queryKeys)['localization']['uoms']
+    | (typeof queryKeys)['settings']['company']
+    | (typeof queryKeys)['settings']['localization']
+    | (typeof queryKeys)['settings']['numbering']
     | (typeof queryKeys)['purchaseOrders']['root']
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']
@@ -138,6 +159,16 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['inventory']['movementsList']
     | (typeof queryKeys)['inventory']['movement']
     | (typeof queryKeys)['inventory']['lowStock']
+    | (typeof queryKeys)['admin']['analyticsOverview']
     | (typeof queryKeys)['admin']['companies']
+    | (typeof queryKeys)['admin']['companyApprovals']
+    | (typeof queryKeys)['admin']['plans']
+    | (typeof queryKeys)['admin']['plan']
+    | (typeof queryKeys)['admin']['roles']
+    | (typeof queryKeys)['admin']['apiKeys']
+    | (typeof queryKeys)['admin']['webhooks']
+    | (typeof queryKeys)['admin']['webhookDeliveries']
+    | (typeof queryKeys)['admin']['rateLimits']
+    | (typeof queryKeys)['admin']['auditLog']
     | (typeof queryKeys)['me']['supplierStatus']
 >;

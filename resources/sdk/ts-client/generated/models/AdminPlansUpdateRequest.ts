@@ -33,6 +33,18 @@ export interface AdminPlansUpdateRequest {
     priceUsd?: number;
     /**
      * 
+     * @type {number}
+     * @memberof AdminPlansUpdateRequest
+     */
+    rfqsPerMonth?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof AdminPlansUpdateRequest
+     */
+    usersMax?: number;
+    /**
+     * 
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
@@ -49,6 +61,24 @@ export interface AdminPlansUpdateRequest {
      * @memberof AdminPlansUpdateRequest
      */
     multiCurrencyEnabled?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AdminPlansUpdateRequest
+     */
+    taxEngineEnabled?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AdminPlansUpdateRequest
+     */
+    localizationEnabled?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AdminPlansUpdateRequest
+     */
+    exportsEnabled?: boolean;
 }
 
 /**
@@ -70,9 +100,14 @@ export function AdminPlansUpdateRequestFromJSONTyped(json: any, ignoreDiscrimina
         
         'name': json['name'] == null ? undefined : json['name'],
         'priceUsd': json['price_usd'] == null ? undefined : json['price_usd'],
+        'rfqsPerMonth': json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
+        'usersMax': json['users_max'] == null ? undefined : json['users_max'],
         'analyticsEnabled': json['analytics_enabled'] == null ? undefined : json['analytics_enabled'],
         'inventoryEnabled': json['inventory_enabled'] == null ? undefined : json['inventory_enabled'],
         'multiCurrencyEnabled': json['multi_currency_enabled'] == null ? undefined : json['multi_currency_enabled'],
+        'taxEngineEnabled': json['tax_engine_enabled'] == null ? undefined : json['tax_engine_enabled'],
+        'localizationEnabled': json['localization_enabled'] == null ? undefined : json['localization_enabled'],
+        'exportsEnabled': json['exports_enabled'] == null ? undefined : json['exports_enabled'],
     };
 }
 
@@ -89,9 +124,14 @@ export function AdminPlansUpdateRequestToJSONTyped(value?: AdminPlansUpdateReque
         
         'name': value['name'],
         'price_usd': value['priceUsd'],
+        'rfqs_per_month': value['rfqsPerMonth'],
+        'users_max': value['usersMax'],
         'analytics_enabled': value['analyticsEnabled'],
         'inventory_enabled': value['inventoryEnabled'],
         'multi_currency_enabled': value['multiCurrencyEnabled'],
+        'tax_engine_enabled': value['taxEngineEnabled'],
+        'localization_enabled': value['localizationEnabled'],
+        'exports_enabled': value['exportsEnabled'],
     };
 }
 

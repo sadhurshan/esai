@@ -33,6 +33,30 @@ export interface CreateRfqRequestItemsInner {
     spec?: string;
     /**
      * 
+     * @type {string}
+     * @memberof CreateRfqRequestItemsInner
+     */
+    method: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateRfqRequestItemsInner
+     */
+    material: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateRfqRequestItemsInner
+     */
+    tolerance?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateRfqRequestItemsInner
+     */
+    finish?: string;
+    /**
+     * 
      * @type {number}
      * @memberof CreateRfqRequestItemsInner
      */
@@ -56,6 +80,8 @@ export interface CreateRfqRequestItemsInner {
  */
 export function instanceOfCreateRfqRequestItemsInner(value: object): value is CreateRfqRequestItemsInner {
     if (!('partName' in value) || value['partName'] === undefined) return false;
+    if (!('method' in value) || value['method'] === undefined) return false;
+    if (!('material' in value) || value['material'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
 }
@@ -72,6 +98,10 @@ export function CreateRfqRequestItemsInnerFromJSONTyped(json: any, ignoreDiscrim
         
         'partName': json['part_name'],
         'spec': json['spec'] == null ? undefined : json['spec'],
+        'method': json['method'],
+        'material': json['material'],
+        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
+        'finish': json['finish'] == null ? undefined : json['finish'],
         'quantity': json['quantity'],
         'uom': json['uom'] == null ? undefined : json['uom'],
         'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
@@ -91,6 +121,10 @@ export function CreateRfqRequestItemsInnerToJSONTyped(value?: CreateRfqRequestIt
         
         'part_name': value['partName'],
         'spec': value['spec'],
+        'method': value['method'],
+        'material': value['material'],
+        'tolerance': value['tolerance'],
+        'finish': value['finish'],
         'quantity': value['quantity'],
         'uom': value['uom'],
         'target_price': value['targetPrice'],

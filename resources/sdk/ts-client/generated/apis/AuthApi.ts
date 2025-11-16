@@ -20,7 +20,9 @@ import type {
   AuthForgotPasswordRequest,
   AuthLogin200Response,
   AuthLoginRequest,
+  AuthRegister200Response,
   AuthResetPasswordRequest,
+  SelfRegistrationRequestCompanyDocumentsInner,
 } from '../models/index';
 import {
     ApiErrorResponseFromJSON,
@@ -33,8 +35,12 @@ import {
     AuthLogin200ResponseToJSON,
     AuthLoginRequestFromJSON,
     AuthLoginRequestToJSON,
+    AuthRegister200ResponseFromJSON,
+    AuthRegister200ResponseToJSON,
     AuthResetPasswordRequestFromJSON,
     AuthResetPasswordRequestToJSON,
+    SelfRegistrationRequestCompanyDocumentsInnerFromJSON,
+    SelfRegistrationRequestCompanyDocumentsInnerToJSON,
 } from '../models/index';
 
 export interface AuthForgotPasswordOperationRequest {
@@ -43,6 +49,22 @@ export interface AuthForgotPasswordOperationRequest {
 
 export interface AuthLoginOperationRequest {
     authLoginRequest: AuthLoginRequest;
+}
+
+export interface AuthRegisterRequest {
+    name: string;
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    companyName: string;
+    companyDomain: string;
+    registrationNo: string;
+    taxId: string;
+    website: string;
+    companyDocuments: Array<SelfRegistrationRequestCompanyDocumentsInner>;
+    address?: string;
+    phone?: string;
+    country?: string;
 }
 
 export interface AuthResetPasswordOperationRequest {
@@ -101,6 +123,34 @@ export interface AuthApiInterface {
      * Terminate the authenticated session
      */
     authLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+
+    /**
+     * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+     * @summary Self-register a buyer company and primary owner
+     * @param {string} name 
+     * @param {string} email 
+     * @param {string} password 
+     * @param {string} passwordConfirmation Must match &#x60;password&#x60;.
+     * @param {string} companyName 
+     * @param {string} companyDomain Public email domain used for verification.
+     * @param {string} registrationNo 
+     * @param {string} taxId 
+     * @param {string} website 
+     * @param {Array<SelfRegistrationRequestCompanyDocumentsInner>} companyDocuments 
+     * @param {string} [address] 
+     * @param {string} [phone] 
+     * @param {string} [country] ISO 3166-1 alpha-2 country code.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    authRegisterRaw(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthRegister200Response>>;
+
+    /**
+     * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+     * Self-register a buyer company and primary owner
+     */
+    authRegister(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthRegister200Response>;
 
     /**
      * Verifies the password reset token issued via email and sets a new password for the user.
@@ -256,6 +306,174 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      */
     async authLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
         const response = await this.authLogoutRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+     * Self-register a buyer company and primary owner
+     */
+    async authRegisterRaw(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthRegister200Response>> {
+        if (requestParameters['name'] == null) {
+            throw new runtime.RequiredError(
+                'name',
+                'Required parameter "name" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['email'] == null) {
+            throw new runtime.RequiredError(
+                'email',
+                'Required parameter "email" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['password'] == null) {
+            throw new runtime.RequiredError(
+                'password',
+                'Required parameter "password" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['passwordConfirmation'] == null) {
+            throw new runtime.RequiredError(
+                'passwordConfirmation',
+                'Required parameter "passwordConfirmation" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['companyName'] == null) {
+            throw new runtime.RequiredError(
+                'companyName',
+                'Required parameter "companyName" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['companyDomain'] == null) {
+            throw new runtime.RequiredError(
+                'companyDomain',
+                'Required parameter "companyDomain" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['registrationNo'] == null) {
+            throw new runtime.RequiredError(
+                'registrationNo',
+                'Required parameter "registrationNo" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['taxId'] == null) {
+            throw new runtime.RequiredError(
+                'taxId',
+                'Required parameter "taxId" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['website'] == null) {
+            throw new runtime.RequiredError(
+                'website',
+                'Required parameter "website" was null or undefined when calling authRegister().'
+            );
+        }
+
+        if (requestParameters['companyDocuments'] == null) {
+            throw new runtime.RequiredError(
+                'companyDocuments',
+                'Required parameter "companyDocuments" was null or undefined when calling authRegister().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['name'] != null) {
+            formParams.append('name', requestParameters['name'] as any);
+        }
+
+        if (requestParameters['email'] != null) {
+            formParams.append('email', requestParameters['email'] as any);
+        }
+
+        if (requestParameters['password'] != null) {
+            formParams.append('password', requestParameters['password'] as any);
+        }
+
+        if (requestParameters['passwordConfirmation'] != null) {
+            formParams.append('password_confirmation', requestParameters['passwordConfirmation'] as any);
+        }
+
+        if (requestParameters['companyName'] != null) {
+            formParams.append('company_name', requestParameters['companyName'] as any);
+        }
+
+        if (requestParameters['companyDomain'] != null) {
+            formParams.append('company_domain', requestParameters['companyDomain'] as any);
+        }
+
+        if (requestParameters['registrationNo'] != null) {
+            formParams.append('registration_no', requestParameters['registrationNo'] as any);
+        }
+
+        if (requestParameters['taxId'] != null) {
+            formParams.append('tax_id', requestParameters['taxId'] as any);
+        }
+
+        if (requestParameters['website'] != null) {
+            formParams.append('website', requestParameters['website'] as any);
+        }
+
+        if (requestParameters['address'] != null) {
+            formParams.append('address', requestParameters['address'] as any);
+        }
+
+        if (requestParameters['phone'] != null) {
+            formParams.append('phone', requestParameters['phone'] as any);
+        }
+
+        if (requestParameters['country'] != null) {
+            formParams.append('country', requestParameters['country'] as any);
+        }
+
+        if (requestParameters['companyDocuments'] != null) {
+            formParams.append('company_documents', requestParameters['companyDocuments']!.join(runtime.COLLECTION_FORMATS["csv"]));
+        }
+
+
+        let urlPath = `/api/auth/register`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: formParams,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuthRegister200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
+     * Self-register a buyer company and primary owner
+     */
+    async authRegister(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthRegister200Response> {
+        const response = await this.authRegisterRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

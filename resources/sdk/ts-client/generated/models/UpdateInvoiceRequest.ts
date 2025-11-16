@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UpdateInvoiceRequestLinesInner } from './UpdateInvoiceRequestLinesInner';
+import {
+    UpdateInvoiceRequestLinesInnerFromJSON,
+    UpdateInvoiceRequestLinesInnerFromJSONTyped,
+    UpdateInvoiceRequestLinesInnerToJSON,
+    UpdateInvoiceRequestLinesInnerToJSONTyped,
+} from './UpdateInvoiceRequestLinesInner';
+
 /**
  * 
  * @export
@@ -24,32 +32,27 @@ export interface UpdateInvoiceRequest {
      * @type {string}
      * @memberof UpdateInvoiceRequest
      */
-    invoiceNumber?: string;
+    status?: UpdateInvoiceRequestStatusEnum;
     /**
      * 
-     * @type {string}
+     * @type {Array<UpdateInvoiceRequestLinesInner>}
      * @memberof UpdateInvoiceRequest
      */
-    status?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateInvoiceRequest
-     */
-    subtotal?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateInvoiceRequest
-     */
-    taxAmount?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateInvoiceRequest
-     */
-    total?: number;
+    lines?: Array<UpdateInvoiceRequestLinesInner>;
 }
+
+
+/**
+ * @export
+ */
+export const UpdateInvoiceRequestStatusEnum = {
+    Pending: 'pending',
+    Paid: 'paid',
+    Overdue: 'overdue',
+    Disputed: 'disputed'
+} as const;
+export type UpdateInvoiceRequestStatusEnum = typeof UpdateInvoiceRequestStatusEnum[keyof typeof UpdateInvoiceRequestStatusEnum];
+
 
 /**
  * Check if a given object implements the UpdateInvoiceRequest interface.
@@ -68,11 +71,8 @@ export function UpdateInvoiceRequestFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'invoiceNumber': json['invoice_number'] == null ? undefined : json['invoice_number'],
         'status': json['status'] == null ? undefined : json['status'],
-        'subtotal': json['subtotal'] == null ? undefined : json['subtotal'],
-        'taxAmount': json['tax_amount'] == null ? undefined : json['tax_amount'],
-        'total': json['total'] == null ? undefined : json['total'],
+        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(UpdateInvoiceRequestLinesInnerFromJSON)),
     };
 }
 
@@ -87,11 +87,8 @@ export function UpdateInvoiceRequestToJSONTyped(value?: UpdateInvoiceRequest | n
 
     return {
         
-        'invoice_number': value['invoiceNumber'],
         'status': value['status'],
-        'subtotal': value['subtotal'],
-        'tax_amount': value['taxAmount'],
-        'total': value['total'],
+        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(UpdateInvoiceRequestLinesInnerToJSON)),
     };
 }
 

@@ -4,6 +4,31 @@ namespace App\Http\Requests;
 
 class RFQStoreRequest extends ApiFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('is_open_bidding')) {
+            $normalized = filter_var(
+                $this->input('is_open_bidding'),
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE
+            );
+
+            $this->merge([
+                'is_open_bidding' => $normalized,
+            ]);
+        }
+
+        if ($this->has('items') && is_string($this->input('items'))) {
+            $decoded = json_decode($this->input('items'), true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $this->merge([
+                    'items' => $decoded,
+                ]);
+            }
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -12,11 +37,6 @@ class RFQStoreRequest extends ApiFormRequest
         return [
             'item_name' => ['required', 'string'],
             'type' => ['required', 'in:ready_made,manufacture'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'material' => ['required', 'string'],
-            'method' => ['required', 'string'],
-            'tolerance' => ['nullable', 'string'],
-            'finish' => ['nullable', 'string'],
             'client_company' => ['required', 'string'],
             'status' => ['required', 'in:awaiting,open,closed,awarded,cancelled'],
             'deadline_at' => ['nullable', 'date'],
@@ -30,6 +50,10 @@ class RFQStoreRequest extends ApiFormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.uom' => ['nullable', 'string', 'max:16'],
             'items.*.target_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.method' => ['required', 'string'],
+            'items.*.material' => ['required', 'string'],
+            'items.*.tolerance' => ['nullable', 'string'],
+            'items.*.finish' => ['nullable', 'string'],
         ];
     }
 

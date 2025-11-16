@@ -107,14 +107,9 @@ export interface CreateAwardsOperationRequest {
 export interface CreateRfqRequest {
     itemName: string;
     type: CreateRfqTypeEnum;
-    quantity: number;
-    material: string;
-    method: string;
     clientCompany: string;
     status: CreateRfqStatusEnum;
     items: Array<CreateRfqRequestItemsInner>;
-    tolerance?: string;
-    finish?: string;
     deadlineAt?: Date;
     isOpenBidding?: boolean;
     notes?: string;
@@ -210,11 +205,6 @@ export interface UpdateRfqRequest {
     rfqId: string;
     itemName?: string;
     type?: string;
-    quantity?: number;
-    material?: string;
-    method?: string;
-    tolerance?: string;
-    finish?: string;
     status?: UpdateRfqStatusEnum;
     isOpenBidding?: boolean;
     notes?: string;
@@ -310,14 +300,9 @@ export interface RFQsApiInterface {
      * @summary Create RFQ
      * @param {string} itemName 
      * @param {string} type 
-     * @param {number} quantity 
-     * @param {string} material 
-     * @param {string} method 
      * @param {string} clientCompany 
      * @param {string} status 
      * @param {Array<CreateRfqRequestItemsInner>} items 
-     * @param {string} [tolerance] 
-     * @param {string} [finish] 
      * @param {Date} [deadlineAt] 
      * @param {boolean} [isOpenBidding] 
      * @param {string} [notes] 
@@ -622,11 +607,6 @@ export interface RFQsApiInterface {
      * @param {string} rfqId 
      * @param {string} [itemName] 
      * @param {string} [type] 
-     * @param {number} [quantity] 
-     * @param {string} [material] 
-     * @param {string} [method] 
-     * @param {string} [tolerance] 
-     * @param {string} [finish] 
      * @param {string} [status] 
      * @param {boolean} [isOpenBidding] 
      * @param {string} [notes] 
@@ -924,27 +904,6 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
             );
         }
 
-        if (requestParameters['quantity'] == null) {
-            throw new runtime.RequiredError(
-                'quantity',
-                'Required parameter "quantity" was null or undefined when calling createRfq().'
-            );
-        }
-
-        if (requestParameters['material'] == null) {
-            throw new runtime.RequiredError(
-                'material',
-                'Required parameter "material" was null or undefined when calling createRfq().'
-            );
-        }
-
-        if (requestParameters['method'] == null) {
-            throw new runtime.RequiredError(
-                'method',
-                'Required parameter "method" was null or undefined when calling createRfq().'
-            );
-        }
-
         if (requestParameters['clientCompany'] == null) {
             throw new runtime.RequiredError(
                 'clientCompany',
@@ -1006,26 +965,6 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
             formParams.append('type', requestParameters['type'] as any);
         }
 
-        if (requestParameters['quantity'] != null) {
-            formParams.append('quantity', requestParameters['quantity'] as any);
-        }
-
-        if (requestParameters['material'] != null) {
-            formParams.append('material', requestParameters['material'] as any);
-        }
-
-        if (requestParameters['method'] != null) {
-            formParams.append('method', requestParameters['method'] as any);
-        }
-
-        if (requestParameters['tolerance'] != null) {
-            formParams.append('tolerance', requestParameters['tolerance'] as any);
-        }
-
-        if (requestParameters['finish'] != null) {
-            formParams.append('finish', requestParameters['finish'] as any);
-        }
-
         if (requestParameters['clientCompany'] != null) {
             formParams.append('client_company', requestParameters['clientCompany'] as any);
         }
@@ -1051,7 +990,17 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
         }
 
         if (requestParameters['items'] != null) {
-            formParams.append('items', requestParameters['items']!.join(runtime.COLLECTION_FORMATS["csv"]));
+            requestParameters['items'].forEach((item, index) => {
+                const serializedItem = CreateRfqRequestItemsInnerToJSON(item);
+
+                Object.entries(serializedItem).forEach(([key, value]) => {
+                    if (value == null) {
+                        return;
+                    }
+
+                    formParams.append(`items[${index}][${key}]`, String(value));
+                });
+            });
         }
 
 
@@ -2099,26 +2048,6 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
 
         if (requestParameters['type'] != null) {
             formParams.append('type', requestParameters['type'] as any);
-        }
-
-        if (requestParameters['quantity'] != null) {
-            formParams.append('quantity', requestParameters['quantity'] as any);
-        }
-
-        if (requestParameters['material'] != null) {
-            formParams.append('material', requestParameters['material'] as any);
-        }
-
-        if (requestParameters['method'] != null) {
-            formParams.append('method', requestParameters['method'] as any);
-        }
-
-        if (requestParameters['tolerance'] != null) {
-            formParams.append('tolerance', requestParameters['tolerance'] as any);
-        }
-
-        if (requestParameters['finish'] != null) {
-            formParams.append('finish', requestParameters['finish'] as any);
         }
 
         if (requestParameters['status'] != null) {

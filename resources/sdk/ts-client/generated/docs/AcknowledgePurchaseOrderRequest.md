@@ -6,7 +6,8 @@
 
 Name | Type
 ------------ | -------------
-`action` | string
+`decision` | string
+`reason` | string
 
 ## Example
 
@@ -15,7 +16,8 @@ import type { AcknowledgePurchaseOrderRequest } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "action": null,
+  "decision": null,
+  "reason": null,
 } satisfies AcknowledgePurchaseOrderRequest
 
 console.log(example)

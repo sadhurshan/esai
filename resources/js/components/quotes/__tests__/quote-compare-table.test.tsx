@@ -5,6 +5,30 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QuoteCompareTable } from '../quote-compare-table';
 import type { Quote, RfqItem } from '@/sdk';
 
+vi.mock('@/contexts/formatting-context', () => ({
+    useFormatting: () => ({
+        locale: 'en-US',
+        timezone: 'UTC',
+        currency: 'USD',
+        displayFx: false,
+        rawSettings: {
+            timezone: 'UTC',
+            locale: 'en-US',
+            dateFormat: 'YYYY-MM-DD',
+            numberFormat: '1,234.56',
+            currency: { primary: 'USD', displayFx: false },
+            uom: { baseUom: 'EA', maps: {} },
+        },
+        formatNumber: (value: number | string | null | undefined) => (value ?? '—').toString(),
+        formatMoney: (value: number | string | null | undefined, options?: { currency?: string }) => {
+            const amount = value ?? '—';
+            const currency = options?.currency ?? 'USD';
+            return `${amount} ${currency}`;
+        },
+        formatDate: () => '2024-01-01',
+    }),
+}));
+
 vi.mock('@/components/ui/sheet', () => ({
     Sheet: ({ children }: { children: ReactNode }) => <div data-testid="sheet">{children}</div>,
     SheetContent: ({ children }: { children: ReactNode }) => <div data-testid="sheet-content">{children}</div>,

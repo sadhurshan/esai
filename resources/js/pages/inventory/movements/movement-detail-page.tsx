@@ -13,22 +13,13 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/auth-context';
 import { useMovement } from '@/hooks/api/inventory/use-movement';
 import type { StockMovementLine } from '@/types/inventory';
-
-function formatDate(value?: string | null) {
-    if (!value) {
-        return '—';
-    }
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return value;
-    }
-    return parsed.toLocaleString();
-}
+import { useFormatting } from '@/contexts/formatting-context';
 
 export function MovementDetailPage() {
     const { movementId } = useParams<{ movementId: string }>();
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
+    const { formatDate, formatNumber } = useFormatting();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const inventoryEnabled = hasFeature('inventory_enabled');
 
@@ -86,7 +77,9 @@ export function MovementDetailPage() {
                 <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Movement number</p>
                     <h1 className="text-2xl font-semibold text-foreground">{movement.movementNumber || movement.id}</h1>
-                    <p className="text-sm text-muted-foreground">Posted {formatDate(movement.movedAt)}</p>
+                    <p className="text-sm text-muted-foreground">
+                        Posted {formatDate(movement.movedAt, { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Badge variant="secondary" className="uppercase">
@@ -159,8 +152,14 @@ export function MovementDetailPage() {
                                 {movement.balances.map((balance) => (
                                     <tr key={balance.locationId} className="border-t border-border/60">
                                         <td className="px-2 py-2 font-medium">{balance.locationId}</td>
-                                        <td className="px-2 py-2">{balance.onHand.toLocaleString()}</td>
-                                        <td className="px-2 py-2">{balance.available ?? '—'}</td>
+                                        <td className="px-2 py-2">
+                                            {formatNumber(balance.onHand, { maximumFractionDigits: 3 })}
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            {typeof balance.available === 'number'
+                                                ? formatNumber(balance.available, { maximumFractionDigits: 3 })
+                                                : '—'}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -182,12 +181,15 @@ function SummaryItem({ label, children }: { label: string; children: ReactNode }
 }
 
 function MovementLineRow({ line }: { line: StockMovementLine }) {
+    const { formatNumber } = useFormatting();
     return (
         <div className="rounded-lg border border-border/60 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <p className="text-sm font-semibold text-foreground">{line.itemName ?? line.itemSku ?? line.itemId}</p>
-                    <p className="text-xs text-muted-foreground">Qty {line.qty.toLocaleString()} {line.uom ?? ''}</p>
+                    <p className="text-xs text-muted-foreground">
+                        Qty {formatNumber(line.qty, { maximumFractionDigits: 3 })} {line.uom ?? ''}
+                    </p>
                 </div>
                 <Badge variant="outline" className="uppercase">
                     {line.reason ?? 'Movement line'}
@@ -206,7 +208,9 @@ function MovementLineRow({ line }: { line: StockMovementLine }) {
                 <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Resulting on-hand</p>
                     <p className="text-sm font-medium">
-                        {line.resultingOnHand !== null && line.resultingOnHand !== undefined ? line.resultingOnHand.toLocaleString() : '—'}
+                        {line.resultingOnHand !== null && line.resultingOnHand !== undefined
+                            ? formatNumber(line.resultingOnHand, { maximumFractionDigits: 3 })
+                            : '—'}
                     </p>
                 </div>
             </div>

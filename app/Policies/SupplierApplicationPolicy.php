@@ -15,7 +15,7 @@ class SupplierApplicationPolicy
 
     public function create(User $user): bool
     {
-        return $this->isCompanyOwnerOrBuyerAdmin($user) && $user->company_id !== null;
+        return $this->isCompanyOwner($user) && $user->company_id !== null;
     }
 
     public function view(User $user, SupplierApplication $application): bool
@@ -26,7 +26,7 @@ class SupplierApplicationPolicy
     public function delete(User $user, SupplierApplication $application): bool
     {
         return $this->matchesCompany($user, $application)
-            && $this->isCompanyOwnerOrBuyerAdmin($user)
+            && $this->isCompanyOwner($user)
             && $application->status === SupplierApplicationStatus::Pending;
     }
 
@@ -43,6 +43,11 @@ class SupplierApplicationPolicy
     private function isCompanyOwnerOrBuyerAdmin(User $user): bool
     {
         return in_array($user->role, ['owner', 'buyer_admin'], true);
+    }
+
+    private function isCompanyOwner(User $user): bool
+    {
+        return $user->role === 'owner';
     }
 
     private function matchesCompany(User $user, SupplierApplication $application): bool

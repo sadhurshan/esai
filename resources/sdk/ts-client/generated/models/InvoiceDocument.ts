@@ -43,6 +43,12 @@ export interface InvoiceDocument {
      * @memberof InvoiceDocument
      */
     sizeBytes?: number;
+    /**
+     * 
+     * @type {Date}
+     * @memberof InvoiceDocument
+     */
+    createdAt?: Date;
 }
 
 /**
@@ -66,6 +72,7 @@ export function InvoiceDocumentFromJSONTyped(json: any, ignoreDiscriminator: boo
         'filename': json['filename'] == null ? undefined : json['filename'],
         'mime': json['mime'] == null ? undefined : json['mime'],
         'sizeBytes': json['size_bytes'] == null ? undefined : json['size_bytes'],
+        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
     };
 }
 
@@ -84,6 +91,7 @@ export function InvoiceDocumentToJSONTyped(value?: InvoiceDocument | null, ignor
         'filename': value['filename'],
         'mime': value['mime'],
         'size_bytes': value['sizeBytes'],
+        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
     };
 }
 

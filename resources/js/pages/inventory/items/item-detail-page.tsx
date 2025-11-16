@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/empty-state';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { FileDropzone } from '@/components/file-dropzone';
 import { ItemStatusChip } from '@/components/inventory/item-status-chip';
 import { StockBadge } from '@/components/inventory/stock-badge';
@@ -51,6 +52,7 @@ export function ItemDetailPage() {
     const { hasFeature, state } = useAuth();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const inventoryEnabled = hasFeature('inventory_enabled');
+    const { formatDate } = useFormatting();
 
     const itemQuery = useItem(itemId ?? '', { enabled: Boolean(itemId) });
     const updateItemMutation = useUpdateItem();
@@ -408,7 +410,12 @@ export function ItemDetailPage() {
                                                     <p className="text-sm font-medium">{attachment.filename}</p>
                                                     <p className="text-xs text-muted-foreground">
                                                         {formatFileSize(attachment.sizeBytes)} · {attachment.mime ?? 'application/octet-stream'}
-                                                        {attachment.createdAt ? ` · Added ${formatDateTime(attachment.createdAt)}` : ''}
+                                                        {attachment.createdAt
+                                                            ? ` · Added ${formatDate(attachment.createdAt, {
+                                                                  dateStyle: 'medium',
+                                                                  timeStyle: 'short',
+                                                              })}`
+                                                            : ''}
                                                     </p>
                                                 </div>
                                                 <Button
@@ -452,7 +459,11 @@ export function ItemDetailPage() {
                                             <div>
                                                 <p className="text-sm font-medium">{movement.movementNumber}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {formatMovementType(movement.type)} · {formatDateTime(movement.movedAt)}
+                                                    {formatMovementType(movement.type)} ·{' '}
+                                                    {formatDate(movement.movedAt, {
+                                                        dateStyle: 'medium',
+                                                        timeStyle: 'short',
+                                                    })}
                                                 </p>
                                             </div>
                                             <Button asChild size="sm" variant="outline">
@@ -509,13 +520,3 @@ function formatMovementType(type: string): string {
         .join(' ');
 }
 
-function formatDateTime(value?: string | null): string {
-    if (!value) {
-        return '—';
-    }
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-    return date.toLocaleString();
-}

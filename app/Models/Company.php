@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
 use App\Models\CompanyDocument;
+use App\Models\CompanyProfile;
 use App\Models\CopilotPrompt;
 use App\Models\Plan;
 use App\Models\RFQ;
@@ -150,6 +151,11 @@ class Company extends Model
         return $this->hasMany(CopilotPrompt::class);
     }
 
+    public function profile(): HasOne
+    {
+        return $this->hasOne(CompanyProfile::class);
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
@@ -164,6 +170,16 @@ class Company extends Model
 
     public function billingStatus(): string
     {
+        $plan = $this->plan;
+
+        if ($plan !== null) {
+            $price = $plan->price_usd;
+
+            if ($plan->code === 'community' || ($price !== null && (float) $price <= 0)) {
+                return 'active';
+            }
+        }
+
         if ($this->trial_ends_at instanceof Carbon && $this->trial_ends_at->isFuture()) {
             return 'trialing';
         }

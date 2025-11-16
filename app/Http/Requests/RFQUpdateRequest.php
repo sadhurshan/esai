@@ -4,6 +4,19 @@ namespace App\Http\Requests;
 
 class RFQUpdateRequest extends ApiFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('is_open_bidding')) {
+            $this->merge([
+                'is_open_bidding' => filter_var(
+                    $this->input('is_open_bidding'),
+                    FILTER_VALIDATE_BOOLEAN,
+                    FILTER_NULL_ON_FAILURE
+                ),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -12,11 +25,6 @@ class RFQUpdateRequest extends ApiFormRequest
         return [
             'item_name' => ['sometimes', 'string'],
             'type' => ['sometimes', 'in:ready_made,manufacture'],
-            'quantity' => ['sometimes', 'integer', 'min:1'],
-            'material' => ['sometimes', 'string'],
-            'method' => ['sometimes', 'string'],
-            'tolerance' => ['sometimes', 'nullable', 'string'],
-            'finish' => ['sometimes', 'nullable', 'string'],
             'client_company' => ['sometimes', 'string'],
             'status' => ['sometimes', 'in:awaiting,open,closed,awarded,cancelled'],
             'deadline_at' => ['sometimes', 'nullable', 'date'],

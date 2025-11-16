@@ -10,7 +10,6 @@ All URIs are relative to *https://api.elements-supply.ai*
 | [**listTaxCodes**](MoneyApi.md#listtaxcodes) | **GET** /api/money/tax-codes | List tax codes |
 | [**patchTaxCode**](MoneyApi.md#patchtaxcode) | **PATCH** /api/money/tax-codes/{taxCodeId} | Partially update tax code |
 | [**recalcCreditNoteTotals**](MoneyApi.md#recalccreditnotetotals) | **POST** /api/credit-notes/{creditNoteId}/recalculate | Recalculate credit note totals |
-| [**recalcInvoiceTotals**](MoneyApi.md#recalcinvoicetotals) | **POST** /api/invoices/{invoiceId}/recalculate | Recalculate invoice totals |
 | [**recalcPurchaseOrderTotals**](MoneyApi.md#recalcpurchaseordertotals) | **POST** /api/purchase-orders/{purchaseOrderId}/recalculate | Recalculate purchase order totals |
 | [**recalcQuoteTotals**](MoneyApi.md#recalcquotetotals) | **POST** /api/quotes/{quoteId}/recalculate | Recalculate quote totals |
 | [**showMoneySettings**](MoneyApi.md#showmoneysettings) | **GET** /api/money/settings | Retrieve money settings |
@@ -461,77 +460,6 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Credit note totals recalculated. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-
-## recalcInvoiceTotals
-
-> ApiSuccessResponse recalcInvoiceTotals(invoiceId)
-
-Recalculate invoice totals
-
-### Example
-
-```ts
-import {
-  Configuration,
-  MoneyApi,
-} from '';
-import type { RecalcInvoiceTotalsRequest } from '';
-
-async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new MoneyApi(config);
-
-  const body = {
-    // string
-    invoiceId: 38400000-8cf0-11bd-b23e-10b96e4ef00d,
-  } satisfies RecalcInvoiceTotalsRequest;
-
-  try {
-    const data = await api.recalcInvoiceTotals(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// Run the test
-example().catch(console.error);
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **invoiceId** | `string` |  | [Defaults to `undefined`] |
-
-### Return type
-
-[**ApiSuccessResponse**](ApiSuccessResponse.md)
-
-### Authorization
-
-[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: `application/json`
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Invoice totals recalculated. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

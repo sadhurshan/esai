@@ -232,10 +232,10 @@ it('validates export listings against the OpenAPI contract', function (): void {
 it('validates localization settings against the OpenAPI contract', function (): void {
     CompanyLocaleSetting::query()->create([
         'company_id' => test()->company->id,
-        'locale' => 'en',
+        'locale' => 'en-US',
         'timezone' => 'America/New_York',
-        'number_format' => 'system',
-        'date_format' => 'YMD',
+        'number_format' => '1,234.56',
+        'date_format' => 'YYYY-MM-DD',
         'first_day_of_week' => 1,
         'weekend_days' => [6, 0],
     ]);

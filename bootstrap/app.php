@@ -11,6 +11,7 @@ use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
 use App\Http\Middleware\EnsureRiskAccess;
+use App\Http\Middleware\EnsureCompanyApproved;
 use App\Http\Middleware\EnsureApprovalsAccess;
 use App\Http\Middleware\EnsureRmaAccess;
 use App\Http\Middleware\EnsureCreditNotesAccess;
@@ -61,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'ensure.company.registered' => \App\Http\Middleware\EnsureCompanyRegistered::class,
             'ensure.company.onboarded' => \App\Http\Middleware\EnsureCompanyOnboarded::class,
+            'ensure.company.approved' => EnsureCompanyApproved::class,
             'ensure.supplier.approved' => \App\Http\Middleware\EnsureSupplierApproved::class,
             'ensure.analytics.access' => EnsureAnalyticsAccess::class,
             'ensure.risk.access' => EnsureRiskAccess::class,
@@ -75,6 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.inventory.access' => EnsureInventoryAccess::class,
             'ensure.export.access' => EnsureExportAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
+            'role' => \App\Http\Middleware\EnsureUserRole::class,
             'apply.company.locale' => ApplyCompanyLocale::class,
             'admin.guard' => AdminGuard::class,
             'api.key.auth' => ApiKeyAuth::class,

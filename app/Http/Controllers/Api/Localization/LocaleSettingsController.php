@@ -49,7 +49,7 @@ class LocaleSettingsController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $payload = $request->validated();
+        $payload = $request->payload();
 
         $setting = CompanyLocaleSetting::query()->firstOrNew(['company_id' => $company->id]);
         $before = $setting->exists ? $setting->getOriginal() : [];

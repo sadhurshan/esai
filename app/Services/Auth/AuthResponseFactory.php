@@ -22,6 +22,7 @@ class AuthResponseFactory
             'company' => $company ? $this->transformCompany($company) : null,
             'feature_flags' => $this->transformFeatureFlags($company?->featureFlags),
             'plan' => $company?->plan_code ?? $company?->plan?->code ?? null,
+            'requires_plan_selection' => $company ? $this->requiresPlanSelection($company) : false,
         ];
     }
 
@@ -54,11 +55,23 @@ class AuthResponseFactory
             $status = $status->value;
         }
 
+        $supplierStatus = $company->supplier_status;
+
+        if ($supplierStatus instanceof BackedEnum) {
+            $supplierStatus = $supplierStatus->value;
+        }
+
         return [
             'id' => $company->id,
             'name' => $company->name,
             'status' => $status,
+            'supplier_status' => $supplierStatus,
+            'directory_visibility' => $company->directory_visibility,
+            'supplier_profile_completed_at' => $company->supplier_profile_completed_at?->toIso8601String(),
+            'is_verified' => (bool) $company->is_verified,
             'plan' => $company->plan_code ?? $company->plan?->code ?? null,
+            'billing_status' => $company->billingStatus(),
+            'requires_plan_selection' => $this->requiresPlanSelection($company),
         ];
     }
 
@@ -93,5 +106,18 @@ class AuthResponseFactory
                 return [$flag->key => true];
             })
             ->all();
+    }
+
+    private function requiresPlanSelection(?Company $company): bool
+    {
+        if ($company === null) {
+            return false;
+        }
+
+        if (! $company->plan_id && ! $company->plan_code) {
+            return true;
+        }
+
+        return ! in_array($company->billingStatus(), ['active', 'trialing'], true);
     }
 }

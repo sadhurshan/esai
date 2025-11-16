@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { RfqAwardCandidateLine, RfqItemAwardSummary } from '@/sdk';
@@ -102,6 +103,7 @@ export function ConvertToPoDialog({ open, onOpenChange, awards, lines, isConvert
                         We will create one purchase order per supplier using your saved awards. Ship-to and bill-to defaults
                         from {state.company?.name ?? 'your company'} will be applied automatically.
                     </DialogDescription>
+                    <DocumentNumberPreview docType="po" className="mt-3" />
                 </DialogHeader>
 
                 {pendingAwards.length === 0 ? (

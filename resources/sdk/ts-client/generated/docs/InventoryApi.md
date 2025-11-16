@@ -4,16 +4,94 @@ All URIs are relative to *https://api.elements-supply.ai*
 
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|
+| [**attachCompanyGrnFile**](InventoryApi.md#attachcompanygrnfile) | **POST** /api/receiving/grns/{grnId}/attachments | Upload attachment to goods receipt note |
 | [**createGrn**](InventoryApi.md#creategrnoperation) | **POST** /api/purchase-orders/{purchaseOrderId}/grns | Create goods receipt note |
 | [**createRma**](InventoryApi.md#creatermaoperation) | **POST** /api/rmas/purchase-orders/{purchaseOrderId} | Create RMA for purchase order |
 | [**deleteGrn**](InventoryApi.md#deletegrn) | **DELETE** /api/purchase-orders/{purchaseOrderId}/grns/{grnId} | Delete goods receipt note |
+| [**listCompanyGrns**](InventoryApi.md#listcompanygrns) | **GET** /api/receiving/grns | List company goods receipt notes |
 | [**listGrns**](InventoryApi.md#listgrns) | **GET** /api/purchase-orders/{purchaseOrderId}/grns | List goods receipt notes for purchase order |
 | [**listRmas**](InventoryApi.md#listrmas) | **GET** /api/rmas | List RMAs |
 | [**reviewRma**](InventoryApi.md#reviewrma) | **POST** /api/rmas/{rmaId}/review | Review RMA |
+| [**showCompanyGrn**](InventoryApi.md#showcompanygrn) | **GET** /api/receiving/grns/{grnId} | Show a goods receipt note |
 | [**showGrn**](InventoryApi.md#showgrn) | **GET** /api/purchase-orders/{purchaseOrderId}/grns/{grnId} | Show goods receipt note |
 | [**showRma**](InventoryApi.md#showrma) | **GET** /api/rmas/{rmaId} | Retrieve RMA |
+| [**storeCompanyGrn**](InventoryApi.md#storecompanygrnoperation) | **POST** /api/receiving/grns | Record a goods receipt note for a purchase order |
 | [**updateGrn**](InventoryApi.md#updategrnoperation) | **PUT** /api/purchase-orders/{purchaseOrderId}/grns/{grnId} | Update goods receipt note |
 
+
+
+## attachCompanyGrnFile
+
+> ShowGrn200Response attachCompanyGrnFile(grnId, file)
+
+Upload attachment to goods receipt note
+
+### Example
+
+```ts
+import {
+  Configuration,
+  InventoryApi,
+} from '';
+import type { AttachCompanyGrnFileRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new InventoryApi(config);
+
+  const body = {
+    // number
+    grnId: 56,
+    // Blob
+    file: BINARY_DATA_HERE,
+  } satisfies AttachCompanyGrnFileRequest;
+
+  try {
+    const data = await api.attachCompanyGrnFile(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **grnId** | `number` |  | [Defaults to `undefined`] |
+| **file** | `Blob` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ShowGrn200Response**](ShowGrn200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `multipart/form-data`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Attachment uploaded and goods receipt note updated. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## createGrn
@@ -238,6 +316,98 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## listCompanyGrns
+
+> ListCompanyGrns200Response listCompanyGrns(perPage, cursor, purchaseOrderId, supplierId, status, receivedFrom, receivedTo, search)
+
+List company goods receipt notes
+
+### Example
+
+```ts
+import {
+  Configuration,
+  InventoryApi,
+} from '';
+import type { ListCompanyGrnsRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new InventoryApi(config);
+
+  const body = {
+    // number (optional)
+    perPage: 56,
+    // string | Cursor token for pagination. (optional)
+    cursor: cursor_example,
+    // number (optional)
+    purchaseOrderId: 56,
+    // number (optional)
+    supplierId: 56,
+    // 'draft' | 'posted' | 'variance' | 'all' (optional)
+    status: status_example,
+    // Date (optional)
+    receivedFrom: 2013-10-20,
+    // Date (optional)
+    receivedTo: 2013-10-20,
+    // string (optional)
+    search: search_example,
+  } satisfies ListCompanyGrnsRequest;
+
+  try {
+    const data = await api.listCompanyGrns(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **perPage** | `number` |  | [Optional] [Defaults to `undefined`] |
+| **cursor** | `string` | Cursor token for pagination. | [Optional] [Defaults to `undefined`] |
+| **purchaseOrderId** | `number` |  | [Optional] [Defaults to `undefined`] |
+| **supplierId** | `number` |  | [Optional] [Defaults to `undefined`] |
+| **status** | `draft`, `posted`, `variance`, `all` |  | [Optional] [Defaults to `undefined`] [Enum: draft, posted, variance, all] |
+| **receivedFrom** | `Date` |  | [Optional] [Defaults to `undefined`] |
+| **receivedTo** | `Date` |  | [Optional] [Defaults to `undefined`] |
+| **search** | `string` |  | [Optional] [Defaults to `undefined`] |
+
+### Return type
+
+[**ListCompanyGrns200Response**](ListCompanyGrns200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Cursor paginated goods receipt notes scoped to the authenticated company. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## listGrns
 
 > ListGrns200Response listGrns(purchaseOrderId)
@@ -446,6 +616,77 @@ example().catch(console.error);
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
+## showCompanyGrn
+
+> ShowGrn200Response showCompanyGrn(grnId)
+
+Show a goods receipt note
+
+### Example
+
+```ts
+import {
+  Configuration,
+  InventoryApi,
+} from '';
+import type { ShowCompanyGrnRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new InventoryApi(config);
+
+  const body = {
+    // number
+    grnId: 56,
+  } satisfies ShowCompanyGrnRequest;
+
+  try {
+    const data = await api.showCompanyGrn(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **grnId** | `number` |  | [Defaults to `undefined`] |
+
+### Return type
+
+[**ShowGrn200Response**](ShowGrn200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Goods receipt details. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
 ## showGrn
 
 > ShowGrn200Response showGrn(purchaseOrderId, grnId)
@@ -587,6 +828,77 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | RMA detail. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## storeCompanyGrn
+
+> ShowGrn200Response storeCompanyGrn(storeCompanyGrnRequest)
+
+Record a goods receipt note for a purchase order
+
+### Example
+
+```ts
+import {
+  Configuration,
+  InventoryApi,
+} from '';
+import type { StoreCompanyGrnOperationRequest } from '';
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({ 
+    // To configure API key authorization: apiKeyAuth
+    apiKey: "YOUR API KEY",
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new InventoryApi(config);
+
+  const body = {
+    // StoreCompanyGrnRequest
+    storeCompanyGrnRequest: ...,
+  } satisfies StoreCompanyGrnOperationRequest;
+
+  try {
+    const data = await api.storeCompanyGrn(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **storeCompanyGrnRequest** | [StoreCompanyGrnRequest](StoreCompanyGrnRequest.md) |  | |
+
+### Return type
+
+[**ShowGrn200Response**](ShowGrn200Response.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Goods receipt stored. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

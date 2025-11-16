@@ -15,6 +15,7 @@ export interface Supplier {
     status: 'pending' | 'approved' | 'rejected' | 'suspended';
     capabilities: SupplierCapabilities;
     ratingAvg: number;
+    riskGrade?: string | null;
     contact: {
         email?: string | null;
         phone?: string | null;
@@ -34,6 +35,10 @@ export interface Supplier {
     verifiedAt?: string | null;
     createdAt?: string | null;
     updatedAt?: string | null;
+    branding?: SupplierBranding | null;
+    certificates: SupplierCertificateSummary;
+    company?: SupplierCompanySummary | null;
+    documents?: SupplierDocument[] | null;
 }
 
 export interface SupplierCapabilities {
@@ -43,6 +48,54 @@ export interface SupplierCapabilities {
     finishes?: string[];
     industries?: string[];
     [key: string]: unknown;
+}
+
+export interface SupplierBranding {
+    logoUrl?: string | null;
+    markUrl?: string | null;
+}
+
+export interface SupplierCertificateSummary {
+    valid: number;
+    expiring: number;
+    expired: number;
+}
+
+export interface SupplierCompanySummary {
+    id: number;
+    name: string;
+    website?: string | null;
+    country?: string | null;
+    supplierStatus?: string | null;
+    isVerified?: boolean | null;
+}
+
+export type SupplierDocumentType =
+    | 'iso9001'
+    | 'iso14001'
+    | 'as9100'
+    | 'itar'
+    | 'reach'
+    | 'rohs'
+    | 'insurance'
+    | 'nda'
+    | 'other';
+
+export type SupplierDocumentStatus = 'valid' | 'expiring' | 'expired';
+
+export interface SupplierDocument {
+    id: number;
+    supplierId: number;
+    companyId: number;
+    type: SupplierDocumentType;
+    status: SupplierDocumentStatus;
+    path: string;
+    mime: string;
+    sizeBytes: number;
+    issuedAt?: string | null;
+    expiresAt?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
 }
 
 export interface RfqItem {

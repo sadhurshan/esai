@@ -6,11 +6,8 @@
 
 Name | Type
 ------------ | -------------
-`invoiceNumber` | string
 `status` | string
-`subtotal` | number
-`taxAmount` | number
-`total` | number
+`lines` | [Array&lt;UpdateInvoiceRequestLinesInner&gt;](UpdateInvoiceRequestLinesInner.md)
 
 ## Example
 
@@ -19,11 +16,8 @@ import type { UpdateInvoiceRequest } from ''
 
 // TODO: Update the object below with actual values
 const example = {
-  "invoiceNumber": null,
   "status": null,
-  "subtotal": null,
-  "taxAmount": null,
-  "total": null,
+  "lines": null,
 } satisfies UpdateInvoiceRequest
 
 console.log(example)

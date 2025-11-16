@@ -21,6 +21,7 @@ class SupplierApplicationStoreRequest extends ApiFormRequest
             'capabilities.finishes.*' => ['string', 'max:160'],
             'capabilities.industries' => ['nullable', 'array'],
             'capabilities.industries.*' => ['string', 'max:160'],
+            'description' => ['nullable', 'string', 'max:500'],
             'address' => ['nullable', 'string', 'max:191'],
             'country' => ['nullable', 'string', 'size:2'],
             'city' => ['nullable', 'string', 'max:160'],

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             CurrenciesSeeder::class,
             PlansSeeder::class,
             UomSeeder::class,
+            RoleTemplateSeeder::class,
             DevTenantSeeder::class,
         ]);
     }

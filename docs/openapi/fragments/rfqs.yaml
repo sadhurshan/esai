@@ -91,6 +91,16 @@ components:
         spec:
           type: string
           nullable: true
+        method:
+          type: string
+        material:
+          type: string
+        tolerance:
+          type: string
+          nullable: true
+        finish:
+          type: string
+          nullable: true
         quantity:
           type: integer
           minimum: 1
@@ -278,11 +288,23 @@ components:
       type: object
       required:
         - part_name
+        - method
+        - material
         - quantity
       properties:
         part_name:
           type: string
         spec:
+          type: string
+          nullable: true
+        method:
+          type: string
+        material:
+          type: string
+        tolerance:
+          type: string
+          nullable: true
+        finish:
           type: string
           nullable: true
         quantity:
@@ -624,9 +646,6 @@ paths:
               required:
                 - item_name
                 - type
-                - quantity
-                - material
-                - method
                 - client_company
                 - status
                 - items
@@ -636,18 +655,6 @@ paths:
                 type:
                   type: string
                   enum: [ready_made, manufacture]
-                quantity:
-                  type: integer
-                material:
-                  type: string
-                method:
-                  type: string
-                tolerance:
-                  type: string
-                  nullable: true
-                finish:
-                  type: string
-                  nullable: true
                 client_company:
                   type: string
                 status:
@@ -672,11 +679,23 @@ paths:
                     type: object
                     required:
                       - part_name
+                      - method
+                      - material
                       - quantity
                     properties:
                       part_name:
                         type: string
                       spec:
+                        type: string
+                        nullable: true
+                      method:
+                        type: string
+                      material:
+                        type: string
+                      tolerance:
+                        type: string
+                        nullable: true
+                      finish:
                         type: string
                         nullable: true
                       quantity:
@@ -746,18 +765,6 @@ paths:
                   type: string
                 type:
                   type: string
-                quantity:
-                  type: integer
-                material:
-                  type: string
-                method:
-                  type: string
-                tolerance:
-                  type: string
-                  nullable: true
-                finish:
-                  type: string
-                  nullable: true
                 status:
                   type: string
                   enum: [awaiting, open, closed, awarded, cancelled]

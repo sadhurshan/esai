@@ -52,6 +52,12 @@ class EnsureSubscribed
 
     private function hasActiveSubscription(Company $company): bool
     {
+        $plan = $company->plan;
+
+        if ($plan !== null && ($plan->code === 'community' || $plan->price_usd === null || (float) $plan->price_usd <= 0.0)) {
+            return true;
+        }
+
         if ($company->billingStatus() === 'trialing') {
             return true;
         }

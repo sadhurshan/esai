@@ -5,22 +5,54 @@ namespace App\Http\Controllers\Api;
 use App\Models\RFQ;
 use App\Models\RFQQuote;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class FileController extends ApiController
 {
-    public function cad(RFQ $rfq): JsonResponse
+    public function cad(Request $request, RFQ $rfq): JsonResponse
     {
-        if (! $rfq->cad_path) {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        if ((int) $rfq->company_id !== $companyId) {
+            return $this->fail('RFQ not found.', 404);
+        }
+
+        Gate::forUser($user)->authorize('view', $rfq);
+
+        $rfq->loadMissing('cadDocument');
+
+        $document = $rfq->cadDocument;
+
+        if (! $document) {
             return $this->fail('Not found', 404);
         }
 
-        return $this->respondWithPath($rfq->cad_path);
+        return $this->respondWithPath($document->path);
     }
 
-    public function attachment(RFQQuote $quote): JsonResponse
+    public function attachment(Request $request, RFQQuote $quote): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user] = $context;
+
+        $quote->loadMissing(['rfq', 'supplier']);
+
+        Gate::forUser($user)->authorize('view', $quote);
+
         if (! $quote->attachment_path) {
             return $this->fail('Not found', 404);
         }

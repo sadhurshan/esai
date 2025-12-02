@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
+use App\Support\Permissions\PermissionRegistry;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 class SupplierApplicationStoreRequest extends ApiFormRequest
 {
     /**
@@ -43,6 +47,31 @@ class SupplierApplicationStoreRequest extends ApiFormRequest
             'documents' => ['nullable', 'array'],
             'documents.*' => ['integer'],
         ];
+    }
+
+    public function authorize(): bool
+    {
+        $user = $this->user();
+
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        $companyId = $user->company_id !== null ? (int) $user->company_id : null;
+
+        return app(PermissionRegistry::class)->userHasAny($user, ['suppliers.apply'], $companyId);
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(response()->json([
+            'status' => 'error',
+            'message' => 'Supplier application permissions required.',
+            'data' => null,
+            'errors' => [
+                'code' => 'supplier_application_permission_required',
+            ],
+        ], 403));
     }
 
     /**

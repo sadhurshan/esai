@@ -15,3 +15,4 @@ export * from './use-delete-line';
 export * from './use-upload-attachment';
 export * from './use-delete-attachment';
 export * from './use-rfq-attachments';
+export * from './use-extend-deadline';

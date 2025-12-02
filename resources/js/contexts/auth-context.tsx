@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useReducer, createContext, useContext,
 
 const STORAGE_KEY = 'esai.auth.state';
 const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
-const ADMIN_ROLES = new Set(['buyer_admin', 'platform_super', 'platform_support']);
+const ADMIN_ROLES = new Set(['owner', 'buyer_admin', 'platform_super', 'platform_support']);
 const ADMIN_CONSOLE_FEATURE_KEY = 'admin_console_enabled';
 
 interface AuthenticatedUser {
@@ -15,6 +15,8 @@ interface AuthenticatedUser {
     role?: string | null;
     company_id?: number | null;
     avatar_url?: string | null;
+    email_verified_at?: string | null;
+    has_verified_email?: boolean;
     [key: string]: unknown;
 }
 
@@ -28,6 +30,9 @@ interface CompanySummary {
     supplier_profile_completed_at?: string | null;
     is_verified?: boolean;
     billing_status?: string | null;
+    billing_read_only?: boolean;
+    billing_grace_ends_at?: string | null;
+    billing_lock_at?: string | null;
     requires_plan_selection?: boolean;
     [key: string]: unknown;
 }
@@ -45,6 +50,7 @@ interface StoredAuthState {
     featureFlags?: Record<string, boolean>;
     plan?: string | null;
     requiresPlanSelection?: boolean;
+    requiresEmailVerification?: boolean;
 }
 
 interface AuthState {
@@ -57,6 +63,7 @@ interface AuthState {
     error: string | null;
     planLimit: PlanLimitNotice | null;
     requiresPlanSelection: boolean;
+    requiresEmailVerification: boolean;
 }
 
 interface LoginPayload {
@@ -87,14 +94,22 @@ interface AuthContextValue {
     isLoading: boolean;
     isAdmin: boolean;
     canAccessAdminConsole: boolean;
-    login: (payload: LoginPayload) => Promise<void>;
-    register: (payload: RegisterPayload) => Promise<void>;
+    requiresEmailVerification: boolean;
+    login: (payload: LoginPayload) => Promise<AuthFlowResult>;
+    register: (payload: RegisterPayload) => Promise<AuthFlowResult>;
     logout: () => void;
-    refresh: () => Promise<void>;
+    refresh: () => Promise<AuthFlowResult>;
     hasFeature: (key: string) => boolean;
     getAccessToken: () => string | null;
     notifyPlanLimit: (notice: PlanLimitNotice) => void;
     clearPlanLimit: () => void;
+    resendVerificationEmail: () => Promise<void>;
+}
+
+interface AuthFlowResult {
+    requiresEmailVerification: boolean;
+    requiresPlanSelection: boolean;
+    userRole?: string | null;
 }
 
 type AuthAction =
@@ -108,6 +123,7 @@ type AuthAction =
               featureFlags?: Record<string, boolean>;
               plan?: string | null;
               requiresPlanSelection?: boolean;
+              requiresEmailVerification?: boolean;
           };
       }
     | { type: 'LOGIN_FAILURE'; payload: { error: string } }
@@ -120,6 +136,7 @@ type AuthAction =
               featureFlags?: Record<string, boolean>;
               plan?: string | null;
               requiresPlanSelection?: boolean;
+              requiresEmailVerification?: boolean;
           };
       }
     | { type: 'SET_PLAN_LIMIT'; payload: PlanLimitNotice | null };
@@ -136,6 +153,7 @@ const initialState: AuthState = {
     error: null,
     planLimit: null,
     requiresPlanSelection: false,
+    requiresEmailVerification: false,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -158,6 +176,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 plan: action.payload.plan ?? state.plan ?? null,
                 error: null,
                 requiresPlanSelection: action.payload.requiresPlanSelection ?? false,
+                requiresEmailVerification: action.payload.requiresEmailVerification ?? false,
             };
         }
         case 'LOGIN_FAILURE':
@@ -171,6 +190,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 plan: null,
                 error: action.payload.error,
                 requiresPlanSelection: false,
+                requiresEmailVerification: false,
             };
         case 'LOGOUT':
             return {
@@ -186,6 +206,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 plan: action.payload.plan ?? state.plan,
                 requiresPlanSelection:
                     action.payload.requiresPlanSelection ?? state.requiresPlanSelection,
+                requiresEmailVerification:
+                    action.payload.requiresEmailVerification ?? state.requiresEmailVerification,
             };
         case 'SET_PLAN_LIMIT':
             return {
@@ -223,6 +245,7 @@ function readStoredState(): AuthState {
             error: null,
             planLimit: null,
             requiresPlanSelection: parsed.requiresPlanSelection ?? false,
+            requiresEmailVerification: parsed.requiresEmailVerification ?? false,
         };
     } catch (error) {
         console.error('Failed to parse stored auth state', error);
@@ -243,6 +266,7 @@ function writeStateToStorage(state: AuthState) {
             featureFlags: state.featureFlags,
             plan: state.plan ?? undefined,
             requiresPlanSelection: state.requiresPlanSelection,
+            requiresEmailVerification: state.requiresEmailVerification,
         };
 
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -310,8 +334,51 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
     const requiresPlanSelection = Boolean(
         (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
     );
+    const requiresEmailVerification = computeRequiresEmailVerification(data, user);
 
-    return { token, user, company, featureFlags, plan, requiresPlanSelection };
+    return { token, user, company, featureFlags, plan, requiresPlanSelection, requiresEmailVerification };
+}
+
+function computeRequiresEmailVerification(payload: Record<string, unknown>, user: AuthenticatedUser | null): boolean {
+    if (typeof payload.requires_email_verification === 'boolean') {
+        return payload.requires_email_verification;
+    }
+
+    if (user && typeof user === 'object') {
+        const candidate = user as Record<string, unknown>;
+        if (typeof candidate.has_verified_email === 'boolean') {
+            return candidate.has_verified_email === false;
+        }
+
+        if ('email_verified_at' in candidate) {
+            const timestamp = candidate.email_verified_at as string | null | undefined;
+            return !timestamp;
+        }
+    }
+
+    return false;
+}
+
+function extractFirstValidationMessage(errors: unknown): string | null {
+    if (!errors || typeof errors !== 'object') {
+        return null;
+    }
+
+    const values = Object.values(errors as Record<string, unknown>);
+    for (const value of values) {
+        if (typeof value === 'string' && value.trim().length > 0) {
+            return value;
+        }
+
+        if (Array.isArray(value)) {
+            const candidate = value.find((entry) => typeof entry === 'string' && entry.trim().length > 0);
+            if (candidate) {
+                return candidate;
+            }
+        }
+    }
+
+    return null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -354,6 +421,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SET_PLAN_LIMIT', payload: null });
     }, []);
 
+    const resendVerificationEmail = useCallback(async () => {
+        await authClient.resendVerificationEmail();
+    }, [authClient]);
+
     const logout = useCallback(() => {
         dispatch({ type: 'LOGOUT' });
         authClient
@@ -380,7 +451,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 };
 
                 const envelope = (await authClient.login(request)) as Record<string, unknown>;
-                const { token, user, company, featureFlags, plan, requiresPlanSelection } = normalizeAuthResponse(envelope);
+                const {
+                    token,
+                    user,
+                    company,
+                    featureFlags,
+                    plan,
+                    requiresPlanSelection,
+                    requiresEmailVerification,
+                } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
                     dispatch({
@@ -404,6 +483,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         featureFlags,
                         plan: plan ?? null,
                         requiresPlanSelection,
+                        requiresEmailVerification,
                     },
                 });
 
@@ -412,6 +492,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     title: 'Welcome back',
                     description: `Signed in as ${user.name ?? user.email}`,
                 });
+
+                return {
+                    requiresEmailVerification,
+                    requiresPlanSelection: requiresPlanSelection ?? false,
+                    userRole: user.role ?? null,
+                };
             } catch (error) {
                 let message = 'Unable to sign in. Please check your credentials.';
 
@@ -490,7 +576,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 });
 
                 const envelope = (await authClient.register(formData)) as Record<string, unknown>;
-                const { token, user, company, featureFlags, plan, requiresPlanSelection } = normalizeAuthResponse(envelope);
+                const {
+                    token,
+                    user,
+                    company,
+                    featureFlags,
+                    plan,
+                    requiresPlanSelection,
+                    requiresEmailVerification,
+                } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
                     dispatch({
@@ -514,6 +608,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         featureFlags,
                         plan: plan ?? null,
                         requiresPlanSelection,
+                        requiresEmailVerification,
                     },
                 });
 
@@ -522,23 +617,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     title: 'Workspace created',
                     description: `Welcome to Elements Supply, ${user.name ?? user.email}`,
                 });
+
+                return {
+                    requiresEmailVerification,
+                    requiresPlanSelection: requiresPlanSelection ?? false,
+                    userRole: user.role ?? null,
+                };
             } catch (error) {
                 let message = 'Unable to complete registration at this time.';
+                let validationMessage: string | null = null;
 
                 if (error instanceof HttpError) {
                     const body = error.body as Record<string, unknown> | undefined;
                     if (body && typeof body.message === 'string' && body.message.length > 0) {
                         message = body.message;
                     }
+
+                    const errorsBag = body && typeof body === 'object' ? (body as { errors?: unknown }).errors : undefined;
+                    validationMessage = extractFirstValidationMessage(errorsBag);
                 } else if (error instanceof Error && error.message) {
                     message = error.message;
                 }
 
-                dispatch({ type: 'LOGIN_FAILURE', payload: { error: message } });
+                const toastDescription = validationMessage ?? message;
+
+                dispatch({ type: 'LOGIN_FAILURE', payload: { error: toastDescription } });
                 publishToast({
                     variant: 'destructive',
                     title: 'Registration failed',
-                    description: message,
+                    description: toastDescription,
                 });
 
                 if (error instanceof Error) {
@@ -550,9 +657,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [authClient],
     );
 
-    const refresh = useCallback(async () => {
+    const refresh = useCallback(async (): Promise<AuthFlowResult> => {
+        const snapshot: AuthFlowResult = {
+            requiresEmailVerification: state.requiresEmailVerification,
+            requiresPlanSelection: state.requiresPlanSelection,
+            userRole: state.user?.role ?? null,
+        };
+
         if (!state.token) {
-            return;
+            return snapshot;
         }
 
         try {
@@ -564,6 +677,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const requiresPlanSelection = Boolean(
                 (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
             );
+            const requiresEmailVerification = computeRequiresEmailVerification(data, user);
 
             dispatch({
                 type: 'SET_IDENTITIES',
@@ -573,16 +687,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     featureFlags,
                     plan,
                     requiresPlanSelection,
+                    requiresEmailVerification,
                 },
             });
+
+            return {
+                requiresEmailVerification,
+                requiresPlanSelection,
+                userRole: user?.role ?? null,
+            };
         } catch (error) {
             if (error instanceof HttpError && error.response.status === 401) {
                 logout();
-                return;
+                return {
+                    requiresEmailVerification: false,
+                    requiresPlanSelection: false,
+                    userRole: null,
+                };
             }
             console.error('Failed to refresh auth state', error);
+            return snapshot;
         }
-    }, [authClient, logout, state.token]);
+    }, [authClient, logout, state.requiresEmailVerification, state.requiresPlanSelection, state.token]);
 
     const userRole = state.user?.role ?? null;
 
@@ -614,6 +740,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isLoading: state.status === 'loading',
             isAdmin,
             canAccessAdminConsole,
+            requiresEmailVerification: state.requiresEmailVerification,
             login,
             register,
             logout,
@@ -622,6 +749,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             getAccessToken,
             notifyPlanLimit,
             clearPlanLimit,
+            resendVerificationEmail,
         }),
         [
             state,
@@ -635,6 +763,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             getAccessToken,
             notifyPlanLimit,
             clearPlanLimit,
+            resendVerificationEmail,
         ],
     );
 

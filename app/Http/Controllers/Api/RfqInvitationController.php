@@ -15,14 +15,17 @@ class RfqInvitationController extends ApiController
 
     public function store(RFQ $rfq, StoreInvitationRequest $request): JsonResponse
     {
-        /** @var \App\Models\User|null $user */
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
 
-        abort_if(
-            $user === null
-            || $user->company_id !== $rfq->company_id,
-            403
-        );
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ($this->authorizeDenied($user, 'manageInvitations', $rfq)) {
+            return $this->fail('RFQ invitations require sourcing write access.', 403, [
+                'code' => 'rfqs_write_required',
+            ]);
+        }
 
         $this->inviteSuppliersToRfqAction->execute(
             $rfq,
@@ -39,24 +42,28 @@ class RfqInvitationController extends ApiController
 
     public function index(RFQ $rfq, Request $request): JsonResponse
     {
-        $user = $request->user();
-        abort_if(
-            $user === null
-            || $user->company_id !== $rfq->company_id,
-            403
-        );
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if ($this->authorizeDenied($user, 'viewInvitations', $rfq)) {
+            return $this->fail('RFQ invitations require sourcing write access.', 403, [
+                'code' => 'rfqs_write_required',
+            ]);
+        }
 
         $paginator = $rfq->invitations()
             ->with(['supplier'])
             ->orderByDesc('created_at')
-            ->paginate($this->perPage($request))
-            ->withQueryString();
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request));
 
         ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, RfqInvitationResource::class);
 
         return $this->ok([
             'items' => $items,
-            'meta' => $meta,
-        ]);
+        ], null, $meta);
     }
 }

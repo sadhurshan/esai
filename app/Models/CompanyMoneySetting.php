@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CompanyMoneySetting extends Model
+class CompanyMoneySetting extends CompanyScopedModel
 {
     use HasFactory;
 

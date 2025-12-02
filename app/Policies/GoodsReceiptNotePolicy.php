@@ -34,6 +34,11 @@ class GoodsReceiptNotePolicy
         return $this->hasRole($user) && $this->matchesCompany($user, $note) && $note->status === 'pending';
     }
 
+    public function attachFile(User $user, GoodsReceiptNote $note): bool
+    {
+        return $this->hasRole($user) && $this->matchesCompany($user, $note);
+    }
+
     private function hasRole(User $user): bool
     {
         return in_array($user->role, self::ALLOWED_ROLES, true);

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
-class Subscription extends Model
+class Subscription extends CompanyScopedModel
 {
     use HasFactory;
 
@@ -21,11 +21,16 @@ class Subscription extends Model
         'quantity',
         'trial_ends_at',
         'ends_at',
+        'checkout_session_id',
+        'checkout_status',
+        'checkout_url',
+        'checkout_started_at',
     ];
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
         'ends_at' => 'datetime',
+        'checkout_started_at' => 'datetime',
     ];
 
     public function company(): BelongsTo
@@ -75,5 +80,17 @@ class Subscription extends Model
         }
 
         return false;
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        return $this->isPastDue()
+            && $this->ends_at instanceof Carbon
+            && $this->ends_at->isFuture();
+    }
+
+    public function graceEndsAt(): ?Carbon
+    {
+        return $this->isInGracePeriod() ? $this->ends_at : null;
     }
 }

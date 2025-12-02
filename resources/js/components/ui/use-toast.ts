@@ -7,6 +7,8 @@ export type ToastPayload = {
     title?: string;
     description?: string;
     variant?: 'default' | 'success' | 'destructive';
+    actionLabel?: string;
+    actionHref?: string;
 };
 
 export type ToastListener = (payload: ToastPayload) => void;

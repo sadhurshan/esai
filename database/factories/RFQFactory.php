@@ -24,24 +24,18 @@ class RFQFactory extends Factory
             'Copper',
         ];
 
-        $methods = [
-            'CNC Milling',
-            'CNC Turning',
-            'Sheet Metal',
-            'Injection Molding',
-            '3D Printing',
-        ];
-
-        $statuses = ['awaiting', 'open', 'closed', 'awarded', 'cancelled'];
+        $statuses = RFQ::STATUSES;
         $status = $this->faker->randomElement($statuses);
 
-        $sentAt = $status === 'awaiting'
+        $publishAt = $status === RFQ::STATUS_DRAFT
             ? null
             : $this->faker->dateTimeBetween('-60 days', 'now');
 
-        $deadlineAt = match ($status) {
-            'awaiting', 'open' => $this->faker->dateTimeBetween('+5 days', '+75 days'),
-            'closed', 'awarded' => $this->faker->dateTimeBetween('-30 days', '-1 day'),
+        $dueAt = match ($status) {
+            RFQ::STATUS_DRAFT => $this->faker->dateTimeBetween('+5 days', '+90 days'),
+            RFQ::STATUS_OPEN => $this->faker->dateTimeBetween('+2 days', '+45 days'),
+            RFQ::STATUS_CLOSED, RFQ::STATUS_AWARDED => $this->faker->dateTimeBetween('-30 days', '-1 day'),
+            RFQ::STATUS_CANCELLED => $this->faker->dateTimeBetween('-15 days', '+15 days'),
             default => $this->faker->dateTimeBetween('-10 days', '+45 days'),
         };
 
@@ -50,26 +44,25 @@ class RFQFactory extends Factory
 
         return [
             'number' => sprintf('%05d', $this->faker->unique()->numberBetween(0, 99999)),
-            'item_name' => ucfirst($this->faker->words($this->faker->numberBetween(2, 4), true)),
-            'type' => $this->faker->randomElement(['ready_made', 'manufacture']),
-            'quantity' => $this->faker->numberBetween(10, 500),
+            'title' => ucfirst($this->faker->words($this->faker->numberBetween(2, 4), true)),
+            'method' => $this->faker->randomElement(RFQ::METHODS),
             'material' => $this->faker->randomElement($materials),
-            'method' => $this->faker->randomElement($methods),
             'tolerance' => $this->faker->optional(0.6)->randomElement($tolerances),
             'finish' => $this->faker->optional(0.5)->randomElement($finishes),
-            'client_company' => $this->faker->company(),
+            'quantity_total' => $this->faker->numberBetween(10, 500),
+            'delivery_location' => $this->faker->city(),
+            'incoterm' => $this->faker->randomElement(['FOB', 'CIF', 'DAP', 'DDP']),
+            'currency' => $this->faker->randomElement(['USD', 'EUR', 'GBP']),
             'status' => $status,
-            'deadline_at' => $deadlineAt,
-            'sent_at' => $sentAt,
-            'is_open_bidding' => $status === 'open' ? $this->faker->boolean(70) : false,
+            'publish_at' => $publishAt,
+            'due_at' => $dueAt,
+            'close_at' => $dueAt,
+            'open_bidding' => $status === RFQ::STATUS_OPEN ? $this->faker->boolean(70) : false,
             'notes' => $this->faker->optional(0.4)->sentences($this->faker->numberBetween(1, 2), true),
-            'cad_path' => $this->faker->optional(0.3)->randomElement([
-                'cad/sample-bracket.step',
-                'cad/assembly-v1.igs',
-                'cad/demo-plate.stp',
-            ]),
-            'version_no' => 1,
-            'version' => 1,
+            'cad_document_id' => null,
+            'rfq_version' => 1,
+            'attachments_count' => 0,
+            'meta' => [],
         ];
     }
 }

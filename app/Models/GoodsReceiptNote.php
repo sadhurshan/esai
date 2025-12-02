@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class GoodsReceiptNote extends Model
+class GoodsReceiptNote extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;
@@ -57,5 +57,10 @@ class GoodsReceiptNote extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
+    }
+
+    public function ncrs(): HasMany
+    {
+        return $this->hasMany(Ncr::class, 'goods_receipt_note_id');
     }
 }

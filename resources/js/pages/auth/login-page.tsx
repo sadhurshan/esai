@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { HttpError } from '@/sdk';
+import { isPlatformRole } from '@/constants/platform-roles';
 
 const loginSchema = z.object({
     email: z
@@ -26,17 +28,30 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const APP_HOME_ROUTE = '/app';
+const ADMIN_HOME_ROUTE = '/app/admin';
+
+function resolvePostLoginRoute(role: string | null | undefined, requestedPath: string): string {
+    const target = requestedPath && requestedPath.length > 0 ? requestedPath : APP_HOME_ROUTE;
+    if (isPlatformRole(role) && (target === APP_HOME_ROUTE || target === `${APP_HOME_ROUTE}/`)) {
+        return ADMIN_HOME_ROUTE;
+    }
+    return target;
+}
+
 export function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { login, state } = useAuth();
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const redirectTo = (location.state as { from?: string } | null)?.from ?? '/app';
+    const redirectTo = (location.state as { from?: string } | null)?.from ?? APP_HOME_ROUTE;
 
     const {
         register,
         handleSubmit,
         control,
+        setError,
+        clearErrors,
         formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
@@ -49,17 +64,63 @@ export function LoginPage() {
 
     const onSubmit = handleSubmit(async (values) => {
         setSubmitError(null);
+        clearErrors();
         try {
-            await login(values);
-            navigate(redirectTo, { replace: true });
+            const result = await login(values);
+
+            if (result.requiresEmailVerification) {
+                navigate('/verify-email', { replace: true });
+                return;
+            }
+
+            const postLoginRole = result.userRole ?? state.user?.role ?? null;
+            const isPlatformOperator = isPlatformRole(postLoginRole);
+
+            if (result.requiresPlanSelection && !isPlatformOperator) {
+                navigate('/app/setup/plan', { replace: true });
+                return;
+            }
+
+            const destination = resolvePostLoginRoute(postLoginRole, redirectTo);
+            navigate(destination, { replace: true });
         } catch (error) {
+            if (error instanceof HttpError) {
+                const body = error.body as { message?: string } | undefined;
+                const serverMessage = typeof body?.message === 'string' && body.message.trim().length > 0 ? body.message : null;
+                const friendlyMessage = serverMessage ?? 'Invalid credentials provided.';
+                setSubmitError(friendlyMessage);
+                return;
+            }
+
             if (error instanceof Error) {
                 setSubmitError(error.message);
-            } else {
-                setSubmitError('Unable to sign in.');
+                setError('password', { type: 'server', message: error.message });
+                return;
             }
+
+            const fallbackMessage = 'Unable to sign in.';
+            setSubmitError(fallbackMessage);
+            setError('password', { type: 'server', message: fallbackMessage });
         }
     });
+
+    if (state.status === 'authenticated') {
+        if (state.requiresEmailVerification) {
+            return <Navigate to="/verify-email" replace />;
+        }
+
+        const role = state.user?.role ?? null;
+        const isPlatformOperator = isPlatformRole(role);
+        const needsPlan =
+            state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+
+        if (needsPlan && !isPlatformOperator) {
+            return <Navigate to="/app/setup/plan" replace />;
+        }
+
+        const destination = resolvePostLoginRoute(role, APP_HOME_ROUTE);
+        return <Navigate to={destination} replace />;
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
@@ -112,9 +173,9 @@ export function LoginPage() {
                             )}
                         />
 
-                        {submitError || state.error ? (
+                        {submitError ? (
                             <Alert variant="destructive">
-                                <AlertDescription>{submitError ?? state.error}</AlertDescription>
+                                <AlertDescription>{submitError}</AlertDescription>
                             </Alert>
                         ) : null}
 

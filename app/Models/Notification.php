@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
-class Notification extends Model
+class Notification extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

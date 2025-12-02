@@ -70,6 +70,12 @@ class SupplierResource extends JsonResource
             return [];
         }
 
-        return SupplierDocumentResource::collection($this->documents)->toArray($request);
+        $documents = $this->documents;
+
+        if (method_exists($documents, 'load')) {
+            $documents->load('document');
+        }
+
+        return SupplierDocumentResource::collection($documents)->toArray($request);
     }
 }

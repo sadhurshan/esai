@@ -22,16 +22,15 @@ class RFQQuoteController extends ApiController
 
             $paginator = RFQQuote::with('supplier')
                 ->where('rfq_id', $rfq->id)
-                ->orderBy('submitted_at', 'desc')
-                ->paginate($this->perPage($request))
-                ->withQueryString();
+                ->orderByDesc('submitted_at')
+                ->orderByDesc('id')
+                ->cursorPaginate($this->perPage($request));
 
             ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, RFQQuoteResource::class);
 
             return $this->ok([
                 'items' => $items,
-                'meta' => $meta,
-            ]);
+            ], null, $meta);
         } catch (\Throwable $throwable) {
             report($throwable);
 

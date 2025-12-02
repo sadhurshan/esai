@@ -97,7 +97,7 @@ class StripeCheckoutService
     private function fallbackResponse(Plan $plan, string $reason, ?Response $response = null): array
     {
         $fallbackUrl = config('services.stripe.fallback_checkout_url')
-            ?: $this->url->to('/pricing');
+            ?: $this->url->to('/app/setup/plan').'?mode=change';
 
         return [
             'status' => $reason,

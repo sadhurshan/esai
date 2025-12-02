@@ -15,12 +15,14 @@ import { cn } from '@/lib/utils';
 import { Files, PlusCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { NavLink, Link } from 'react-router-dom';
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useFormatting } from '@/contexts/formatting-context';
+import { getRfqMethodLabel } from '@/constants/rfq';
+import type { Rfq } from '@/sdk';
 
 function getStatusPresentation(status?: string) {
     switch (status) {
-        case 'awaiting':
+        case 'draft':
             return { label: 'Draft', variant: 'secondary' as const };
         case 'open':
             return { label: 'Open', variant: 'default' as const };
@@ -29,28 +31,64 @@ function getStatusPresentation(status?: string) {
         case 'awarded':
             return { label: 'Awarded', variant: 'default' as const, className: 'bg-emerald-500 text-white' };
         case 'cancelled':
-            return { label: 'Cancelled', variant: 'destructive' as const };
+            return { label: 'Cancelled', variant: 'outline' as const, className: 'text-muted-foreground' };
         default:
             return { label: status ?? 'Unknown', variant: 'outline' as const };
     }
 }
 
-const STATUS_OPTIONS: { value: RfqStatusFilter; label: string }[] = [
+function resolveQuantityTotal(rfq: Rfq): number | null {
+    const extended = rfq as Rfq & {
+        quantityTotal?: number | null;
+        items?: Array<{ quantity?: number | string | null }>;
+    };
+
+    if (typeof extended.quantityTotal === 'number') {
+        return extended.quantityTotal;
+    }
+
+    if (typeof (rfq as { quantity?: number | null }).quantity === 'number') {
+        return (rfq as { quantity?: number | null }).quantity ?? null;
+    }
+
+    if (extended.items && extended.items.length > 0) {
+        const total = extended.items.reduce((sum, item) => {
+            const value = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity);
+            return Number.isFinite(value) ? sum + Number(value) : sum;
+        }, 0);
+
+        return total > 0 ? total : null;
+    }
+
+    return null;
+}
+
+const STATUS_OPTIONS: Array<{ value: RfqStatusFilter; label: string }> = [
     { value: 'all', label: 'All statuses' },
     { value: 'draft', label: 'Draft' },
     { value: 'open', label: 'Open' },
-    { value: 'closed', label: 'Closed' },
     { value: 'awarded', label: 'Awarded' },
+    { value: 'closed', label: 'Closed' },
+    { value: 'cancelled', label: 'Cancelled' },
+];
+
+type BiddingFilter = 'all' | 'open' | 'private';
+
+const BIDDING_OPTIONS: Array<{ value: BiddingFilter; label: string }> = [
+    { value: 'all', label: 'All bidding modes' },
+    { value: 'open', label: 'Open bidding only' },
+    { value: 'private', label: 'Private invitations only' },
 ];
 
 export function RfqListPage() {
     const { formatNumber, formatDate } = useFormatting();
-    const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<RfqStatusFilter>('all');
     const [searchInput, setSearchInput] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [biddingFilter, setBiddingFilter] = useState<BiddingFilter>('all');
     const [dateFrom, setDateFrom] = useState<string | undefined>();
     const [dateTo, setDateTo] = useState<string | undefined>();
+    const [cursor, setCursor] = useState<string | undefined>();
     const perPage = 10;
 
     useEffect(() => {
@@ -60,56 +98,38 @@ export function RfqListPage() {
 
     const handleStatusChange = (value: RfqStatusFilter) => {
         setStatusFilter(value);
-        setPage(1);
+        setCursor(undefined);
     };
 
     const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(event.target.value);
-        setPage(1);
+        setCursor(undefined);
     };
 
     const handleDateFromChange = (event: ChangeEvent<HTMLInputElement>) => {
         setDateFrom(event.target.value || undefined);
-        setPage(1);
+        setCursor(undefined);
     };
 
     const handleDateToChange = (event: ChangeEvent<HTMLInputElement>) => {
         setDateTo(event.target.value || undefined);
-        setPage(1);
+        setCursor(undefined);
     };
 
     const rfqsQuery = useRfqs({
-        page,
         perPage,
         status: statusFilter,
         search: searchTerm,
-        dateFrom,
-        dateTo,
+        dueFrom: dateFrom,
+        dueTo: dateTo,
+        cursor,
+        openBidding: biddingFilter === 'all' ? undefined : biddingFilter === 'open',
     });
 
-    const { items, meta } = rfqsQuery;
+    const { items, cursor: cursorMeta } = rfqsQuery;
 
-    const paginationInfo = useMemo(() => {
-        if (!meta) {
-            return { from: 0, to: 0, total: 0 };
-        }
-
-        if (items.length === 0) {
-            return { from: 0, to: 0, total: meta.total ?? 0 };
-        }
-
-        const start = (meta.currentPage - 1) * meta.perPage + 1;
-        const end = Math.min(meta.currentPage * meta.perPage, meta.total);
-
-        return {
-            from: start,
-            to: end,
-            total: meta.total,
-        };
-    }, [items.length, meta]);
-
-    const canGoPrev = meta ? meta.currentPage > 1 : false;
-    const canGoNext = meta ? meta.currentPage < meta.lastPage : false;
+    const canGoPrev = Boolean(cursorMeta?.prevCursor || cursor);
+    const canGoNext = Boolean(cursorMeta?.nextCursor);
 
     const showSkeleton = rfqsQuery.isLoading && !rfqsQuery.isError;
     const showEmptyState = !showSkeleton && !rfqsQuery.isError && items.length === 0;
@@ -160,7 +180,21 @@ export function RfqListPage() {
                     </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                    <label className="text-xs font-medium text-muted-foreground">Published from</label>
+                    <Select value={biddingFilter} onValueChange={(value) => setBiddingFilter(value as BiddingFilter)}>
+                        <SelectTrigger className="w-48 h-9">
+                            <SelectValue placeholder="Bidding" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {BIDDING_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-muted-foreground">Due from</label>
                     <Input
                         type="date"
                         value={dateFrom ?? ''}
@@ -169,7 +203,7 @@ export function RfqListPage() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <label className="text-xs font-medium text-muted-foreground">Published to</label>
+                    <label className="text-xs font-medium text-muted-foreground">Due to</label>
                     <Input
                         type="date"
                         value={dateTo ?? ''}
@@ -224,8 +258,17 @@ export function RfqListPage() {
                                       </td>
                                   </tr>
                               ))
-                            : items.map((rfq) => {
-                                  const statusPresentation = getStatusPresentation(rfq.status);
+                                : items.map((rfq) => {
+                                    const statusPresentation = getStatusPresentation(rfq.status);
+                                    const extended = rfq as Rfq & { title?: string | null };
+                                    const derivedTitle = typeof extended.title === 'string' && extended.title.trim().length > 0
+                                        ? extended.title
+                                        : rfq.itemName;
+                                    const quantityTotal = resolveQuantityTotal(rfq);
+                                    const methodLabel = getRfqMethodLabel((rfq as { method?: string | null }).method ?? undefined);
+                                    const materialLabel = (rfq as { material?: string | null }).material ?? '—';
+                                    const publishAt = (rfq as { publishAt?: string | null }).publishAt ?? (rfq as { sentAt?: string | null }).sentAt;
+                                    const dueAt = (rfq as { dueAt?: string | null }).dueAt ?? (rfq as { deadlineAt?: string | null }).deadlineAt;
 
                                   return (
                                       <tr key={rfq.id} className="hover:bg-muted/20">
@@ -236,31 +279,33 @@ export function RfqListPage() {
                                           </td>
                                           <td className="px-4 py-4 align-top">
                                               <div className="flex flex-col gap-1">
-                                                  <span className="font-medium text-foreground">{rfq.itemName}</span>
-                                                  {rfq.clientCompany ? (
+                                                  <span className="font-medium text-foreground">{derivedTitle}</span>
+                                                  {(rfq as { deliveryLocation?: string | null }).deliveryLocation ? (
                                                       <span className="text-xs text-muted-foreground">
-                                                          {rfq.clientCompany}
+                                                          {(rfq as { deliveryLocation?: string | null }).deliveryLocation}
                                                       </span>
                                                   ) : null}
                                               </div>
                                           </td>
                                           <td className="px-4 py-4 align-top text-muted-foreground">
                                               <span className="font-medium text-foreground">
-                                                  {formatNumber(rfq.quantity, { maximumFractionDigits: 0 })}
+                                                  {quantityTotal !== null
+                                                      ? formatNumber(quantityTotal, { maximumFractionDigits: 0 })
+                                                      : '—'}
                                               </span>
                                           </td>
                                           <td className="px-4 py-4 align-top">
                                               <div className="flex flex-col text-xs text-muted-foreground">
-                                                  <span className="font-medium text-foreground">{rfq.method}</span>
-                                                  <span>{rfq.material}</span>
+                                                  <span className="font-medium text-foreground">{methodLabel}</span>
+                                                  <span>{materialLabel}</span>
                                               </div>
                                           </td>
                                           <td className="px-4 py-4 align-top text-xs text-muted-foreground">
                                               <div className="flex flex-col">
                                                   <span className="font-medium text-foreground">
-                                                      {formatDate(rfq.sentAt)}
+                                                      {formatDate(publishAt)}
                                                   </span>
-                                                  <span>Due {formatDate(rfq.deadlineAt)}</span>
+                                                  <span>Due {formatDate(dueAt)}</span>
                                               </div>
                                           </td>
                                           <td className="px-4 py-4 align-top text-right">
@@ -295,16 +340,13 @@ export function RfqListPage() {
             </div>
 
             <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-xs text-muted-foreground">
-                    Showing {paginationInfo.from ? `${paginationInfo.from}–${paginationInfo.to}` : '0'} of{' '}
-                    {paginationInfo.total} RFQs
-                </div>
+                <div className="text-xs text-muted-foreground">Showing {items.length} RFQs</div>
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         size="sm"
                         disabled={!canGoPrev}
-                        onClick={() => setPage((current) => Math.max(1, current - 1))}
+                        onClick={() => setCursor(cursorMeta?.prevCursor ?? undefined)}
                     >
                         Previous
                     </Button>
@@ -312,7 +354,11 @@ export function RfqListPage() {
                         variant="outline"
                         size="sm"
                         disabled={!canGoNext}
-                        onClick={() => setPage((current) => (meta ? Math.min(meta.lastPage, current + 1) : current))}
+                        onClick={() =>
+                            setCursor((current) =>
+                                cursorMeta?.nextCursor ? cursorMeta.nextCursor : current,
+                            )
+                        }
                     >
                         Next
                     </Button>

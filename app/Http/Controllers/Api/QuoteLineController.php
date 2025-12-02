@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\RfqResponseWindowException;
 use App\Http\Requests\Quote\StoreQuoteLineRequest;
 use App\Http\Requests\Quote\UpdateQuoteLineRequest;
 use App\Http\Resources\QuoteResource;
@@ -31,6 +32,8 @@ class QuoteLineController extends ApiController
             $updatedQuote = $this->quoteDraftService->addLine($quote, $request->payload());
         } catch (ValidationException $exception) {
             return $this->fail($exception->getMessage(), 422, $exception->errors());
+        } catch (RfqResponseWindowException $exception) {
+            return $this->fail($exception->getMessage(), $exception->getStatus(), $exception->getErrors());
         }
 
         return $this->ok(
@@ -57,6 +60,8 @@ class QuoteLineController extends ApiController
             $updatedQuote = $this->quoteDraftService->updateLine($quote, $quoteItem, $request->payload());
         } catch (ValidationException $exception) {
             return $this->fail($exception->getMessage(), 422, $exception->errors());
+        } catch (RfqResponseWindowException $exception) {
+            return $this->fail($exception->getMessage(), $exception->getStatus(), $exception->getErrors());
         }
 
         return $this->ok(
@@ -83,6 +88,8 @@ class QuoteLineController extends ApiController
             $updatedQuote = $this->quoteDraftService->deleteLine($quote, $quoteItem);
         } catch (ValidationException $exception) {
             return $this->fail($exception->getMessage(), 422, $exception->errors());
+        } catch (RfqResponseWindowException $exception) {
+            return $this->fail($exception->getMessage(), $exception->getStatus(), $exception->getErrors());
         }
 
         return $this->ok(

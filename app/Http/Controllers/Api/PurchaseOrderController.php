@@ -18,6 +18,8 @@ use App\Models\PurchaseOrder;
 use App\Models\RFQ;
 use App\Models\RfqItemAward;
 use App\Models\User;
+use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Documents\DocumentStorer;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -38,15 +40,20 @@ class PurchaseOrderController extends ApiController
         private readonly ConvertAwardsToPurchaseOrdersAction $convertAwardsToPurchaseOrdersAction,
         private readonly SendPurchaseOrderAction $sendPurchaseOrder,
         private readonly HandleSupplierAcknowledgementAction $supplierAcknowledgement,
+        private readonly AuditLogger $auditLogger,
     ) {}
 
     public function index(Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403, "User is null");
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $isSupplierListing = $request->boolean('supplier') === true;
 
@@ -71,24 +78,28 @@ class PurchaseOrderController extends ApiController
 
         $paginator = $query
             ->orderByDesc('created_at')
-            ->paginate($this->perPage($request))
+            ->orderByDesc('id')
+            ->paginate($this->perPage($request, 25, 100))
             ->withQueryString();
 
         ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, PurchaseOrderResource::class);
 
         return $this->ok([
             'items' => $items,
-            'meta' => $meta,
-        ]);
+        ], null, $meta);
     }
 
     public function show(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
@@ -96,7 +107,9 @@ class PurchaseOrderController extends ApiController
         $isBuyer = $companyId === $purchaseOrder->company_id;
         $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
-        abort_if(! $isBuyer && ! $isSupplier, 403);
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $purchaseOrder->load([
             'lines.taxes.taxCode',
@@ -109,16 +122,28 @@ class PurchaseOrderController extends ApiController
             'deliveries.creator',
         ]);
 
+        if ($this->authorizeDenied($user, 'view', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
+
         return $this->ok((new PurchaseOrderResource($purchaseOrder))->toArray($request));
     }
 
     public function send(SendPurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null || $companyId !== $purchaseOrder->company_id, 403);
+        if ($companyId === null || $companyId !== $purchaseOrder->company_id) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        if ($this->authorizeDenied($user, 'send', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $delivery = $this->sendPurchaseOrder->execute($user, $purchaseOrder, $request->payload());
 
@@ -132,6 +157,13 @@ class PurchaseOrderController extends ApiController
             'deliveries.creator',
         ]);
 
+        $this->auditLogger->custom($purchaseOrder, 'purchase_order_sent', [
+            'delivery_id' => $delivery->getKey(),
+            'channel' => $delivery->channel,
+            'recipients_to' => $delivery->recipients_to,
+            'recipients_cc' => $delivery->recipients_cc,
+        ]);
+
         return $this->ok([
             'purchase_order' => (new PurchaseOrderResource($purchaseOrder))->toArray($request),
             'delivery' => (new PurchaseOrderDeliveryResource($delivery))->toArray($request),
@@ -141,18 +173,32 @@ class PurchaseOrderController extends ApiController
     public function cancel(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null || $companyId !== $purchaseOrder->company_id, 403);
+        if ($companyId === null || $companyId !== $purchaseOrder->company_id) {
+            return $this->fail('Forbidden', 403);
+        }
 
         if (! in_array($purchaseOrder->status, ['draft', 'sent'], true)) {
             return $this->fail('Only draft or sent purchase orders can be cancelled.', 422);
         }
 
+        if ($this->authorizeDenied($user, 'cancel', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        $before = $purchaseOrder->only(['status', 'cancelled_at']);
         $purchaseOrder->status = 'cancelled';
         $purchaseOrder->cancelled_at = now();
         $purchaseOrder->save();
+
+        $this->auditLogger->updated($purchaseOrder, $before, [
+            'status' => $purchaseOrder->status,
+            'cancelled_at' => $purchaseOrder->cancelled_at,
+        ]);
 
         Log::info('purchase_order.cancelled', [
             'purchase_order_id' => $purchaseOrder->id,
@@ -174,12 +220,20 @@ class PurchaseOrderController extends ApiController
     public function acknowledge(SupplierAcknowledgeRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 401);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403);
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
+
+        if ($this->authorizeDenied($user, 'acknowledge', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $decision = $request->payload();
 
@@ -199,6 +253,12 @@ class PurchaseOrderController extends ApiController
             'pdfDocument',
         ]);
 
+        $this->auditLogger->custom($updated, 'purchase_order_supplier_decision', [
+            'decision' => $decision['decision'],
+            'reason' => $decision['reason'] ?? null,
+            'actor_id' => $user->id,
+        ]);
+
         $message = $decision['decision'] === 'acknowledged'
             ? 'Purchase order acknowledged.'
             : 'Purchase order declined by supplier.';
@@ -209,10 +269,14 @@ class PurchaseOrderController extends ApiController
     public function events(Request $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403);
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
@@ -220,7 +284,13 @@ class PurchaseOrderController extends ApiController
         $isBuyer = (int) $purchaseOrder->company_id === (int) $companyId;
         $isSupplier = $supplierCompanyId !== null && (int) $supplierCompanyId === (int) $companyId;
 
-        abort_if(! $isBuyer && ! $isSupplier, 403);
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        if ($this->authorizeDenied($user, 'viewEvents', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $events = $purchaseOrder->events()
             ->with('actor')
@@ -236,10 +306,14 @@ class PurchaseOrderController extends ApiController
     public function export(PurchaseOrder $purchaseOrder, Request $request, DocumentStorer $documentStorer): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
@@ -247,7 +321,13 @@ class PurchaseOrderController extends ApiController
         $isBuyer = $companyId === $purchaseOrder->company_id;
         $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
-        abort_if(! $isBuyer && ! $isSupplier, 403);
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        if ($this->authorizeDenied($user, 'export', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $document = $this->ensurePdfDocument($purchaseOrder, $user, $documentStorer);
 
@@ -270,19 +350,24 @@ class PurchaseOrderController extends ApiController
         ], 'Purchase order PDF ready.');
     }
 
-    public function downloadPdf(Request $request, PurchaseOrder $purchaseOrder, Document $document): StreamedResponse
+    public function downloadPdf(Request $request, PurchaseOrder $purchaseOrder, Document $document): StreamedResponse|JsonResponse
     {
-        abort_if(
+        if (
             $document->documentable_type !== PurchaseOrder::class
-            || (int) $document->documentable_id !== (int) $purchaseOrder->getKey(),
-            404
-        );
+            || (int) $document->documentable_id !== (int) $purchaseOrder->getKey()
+        ) {
+            return $this->fail('Not found', 404);
+        }
 
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
@@ -290,7 +375,13 @@ class PurchaseOrderController extends ApiController
         $isBuyer = $companyId === $purchaseOrder->company_id;
         $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
-        abort_if(! $isBuyer && ! $isSupplier, 403);
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        if ($this->authorizeDenied($user, 'download', $purchaseOrder)) {
+            return $this->fail('Forbidden', 403);
+        }
 
         $disk = config('documents.disk', config('filesystems.default', 'local'));
 
@@ -300,15 +391,18 @@ class PurchaseOrderController extends ApiController
     public function createFromAwards(CreatePurchaseOrdersFromAwardsRequest $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 403);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $awardIds = $request->validated('award_ids');
 
         $awards = RfqItemAward::query()
-            ->with(['rfq', 'supplier', 'quote', 'quoteItem'])
             ->whereIn('id', $awardIds)
             ->get();
 
@@ -321,7 +415,11 @@ class PurchaseOrderController extends ApiController
         $companyMismatch = $awards->pluck('company_id')->unique()->count() !== 1
             || (int) $awards->first()->company_id !== (int) $companyId;
 
-        abort_if($companyMismatch, 403);
+        if ($companyMismatch) {
+            return $this->fail('Forbidden', 403);
+        }
+
+        CompanyContext::bypass(fn () => $awards->load(['rfq', 'supplier.company', 'quote.supplier', 'quoteItem.rfqItem']));
 
         $rfq = $awards->first()->rfq;
 

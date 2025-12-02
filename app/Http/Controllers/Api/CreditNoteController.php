@@ -36,16 +36,17 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if ($company === null) {
+        if ($companyId === null) {
             return $this->fail('Company context required.', 403);
         }
 
         $query = CreditNote::query()
-            ->where('company_id', $company->id)
+            ->where('company_id', $companyId)
             ->with(['invoice', 'purchaseOrder', 'goodsReceiptNote', 'documents'])
-            ->latest('created_at');
+            ->latest('created_at')
+            ->orderByDesc('id');
 
         if ($status = $request->query('status')) {
             if (! in_array($status, CreditNoteStatus::values(), true)) {
@@ -95,11 +96,11 @@ class CreditNoteController extends ApiController
         }
 
         $perPage = $this->perPage($request, 15, 50);
-        $paginator = $query->paginate($perPage);
+        $paginator = $query->cursorPaginate($perPage);
 
-        $result = $this->paginate($paginator, $request, CreditNoteResource::class);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, CreditNoteResource::class);
 
-        return $this->ok($result, 'Credit notes retrieved.');
+        return $this->ok(['items' => $items], 'Credit notes retrieved.', $meta);
     }
 
     public function store(StoreCreditNoteRequest $request, Invoice $invoice): JsonResponse
@@ -110,7 +111,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $invoice->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $invoice->company_id !== (int) $companyId) {
             return $this->fail('Invoice not accessible.', 403);
         }
 
@@ -152,7 +159,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $companyId) {
             return $this->fail('Credit note not accessible.', 403);
         }
 
@@ -169,7 +182,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $companyId) {
             return $this->fail('Credit note not accessible.', 403);
         }
 
@@ -197,7 +216,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $companyId) {
             return $this->fail('Credit note not accessible.', 403);
         }
 
@@ -234,7 +259,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $companyId) {
             return $this->fail('Credit note not accessible.', 403);
         }
 
@@ -261,7 +292,13 @@ class CreditNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $creditNote->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $creditNote->company_id !== (int) $companyId) {
             return $this->fail('Credit note not accessible.', 403);
         }
 

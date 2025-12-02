@@ -6,7 +6,9 @@ use App\Actions\Rfq\Concerns\ManagesRfqAwardState;
 use App\Enums\RfqItemAwardStatus;
 use App\Models\QuoteItem;
 use App\Models\RfqItemAward;
+use App\Services\RfqVersionService;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +19,7 @@ class DeleteRfqItemAwardAction
     public function __construct(
         private readonly DatabaseManager $db,
         protected readonly AuditLogger $auditLogger,
+        protected readonly RfqVersionService $rfqVersionService,
     ) {
     }
 
@@ -57,9 +60,9 @@ class DeleteRfqItemAwardAction
 
             $before = $lockedAward->toArray();
 
-            $quoteItems = QuoteItem::query()
+            $quoteItems = CompanyContext::bypass(fn () => QuoteItem::query()
                 ->where('rfq_item_id', $rfqItemId)
-                ->get();
+                ->get());
 
             foreach ($quoteItems as $quoteItem) {
                 $this->updateQuoteItemStatus($quoteItem, 'pending');

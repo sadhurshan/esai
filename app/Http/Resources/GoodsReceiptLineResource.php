@@ -50,6 +50,17 @@ class GoodsReceiptLineResource extends JsonResource
             ->values()
             ->all();
 
+        $ncrs = $this->whenLoaded('ncrs', function () use ($request) {
+            return $this->ncrs
+                ->map(fn ($ncr) => (new NcrResource($ncr))->toArray($request))
+                ->values()
+                ->all();
+        });
+
+        $openNcrCount = $this->whenLoaded('ncrs', function () {
+            return $this->ncrs->where('status', 'open')->count();
+        });
+
         return [
             'id' => $this->getKey(),
             'goods_receipt_note_id' => $this->goods_receipt_note_id,
@@ -70,6 +81,9 @@ class GoodsReceiptLineResource extends JsonResource
             'currency' => $poLine?->currency,
             'variance' => null,
             'attachments' => $attachments,
+            'ncr_flag' => (bool) $this->ncr_flag,
+            'open_ncr_count' => $openNcrCount,
+            'ncrs' => $ncrs,
         ];
     }
 }

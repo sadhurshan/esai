@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\CompanyLocaleSetting;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -24,7 +25,7 @@ class LocaleService
             return $setting;
         }
 
-        $setting = CompanyLocaleSetting::firstOrCreate(
+        $setting = CompanyContext::bypass(fn () => CompanyLocaleSetting::firstOrCreate(
             ['company_id' => $company->id],
             [
                 'locale' => 'en-US',
@@ -38,7 +39,7 @@ class LocaleService
                 'uom_base' => 'EA',
                 'uom_maps' => [],
             ]
-        );
+        ));
 
         $company->setRelation('localeSetting', $setting);
 

@@ -146,7 +146,7 @@ export function ItemListPage() {
                     description="Upgrade your plan to manage item masters, stock locations, and reorder policies."
                     icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

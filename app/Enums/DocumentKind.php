@@ -6,6 +6,8 @@ enum DocumentKind: string
 {
     case Rfq = 'rfq';
     case Quote = 'quote';
+    case Rfp = 'rfp';
+    case RfpProposal = 'rfp_proposal';
     case PurchaseOrder = 'po';
     case GoodsReceipt = 'grn_attachment';
     case Invoice = 'invoice';

@@ -1,14 +1,17 @@
 import { formatDistanceToNow } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
+import type { ClarificationSubmissionPayload } from '@/hooks/api/rfqs/use-rfq-clarifications';
 import type { RfqClarification } from '@/sdk';
+import { Paperclip, X } from 'lucide-react';
 
 function normalizeClarificationTimestamp(value: RfqClarification['createdAt']): number {
     if (value instanceof Date) {
@@ -56,14 +59,105 @@ function resolveClarificationGroup(item: RfqClarification): { key: string; label
     return { key, label };
 }
 
+type ClarificationAttachment = NonNullable<RfqClarification['attachments']>[number];
+
+interface NormalizedClarificationAttachment {
+    id: string;
+    filename: string;
+    url?: string;
+    sizeLabel?: string;
+}
+
+function resolveClarificationBody(item: RfqClarification): string {
+    if (typeof item.body === 'string' && item.body.length > 0) {
+        return item.body;
+    }
+
+    const fallback = (item as unknown as Record<string, unknown>).message;
+
+    return typeof fallback === 'string' ? fallback : '';
+}
+
+function normalizeClarificationAttachment(attachment: ClarificationAttachment, index: number): NormalizedClarificationAttachment {
+    const record = attachment as Record<string, unknown>;
+    const idCandidate = record.documentId ?? record.document_id ?? record.id ?? `attachment-${index}`;
+    const filenameCandidate = record.filename;
+    const urlCandidate = record.downloadUrl ?? record.download_url ?? record.url;
+    const sizeCandidate = record.sizeBytes ?? record.size_bytes;
+
+    return {
+        id: typeof idCandidate === 'string' ? idCandidate : String(idCandidate ?? `attachment-${index}`),
+        filename:
+            typeof filenameCandidate === 'string' && filenameCandidate.length > 0
+                ? filenameCandidate
+                : `Attachment ${index + 1}`,
+        url: typeof urlCandidate === 'string' ? urlCandidate : undefined,
+        sizeLabel: typeof sizeCandidate === 'number' ? formatFileSize(sizeCandidate) : undefined,
+    };
+}
+
+function formatFileSize(size: number): string {
+    if (!Number.isFinite(size) || size <= 0) {
+        return '—';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let nextSize = size;
+    let unitIndex = 0;
+
+    while (nextSize >= 1024 && unitIndex < units.length - 1) {
+        nextSize /= 1024;
+        unitIndex += 1;
+    }
+
+    return `${nextSize.toFixed(nextSize >= 10 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function renderClarificationAttachments(attachments?: RfqClarification['attachments']) {
+    if (!attachments || attachments.length === 0) {
+        return null;
+    }
+
+    return (
+        <ul className="mt-3 space-y-2">
+            {attachments.map((attachment, index) => {
+                const normalized = normalizeClarificationAttachment(attachment, index);
+
+                return (
+                    <li key={normalized.id} className="flex items-center justify-between gap-3 rounded-md border border-dashed p-2 text-sm">
+                        <div className="flex items-center gap-2">
+                            <Paperclip className="h-4 w-4 text-muted-foreground" />
+                            {normalized.url ? (
+                                <a
+                                    href={normalized.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    {normalized.filename}
+                                </a>
+                            ) : (
+                                <span>{normalized.filename}</span>
+                            )}
+                        </div>
+                        {normalized.sizeLabel ? (
+                            <span className="text-xs text-muted-foreground">{normalized.sizeLabel}</span>
+                        ) : null}
+                    </li>
+                );
+            })}
+        </ul>
+    );
+}
+
 const clarifySchema = z.object({
-    body: z.string().min(1, 'Message cannot be empty.'),
+    message: z.string().min(1, 'Message cannot be empty.'),
 });
 
 export interface ClarificationThreadProps {
     clarifications: RfqClarification[];
-    onAskQuestion: (body: string) => Promise<unknown>;
-    onAnswerQuestion: (body: string) => Promise<unknown>;
+    onAskQuestion: (payload: ClarificationSubmissionPayload) => Promise<unknown>;
+    onAnswerQuestion: (payload: ClarificationSubmissionPayload) => Promise<unknown>;
     isSubmittingQuestion?: boolean;
     isSubmittingAnswer?: boolean;
     canAskQuestion?: boolean;
@@ -120,18 +214,55 @@ export function ClarificationThread({
 
     const questionForm = useForm<z.infer<typeof clarifySchema>>({
         resolver: zodResolver(clarifySchema),
-        defaultValues: { body: '' },
+        defaultValues: { message: '' },
     });
 
     const answerForm = useForm<z.infer<typeof clarifySchema>>({
         resolver: zodResolver(clarifySchema),
-        defaultValues: { body: '' },
+        defaultValues: { message: '' },
     });
+
+    const [questionAttachments, setQuestionAttachments] = useState<File[]>([]);
+    const [answerAttachments, setAnswerAttachments] = useState<File[]>([]);
+
+    const handleQuestionFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+
+        if (!files) {
+            return;
+        }
+
+        setQuestionAttachments((current) => [...current, ...Array.from(files)]);
+        event.target.value = '';
+    };
+
+    const handleAnswerFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+
+        if (!files) {
+            return;
+        }
+
+        setAnswerAttachments((current) => [...current, ...Array.from(files)]);
+        event.target.value = '';
+    };
+
+    const handleRemoveQuestionAttachment = (index: number) => {
+        setQuestionAttachments((current) => current.filter((_, idx) => idx !== index));
+    };
+
+    const handleRemoveAnswerAttachment = (index: number) => {
+        setAnswerAttachments((current) => current.filter((_, idx) => idx !== index));
+    };
 
     const handleQuestionSubmit = questionForm.handleSubmit(async (values) => {
         try {
-            await onAskQuestion(values.body);
+            await onAskQuestion({
+                message: values.message,
+                attachments: questionAttachments,
+            });
             questionForm.reset();
+            setQuestionAttachments([]);
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to submit clarification question.';
             publishToast({
@@ -144,8 +275,12 @@ export function ClarificationThread({
 
     const handleAnswerSubmit = answerForm.handleSubmit(async (values) => {
         try {
-            await onAnswerQuestion(values.body);
+            await onAnswerQuestion({
+                message: values.message,
+                attachments: answerAttachments,
+            });
             answerForm.reset();
+            setAnswerAttachments([]);
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to submit clarification answer.';
             publishToast({
@@ -189,7 +324,8 @@ export function ClarificationThread({
                                                                     : 'Timestamp unavailable'}
                                                             </span>
                                                         </div>
-                                                        <p className="mt-2 whitespace-pre-line text-sm">{item.body}</p>
+                                                        <p className="mt-2 whitespace-pre-line text-sm">{resolveClarificationBody(item)}</p>
+                                                        {renderClarificationAttachments(item.attachments)}
                                                         {item.author && typeof item.author === 'object' ? (
                                                             <p className="mt-2 text-xs text-muted-foreground">
                                                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -217,12 +353,45 @@ export function ClarificationThread({
                         <Textarea
                             placeholder="Clarify scope, timelines, or documentation expectations."
                             rows={4}
-                            {...questionForm.register('body')}
+                            {...questionForm.register('message')}
                             disabled={!canAskQuestion || isSubmittingQuestion}
                         />
-                        {questionForm.formState.errors.body ? (
-                            <p className="text-sm text-destructive">{questionForm.formState.errors.body.message}</p>
+                        {questionForm.formState.errors.message ? (
+                            <p className="text-sm text-destructive">{questionForm.formState.errors.message.message}</p>
                         ) : null}
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-foreground">Attachments</label>
+                            <Input
+                                type="file"
+                                multiple
+                                accept=".pdf,.png,.jpg,.jpeg"
+                                onChange={handleQuestionFilesChange}
+                                disabled={!canAskQuestion || isSubmittingQuestion}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Upload PDF or image files up to 10 MB. Attachments are virus-scanned before suppliers can access them.
+                            </p>
+                            {questionAttachments.length > 0 ? (
+                                <ul className="space-y-1 text-sm">
+                                    {questionAttachments.map((file, index) => (
+                                        <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2 rounded-md border border-dashed px-2 py-1">
+                                            <span className="truncate">
+                                                {file.name} • {formatFileSize(file.size)}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleRemoveQuestionAttachment(index)}
+                                                aria-label={`Remove ${file.name}`}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
                         <Button
                             type="submit"
                             disabled={isSubmittingQuestion || !canAskQuestion}
@@ -246,12 +415,45 @@ export function ClarificationThread({
                         <Textarea
                             placeholder="Provide additional details or attach a clarification notice."
                             rows={4}
-                            {...answerForm.register('body')}
+                            {...answerForm.register('message')}
                             disabled={!canAnswerQuestion || isSubmittingAnswer}
                         />
-                        {answerForm.formState.errors.body ? (
-                            <p className="text-sm text-destructive">{answerForm.formState.errors.body.message}</p>
+                        {answerForm.formState.errors.message ? (
+                            <p className="text-sm text-destructive">{answerForm.formState.errors.message.message}</p>
                         ) : null}
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-foreground">Attachments</label>
+                            <Input
+                                type="file"
+                                multiple
+                                accept=".pdf,.png,.jpg,.jpeg"
+                                onChange={handleAnswerFilesChange}
+                                disabled={!canAnswerQuestion || isSubmittingAnswer}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Attach amended drawings or documents. Files are scanned automatically before recipients are notified.
+                            </p>
+                            {answerAttachments.length > 0 ? (
+                                <ul className="space-y-1 text-sm">
+                                    {answerAttachments.map((file, index) => (
+                                        <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2 rounded-md border border-dashed px-2 py-1">
+                                            <span className="truncate">
+                                                {file.name} • {formatFileSize(file.size)}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleRemoveAnswerAttachment(index)}
+                                                aria-label={`Remove ${file.name}`}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
                         <Button
                             type="submit"
                             disabled={isSubmittingAnswer || !canAnswerQuestion}

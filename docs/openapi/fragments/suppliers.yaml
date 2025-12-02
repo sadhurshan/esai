@@ -150,6 +150,59 @@ components:
             type: integer
           nullable: true
       additionalProperties: false
+    SupplierDocument:
+      type: object
+      required:
+        - id
+        - type
+        - status
+        - filename
+      properties:
+        id:
+          type: integer
+        supplier_id:
+          type: integer
+          nullable: true
+        company_id:
+          type: integer
+        document_id:
+          type: integer
+          nullable: true
+        type:
+          type: string
+          description: Document classification (iso9001, nda, other, etc.).
+        status:
+          type: string
+        path:
+          type: string
+          nullable: true
+        download_url:
+          type: string
+          format: uri
+          nullable: true
+        mime:
+          type: string
+          nullable: true
+        filename:
+          type: string
+        size_bytes:
+          type: integer
+        issued_at:
+          type: string
+          format: date
+          nullable: true
+        expires_at:
+          type: string
+          format: date
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
 paths:
   /api/suppliers:
     get:
@@ -446,6 +499,89 @@ paths:
       responses:
         '200':
           description: Visibility updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/me/supplier-documents:
+    get:
+      tags:
+        - Suppliers
+      summary: List compliance documents uploaded by the authenticated company
+      operationId: listSupplierDocuments
+      responses:
+        '200':
+          description: Supplier documents collection.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/SupplierDocument'
+    post:
+      tags:
+        - Suppliers
+      summary: Upload a new compliance document for the authenticated company
+      operationId: createSupplierDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - type
+                - document
+              properties:
+                type:
+                  type: string
+                  description: Document type code (iso9001, iso14001, as9100, itar, reach, rohs, insurance, nda, other).
+                document:
+                  type: string
+                  format: binary
+                issued_at:
+                  type: string
+                  format: date
+                  nullable: true
+                expires_at:
+                  type: string
+                  format: date
+                  nullable: true
+      responses:
+        '200':
+          description: Supplier document stored.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SupplierDocument'
+  /api/me/supplier-documents/{document}:
+    parameters:
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Suppliers
+      summary: Delete a supplier compliance document
+      operationId: deleteSupplierDocument
+      responses:
+        '200':
+          description: Supplier document deleted.
           content:
             application/json:
               schema:

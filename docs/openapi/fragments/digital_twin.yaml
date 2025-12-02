@@ -560,3 +560,113 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/library/digital-twins:
+    get:
+      tags:
+        - Digital Twin
+      summary: List published digital twins in the buyer library
+      operationId: listLibraryDigitalTwins
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Full-text search term applied across titles, summaries, tags, and specs.
+        - name: category_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Restrict results to a single category.
+        - name: has_asset
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Require at least one asset of the given type (CAD, PDF, etc.).
+        - name: has_assets[]
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: Repeatable version of `has_asset` for filtering on multiple asset types.
+        - name: tags[]
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: Require all provided tags to be present on the digital twin.
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Convenience alias for a single tag filter.
+        - name: include[]
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [categories]
+          description: Include additional reference data such as the active category tree.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [relevance, updated_at, title]
+          description: Sort mode. Defaults to relevance when a search term is provided, otherwise updated_at.
+      responses:
+        '200':
+          description: Published digital twins available to the buyer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/library/digital-twins/{digitalTwinId}:
+    parameters:
+      - name: digitalTwinId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Digital Twin
+      summary: Show a published library digital twin
+      operationId: showLibraryDigitalTwin
+      responses:
+        '200':
+          description: Digital twin detail with specs and assets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/library/digital-twins/{digitalTwinId}/use-for-rfq:
+    parameters:
+      - name: digitalTwinId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Digital Twin
+      summary: Generate an RFQ draft seeded from a digital twin
+      operationId: useLibraryDigitalTwinForRfq
+      responses:
+        '200':
+          description: RFQ draft contains prepared line items, specs, and attachments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

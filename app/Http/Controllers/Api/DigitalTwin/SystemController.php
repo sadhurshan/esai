@@ -22,6 +22,24 @@ class SystemController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
         $this->authorize('viewAny', System::class);
 
         $validated = $request->validate([
@@ -30,14 +48,14 @@ class SystemController extends ApiController
             'search' => ['nullable', 'string', 'max:191'],
         ]);
 
-        $companyId = (int) $request->user()->company_id;
         $perPage = $this->perPage($request, 25, 100);
 
         $query = System::query()
             ->where('company_id', $companyId)
             ->with(['location:id,name,code'])
             ->withCount('assets')
-            ->orderBy('name');
+            ->orderBy('name')
+            ->orderByDesc('id');
 
         if (isset($validated['location_id'])) {
             $query->where('location_id', $validated['location_id']);
@@ -52,26 +70,33 @@ class SystemController extends ApiController
         }
 
         $systems = $query->cursorPaginate($perPage, ['*'], 'cursor', $validated['cursor'] ?? null);
+        $collection = $this->paginate($systems, $request, SystemResource::class);
 
-        $items = collect($systems->items())
-            ->map(fn (System $system) => (new SystemResource($system))->toArray($request))
-            ->values()
-            ->all();
-
-        return $this->ok(
-            ['items' => $items],
-            'Systems retrieved.',
-            [
-                'next_cursor' => optional($systems->nextCursor())->encode(),
-                'prev_cursor' => optional($systems->previousCursor())->encode(),
-            ]
-        );
+        return $this->ok($collection, 'Systems retrieved.');
     }
 
     public function store(StoreSystemRequest $request): JsonResponse
     {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
         $data = $request->validated();
-        $data['company_id'] = (int) $request->user()->company_id;
+        $data['company_id'] = $companyId;
 
         $system = System::create($data)->load(['location:id,name,code'])->loadCount('assets');
         $this->auditLogger->created($system, Arr::only($system->getAttributes(), array_keys($data)));

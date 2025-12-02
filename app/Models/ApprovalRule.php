@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
-class ApprovalRule extends Model
+class ApprovalRule extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

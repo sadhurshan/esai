@@ -2,13 +2,18 @@ import { useMutation, useQuery, useQueryClient, type UseMutationResult, type Use
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { CompanyDocument, CompanyDocumentType } from '@/types/company';
+import { toCursorMeta } from '@/lib/pagination';
+import type { CompanyDocument, CompanyDocumentCollection, CompanyDocumentType } from '@/types/company';
 
 export interface CompanyDocumentResponse {
     id: number;
     company_id: number;
+    document_id: number | null;
     type: CompanyDocumentType;
-    path: string;
+    filename: string | null;
+    mime: string | null;
+    size_bytes: number | null;
+    download_url: string | null;
     verified_at: string | null;
     created_at: string | null;
     updated_at: string | null;
@@ -19,8 +24,12 @@ export const mapCompanyDocument = (
 ): CompanyDocument => ({
     id: payload.id,
     companyId: payload.company_id,
+    documentId: payload.document_id ?? undefined,
     type: payload.type,
-    path: payload.path,
+    filename: payload.filename ?? undefined,
+    mime: payload.mime ?? undefined,
+    sizeBytes: payload.size_bytes ?? undefined,
+    downloadUrl: payload.download_url ?? undefined,
     verifiedAt: payload.verified_at,
     createdAt: payload.created_at,
     updatedAt: payload.updated_at,
@@ -28,19 +37,44 @@ export const mapCompanyDocument = (
 
 interface CompanyDocumentIndexResponse {
     items: CompanyDocumentResponse[];
+    meta?: Record<string, unknown>;
+}
+
+export interface CompanyDocumentQueryOptions {
+    companyId?: number | null;
+    cursor?: string | null;
+    enabled?: boolean;
+}
+
+type UseCompanyDocumentsArgs = CompanyDocumentQueryOptions | number | null | undefined;
+
+function normalizeCompanyDocumentArgs(args?: UseCompanyDocumentsArgs): CompanyDocumentQueryOptions {
+    if (typeof args === 'number' || args === null || args === undefined) {
+        return { companyId: args ?? undefined };
+    }
+
+    return args;
 }
 
 export function useCompanyDocuments(
-    companyId?: number | null,
-): UseQueryResult<CompanyDocument[], ApiError> {
-    return useQuery<CompanyDocumentIndexResponse, ApiError, CompanyDocument[]>({
-        queryKey: queryKeys.companies.documents(companyId ?? 0),
-        enabled: Boolean(companyId) && (companyId ?? 0) > 0,
+    args?: UseCompanyDocumentsArgs,
+): UseQueryResult<CompanyDocumentCollection, ApiError> {
+    const { companyId, cursor, enabled = true } = normalizeCompanyDocumentArgs(args);
+    const normalizedCompanyId = companyId ?? 0;
+    const baseKey = queryKeys.companies.documents(normalizedCompanyId);
+    const queryKey = [...baseKey, cursor ?? null] as const;
+
+    return useQuery<CompanyDocumentIndexResponse, ApiError, CompanyDocumentCollection>({
+        queryKey,
+        enabled: enabled && Boolean(companyId) && normalizedCompanyId > 0,
         queryFn: async () =>
-            (await api.get<CompanyDocumentIndexResponse>(
-                `/companies/${companyId}/documents`,
-            )) as unknown as CompanyDocumentIndexResponse,
-        select: (response) => response.items.map(mapCompanyDocument),
+            (await api.get<CompanyDocumentIndexResponse>(`/companies/${normalizedCompanyId}/documents`, {
+                params: cursor ? { cursor } : undefined,
+            })) as unknown as CompanyDocumentIndexResponse,
+        select: (response) => ({
+            items: response.items.map(mapCompanyDocument),
+            meta: toCursorMeta(response.meta),
+        }),
         staleTime: 15_000,
     });
 }

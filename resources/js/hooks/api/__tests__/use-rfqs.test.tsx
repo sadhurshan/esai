@@ -5,22 +5,22 @@ import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useRfqs } from '../use-rfqs';
-import { useSdkClient } from '@/contexts/api-client-context';
+import { useApiClientContext } from '@/contexts/api-client-context';
 import {
     ListRfqsSortDirectionEnum,
     ListRfqsSortEnum,
-    ListRfqsTabEnum,
+    ListRfqsStatusEnum,
+    ListRfqs200ResponseStatusEnum,
     RfqStatusEnum,
     RfqTypeEnum,
-    type PageMeta,
     type Rfq,
 } from '@/sdk';
 
 vi.mock('@/contexts/api-client-context', () => ({
-    useSdkClient: vi.fn(),
+    useApiClientContext: vi.fn(),
 }));
 
-const useSdkClientMock = vi.mocked(useSdkClient);
+const useApiClientContextMock = vi.mocked(useApiClientContext);
 
 function createWrapper() {
     const queryClient = new QueryClient({
@@ -41,10 +41,10 @@ function createWrapper() {
 describe('useRfqs', () => {
     afterEach(() => {
         vi.clearAllMocks();
-        useSdkClientMock.mockReset();
+        useApiClientContextMock.mockReset();
     });
 
-    it('requests the open tab from the API and returns meta totals', async () => {
+    it('passes filters to the API and exposes cursor metadata', async () => {
         const rfq: Rfq = {
             id: '1',
             number: 'RFQ-001',
@@ -58,29 +58,46 @@ describe('useRfqs', () => {
             sentAt: new Date('2025-10-01T00:00:00Z'),
         };
 
-        const meta: PageMeta = {
-            currentPage: 2,
-            perPage: 20,
-            total: 42,
-            lastPage: 5,
-        };
-
-        const listRfqs = vi.fn().mockResolvedValue({
-            data: {
-                items: [rfq],
-                meta,
-            },
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue({
+                status: ListRfqs200ResponseStatusEnum.Success,
+                data: {
+                    items: [rfq],
+                    meta: {
+                        current_page: 1,
+                        per_page: 25,
+                        total: 1,
+                        last_page: 1,
+                    },
+                },
+                meta: {
+                    request_id: 'req-123',
+                    cursor: {
+                        next_cursor: 'NEXT',
+                        prev_cursor: 'PREV',
+                        per_page: 25,
+                    },
+                },
+            }),
         });
 
-        useSdkClientMock.mockReturnValue({ listRfqs });
+        useApiClientContextMock.mockReturnValue({
+            configuration: {
+                basePath: 'https://api.test',
+                fetchApi: fetchMock,
+            } as never,
+            getClient: vi.fn(),
+        });
 
         const { result } = renderHook(
             () =>
                 useRfqs({
                     status: 'open',
-                    page: 2,
-                    perPage: 20,
-                    search: 'open rfq',
+                    perPage: 25,
+                    search: ' open rfq ',
+                    dueFrom: '2025-10-01',
+                    dueTo: '2025-10-15',
+                    cursor: 'CURSOR_TOKEN',
                 }),
             {
                 wrapper: createWrapper(),
@@ -89,22 +106,30 @@ describe('useRfqs', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-        expect(listRfqs).toHaveBeenCalledWith({
-            perPage: 20,
-            page: 2,
-            q: 'open rfq',
-            sort: ListRfqsSortEnum.DeadlineAt,
-            sortDirection: ListRfqsSortDirectionEnum.Asc,
-            tab: ListRfqsTabEnum.Open,
-        });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        const calledUrl: string = fetchMock.mock.calls[0][0];
 
-        expect(result.current.items).toHaveLength(1);
-        expect(result.current.total).toBe(42);
-        expect(result.current.isClientSideFiltered).toBe(false);
+        expect(calledUrl).toContain('per_page=25');
+        expect(calledUrl).toContain('cursor=CURSOR_TOKEN');
+        expect(calledUrl).toContain(`status=${encodeURIComponent(ListRfqsStatusEnum.Open)}`);
+        expect(calledUrl).toContain('search=open+rfq');
+        expect(calledUrl).toContain('due_from=2025-10-01');
+        expect(calledUrl).toContain('due_to=2025-10-15');
+        expect(calledUrl).toContain(`sort=${ListRfqsSortEnum.DueAt}`);
+        expect(calledUrl).toContain(`sort_direction=${ListRfqsSortDirectionEnum.Asc}`);
+
+        expect(result.current.items[0]).toMatchObject({
+            id: rfq.id,
+            number: rfq.number,
+            method: rfq.method,
+            status: rfq.status,
+        });
+        expect(result.current.cursor?.nextCursor).toBe('NEXT');
+        expect(result.current.cursor?.prevCursor).toBe('PREV');
     });
 
-    it('filters drafts client-side when necessary', async () => {
-        const awaiting: Rfq = {
+    it('sends status filters directly to the server', async () => {
+        const rfq: Rfq = {
             id: 'draft-1',
             number: 'RFQ-010',
             itemName: 'Awaiting RFQ',
@@ -117,32 +142,36 @@ describe('useRfqs', () => {
             createdAt: new Date('2025-08-01T00:00:00Z'),
         };
 
-        const open: Rfq = {
-            id: 'open-1',
-            number: 'RFQ-020',
-            itemName: 'Open RFQ',
-            type: RfqTypeEnum.ReadyMade,
-            quantity: 12,
-            material: 'Composite',
-            method: 'Injection molding',
-            status: RfqStatusEnum.Open,
-            isOpenBidding: true,
-            sentAt: new Date('2025-08-02T00:00:00Z'),
-        };
-
-        const listRfqs = vi.fn().mockResolvedValue({
-            data: {
-                items: [awaiting, open],
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue({
+                status: ListRfqs200ResponseStatusEnum.Success,
+                data: {
+                    items: [rfq],
+                    meta: {
+                        current_page: 1,
+                        per_page: 10,
+                        total: 1,
+                        last_page: 1,
+                    },
+                },
                 meta: {
-                    currentPage: 1,
-                    perPage: 10,
-                    total: 2,
-                    lastPage: 1,
-                } satisfies PageMeta,
-            },
+                    request_id: 'req-456',
+                    cursor: {
+                        next_cursor: null,
+                        prev_cursor: null,
+                        per_page: 10,
+                    },
+                },
+            }),
         });
 
-        useSdkClientMock.mockReturnValue({ listRfqs });
+        useApiClientContextMock.mockReturnValue({
+            configuration: {
+                basePath: 'https://api.test',
+                fetchApi: fetchMock,
+            } as never,
+            getClient: vi.fn(),
+        });
 
         const { result } = renderHook(
             () =>
@@ -156,10 +185,16 @@ describe('useRfqs', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-        const callArgs = listRfqs.mock.calls[0]?.[0];
-        expect(callArgs?.tab).toBeUndefined();
-        expect(result.current.items).toEqual([awaiting]);
-        expect(result.current.total).toBe(1);
-        expect(result.current.isClientSideFiltered).toBe(true);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        const calledUrl: string = fetchMock.mock.calls[0][0];
+        expect(calledUrl).toContain(`status=${encodeURIComponent(ListRfqsStatusEnum.Draft)}`);
+
+        expect(result.current.items[0]).toMatchObject({
+            id: rfq.id,
+            number: rfq.number,
+            method: rfq.method,
+            status: rfq.status,
+        });
+        expect(result.current.cursor?.nextCursor).toBeUndefined();
     });
 });

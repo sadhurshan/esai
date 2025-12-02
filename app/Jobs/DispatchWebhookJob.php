@@ -42,24 +42,29 @@ class DispatchWebhookJob implements ShouldQueue
             return;
         }
 
+        $policy = $subscription->retry_policy_json ?? ['max' => 5, 'backoff' => 'exponential', 'base_sec' => 30];
+        $policy['max'] = max(1, (int) ($policy['max'] ?? 5));
+        $policy['base_sec'] = (int) ($policy['base_sec'] ?? 30);
+        $policy['backoff'] = $policy['backoff'] ?? 'exponential';
+
         $delivery = $this->deliveryId !== null
             ? WebhookDelivery::query()->findOrFail($this->deliveryId)
             : WebhookDelivery::create([
+                'company_id' => $subscription->company_id,
                 'subscription_id' => $subscription->id,
                 'event' => $this->event,
                 'payload' => $this->payload,
                 'status' => WebhookDeliveryStatus::Pending,
                 'attempts' => 0,
+                'max_attempts' => $policy['max'],
             ]);
 
-        $policy = $subscription->retry_policy_json ?? ['max' => 5, 'backoff' => 'exponential', 'base_sec' => 30];
-        $policy['max'] = (int) ($policy['max'] ?? 5);
-        $policy['base_sec'] = (int) ($policy['base_sec'] ?? 30);
-        $policy['backoff'] = $policy['backoff'] ?? 'exponential';
-
         $delivery->forceFill([
+            'company_id' => $subscription->company_id,
             'status' => WebhookDeliveryStatus::Pending,
             'attempts' => ($delivery->attempts ?? 0) + 1,
+            'max_attempts' => $delivery->max_attempts ?: $policy['max'],
+            'dead_lettered_at' => null,
             'dispatched_at' => now(),
         ])->save();
 
@@ -75,6 +80,7 @@ class DispatchWebhookJob implements ShouldQueue
         $signature = hash_hmac('sha256', $payloadJson.$timestamp, $subscription->secret);
 
         try {
+            $start = microtime(true);
             $response = Http::timeout(10)
                 ->withHeaders([
                     'X-ESAI-Event' => $this->event,
@@ -84,19 +90,23 @@ class DispatchWebhookJob implements ShouldQueue
                     'User-Agent' => 'ElementsSupplyAI Webhook Dispatcher',
                 ])
                 ->post($subscription->url, $this->payload);
+            $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             if ($response->successful()) {
                 $delivery->forceFill([
                     'status' => WebhookDeliveryStatus::Success,
                     'delivered_at' => now(),
                     'last_error' => null,
+                    'latency_ms' => $latencyMs,
+                    'response_code' => $response->status(),
+                    'response_body' => Str::limit($response->body(), 65535),
                 ])->save();
 
                 return;
             }
 
             $message = sprintf('HTTP %s: %s', $response->status(), Str::limit($response->body(), 255));
-            $this->handleFailure($delivery, $policy, $message);
+            $this->handleFailure($delivery, $policy, $message, $latencyMs, $response->status(), Str::limit($response->body(), 65535));
         } catch (\Throwable $exception) {
             Log::warning('Webhook dispatch failed', [
                 'subscription_id' => $subscription->id,
@@ -111,14 +121,31 @@ class DispatchWebhookJob implements ShouldQueue
     /**
      * @param  array<string, mixed>  $policy
      */
-    private function handleFailure(WebhookDelivery $delivery, array $policy, string $message): void
+    private function handleFailure(
+        WebhookDelivery $delivery,
+        array $policy,
+        string $message,
+        ?int $latencyMs = null,
+        ?int $responseCode = null,
+        ?string $responseBody = null
+    ): void
     {
         $delivery->forceFill([
             'status' => WebhookDeliveryStatus::Failed,
             'last_error' => $message,
+            'latency_ms' => $latencyMs,
+            'response_code' => $responseCode,
+            'response_body' => $responseBody,
         ])->save();
 
-        if ($delivery->attempts >= ($policy['max'] ?? 5)) {
+        $maxAttempts = (int) ($delivery->max_attempts ?: $policy['max'] ?? 5);
+
+        if ($delivery->attempts >= $maxAttempts) {
+            $delivery->forceFill([
+                'status' => WebhookDeliveryStatus::DeadLettered,
+                'dead_lettered_at' => now(),
+            ])->save();
+
             return;
         }
 

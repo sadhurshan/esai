@@ -38,7 +38,7 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $companyId = $user->company_id;
+        $companyId = $this->resolveUserCompanyId($user);
 
         if ($companyId === null) {
             return $this->fail('Company context required.', 403);
@@ -46,7 +46,6 @@ class GoodsReceiptNoteController extends ApiController
 
         $perPage = (int) $request->integer('per_page', 25);
         $perPage = max(1, min(100, $perPage));
-        $cursor = $request->query('cursor');
 
         $query = GoodsReceiptNote::query()
             ->where('company_id', $companyId)
@@ -95,20 +94,14 @@ class GoodsReceiptNoteController extends ApiController
 
         $query->orderByDesc('inspected_at')->orderByDesc('id');
 
-        $paginator = $query->cursorPaginate($perPage, ['*'], 'cursor', $cursor);
+        $paginator = $query
+            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'));
 
-        $items = collect($paginator->items())
-            ->map(fn ($note) => (new GoodsReceiptNoteResource($note))->toArray($request))
-            ->all();
+        $paginated = $this->paginate($paginator, $request, GoodsReceiptNoteResource::class);
 
         return $this->ok([
-            'items' => $items,
-            'meta' => [
-                'per_page' => $paginator->perPage(),
-                'next_cursor' => optional($paginator->nextCursor())->encode(),
-                'prev_cursor' => optional($paginator->previousCursor())->encode(),
-            ],
-        ]);
+            'items' => $paginated['items'],
+        ], 'Goods receipt notes retrieved.', $paginated['meta']);
     }
 
     public function companyShow(Request $request, string $note): JsonResponse
@@ -119,10 +112,16 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
         $record = $this->findCompanyNote(
-            $user->company_id,
+            $companyId,
             $note,
-            ['lines.purchaseOrderLine', 'inspector', 'purchaseOrder.supplier', 'attachments']
+            ['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'purchaseOrder.supplier', 'attachments', 'ncrs']
         );
 
         if ($record === null) {
@@ -154,13 +153,19 @@ class GoodsReceiptNoteController extends ApiController
 
         $purchaseOrder = PurchaseOrder::query()->whereKey($purchaseOrderId)->first();
 
-        if ($purchaseOrder === null || ! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ($purchaseOrder === null || ! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
-        $result = $this->createAction->execute($user, $purchaseOrder, $request->payload($user));
+        $result = $this->createAction->execute($user, $companyId, $purchaseOrder, $request->payload($user));
 
-        $note = $result['note']->load(['lines.purchaseOrderLine', 'inspector', 'purchaseOrder.supplier', 'attachments']);
+        $note = $result['note']->load(['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'purchaseOrder.supplier', 'attachments', 'ncrs']);
 
         $attachmentMap = $this->loadAttachments($note);
 
@@ -178,17 +183,23 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
         $record = $this->findCompanyNote(
-            $user->company_id,
+            $companyId,
             $note,
-            ['lines.purchaseOrderLine', 'inspector', 'purchaseOrder.supplier', 'attachments']
+            ['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'purchaseOrder.supplier', 'attachments', 'ncrs']
         );
 
         if ($record === null) {
             return $this->fail('Not found.', 404);
         }
 
-        if ($this->authorizeDenied($user, 'update', $record)) {
+        if ($this->authorizeDenied($user, 'attachFile', $record)) {
             return $this->fail('Forbidden.', 403);
         }
 
@@ -215,7 +226,13 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
@@ -223,7 +240,7 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $companyId = $user->company_id;
+        $companyId = $this->resolveUserCompanyId($user);
 
         if ($companyId === null) {
             return $this->fail('Company context required.', 403);
@@ -241,23 +258,17 @@ class GoodsReceiptNoteController extends ApiController
             $query->where('status', $status);
         }
 
-        $query->orderByDesc('inspected_at')->orderByDesc('created_at');
+        $query->orderByDesc('inspected_at')->orderByDesc('created_at')->orderByDesc('id');
 
-        $paginator = $query->paginate($this->perPage($request))->withQueryString();
+        $paginator = $query
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
-        $items = collect($paginator->items())
-            ->map(fn ($note) => (new GoodsReceiptNoteResource($note))->toArray($request))
-            ->all();
+        $paginated = $this->paginate($paginator, $request, GoodsReceiptNoteResource::class);
 
         return $this->ok([
-            'items' => $items,
-            'meta' => [
-                'total' => $paginator->total(),
-                'per_page' => $paginator->perPage(),
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ]);
+            'items' => $paginated['items'],
+        ], 'Goods receipt notes retrieved.', $paginated['meta']);
     }
 
     public function store(StoreGoodsReceiptRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
@@ -272,13 +283,19 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
-        $result = $this->createAction->execute($user, $purchaseOrder, $request->payload());
+        $result = $this->createAction->execute($user, $companyId, $purchaseOrder, $request->payload());
 
-        $note = $result['note']->load(['lines', 'inspector']);
+        $note = $result['note']->load(['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'ncrs']);
 
         $attachmentMap = $this->loadAttachments($note);
 
@@ -296,11 +313,17 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
-    $note = $this->findCompanyNote($user->company_id, $note, ['lines', 'inspector']);
+        $note = $this->findCompanyNote($companyId, $note, ['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'ncrs']);
 
         if ($note === null) {
             return $this->fail('Not found.', 404);
@@ -327,11 +350,17 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
-    $note = $this->findCompanyNote($user->company_id, $note, ['lines', 'inspector']);
+        $note = $this->findCompanyNote($companyId, $note, ['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'ncrs']);
 
         if ($note === null) {
             return $this->fail('Not found.', 404);
@@ -345,7 +374,7 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $note = $this->updateAction->execute($user, $note, $request->payload())->load(['lines', 'inspector']);
+        $note = $this->updateAction->execute($user, $note, $request->payload())->load(['lines.purchaseOrderLine', 'lines.ncrs.raisedBy', 'inspector', 'ncrs']);
 
         $attachmentMap = $this->loadAttachments($note);
 
@@ -363,11 +392,17 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
-    $note = $this->findCompanyNote($user->company_id, $note, ['lines']);
+        $note = $this->findCompanyNote($companyId, $note, ['lines']);
 
         if ($note === null) {
             return $this->fail('Not found.', 404);

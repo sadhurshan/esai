@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Resources\Admin\AuditLogResource;
 use App\Http\Resources\Admin\CompanyResource;
 use App\Models\PlatformAdmin;
 use App\Services\Admin\AdminAnalyticsService;
 use Illuminate\Http\JsonResponse;
 
-class AdminAnalyticsController extends Controller
+class AdminAnalyticsController extends ApiController
 {
     public function __construct(private readonly AdminAnalyticsService $analyticsService)
     {
@@ -31,10 +31,6 @@ class AdminAnalyticsController extends Controller
             'audit_logs' => $recentAuditLogs,
         ];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Admin analytics overview retrieved.',
-            'data' => $data,
-        ]);
+        return $this->ok($data, 'Admin analytics overview retrieved.');
     }
 }

@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\UpsertFxRatesRequest;
 use App\Http\Resources\FxRateResource;
 use App\Models\FxRate;
+use App\Models\User;
 use App\Services\FxService;
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FxRateController extends ApiController
 {
-    public function __construct(private readonly FxService $fxService)
+    private const READ_PERMISSIONS = ['billing.write'];
+    private const WRITE_PERMISSIONS = ['billing.write'];
+
+    public function __construct(
+        private readonly FxService $fxService,
+        private readonly PermissionRegistry $permissions,
+    )
     {
     }
 
@@ -23,8 +31,8 @@ class FxRateController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! in_array($user->role, ['owner', 'buyer_admin'], true)) {
-            return $this->fail('Forbidden.', 403);
+        if (! $this->canRead($user)) {
+            return $this->fail('Billing permissions required.', 403);
         }
 
         $query = FxRate::query();
@@ -44,16 +52,21 @@ class FxRateController extends ApiController
         $paginator = $query
             ->orderByDesc('as_of')
             ->orderByDesc('id')
-            ->paginate($this->perPage($request, 15))
-            ->withQueryString();
+            ->cursorPaginate($this->perPage($request, 15));
 
-        $result = $this->paginate($paginator, $request, FxRateResource::class);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, FxRateResource::class);
 
-        return $this->ok($result);
+        return $this->ok(['items' => $items], null, $meta);
     }
 
     public function upsert(UpsertFxRatesRequest $request): JsonResponse
     {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null || ! $this->canMutate($user)) {
+            return $this->fail('Billing permissions required.', 403);
+        }
+
         $rows = $request->payload();
 
         $records = $this->fxService->upsertDailyRates($rows);
@@ -63,5 +76,27 @@ class FxRateController extends ApiController
             ->all();
 
         return $this->ok(['items' => $resources], 'FX rates updated.');
+    }
+
+    private function canRead(User $user): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        return $this->permissions->userHasAny($user, self::READ_PERMISSIONS, $companyId);
+    }
+
+    private function canMutate(User $user): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        return $this->permissions->userHasAny($user, self::WRITE_PERMISSIONS, $companyId);
     }
 }

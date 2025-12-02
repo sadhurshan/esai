@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use App\Services\CompanyLifecycleService;
 use Illuminate\Support\Facades\Hash;
@@ -39,6 +40,7 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
             'role' => 'owner',
+            'status' => UserStatus::Active->value,
         ]);
 
         $this->companyLifecycleService->createBuyerCompanyForUser($user);

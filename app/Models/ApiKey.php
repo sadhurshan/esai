@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ApiKey extends Model
+class ApiKey extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

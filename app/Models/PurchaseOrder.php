@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PurchaseOrder extends Model
+class PurchaseOrder extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;
@@ -112,5 +112,10 @@ class PurchaseOrder extends Model
     public function events(): HasMany
     {
         return $this->hasMany(PurchaseOrderEvent::class)->latest('occurred_at');
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderShipment::class);
     }
 }

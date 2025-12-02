@@ -34,6 +34,7 @@ const ROUTE_BREADCRUMBS: BreadcrumbDefinition[] = [
         label: 'Purchase Order Detail',
         dynamicLabel: (params) => `PO #${params.purchaseOrderId}`,
     },
+    { path: '/app/downloads', label: 'Download Center' },
     { path: '/app/pos', label: 'Purchase Orders' },
     {
         path: '/app/pos/:purchaseOrderId',

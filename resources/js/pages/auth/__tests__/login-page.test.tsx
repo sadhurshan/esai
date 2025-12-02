@@ -19,12 +19,20 @@ vi.mock('react-router-dom', async () => {
     };
 });
 
+const unauthenticatedState = {
+    status: 'unauthenticated' as const,
+    error: null,
+    requiresEmailVerification: false,
+    requiresPlanSelection: false,
+    company: null,
+};
+
 vi.mock('@/contexts/auth-context', () => ({
     useAuth: () => ({
         login: loginMock,
         register: vi.fn(),
         isAuthenticated: false,
-        state: { error: null },
+        state: unauthenticatedState,
     }),
 }));
 
@@ -32,7 +40,7 @@ describe('LoginPage', () => {
     beforeEach(() => {
         mockedNavigate.mockReset();
         loginMock.mockReset();
-        loginMock.mockResolvedValue(undefined);
+        loginMock.mockResolvedValue({ requiresEmailVerification: false, requiresPlanSelection: false, userRole: 'buyer_admin' });
     });
 
     afterEach(() => {
@@ -63,5 +71,37 @@ describe('LoginPage', () => {
         );
 
         await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/app', { replace: true }));
+    });
+
+    it('redirects platform operators to the admin console when no explicit target is provided', async () => {
+        loginMock.mockResolvedValueOnce({
+            requiresEmailVerification: false,
+            requiresPlanSelection: false,
+            userRole: 'platform_super',
+        });
+
+        const user = userEvent.setup();
+
+        render(
+            <HelmetProvider>
+                <MemoryRouter initialEntries={[{ pathname: '/login' }] }>
+                    <LoginPage />
+                </MemoryRouter>
+            </HelmetProvider>,
+        );
+
+        await user.type(screen.getByLabelText('Email'), 'platform@example.com');
+        await user.type(screen.getByLabelText('Password'), 'super-secret');
+        await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+        await waitFor(() =>
+            expect(loginMock).toHaveBeenCalledWith({
+                email: 'platform@example.com',
+                password: 'super-secret',
+                remember: true,
+            }),
+        );
+
+        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/app/admin', { replace: true }));
     });
 });

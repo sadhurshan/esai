@@ -7,15 +7,19 @@ use App\Http\Resources\AnalyticsOverviewResource;
 use App\Http\Resources\AnalyticsSnapshotResource;
 use App\Models\AnalyticsSnapshot;
 use App\Models\Company;
+use App\Models\User;
 use App\Services\AnalyticsService;
+use App\Support\Permissions\PermissionRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AnalyticsController extends ApiController
 {
-    public function __construct(private readonly AnalyticsService $analyticsService)
-    {
+    public function __construct(
+        private readonly AnalyticsService $analyticsService,
+        private readonly PermissionRegistry $permissionRegistry,
+    ) {
     }
 
     public function overview(Request $request): JsonResponse
@@ -34,6 +38,10 @@ class AnalyticsController extends ApiController
         }
 
         $plan = $company->plan;
+
+        if ($denial = $this->ensureAnalyticsPermission($user, $company, 'analytics.read')) {
+            return $denial;
+        }
 
         if ($plan === null || ! $plan->analytics_enabled) {
             return $this->fail('Analytics not available on current plan.', 403);
@@ -100,6 +108,10 @@ class AnalyticsController extends ApiController
 
         $plan = $company->plan;
 
+        if ($denial = $this->ensureAnalyticsPermission($user, $company, 'analytics.generate')) {
+            return $denial;
+        }
+
         if ($plan === null || ! $plan->analytics_enabled) {
             return $this->fail('Analytics not available on current plan.', 403);
         }
@@ -130,5 +142,15 @@ class AnalyticsController extends ApiController
                 'period_end' => $end->toDateString(),
             ]
         );
+    }
+    private function ensureAnalyticsPermission(User $user, Company $company, string $permission): ?JsonResponse
+    {
+        if (! $this->permissionRegistry->userHasAny($user, [$permission], (int) $company->id)) {
+            return $this->fail('Analytics role required.', 403, [
+                'code' => 'analytics_role_required',
+            ]);
+        }
+
+        return null;
     }
 }

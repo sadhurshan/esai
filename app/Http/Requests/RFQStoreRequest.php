@@ -2,19 +2,28 @@
 
 namespace App\Http\Requests;
 
+use App\Models\RFQ;
+use Illuminate\Validation\Rule;
+
 class RFQStoreRequest extends ApiFormRequest
 {
     protected function prepareForValidation(): void
     {
-        if ($this->has('is_open_bidding')) {
+        if ($this->has('is_open_bidding') && ! $this->has('open_bidding')) {
+            $this->merge([
+                'open_bidding' => $this->input('is_open_bidding'),
+            ]);
+        }
+
+        if ($this->has('open_bidding')) {
             $normalized = filter_var(
-                $this->input('is_open_bidding'),
+                $this->input('open_bidding'),
                 FILTER_VALIDATE_BOOLEAN,
                 FILTER_NULL_ON_FAILURE
             );
 
             $this->merge([
-                'is_open_bidding' => $normalized,
+                'open_bidding' => $normalized,
             ]);
         }
 
@@ -27,6 +36,36 @@ class RFQStoreRequest extends ApiFormRequest
                 ]);
             }
         }
+
+        if (! $this->filled('title') && $this->filled('item_name')) {
+            $this->merge([
+                'title' => $this->input('item_name'),
+            ]);
+        }
+
+        if (! $this->filled('delivery_location') && $this->filled('client_company')) {
+            $this->merge([
+                'delivery_location' => $this->input('client_company'),
+            ]);
+        }
+
+        if ($this->has('taxPercent') && ! $this->has('tax_percent')) {
+            $this->merge([
+                'tax_percent' => $this->input('taxPercent'),
+            ]);
+        }
+
+        if ($this->has('paymentTerms') && ! $this->has('payment_terms')) {
+            $this->merge([
+                'payment_terms' => $this->input('paymentTerms'),
+            ]);
+        }
+
+        if ($this->has('items') && is_array($this->input('items'))) {
+            $this->merge([
+                'items' => $this->normalizeItems($this->input('items')),
+            ]);
+        }
     }
 
     /**
@@ -34,34 +73,83 @@ class RFQStoreRequest extends ApiFormRequest
      */
     public function rules(): array
     {
+        $extensions = config('documents.allowed_extensions', []);
+
+        if (! is_array($extensions) || $extensions === []) {
+            $extensions = [
+                'step', 'stp', 'iges', 'igs', 'dwg', 'dxf', 'sldprt', 'stl', '3mf',
+                'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'png', 'jpg', 'jpeg', 'tif', 'tiff',
+            ];
+        }
+
+        $maxKilobytes = max(1, (int) config('documents.max_size_mb', 50)) * 1024;
+
         return [
-            'item_name' => ['required', 'string'],
-            'type' => ['required', 'in:ready_made,manufacture'],
-            'client_company' => ['required', 'string'],
-            'status' => ['required', 'in:awaiting,open,closed,awarded,cancelled'],
-            'deadline_at' => ['nullable', 'date'],
-            'sent_at' => ['nullable', 'date'],
-            'is_open_bidding' => ['boolean'],
+            'title' => ['required', 'string', 'max:200'],
+            'method' => ['required', Rule::in(RFQ::METHODS)],
+            'type' => ['prohibited'],
+            'material' => ['nullable', 'string', 'max:120'],
+            'tolerance' => ['nullable', 'string', 'max:120'],
+            'finish' => ['nullable', 'string', 'max:120'],
+            'quantity_total' => ['nullable', 'integer', 'min:0'],
+            'delivery_location' => ['nullable', 'string', 'max:255'],
+            'incoterm' => ['nullable', 'string', 'max:32'],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'tax_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payment_terms' => ['nullable', 'string', 'max:120'],
+            'status' => ['prohibited'],
+            'publish_at' => ['nullable', 'date'],
+            'due_at' => ['required', 'date', 'after:now'],
+            'close_at' => ['nullable', 'date', 'after_or_equal:due_at'],
+            'open_bidding' => ['boolean'],
             'notes' => ['nullable', 'string'],
-            'cad' => ['nullable', 'file', 'mimes:step,stp,iges,igs,dwg,dxf,sldprt,3mf,stl,pdf', 'max:20480'],
+            'cad' => ['nullable', 'file', 'mimes:'.implode(',', $extensions), 'max:'.$maxKilobytes],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.part_name' => ['required', 'string'],
-            'items.*.spec' => ['nullable', 'string'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.part_number' => ['required', 'string', 'max:120'],
+            'items.*.description' => ['nullable', 'string'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.uom' => ['nullable', 'string', 'max:16'],
             'items.*.target_price' => ['nullable', 'numeric', 'min:0'],
-            'items.*.method' => ['required', 'string'],
-            'items.*.material' => ['required', 'string'],
-            'items.*.tolerance' => ['nullable', 'string'],
-            'items.*.finish' => ['nullable', 'string'],
+            'items.*.method' => ['nullable', 'string', 'max:120'],
+            'items.*.material' => ['nullable', 'string', 'max:120'],
+            'items.*.tolerance' => ['nullable', 'string', 'max:120'],
+            'items.*.finish' => ['nullable', 'string', 'max:120'],
+            'items.*.cad_doc_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'items.*.specs_json' => ['nullable', 'array'],
         ];
     }
 
     public function messages(): array
     {
+        $maxMb = max(1, (int) config('documents.max_size_mb', 50));
+
         return [
             'cad.mimes' => 'The CAD file must be a STEP, STP, IGES, IGS, DWG, DXF, SLDPRT, 3MF, STL, or PDF.',
-            'cad.max' => 'The CAD file may not be greater than 20 MB.',
+            'cad.max' => 'The CAD file may not be greater than '.$maxMb.' MB.',
         ];
     }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeItems(array $items): array
+    {
+        return array_map(function (array $item): array {
+            if (! isset($item['part_number']) && isset($item['part_name'])) {
+                $item['part_number'] = $item['part_name'];
+            }
+
+            if (! isset($item['description']) && isset($item['spec'])) {
+                $item['description'] = $item['spec'];
+            }
+
+            if (! isset($item['qty']) && isset($item['quantity'])) {
+                $item['qty'] = $item['quantity'];
+            }
+
+            return $item;
+        }, $items);
+    }
+
 }

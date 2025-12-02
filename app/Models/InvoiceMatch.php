@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class InvoiceMatch extends Model
+class InvoiceMatch extends CompanyScopedModel
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
+        'company_id',
         'invoice_id',
         'purchase_order_id',
         'goods_receipt_note_id',
@@ -19,6 +21,7 @@ class InvoiceMatch extends Model
     ];
 
     protected $casts = [
+        'company_id' => 'integer',
         'invoice_id' => 'integer',
         'purchase_order_id' => 'integer',
         'goods_receipt_note_id' => 'integer',

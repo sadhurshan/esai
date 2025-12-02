@@ -1,3 +1,13 @@
+## 2025-11-21 09:05
+- Shipped the Analytics MVP prompt by enriching snapshot metadata (quote counts, supplier spend) and exposing it through the `/api/analytics/overview` hook so KPI cards and charts share a consistent payload.
+- Built reusable KPI and mini-chart components plus the fully plan-gated `/app/analytics` page that renders RFQ/Quote trends, supplier spend bars, and on-time vs late receipt stacks with skeleton states.
+- Added Pest coverage for the analytics overview endpoint (`vendor/bin/pest tests/Feature/Api/Analytics/AnalyticsOverviewEndpointTest.php`) and ran `npm run lint` afterward to keep the frontend passing the agreed acceptance checklist.
+
+## 2025-11-19 18:45
+- Finalized the Orders module prompt by tightening `ShipmentCreateDialog` validation, surfacing inline remaining-quantity errors, and extending the supplier detail page test to cover the create-shipment happy path.
+- Added Vitest coverage for the Orders React Query hooks and buyer/supplier detail pages to exercise acknowledgement, shipment creation, and tracking scenarios per the spec.
+- Ran the consolidated Orders Vitest bundle (`npx vitest run resources/js/hooks/api/orders/__tests__/orders-hooks.test.tsx resources/js/pages/orders/__tests__/supplier-order-detail-page.test.tsx resources/js/pages/orders/__tests__/buyer-order-detail-page.test.tsx resources/js/components/orders/__tests__/shipment-create-dialog.test.tsx`) to verify the module end-to-end.
+
 ## 2025-11-16 11:20
 - Added the Community (free) plan to the billing seeder and exposed a public `/api/plans` catalog plus authenticated `/api/company/plan-selection` endpoint backed by a reusable `AssignCompanyPlanAction`.
 - Updated auth responses, middleware, and company billing helpers so free plans count as active while past-due customers are redirected to the new React plan selection flow.

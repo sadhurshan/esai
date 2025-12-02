@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-schema';
-import type { RfqItem } from '@/sdk';
+import type { RfqItem } from '@/types/sourcing';
 import { useFormatting } from '@/contexts/formatting-context';
 
 interface QuoteLineEditorProps {

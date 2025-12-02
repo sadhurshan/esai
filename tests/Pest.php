@@ -1,6 +1,9 @@
 <?php
 
+use App\Enums\CompanyStatus;
+use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
+use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
@@ -20,7 +23,7 @@ use function Pest\Laravel\actingAs;
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -139,4 +142,75 @@ function createLocalizationFeatureUser(array $planOverrides = [], array $company
     actingAs($user);
 
     return $user;
+}
+
+function createCompanyWithPlan(array $companyOverrides = [], array $planOverrides = []): Company
+{
+    $planAttributes = array_merge([
+        'code' => 'starter',
+        'name' => 'Starter',
+        'price_usd' => 0,
+        'rfqs_per_month' => 50,
+        'invoices_per_month' => 50,
+        'users_max' => 25,
+        'storage_gb' => 20,
+    ], $planOverrides);
+
+    $plan = Plan::firstOrCreate(['code' => $planAttributes['code']], $planAttributes);
+
+    $company = Company::factory()->create(array_merge([
+        'status' => CompanyStatus::Active->value,
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+        'rfqs_monthly_used' => 0,
+    ], $companyOverrides));
+
+    $customer = Customer::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    Subscription::factory()->create([
+        'company_id' => $company->id,
+        'customer_id' => $customer->id,
+        'stripe_status' => 'active',
+    ]);
+
+    return $company;
+}
+
+function createSubscribedCompany(array $companyOverrides = [], array $planOverrides = []): Company
+{
+    $planAttributes = array_merge([
+        'code' => 'community',
+        'name' => 'Community',
+        'price_usd' => 0,
+        'rfqs_per_month' => 25,
+        'invoices_per_month' => 25,
+        'users_max' => 10,
+        'storage_gb' => 5,
+    ], $planOverrides);
+
+    $plan = Plan::firstOrCreate(['code' => $planAttributes['code']], $planAttributes);
+
+    $company = Company::factory()->create(array_merge([
+        'status' => CompanyStatus::Active->value,
+        'supplier_status' => CompanySupplierStatus::Pending->value,
+        'is_verified' => false,
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+        'rfqs_monthly_used' => 0,
+        'storage_used_mb' => 0,
+    ], $companyOverrides));
+
+    $customer = Customer::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    Subscription::factory()->create([
+        'company_id' => $company->id,
+        'customer_id' => $customer->id,
+        'stripe_status' => 'active',
+    ]);
+
+    return $company;
 }

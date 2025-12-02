@@ -174,6 +174,56 @@ components:
         uom:
           type: string
           nullable: true
+    Ncr:
+      type: object
+      required:
+        - id
+        - company_id
+        - grn_id
+        - po_line_id
+        - status
+        - reason
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        grn_id:
+          type: integer
+        po_line_id:
+          type: integer
+        status:
+          type: string
+          enum: [open, closed]
+        disposition:
+          type: string
+          enum: [rework, return, accept_as_is]
+          nullable: true
+        reason:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+        raised_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
     Rma:
       type: object
       required:
@@ -534,6 +584,96 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/GoodsReceiptNote'
+  /api/receiving/grns/{grnId}/ncrs:
+    parameters:
+      - name: grnId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Inventory
+      summary: Raise a non-conformance for a goods receipt line
+      operationId: createReceivingNcr
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - purchase_order_line_id
+                - reason
+              properties:
+                purchase_order_line_id:
+                  type: integer
+                reason:
+                  type: string
+                disposition:
+                  type: string
+                  enum: [rework, return, accept_as_is]
+                  nullable: true
+                documents:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: NCR created for the goods receipt line.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Ncr'
+                      message:
+                        type: string
+  /api/receiving/ncrs/{ncrId}:
+    parameters:
+      - name: ncrId
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      tags:
+        - Inventory
+      summary: Update or close a non-conformance record
+      operationId: updateReceivingNcr
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [closed]
+                disposition:
+                  type: string
+                  enum: [rework, return, accept_as_is]
+                  nullable: true
+      responses:
+        '200':
+          description: NCR updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Ncr'
+                      message:
+                        type: string
   /api/rmas:
     get:
       tags:

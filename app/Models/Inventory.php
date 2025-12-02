@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Inventory extends Model
+class Inventory extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\InventoryFactory> */
     use HasFactory;

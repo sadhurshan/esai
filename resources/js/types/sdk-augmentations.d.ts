@@ -1,11 +1,18 @@
 import type {
     AdminUpdateWebhookSubscriptionRequest as BaseAdminUpdateWebhookSubscriptionRequest,
     CreateRfqRequestItemsInner as BaseCreateRfqRequestItemsInner,
+    Rfq as BaseRfq,
     RfqItem as BaseRfqItem,
     RfqLinePayload as BaseRfqLinePayload,
 } from '@/sdk';
 
 declare module '@/sdk' {
+    interface Rfq extends BaseRfq {
+        incoterm?: string | null;
+        paymentTerms?: string | null;
+        taxPercent?: number | null;
+    }
+
     interface RfqItem extends BaseRfqItem {
         requiredDate?: string | null;
     }

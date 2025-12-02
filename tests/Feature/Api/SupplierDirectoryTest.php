@@ -57,6 +57,34 @@ it('lists only approved public suppliers with completed profiles', function (): 
         ->and($ids)->toHaveCount(1);
 });
 
+it('shows public suppliers across tenants for authenticated buyers', function (): void {
+    $viewerCompany = Company::factory()->create();
+    $publicCompany = Company::factory()->create([
+        'supplier_status' => CompanySupplierStatus::Approved->value,
+        'directory_visibility' => 'public',
+        'supplier_profile_completed_at' => now(),
+    ]);
+
+    $publicSupplier = Supplier::factory()->for($publicCompany)->create([
+        'status' => 'approved',
+    ]);
+
+    $user = User::factory()->create([
+        'company_id' => $viewerCompany->id,
+        'role' => 'buyer_admin',
+    ]);
+
+    actingAs($user);
+
+    $response = $this->getJson('/api/suppliers');
+
+    $response->assertOk()->assertJsonPath('status', 'success');
+
+    $ids = collect($response->json('data.items'))->pluck('id');
+
+    expect($ids)->toContain($publicSupplier->id);
+});
+
 it('blocks visibility toggle when supplier is not approved', function (): void {
     $company = Company::factory()->create([
         'supplier_status' => CompanySupplierStatus::Pending->value,

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RfqClarification extends Model
+class RfqClarification extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\RfqClarificationFactory> */
     use HasFactory;
@@ -66,10 +66,50 @@ class RfqClarification extends Model
             return [];
         }
 
-        return array_values(array_filter(array_map(
-            static fn (mixed $value): ?int => is_numeric($value) ? (int) $value : null,
-            $attachments
-        )));
+        $ids = [];
+
+        foreach ($attachments as $attachment) {
+            if (is_array($attachment) && isset($attachment['document_id']) && is_numeric($attachment['document_id'])) {
+                $ids[] = (int) $attachment['document_id'];
+
+                continue;
+            }
+
+            if (is_numeric($attachment)) {
+                $ids[] = (int) $attachment;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function attachmentMetadata(): array
+    {
+        $attachments = $this->attachments_json;
+
+        if (! is_array($attachments)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($attachments as $attachment) {
+            if (is_array($attachment) && isset($attachment['document_id']) && is_numeric($attachment['document_id'])) {
+                $attachment['document_id'] = (int) $attachment['document_id'];
+                $normalized[] = $attachment;
+
+                continue;
+            }
+
+            if (is_numeric($attachment)) {
+                $normalized[] = ['document_id' => (int) $attachment];
+            }
+        }
+
+        return $normalized;
     }
 
     public function isAmendment(): bool

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Actions\Company\RegisterCompanyAction;
 use App\Actions\Company\StoreCompanyDocumentAction;
+use App\Enums\UserStatus;
 use App\Events\CompanyPendingVerification;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Auth\SelfRegistrationRequest;
 use App\Models\User;
 use App\Services\Auth\AuthResponseFactory;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +41,7 @@ class SelfRegistrationController extends ApiController
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role' => 'owner',
+                'status' => UserStatus::Active->value,
             ]);
 
             $company = $this->registerCompanyAction->execute([
@@ -56,13 +59,19 @@ class SelfRegistrationController extends ApiController
             ], $user);
         });
 
-        if ($company !== null) {
+        if ($company !== null && $user !== null) {
             foreach ($request->companyDocuments() as $document) {
-                $this->storeCompanyDocumentAction->execute($company, $document['type'], $document['file']);
+                $this->storeCompanyDocumentAction->execute($company, $user, $document['type'], $document['file']);
             }
 
             event(new CompanyPendingVerification($company));
         }
+
+        if ($user === null) {
+            return $this->fail('Registration failed.', 500);
+        }
+
+        event(new Registered($user));
 
         Auth::login($user);
         $request->session()->regenerate();

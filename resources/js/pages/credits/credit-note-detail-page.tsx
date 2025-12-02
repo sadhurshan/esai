@@ -4,7 +4,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BadgeCheck, Download, FileWarning, Loader2, Paperclip, Printer, ShieldAlert } from 'lucide-react';
+import { BadgeCheck, Download, FileWarning, Loader2, Paperclip, ShieldAlert } from 'lucide-react';
+
+import { ExportButtons } from '@/components/downloads/export-buttons';
 
 import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
@@ -187,7 +189,7 @@ export function CreditNoteDetailPage() {
                     description="Upgrade your Elements Supply plan to review and approve credit notes."
                     icon={<ShieldAlert className="h-10 w-10 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );
@@ -231,9 +233,13 @@ export function CreditNoteDetailPage() {
                     <Button type="button" variant="outline" size="sm" onClick={() => navigate('/app/credit-notes')}>
                         Back to list
                     </Button>
-                    <Button type="button" variant="outline" size="sm" disabled>
-                        <Printer className="mr-2 h-4 w-4" /> Export PDF
-                    </Button>
+                    <ExportButtons
+                        documentType="credit_note"
+                        documentId={credit?.id ?? 0}
+                        reference={credit?.creditNumber ?? undefined}
+                        size="sm"
+                        disabled={!credit}
+                    />
                     <Button
                         type="button"
                         size="sm"

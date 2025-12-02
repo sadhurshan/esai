@@ -181,13 +181,15 @@ class AnalyticsService
             ->get();
 
         if ($rfqs->isEmpty()) {
-            return ['value' => 0.0, 'meta' => ['rfq_count' => 0]];
+            return ['value' => 0.0, 'meta' => ['rfq_count' => 0, 'quotes_submitted' => 0]];
         }
 
         $rates = [];
+        $quotesSubmitted = 0;
 
         foreach ($rfqs as $rfq) {
             $responses = $rfq->quotes->count();
+            $quotesSubmitted += $responses;
             $total = $rfq->open_bidding || $rfq->is_open_bidding ? max(1, $responses) : $rfq->invitations->count();
 
             if ($total === 0) {
@@ -200,22 +202,52 @@ class AnalyticsService
 
         $average = array_sum($rates) / count($rates);
 
-        return ['value' => round($average, 4), 'meta' => ['rfq_count' => count($rates)]];
+        return [
+            'value' => round($average, 4),
+            'meta' => [
+                'rfq_count' => count($rates),
+                'quotes_submitted' => $quotesSubmitted,
+            ],
+        ];
     }
 
     private function computeSpend(Company $company, Carbon $periodStart, Carbon $periodEnd): array
     {
-        $total = Invoice::query()
+        $invoices = Invoice::query()
             ->where('company_id', $company->id)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->whereIn('status', ['paid', 'pending'])
-            ->sum('total');
+            ->with('supplier')
+            ->get();
 
-        return ['value' => round((float) $total, 4), 'meta' => ['invoice_count' => Invoice::query()
-            ->where('company_id', $company->id)
-            ->whereBetween('created_at', [$periodStart, $periodEnd])
-            ->whereIn('status', ['paid', 'pending'])
-            ->count()]];
+        $total = $invoices->sum(fn (Invoice $invoice) => (float) $invoice->total);
+        $invoiceCount = $invoices->count();
+
+        $topSuppliers = $invoices
+            ->groupBy(fn (Invoice $invoice) => $invoice->supplier_id ?? 0)
+            ->map(function ($group, $supplierId) {
+                /** @var \Illuminate\Database\Eloquent\Collection<int, Invoice> $group */
+                $first = $group->first();
+                $name = $first?->supplier?->name;
+
+                return [
+                    'supplier_id' => $supplierId === 0 ? null : (int) $supplierId,
+                    'supplier_name' => $name ?? 'Unassigned supplier',
+                    'total' => round((float) $group->sum(fn (Invoice $invoice) => (float) $invoice->total), 4),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values()
+            ->take(5)
+            ->all();
+
+        return [
+            'value' => round((float) $total, 4),
+            'meta' => [
+                'invoice_count' => $invoiceCount,
+                'top_suppliers' => $topSuppliers,
+            ],
+        ];
     }
 
     private function computeForecastAccuracy(Company $company, Carbon $periodStart, Carbon $periodEnd): array

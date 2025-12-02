@@ -29,6 +29,8 @@ import {
     Activity,
     ScrollText,
     Users,
+    FolderTree,
+    DownloadCloud,
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
@@ -56,9 +58,14 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Invoices', to: '/app/invoices', icon: Wallet },
     { label: 'Matching', to: '/app/matching', icon: Scale, featureKey: 'finance_enabled' },
     { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory.access' },
-    { label: 'Assets', to: '/app/assets', icon: Factory, featureKey: 'digital_twin.access' },
+    {
+        label: 'Digital Twin Library',
+        to: '/app/library/digital-twins',
+        icon: Factory,
+    },
     { label: 'Orders', to: '/app/orders', icon: PackageSearch },
     { label: 'Suppliers', to: '/app/suppliers', icon: Users },
+    { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
     { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
     { label: 'Analytics', to: '/app/analytics', icon: LineChart, featureKey: 'analytics.access' },
     { label: 'Settings', to: '/app/settings', icon: Settings },
@@ -68,7 +75,10 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Admin Dashboard', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true, matchExact: true },
     { label: 'Company Approvals', to: '/app/admin/company-approvals', icon: Building2, requiresAdminConsole: true },
+    { label: 'Supplier Applications', to: '/app/admin/supplier-applications', icon: Users, requiresAdminConsole: true },
     { label: 'Plans & Features', to: '/app/admin/plans', icon: Layers2, requiresAdminConsole: true },
+    { label: 'Digital Twins', to: '/app/admin/digital-twins', icon: Factory, requiresAdminConsole: true },
+    { label: 'Twin Categories', to: '/app/admin/digital-twins/categories', icon: FolderTree, requiresAdminConsole: true },
     { label: 'Roles & Permissions', to: '/app/admin/roles', icon: ListChecks, requiresAdminConsole: true },
     { label: 'API Keys', to: '/app/admin/api-keys', icon: KeyRound, requiresAdminConsole: true },
     { label: 'Webhooks', to: '/app/admin/webhooks', icon: RadioTower, requiresAdminConsole: true },

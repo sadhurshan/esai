@@ -209,7 +209,7 @@ export function MovementCreatePage() {
                     description="Upgrade your plan to post stock receipts, issues, transfers, and adjustments."
                     icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

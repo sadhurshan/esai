@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Award, Download, FileText, Star } from 'lucide-react';
 
+import { ExportButtons } from '@/components/downloads/export-buttons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -119,13 +120,6 @@ export function QuoteDetailPage() {
         });
     };
 
-    const handleExportPdf = () => {
-        publishToast({
-            variant: 'default',
-            title: 'Export queued',
-            description: 'PDF export will be added once document service is wired.',
-        });
-    }; // TODO: clarify with spec whether buyer exports should trigger document jobs or download immediately.
 
     if (featureFlagsLoaded && !quotesFeatureEnabled) {
         return (
@@ -139,7 +133,7 @@ export function QuoteDetailPage() {
                     description="Upgrade your workspace plan to review supplier quotes."
                     icon={<FileText className="h-10 w-10 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );
@@ -250,10 +244,11 @@ export function QuoteDetailPage() {
                         <Award className="h-4 w-4" />
                         {markedForAward ? 'Marked for award' : 'Mark for award'}
                     </Button>
-                    <Button type="button" variant="outline" size="sm" onClick={handleExportPdf}>
-                        <Download className="h-4 w-4" />
-                        Export PDF
-                    </Button>
+                    <ExportButtons
+                        documentType="quote"
+                        documentId={quote.id}
+                        reference={`Quote #${quote.id}`}
+                    />
                 </div>
             </div>
 

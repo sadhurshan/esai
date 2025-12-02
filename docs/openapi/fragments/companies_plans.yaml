@@ -200,6 +200,117 @@ components:
                             type: boolean
                 plan:
                     $ref: '#/components/schemas/PlanCatalogEntry'
+        PlanCheckoutResult:
+            type: object
+            required:
+                - requires_checkout
+            properties:
+                requires_checkout:
+                    type: boolean
+                plan:
+                    type: string
+                    nullable: true
+                    description: Present when the selected plan does not require an external checkout session.
+                checkout:
+                    type: object
+                    nullable: true
+                    properties:
+                        provider:
+                            type: string
+                        session_id:
+                            type: string
+                            nullable: true
+                        checkout_url:
+                            type: string
+                            format: uri
+                            nullable: true
+                        status:
+                            type: string
+                            nullable: true
+        BillingPortalSession:
+            type: object
+            required:
+                - portal
+            properties:
+                portal:
+                    type: object
+                    required:
+                        - provider
+                        - url
+                    properties:
+                        provider:
+                            type: string
+                        url:
+                            type: string
+                            format: uri
+        BillingInvoice:
+            type: object
+            properties:
+                id:
+                    type: string
+                    nullable: true
+                number:
+                    type: string
+                    nullable: true
+                status:
+                    type: string
+                    nullable: true
+                currency:
+                    type: string
+                    nullable: true
+                amount_due:
+                    type: integer
+                    nullable: true
+                    description: Minor units owed on the invoice.
+                amount_paid:
+                    type: integer
+                    nullable: true
+                amount_remaining:
+                    type: integer
+                    nullable: true
+                total:
+                    type: integer
+                    nullable: true
+                hosted_invoice_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                invoice_pdf:
+                    type: string
+                    format: uri
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                due_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                period_start:
+                    type: string
+                    format: date-time
+                    nullable: true
+                period_end:
+                    type: string
+                    format: date-time
+                    nullable: true
+                collection_method:
+                    type: string
+                    nullable: true
+                attempt_count:
+                    type: integer
+                    nullable: true
+                next_payment_attempt_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                is_paid:
+                    type: boolean
+                    nullable: true
+                is_attempting_collection:
+                    type: boolean
+                    nullable: true
         FeatureFlag:
             type: object
             required:
@@ -222,6 +333,235 @@ components:
                 updated_at:
                     type: string
                     format: date-time
+        CompanyInvitation:
+            type: object
+            required:
+                - id
+                - email
+                - role
+                - status
+                - company_id
+            properties:
+                id:
+                    type: integer
+                email:
+                    type: string
+                    format: email
+                role:
+                    type: string
+                status:
+                    type: string
+                    description: Invitation lifecycle state (pending, accepted, revoked, expired).
+                expires_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                accepted_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                revoked_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                invited_by:
+                    type: integer
+                    nullable: true
+                company_id:
+                    type: integer
+                message:
+                    type: string
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+        CompanyMember:
+            type: object
+            required:
+                - id
+                - name
+                - email
+                - role
+                - membership
+                - role_conflict
+            properties:
+                id:
+                    type: integer
+                name:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                role:
+                    type: string
+                job_title:
+                    type: string
+                    nullable: true
+                phone:
+                    type: string
+                    nullable: true
+                avatar_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                last_login_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                is_active_company:
+                    type: boolean
+                membership:
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            nullable: true
+                        company_id:
+                            type: integer
+                            nullable: true
+                        is_default:
+                            type: boolean
+                        last_used_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+                        created_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+                        updated_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+                role_conflict:
+                    type: object
+                    properties:
+                        total_companies:
+                            type: integer
+                        distinct_roles:
+                            type: array
+                            items:
+                                type: string
+                        buyer_supplier_conflict:
+                            type: boolean
+                        has_conflict:
+                            type: boolean
+        RoleTemplate:
+            type: object
+            required:
+                - id
+                - slug
+                - name
+                - permissions
+            properties:
+                id:
+                    type: string
+                slug:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                    nullable: true
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                is_system:
+                    type: boolean
+        CompanyRoleTemplateCatalog:
+            type: object
+            required:
+                - roles
+                - permission_groups
+            properties:
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleTemplate'
+                permission_groups:
+                    type: object
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+        UserProfile:
+            type: object
+            required:
+                - id
+                - name
+                - email
+                - role
+            properties:
+                id:
+                    type: integer
+                name:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                role:
+                    type: string
+                company_id:
+                    type: integer
+                    nullable: true
+                job_title:
+                    type: string
+                    nullable: true
+                phone:
+                    type: string
+                    nullable: true
+                locale:
+                    type: string
+                    nullable: true
+                timezone:
+                    type: string
+                    nullable: true
+                avatar_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                avatar_path:
+                    type: string
+                    nullable: true
+                email_verified_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                created_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                updated_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+        UserCompany:
+            type: object
+            required:
+                - id
+                - name
+                - status
+                - role
+                - is_default
+                - is_active
+            properties:
+                id:
+                    type: integer
+                name:
+                    type: string
+                status:
+                    type: string
+                supplier_status:
+                    type: string
+                    nullable: true
+                role:
+                    type: string
+                    nullable: true
+                is_default:
+                    type: boolean
+                is_active:
+                    type: boolean
         ApiKey:
             type: object
             required:
@@ -345,6 +685,294 @@ paths:
                                               $ref: '#/components/schemas/PlanSelectionResult'
                 '422':
                     $ref: '#/components/responses/ValidationError'
+    /api/billing/checkout:
+        post:
+            tags:
+                - Billing
+            summary: Start a checkout session for paid subscription plans
+            operationId: startPlanCheckout
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - plan_code
+                            properties:
+                                plan_code:
+                                    type: string
+                                    description: Plan code returned by the plan catalog endpoint.
+            responses:
+                '200':
+                    description: Checkout session metadata or confirmation that checkout is unnecessary.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/PlanCheckoutResult'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '422':
+                    $ref: '#/components/responses/ValidationError'
+    /api/billing/portal:
+        post:
+            tags:
+                - Billing
+            summary: Create a Stripe billing portal session for the authenticated company
+            operationId: createBillingPortalSession
+            responses:
+                '200':
+                    description: Billing portal session created successfully.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/BillingPortalSession'
+                '502':
+                    description: Stripe billing portal is unavailable.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiErrorResponse'
+    /api/billing/invoices:
+        get:
+            tags:
+                - Billing
+            summary: List recent billing invoices for the authenticated company
+            operationId: listBillingInvoices
+            responses:
+                '200':
+                    description: Stripe invoice history limited by configuration.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/BillingInvoice'
+                '502':
+                    description: Stripe invoice service is unavailable.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiErrorResponse'
+    /api/company-members:
+        get:
+            tags:
+                - Companies
+            summary: List members for the authenticated company
+            operationId: listCompanyMembers
+            parameters:
+                - $ref: '#/components/parameters/PerPageQuery'
+                - $ref: '#/components/parameters/CursorQuery'
+            responses:
+                '200':
+                    description: Company members collection.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/CompanyMember'
+    /api/company-members/{member}:
+        parameters:
+            - name: member
+              in: path
+              required: true
+              schema:
+                  type: integer
+        patch:
+            tags:
+                - Companies
+            summary: Update a member's role within the company
+            operationId: updateCompanyMember
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - role
+                            properties:
+                                role:
+                                    type: string
+                                    description: Must be one of owner, buyer_admin, buyer_member, buyer_requester, supplier_admin, supplier_estimator, finance.
+            responses:
+                '200':
+                    description: Member updated.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/CompanyMember'
+        delete:
+            tags:
+                - Companies
+            summary: Remove a member from the company
+            operationId: deleteCompanyMember
+            responses:
+                '200':
+                    description: Member removed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
+    /api/company-role-templates:
+        get:
+            tags:
+                - Companies
+            summary: Retrieve available role templates and permission group metadata
+            operationId: listCompanyRoleTemplates
+            responses:
+                '200':
+                    description: Role template catalog.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/CompanyRoleTemplateCatalog'
+    /api/me/profile:
+        get:
+            tags:
+                - Companies
+            summary: Fetch the authenticated user's profile
+            operationId: getCurrentProfile
+            responses:
+                '200':
+                    description: Profile retrieved.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/UserProfile'
+        patch:
+            tags:
+                - Companies
+            summary: Update the authenticated user's profile
+            operationId: updateCurrentProfile
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                email:
+                                    type: string
+                                    format: email
+                                job_title:
+                                    type: string
+                                    nullable: true
+                                phone:
+                                    type: string
+                                    nullable: true
+                                locale:
+                                    type: string
+                                    nullable: true
+                                timezone:
+                                    type: string
+                                    nullable: true
+                                avatar_path:
+                                    type: string
+                                    nullable: true
+            responses:
+                '200':
+                    description: Profile updated.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              $ref: '#/components/schemas/UserProfile'
+    /api/me/companies:
+        get:
+            tags:
+                - Companies
+            summary: List companies the current user belongs to
+            operationId: listUserCompanies
+            responses:
+                '200':
+                    description: Company memberships.
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/ApiSuccessResponse'
+                                    - type: object
+                                      properties:
+                                          data:
+                                              type: object
+                                              properties:
+                                                  items:
+                                                      type: array
+                                                      items:
+                                                          $ref: '#/components/schemas/UserCompany'
+    /api/me/companies/switch:
+        post:
+            tags:
+                - Companies
+            summary: Switch the active company context for the authenticated user
+            operationId: switchUserCompany
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - company_id
+                            properties:
+                                company_id:
+                                    type: integer
+            responses:
+                '200':
+                    description: Active company updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSuccessResponse'
     /api/companies:
         post:
             tags:

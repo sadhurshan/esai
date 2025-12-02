@@ -7,6 +7,9 @@ interface ApiEnvelope<T> {
     meta?: Record<string, unknown> | null;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
 export function sanitizeQuery(params: Record<string, unknown>): HTTPQuery {
     return Object.entries(params).reduce<HTTPQuery>((acc, [key, value]) => {
         if (value === undefined || value === null || value === '') {
@@ -43,15 +46,23 @@ export async function parseEnvelope<T>(response: Response): Promise<T> {
 
             if (envelope.meta) {
                 if (data && typeof data === 'object' && !Array.isArray(data)) {
+                    const dataRecord = data as Record<string, unknown> & { meta?: unknown };
+                    const existingMeta = isRecord(dataRecord.meta) ? dataRecord.meta : undefined;
+
                     return {
-                        ...(data as Record<string, unknown>),
-                        meta: envelope.meta,
+                        ...dataRecord,
+                        meta: {
+                            ...(existingMeta ?? {}),
+                            envelope: envelope.meta,
+                        },
                     } as unknown as T;
                 }
 
                 return {
                     data,
-                    meta: envelope.meta,
+                    meta: {
+                        envelope: envelope.meta,
+                    },
                 } as unknown as T;
             }
 

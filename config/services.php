@@ -41,6 +41,9 @@ return [
         'checkout_success_url' => env('STRIPE_CHECKOUT_SUCCESS_URL'),
         'checkout_cancel_url' => env('STRIPE_CHECKOUT_CANCEL_URL'),
         'fallback_checkout_url' => env('STRIPE_CHECKOUT_FALLBACK_URL'),
+        'portal_return_url' => env('STRIPE_PORTAL_RETURN_URL'),
+        'portal_fallback_url' => env('STRIPE_PORTAL_FALLBACK_URL'),
+        'portal_configuration' => env('STRIPE_PORTAL_CONFIGURATION'),
         'prices' => [
             'community' => env('STRIPE_PRICE_COMMUNITY'),
             'starter' => env('STRIPE_PRICE_STARTER'),
@@ -48,6 +51,12 @@ return [
             'enterprise' => env('STRIPE_PRICE_ENTERPRISE'),
         ],
         'past_due_grace_days' => (int) env('STRIPE_PAST_DUE_GRACE_DAYS', 7),
+        'stub_trial_days' => (int) env('STRIPE_STUB_TRIAL_DAYS', 90),
+        'invoice_history_limit' => (int) env('STRIPE_INVOICE_HISTORY_LIMIT', 12),
+    ],
+
+    'enterprise' => [
+        'contact_url' => env('ENTERPRISE_CONTACT_URL'),
     ],
 
 ];

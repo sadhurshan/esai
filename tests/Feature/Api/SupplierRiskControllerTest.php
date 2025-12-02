@@ -176,7 +176,7 @@ it('generates risk scores and updates supplier grade', function (): void {
         'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
         'invited_by' => $user->id,
-        'status' => 'invited',
+        'status' => RfqInvitation::STATUS_PENDING,
         'created_at' => $periodStart->copy()->addDays(1),
         'updated_at' => $periodStart->copy()->addDays(1),
     ]);
@@ -190,7 +190,7 @@ it('generates risk scores and updates supplier grade', function (): void {
             'rfq_id' => $additionalRfq->id,
             'supplier_id' => $supplier->id,
             'invited_by' => $user->id,
-            'status' => 'invited',
+            'status' => RfqInvitation::STATUS_PENDING,
             'created_at' => $periodStart->copy()->addDays($index),
             'updated_at' => $periodStart->copy()->addDays($index),
         ]);

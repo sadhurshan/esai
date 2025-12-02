@@ -8,10 +8,12 @@ use App\Models\Document;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +29,9 @@ class DocumentStorer
         'igs',
         'dwg',
         'dxf',
+        'sldprt',
+        'stl',
+        '3mf',
         'pdf',
         'doc',
         'docx',
@@ -140,6 +145,8 @@ class DocumentStorer
                 'category' => $document->category,
                 'visibility' => $document->visibility,
             ]);
+
+            $this->refreshAttachmentCount($documentableType, $documentableId);
 
             return $document;
         });
@@ -323,5 +330,28 @@ class DocumentStorer
         }
 
         return [];
+    }
+
+    private function refreshAttachmentCount(string $documentableType, int $documentableId): void
+    {
+        if (! is_subclass_of($documentableType, Model::class)) {
+            return;
+        }
+
+        /** @var Model $model */
+        $model = new $documentableType();
+
+        if (! Schema::hasColumn($model->getTable(), 'attachments_count')) {
+            return;
+        }
+
+        $count = Document::query()
+            ->where('documentable_type', $documentableType)
+            ->where('documentable_id', $documentableId)
+            ->count();
+
+        $documentableType::query()
+            ->whereKey($documentableId)
+            ->update(['attachments_count' => $count]);
     }
 }

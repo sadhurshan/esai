@@ -1,62 +1,15 @@
 <?php
 
+require_once __DIR__.'/DigitalTwinTestHelpers.php';
+
 use App\Models\Asset;
-use App\Models\Company;
-use App\Models\Customer;
 use App\Models\Location;
 use App\Models\MaintenanceProcedure;
-use App\Models\Plan;
 use App\Models\ProcedureStep;
-use App\Models\Subscription;
 use App\Models\System;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
-use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
-
-function createDigitalTwinUser(bool $maintenanceEnabled = true): User
-{
-    $plan = Plan::factory()->create([
-        'code' => 'pro-dt-'.Str::random(5),
-        'name' => 'Pro Digital Twin',
-        'digital_twin_enabled' => true,
-        'maintenance_enabled' => $maintenanceEnabled,
-        'rfqs_per_month' => 0,
-        'invoices_per_month' => 0,
-        'users_max' => 10,
-        'storage_gb' => 50,
-    ]);
-
-    $company = Company::factory()->create([
-        'plan_id' => $plan->id,
-        'plan_code' => $plan->code,
-        'status' => 'active',
-        'registration_no' => 'REG-12345',
-        'tax_id' => 'TAX-67890',
-        'country' => 'US',
-        'email_domain' => 'example.com',
-        'primary_contact_name' => 'Primary Contact',
-        'primary_contact_email' => 'primary@example.com',
-        'primary_contact_phone' => '+1-555-0100',
-    ]);
-
-    $customer = Customer::factory()->for($company)->create();
-
-    Subscription::factory()->for($company)->create([
-        'customer_id' => $customer->id,
-        'stripe_status' => 'active',
-    ]);
-
-    $user = User::factory()->for($company)->create([
-        'role' => 'buyer_admin',
-    ]);
-
-    actingAs($user);
-
-    return $user;
-}
 
 it('creates a location with the expected response envelope', function () {
     $user = createDigitalTwinUser();

@@ -10,11 +10,19 @@ class RfqInvitation extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_ACCEPTED = 'accepted';
+    public const STATUS_DECLINED = 'declined';
+
     protected $fillable = [
         'rfq_id',
         'supplier_id',
         'invited_by',
         'status',
+    ];
+
+    protected $attributes = [
+        'status' => self::STATUS_PENDING,
     ];
 
     public function rfq(): BelongsTo

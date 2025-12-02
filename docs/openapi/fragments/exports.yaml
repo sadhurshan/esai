@@ -57,11 +57,11 @@ paths:
       summary: List export requests
       operationId: listExportRequests
       parameters:
-        - $ref: '#/components/parameters/PageQuery'
         - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
       responses:
         '200':
-          description: Paginated export requests for the current company.
+          description: Cursor-paginated export requests for the current company.
           content:
             application/json:
               schema:
@@ -80,7 +80,16 @@ paths:
                             items:
                               $ref: '#/components/schemas/ExportRequest'
                           meta:
-                            $ref: '#/components/schemas/PageMeta'
+                            type: object
+                            properties:
+                              per_page:
+                                type: integer
+                              next_cursor:
+                                type: string
+                                nullable: true
+                              prev_cursor:
+                                type: string
+                                nullable: true
     post:
       tags:
         - Exports

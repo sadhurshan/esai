@@ -16,6 +16,8 @@ return new class extends Migration
             $table->enum('kind', [
                 'rfq',
                 'quote',
+                'rfp',
+                'rfp_proposal',
                 'po',
                 'grn_attachment',
                 'invoice',

@@ -61,6 +61,7 @@ export function createAuthenticatedFetch(options: ClientOptions = {}): FetchAPI 
         const headers = new Headers(request.headers);
 
         applyDefaultHeaders(headers, options.defaultHeaders ?? {});
+        attachXsrfHeader(headers, request.url);
 
         if (!headers.has('Authorization')) {
             const bearer = await resolveToken(options.bearerToken);
@@ -121,6 +122,57 @@ function applyDefaultHeaders(headers: Headers, defaults: Record<string, string>)
             headers.set(key, value);
         }
     });
+}
+
+function attachXsrfHeader(headers: Headers, requestUrl: string): void {
+    if (headers.has('X-XSRF-TOKEN')) {
+        return;
+    }
+
+    const token = resolveXsrfToken(requestUrl);
+    if (token) {
+        headers.set('X-XSRF-TOKEN', token);
+    }
+}
+
+function resolveXsrfToken(requestUrl: string): string | undefined {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+        return undefined;
+    }
+
+    const target = new URL(requestUrl, window.location.origin);
+    if (target.origin !== window.location.origin) {
+        return undefined;
+    }
+
+    const value = readCookie('XSRF-TOKEN');
+    if (!value) {
+        return undefined;
+    }
+
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
+function readCookie(name: string): string | undefined {
+    if (typeof document === 'undefined') {
+        return undefined;
+    }
+
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    const prefix = `${name}=`;
+
+    for (const cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith(prefix)) {
+            return trimmed.substring(prefix.length);
+        }
+    }
+
+    return undefined;
 }
 
 async function fetchWithRetry(request: Request, fetchImpl: FetchAPI, retry: RetryOptions): Promise<Response> {

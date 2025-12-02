@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\Approval\StoreApprovalRuleRequest;
 use App\Http\Resources\ApprovalRuleResource;
 use App\Models\ApprovalRule;
-use App\Models\Company;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
@@ -25,14 +24,14 @@ class ApprovalRuleController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if (! $companyId) {
             return $this->fail('Company context required.', 403);
         }
 
         $query = ApprovalRule::query()
-            ->where('company_id', $company->id)
+            ->where('company_id', $companyId)
             ->orderByDesc('created_at');
 
         $targetType = $request->query('target_type');
@@ -49,24 +48,35 @@ class ApprovalRuleController extends ApiController
             $query->where('target_type', $targetType);
         }
 
-        $rules = $query->get();
+        $perPage = $this->perPage($request, 25, 100);
 
-        return $this->ok(
-            ApprovalRuleResource::collection($rules)->resolve(),
-            'Approval rules retrieved.'
-        );
+        $paginator = $query
+            ->cursorPaginate($perPage)
+            ->withQueryString();
+
+        $paginated = $this->paginate($paginator, $request, ApprovalRuleResource::class);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Approval rules retrieved.', $paginated['meta']);
     }
 
     public function store(StoreApprovalRuleRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
 
-        if (! $user instanceof User || ! $user->company instanceof Company) {
+        if (! $user instanceof User) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if (! $companyId) {
             return $this->fail('Company context required.', 403);
         }
 
         $data = $request->validated();
-        $data['company_id'] = $user->company->id;
+        $data['company_id'] = $companyId;
 
         $rule = ApprovalRule::create($data);
 
@@ -129,10 +139,16 @@ class ApprovalRuleController extends ApiController
     {
         $user = $this->resolveRequestUser($request);
 
-        if (! $user instanceof User || ! $user->company instanceof Company) {
+        if (! $user instanceof User) {
             return false;
         }
 
-        return (int) $rule->company_id === (int) $user->company->id;
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if (! $companyId) {
+            return false;
+        }
+
+        return (int) $rule->company_id === $companyId;
     }
 }

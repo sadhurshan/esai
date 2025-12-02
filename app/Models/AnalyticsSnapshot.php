@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AnalyticsSnapshot extends Model
+class AnalyticsSnapshot extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

@@ -4,3 +4,7 @@ export * from './use-localization';
 export * from './use-update-localization';
 export * from './use-numbering';
 export * from './use-update-numbering';
+export * from './use-profile';
+export * from './use-update-profile';
+export * from './use-notification-preferences';
+export * from './use-update-notification-preference';

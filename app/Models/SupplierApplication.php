@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Enums\SupplierApplicationStatus;
+use App\Models\SupplierDocument;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class SupplierApplication extends Model
+class SupplierApplication extends CompanyScopedModel
 {
     use HasFactory;
 
@@ -40,5 +42,10 @@ class SupplierApplication extends Model
     public function reviewedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function documents(): BelongsToMany
+    {
+        return $this->belongsToMany(SupplierDocument::class, 'supplier_application_documents');
     }
 }

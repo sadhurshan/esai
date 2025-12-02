@@ -29,6 +29,14 @@ class AssetController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
         $this->authorize('viewAny', Asset::class);
 
         $validated = $request->validate([
@@ -38,8 +46,6 @@ class AssetController extends ApiController
             'status' => ['nullable', 'string', Rule::in(self::STATUSES)],
             'search' => ['nullable', 'string', 'max:191'],
         ]);
-
-        $companyId = (int) $request->user()->company_id;
         $perPage = $this->perPage($request, 25, 100);
 
         $query = Asset::query()
@@ -70,28 +76,25 @@ class AssetController extends ApiController
         }
 
         $assets = $query->cursorPaginate($perPage, ['*'], 'cursor', $validated['cursor'] ?? null);
+        $collection = $this->paginate($assets, $request, AssetResource::class);
 
-        $items = collect($assets->items())
-            ->map(fn (Asset $asset) => (new AssetResource($asset))->toArray($request))
-            ->values()
-            ->all();
-
-        return $this->ok(
-            ['items' => $items],
-            'Assets retrieved.',
-            [
-                'next_cursor' => optional($assets->nextCursor())->encode(),
-                'prev_cursor' => optional($assets->previousCursor())->encode(),
-            ]
-        );
+        return $this->ok($collection, 'Assets retrieved.');
     }
 
     public function store(StoreAssetRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $data['company_id'] = (int) $request->user()->company_id;
+        $context = $this->requireCompanyContext($request);
 
-        $asset = $this->assetService->create($request->user(), $data);
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        $data = $request->validated();
+        $data['company_id'] = $companyId;
+
+        $asset = $this->assetService->create($user, $data);
         $asset->load(['location:id,name,code', 'system:id,name,code'])->loadCount('bomItems');
 
         return $this->ok(
@@ -104,7 +107,7 @@ class AssetController extends ApiController
     {
         $this->authorize('view', $asset);
 
-    $asset->load(['location:id,name,code', 'system:id,name,code', 'documents', 'procedureLinks.procedure'])->loadCount('bomItems');
+        $asset->load(['location:id,name,code', 'system:id,name,code', 'documents', 'procedureLinks.procedure'])->loadCount('bomItems');
 
         return $this->ok(
             (new AssetResource($asset))->toArray($request),
@@ -114,8 +117,8 @@ class AssetController extends ApiController
 
     public function update(UpdateAssetRequest $request, Asset $asset): JsonResponse
     {
-    $updated = $this->assetService->update($asset, $request->user(), $request->validated());
-    $updated->load(['location:id,name,code', 'system:id,name,code', 'documents', 'procedureLinks.procedure'])->loadCount('bomItems');
+        $updated = $this->assetService->update($asset, $request->user(), $request->validated());
+        $updated->load(['location:id,name,code', 'system:id,name,code', 'documents', 'procedureLinks.procedure'])->loadCount('bomItems');
 
         return $this->ok(
             (new AssetResource($updated))->toArray($request),

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class QuoteRevision extends Model
+class QuoteRevision extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

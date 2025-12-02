@@ -6,6 +6,19 @@ use App\Http\Requests\ApiFormRequest;
 
 class ListInvoicesRequest extends ApiFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $supplierId = $this->input('supplier_id');
+
+        if ($supplierId === null) {
+            return;
+        }
+
+        if ($supplierId === '0' || (is_numeric($supplierId) && (int) $supplierId === 0)) {
+            $this->merge(['supplier_id' => null]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */

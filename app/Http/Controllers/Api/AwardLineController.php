@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Support\CompanyContext;
 
 use App\Actions\Rfq\AwardLineItemsAction;
 use App\Actions\Rfq\DeleteRfqItemAwardAction;
@@ -23,13 +24,26 @@ class AwardLineController extends ApiController
 
     public function store(CreateAwardsRequest $request): JsonResponse
     {
-        /** @var \App\Models\User|null $user */
-        $user = $request->user();
-        $validated = $request->validated();
+        $context = $this->requireCompanyContext($request);
 
-        /** @var RFQ $rfq */
-        $rfq = RFQ::with(['awards.supplier'])
-            ->findOrFail((int) $validated['rfq_id']);
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
+        $validated = $request->validated();
+        $rfqId = (int) $validated['rfq_id'];
+
+        /** @var RFQ|null $rfq */
+        $rfq = RFQ::query()
+            ->where('company_id', $companyId)
+            ->find($rfqId);
+
+        if (! $rfq instanceof RFQ) {
+            return $this->fail('RFQ not found.', 404);
+        }
+
+        Gate::forUser($user)->authorize('awardLines', $rfq);
 
         $awardsPayload = collect($validated['items'] ?? [])
             ->map(fn (array $item): array => [
@@ -42,7 +56,7 @@ class AwardLineController extends ApiController
 
         $this->awardLineItemsAction->execute($rfq, $awardsPayload, $user, false);
 
-        $rfq->load(['awards.supplier']);
+            CompanyContext::bypass(fn () => $rfq->load(['awards.supplier']));
 
         return $this->ok([
             'awards' => RfqItemAwardResource::collection($rfq->awards)->resolve(),
@@ -51,25 +65,30 @@ class AwardLineController extends ApiController
 
     public function destroy(Request $request, RfqItemAward $award): JsonResponse
     {
-        $user = $request->user();
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            abort(401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        if ($user->company_id === null || (int) $user->company_id !== (int) $award->company_id) {
-            abort(404);
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        if ((int) $award->company_id !== $companyId) {
+            return $this->fail('Award not found.', 404);
         }
 
         $award->loadMissing('rfq');
+        $rfq = $award->rfq;
 
-        Gate::forUser($user)->authorize('awardLines', $award->rfq);
+        if (! $rfq instanceof RFQ || (int) $rfq->company_id !== $companyId) {
+            return $this->fail('RFQ not found.', 404);
+        }
 
-        $rfqId = $award->rfq_id;
+        Gate::forUser($user)->authorize('awardLines', $rfq);
 
         $this->deleteRfqItemAwardAction->execute($award);
 
-        $rfq = RFQ::with(['awards.supplier'])->findOrFail($rfqId);
+            CompanyContext::bypass(fn () => $rfq->load(['awards.supplier']));
 
         return $this->ok([
             'awards' => RfqItemAwardResource::collection($rfq->awards)->resolve(),

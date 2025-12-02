@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
@@ -17,12 +17,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { useCreateRfq, useInviteSuppliers, usePublishRfq, useUploadAttachment } from '@/hooks/api/rfqs';
+import { useMoneySettings } from '@/hooks/api/use-money-settings';
 import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
 import { useUoms } from '@/hooks/api/use-uoms';
 import { useBaseUomQuantity } from '@/hooks/use-uom-conversion-helper';
-import { RfqTypeEnum, type CreateRfqRequestItemsInner } from '@/sdk';
+import { RFQ_METHOD_OPTIONS, RFQ_METHOD_VALUES, getRfqMethodLabel, isRfqMethod, type RfqMethod } from '@/constants/rfq';
+import type { CreateRfqPayload } from '@/hooks/api/rfqs/use-create-rfq';
+import type { DigitalTwinUseForRfqDraft } from '@/sdk';
 import type { Supplier } from '@/types/sourcing';
 import { consumeLowStockRfqPrefill } from '@/lib/low-stock-rfq-prefill';
+import { buildCurrencyOptions, getDefaultCurrency } from '@/lib/money';
 
 const lineSchema = z.object({
     partName: z.string().min(1, 'Part name is required.'),
@@ -65,8 +69,8 @@ const wizardSchema = z
     .object({
     title: z.string().min(1, 'Title is required.'),
     summary: z.string().optional(),
-    type: z.nativeEnum(RfqTypeEnum),
-    clientCompany: z.string().min(1, 'Client company is required.'),
+    method: z.enum(RFQ_METHOD_VALUES),
+    deliveryLocation: z.string().min(1, 'Delivery location is required.'),
     openBidding: z.boolean().default(false),
     notes: z.string().optional(),
     lines: z.array(lineSchema).min(1, 'Add at least one line item.'),
@@ -74,6 +78,19 @@ const wizardSchema = z
     publishNow: z.boolean().default(false),
     incoterm: z.string().optional(),
     paymentTerms: z.string().optional(),
+    taxPercent: z
+        .union([
+            z.coerce.number({ invalid_type_error: 'Tax rate must be numeric.' }).min(0, 'Tax rate cannot be negative.').max(100, 'Tax rate must be 100% or less.'),
+            z.literal(''),
+        ])
+        .optional()
+        .transform((value) => (value === '' ? undefined : value)),
+    currency: z
+        .string()
+        .length(3, 'Select a currency.')
+        .regex(/^[A-Za-z]{3}$/i, 'Currency codes must use three letters.')
+        .transform((value) => value.toUpperCase())
+        .default('USD'),
     publishAt: z
         .string()
         .optional()
@@ -87,7 +104,7 @@ const wizardSchema = z
         }, 'Publish date is invalid.'),
     dueDate: z
         .string()
-        .min(1, 'Due date is required.')
+        .min(1, 'Quote submission deadline is required.')
         .refine((value) => {
             const parsed = new Date(value);
             if (Number.isNaN(parsed.getTime())) {
@@ -95,7 +112,7 @@ const wizardSchema = z
             }
 
             return parsed > new Date();
-        }, 'Due date must be in the future.'),
+        }, 'Quote submission deadline must be in the future.'),
 })
     .superRefine((values, ctx) => {
         if (!values.dueDate) {
@@ -104,7 +121,7 @@ const wizardSchema = z
 
         const dueDate = new Date(values.dueDate);
         if (Number.isNaN(dueDate.getTime())) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dueDate'], message: 'Enter a valid due date.' });
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dueDate'], message: 'Enter a valid quote submission deadline.' });
             return;
         }
 
@@ -117,7 +134,7 @@ const wizardSchema = z
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         path: ['publishAt'],
-                        message: 'Publish date must be before the due date.',
+                        message: 'Publish date must be before the quote submission deadline.',
                     });
                 }
 
@@ -152,10 +169,10 @@ const LOCAL_STORAGE_KEY = 'esai.rfq-wizard-state';
 type AttachmentKey = `${string}-${number}-${number}`;
 
 const STEP_FIELDS: Record<StepId, (keyof WizardFormValues)[]> = {
-    basics: ['title', 'summary', 'type', 'clientCompany', 'notes', 'openBidding'],
+    basics: ['title', 'summary', 'method', 'deliveryLocation', 'notes', 'openBidding'],
     lines: ['lines'],
     suppliers: ['suppliers'],
-    terms: ['publishAt', 'dueDate', 'incoterm', 'paymentTerms'],
+    terms: ['publishAt', 'dueDate', 'incoterm', 'paymentTerms', 'taxPercent', 'currency'],
     attachments: [],
     review: ['publishNow'],
 };
@@ -451,8 +468,8 @@ function createDefaultWizardValues(): WizardFormValues {
     return {
         title: '',
         summary: '',
-        type: RfqTypeEnum.Manufacture,
-        clientCompany: '',
+        method: RFQ_METHOD_VALUES[0],
+        deliveryLocation: '',
         openBidding: false,
         notes: '',
         lines: [
@@ -473,9 +490,101 @@ function createDefaultWizardValues(): WizardFormValues {
         publishNow: false,
         incoterm: '',
         paymentTerms: '',
+        taxPercent: undefined,
+        currency: 'USD',
         publishAt: '',
         dueDate: '',
     } satisfies WizardFormValues;
+}
+
+function isDigitalTwinDraft(value: unknown): value is DigitalTwinUseForRfqDraft {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    return Array.isArray((value as DigitalTwinUseForRfqDraft).lines);
+}
+
+function extractDigitalTwinDraft(state: unknown): DigitalTwinUseForRfqDraft | null {
+    if (!state || typeof state !== 'object') {
+        return null;
+    }
+
+    if (!('digitalTwinDraft' in state)) {
+        return null;
+    }
+
+    const payload = (state as Record<string, unknown>).digitalTwinDraft;
+    if (!payload || typeof payload !== 'object') {
+        return null;
+    }
+
+    if ('draft' in payload && isDigitalTwinDraft((payload as Record<string, unknown>).draft)) {
+        return (payload as { draft: DigitalTwinUseForRfqDraft }).draft;
+    }
+
+    return isDigitalTwinDraft(payload) ? (payload as DigitalTwinUseForRfqDraft) : null;
+}
+
+function mapDigitalTwinDraftLines(
+    lines: DigitalTwinUseForRfqDraft['lines'],
+    fallbackTitle?: string | null,
+): WizardFormValues['lines'] {
+    if (!Array.isArray(lines) || lines.length === 0) {
+        return [];
+    }
+
+    return lines.map((line, index) => ({
+        partName: line.part_name ?? fallbackTitle ?? `Line ${index + 1}`,
+        spec: line.spec ?? '',
+        method: line.method ?? '',
+        material: line.material ?? '',
+        tolerance: line.tolerance ?? '',
+        finish: line.finish ?? '',
+        quantity: line.quantity && line.quantity > 0 ? line.quantity : 1,
+        uom: line.uom && line.uom.length > 0 ? line.uom : 'ea',
+        targetPrice: line.target_price ?? undefined,
+        requiredDate: line.required_date ?? '',
+    }));
+}
+
+function omitDigitalTwinDraftState(state: unknown): Record<string, unknown> | undefined {
+    if (!state || typeof state !== 'object') {
+        return undefined;
+    }
+
+    if (!('digitalTwinDraft' in state)) {
+        return state as Record<string, unknown>;
+    }
+
+    const rest = { ...(state as Record<string, unknown>) };
+    delete rest.digitalTwinDraft;
+    return Object.keys(rest).length > 0 ? rest : undefined;
+}
+
+function formatDigitalTwinSpecValue(value?: string | null, uom?: string | null): string {
+    if (!value || value.trim().length === 0) {
+        return '—';
+    }
+
+    return uom ? `${value} ${uom}` : value;
+}
+
+function formatFileSize(bytes?: number | null): string {
+    if (typeof bytes !== 'number' || Number.isNaN(bytes) || bytes <= 0) {
+        return '—';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex += 1;
+    }
+
+    return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -505,12 +614,16 @@ export function RfqCreateWizard() {
     const [attachments, setAttachments] = useState<File[]>([]);
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [isSupplierPickerOpen, setSupplierPickerOpen] = useState(false);
+    const [digitalTwinPrefill, setDigitalTwinPrefill] = useState<DigitalTwinUseForRfqDraft | null>(null);
+    const [showDigitalTwinBanner, setShowDigitalTwinBanner] = useState(false);
+    const digitalTwinPrefillApplied = useRef(false);
     const { hasFeature, state: authState } = useAuth();
     const createRfqMutation = useCreateRfq();
     const inviteSuppliersMutation = useInviteSuppliers();
     const publishRfqMutation = usePublishRfq();
     const uploadAttachmentMutation = useUploadAttachment();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const featureFlagsLoaded = Object.keys(authState.featureFlags ?? {}).length > 0;
     const allowFeature = (key: string) => (featureFlagsLoaded ? hasFeature(key) : true);
@@ -522,6 +635,10 @@ export function RfqCreateWizard() {
     const canBrowseSupplierDirectory = allowFeature('suppliers.directory.browse');
     const canUseSupplierDirectory = canInviteSuppliers && canBrowseSupplierDirectory;
 
+    const moneySettingsQuery = useMoneySettings();
+    const currencyOptions = useMemo(() => buildCurrencyOptions(moneySettingsQuery.data), [moneySettingsQuery.data]);
+    const defaultCurrency = getDefaultCurrency(currencyOptions);
+
     const form = useForm<WizardFormValues>({
         resolver: zodResolver(wizardSchema),
         defaultValues: createDefaultWizardValues(),
@@ -529,8 +646,10 @@ export function RfqCreateWizard() {
     });
 
     const { control } = form;
+    const currencyValue = useWatch({ control, name: 'currency' }) ?? '';
     const selectedSuppliers = (useWatch({ control, name: 'suppliers' }) ?? []) as WizardSupplier[];
     const linesFieldArray = useFieldArray({ control, name: 'lines' });
+    const replaceLineItems = linesFieldArray.replace;
     const [prefillContext, setPrefillContext] = useState<{ count: number } | null>(null);
     const lowStockPrefillApplied = useRef(false);
     const reviewSnapshot = useWatch<WizardFormValues>({ control });
@@ -556,7 +675,7 @@ export function RfqCreateWizard() {
                 return;
             }
 
-            const stored = JSON.parse(raw) as Partial<WizardFormValues> & { supplierInputs?: string };
+            const stored = JSON.parse(raw) as Partial<WizardFormValues> & { supplierInputs?: string; type?: string; clientCompany?: string };
             const restoredLines =
                 stored.lines && stored.lines.length > 0
                     ? stored.lines.map((line) => ({
@@ -564,6 +683,14 @@ export function RfqCreateWizard() {
                           requiredDate: line.requiredDate ?? '',
                       }))
                     : form.getValues().lines;
+
+            const currentValues = form.getValues();
+            const normalizedMethod = isRfqMethod(stored.method)
+                ? stored.method
+                : isRfqMethod(stored.type)
+                    ? stored.type
+                    : currentValues.method;
+            const normalizedDeliveryLocation = stored.deliveryLocation ?? stored.clientCompany ?? currentValues.deliveryLocation;
 
             const normalizedSuppliers: WizardSupplier[] = Array.isArray(stored.suppliers)
                 ? stored.suppliers
@@ -582,8 +709,10 @@ export function RfqCreateWizard() {
             }
 
             form.reset({
-                ...form.getValues(),
+                ...currentValues,
                 ...stored,
+                method: normalizedMethod,
+                deliveryLocation: normalizedDeliveryLocation,
                 lines: restoredLines,
                 suppliers: normalizedSuppliers,
                 publishAt: stored.publishAt ?? form.getValues().publishAt,
@@ -593,6 +722,19 @@ export function RfqCreateWizard() {
             console.warn('Failed to restore RFQ wizard draft from storage', error);
         }
     }, [canCreateRfq, form]);
+
+    useEffect(() => {
+        if (!defaultCurrency) {
+            return;
+        }
+
+        const currentCurrency = form.getValues('currency');
+        const hasMatch = typeof currentCurrency === 'string' && currencyOptions.some((option) => option.value === currentCurrency);
+
+        if (!hasMatch) {
+            form.setValue('currency', defaultCurrency, { shouldDirty: false, shouldTouch: false });
+        }
+    }, [currencyOptions, defaultCurrency, form]);
 
     useEffect(() => {
         if (lowStockPrefillApplied.current) {
@@ -636,6 +778,52 @@ export function RfqCreateWizard() {
             return;
         }
 
+        if (digitalTwinPrefillApplied.current) {
+            return;
+        }
+
+        const draft = extractDigitalTwinDraft(location.state);
+        if (!draft) {
+            return;
+        }
+
+        digitalTwinPrefillApplied.current = true;
+
+        const currentValues = form.getValues();
+        const mappedLines = mapDigitalTwinDraftLines(draft.lines, draft.title);
+        const fallbackLines =
+            mappedLines.length > 0
+                ? mappedLines
+                : currentValues.lines.length > 0
+                    ? currentValues.lines
+                    : createDefaultWizardValues().lines;
+
+        const nextValues: WizardFormValues = {
+            ...currentValues,
+            title: draft.title ?? currentValues.title,
+            summary: draft.summary ?? currentValues.summary,
+            notes: draft.notes ?? currentValues.notes,
+            lines: fallbackLines,
+        };
+
+        form.reset(nextValues);
+        replaceLineItems(nextValues.lines);
+        setDigitalTwinPrefill(draft);
+        setShowDigitalTwinBanner(true);
+        setPrefillContext(null);
+        setStepIndex((index) => (index < 1 ? 1 : index));
+
+        const nextState = omitDigitalTwinDraftState(location.state);
+        if (nextState !== location.state) {
+            navigate(location.pathname, { replace: true, state: nextState });
+        }
+    }, [canCreateRfq, form, replaceLineItems, location.pathname, location.state, navigate]);
+
+    useEffect(() => {
+        if (!canCreateRfq) {
+            return;
+        }
+
         const subscription = form.watch((value) => {
             if (typeof window === 'undefined') {
                 return;
@@ -671,7 +859,7 @@ export function RfqCreateWizard() {
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm text-muted-foreground">
                         <p>Visit billing to review plans and enable RFQ creation for your workspace.</p>
-                        <Button type="button" onClick={() => navigate('/app/settings?tab=billing')}>
+                        <Button type="button" onClick={() => navigate('/app/settings/billing')}>
                             View plans
                         </Button>
                     </CardContent>
@@ -771,8 +959,8 @@ export function RfqCreateWizard() {
         if (Number.isNaN(dueAt.getTime())) {
             publishToast({
                 variant: 'destructive',
-                title: 'Invalid due date',
-                description: 'Enter a valid due date before finishing the wizard.',
+                title: 'Invalid quote submission deadline',
+                description: 'Enter a valid quote submission deadline before finishing the wizard.',
             });
             return;
         }
@@ -787,28 +975,34 @@ export function RfqCreateWizard() {
             return;
         }
 
-        const payload = {
-            itemName: values.title,
-            type: values.type,
-            clientCompany: values.clientCompany,
-            status: 'awaiting' as const,
-            items: values.lines.map<CreateRfqRequestItemsInner>((line) => ({
-                partName: line.partName,
-                spec: line.spec,
-                method: line.method,
-                material: line.material,
-                tolerance: line.tolerance || undefined,
-                finish: line.finish || undefined,
-                quantity: line.quantity,
-                uom: line.uom,
-                targetPrice: line.targetPrice,
-                requiredDate: line.requiredDate,
+        const firstLine = values.lines[0];
+        const payload: CreateRfqPayload = {
+            title: values.title.trim(),
+            method: values.method,
+            deliveryLocation: values.deliveryLocation.trim(),
+            notes: values.summary?.trim() || undefined,
+            openBidding: values.openBidding,
+            incoterm: values.incoterm?.trim() || undefined,
+            paymentTerms: values.paymentTerms?.trim() || undefined,
+            taxPercent: typeof values.taxPercent === 'number' ? values.taxPercent : undefined,
+            currency: values.currency,
+            material: firstLine?.material?.trim() || undefined,
+            tolerance: firstLine?.tolerance?.trim() || undefined,
+            finish: firstLine?.finish?.trim() || undefined,
+            dueAt: dueAt.toISOString(),
+            items: values.lines.map((line) => ({
+                partNumber: line.partName.trim(),
+                description: line.spec?.trim() || undefined,
+                method: line.method.trim() || undefined,
+                material: line.material.trim() || undefined,
+                tolerance: line.tolerance?.trim() || undefined,
+                finish: line.finish?.trim() || undefined,
+                qty: line.quantity,
+                uom: line.uom?.trim() || undefined,
+                targetPrice: typeof line.targetPrice === 'number' ? line.targetPrice : undefined,
+                requiredDate: line.requiredDate || undefined,
             })),
-            deadlineAt: dueAt,
-            isOpenBidding: values.openBidding,
-            notes: values.summary || undefined,
-            // TODO: include CAD upload once storage pipeline is ready.
-        } satisfies Parameters<typeof createRfqMutation.mutateAsync>[0];
+        } satisfies CreateRfqPayload;
 
         setIsFinalizing(true);
 
@@ -909,6 +1103,31 @@ export function RfqCreateWizard() {
 
             <DocumentNumberPreview docType="rfq" className="max-w-md" />
 
+            {digitalTwinPrefill && showDigitalTwinBanner ? (
+                <Alert>
+                    <AlertTitle>Digital twin linked</AlertTitle>
+                    <AlertDescription className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <span>
+                            {digitalTwinPrefill.title ?? 'The selected digital twin'} prefilled the RFQ basics, {digitalTwinPrefill.lines.length}{' '}
+                            line{digitalTwinPrefill.lines.length === 1 ? '' : 's'}, and {digitalTwinPrefill.specs.length} spec entr{digitalTwinPrefill.specs.length === 1 ? 'y' : 'ies'}.
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/app/library/digital-twins/${digitalTwinPrefill.digital_twin_id}`)}
+                            >
+                                View digital twin
+                            </Button>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setShowDigitalTwinBanner(false)}>
+                                Dismiss
+                            </Button>
+                        </div>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
             <form className="flex flex-1 flex-col gap-6" onSubmit={onSubmit}>
                 {currentStep.id === 'basics' ? (
                     <Card>
@@ -936,21 +1155,37 @@ export function RfqCreateWizard() {
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="type">RFQ type</Label>
-                                    <select
-                                        id="type"
-                                        className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        {...form.register('type')}
+                                    <Label htmlFor="method">Manufacturing method</Label>
+                                    <Select
+                                        value={form.watch('method')}
+                                        onValueChange={(value: RfqMethod) =>
+                                            form.setValue('method', value, { shouldDirty: true, shouldTouch: true })
+                                        }
                                     >
-                                        <option value="manufacture">Manufacture</option>
-                                        <option value="ready_made">Ready made</option>
-                                    </select>
+                                        <SelectTrigger id="method">
+                                            <SelectValue placeholder="Select a manufacturing method" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {RFQ_METHOD_OPTIONS.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    <div className="flex w-full flex-col gap-0.5">
+                                                        <span className="text-sm font-medium text-foreground">{option.label}</span>
+                                                        {/* <span className="text-xs text-muted-foreground">{option.description}</span> */}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="clientCompany">Client company</Label>
-                                    <Input id="clientCompany" placeholder="Elements Supply" {...form.register('clientCompany')} />
-                                    {form.formState.errors.clientCompany ? (
-                                        <p className="text-sm text-destructive">{form.formState.errors.clientCompany.message}</p>
+                                    <Label htmlFor="deliveryLocation">Delivery location</Label>
+                                    <Input
+                                        id="deliveryLocation"
+                                        placeholder="Elements Supply · Austin, TX"
+                                        {...form.register('deliveryLocation')}
+                                    />
+                                    {form.formState.errors.deliveryLocation ? (
+                                        <p className="text-sm text-destructive">{form.formState.errors.deliveryLocation.message}</p>
                                     ) : null}
                                 </div>
                             </div>
@@ -986,6 +1221,24 @@ export function RfqCreateWizard() {
                                         </Button>
                                     </AlertDescription>
                                 </Alert>
+                            ) : null}
+
+                            {digitalTwinPrefill && digitalTwinPrefill.specs.length > 0 ? (
+                                <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm">
+                                    <p className="font-semibold text-foreground">Specs from the digital twin</p>
+                                    <ul className="mt-2 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+                                        {digitalTwinPrefill.specs.slice(0, 8).map((spec) => (
+                                            <li key={spec.id}>
+                                                <span className="font-medium text-foreground">{spec.name}</span>: {formatDigitalTwinSpecValue(spec.value, spec.uom)}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    {digitalTwinPrefill.specs.length > 8 ? (
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                            Showing the first 8 specifications. View the digital twin for the complete list.
+                                        </p>
+                                    ) : null}
+                                </div>
                             ) : null}
 
                             {linesFieldArray.fields.map((field, index) => (
@@ -1126,7 +1379,7 @@ export function RfqCreateWizard() {
                                     )}
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="dueDate">Due date</Label>
+                                    <Label htmlFor="dueDate">Quote submission deadline</Label>
                                     <Input id="dueDate" type="datetime-local" {...form.register('dueDate')} />
                                     {form.formState.errors.dueDate ? (
                                         <p className="text-sm text-destructive">{form.formState.errors.dueDate.message}</p>
@@ -1140,6 +1393,50 @@ export function RfqCreateWizard() {
                             <div className="grid gap-2">
                                 <Label htmlFor="paymentTerms">Payment terms (optional)</Label>
                                 <Input id="paymentTerms" placeholder="Net 30" {...form.register('paymentTerms')} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="taxPercent">Estimated tax rate (optional)</Label>
+                                <Input
+                                    id="taxPercent"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    placeholder="0"
+                                    {...form.register('taxPercent')}
+                                />
+                                {form.formState.errors.taxPercent ? (
+                                    <p className="text-sm text-destructive">{form.formState.errors.taxPercent.message}</p>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground">Capture expected tax percentage for quote comparisons.</p>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="currency">RFQ currency</Label>
+                                <Select
+                                    value={currencyValue}
+                                    onValueChange={(next) =>
+                                        form.setValue('currency', next, { shouldDirty: true, shouldTouch: true })
+                                    }
+                                >
+                                    <SelectTrigger id="currency">
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencyOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {form.formState.errors.currency ? (
+                                    <p className="text-sm text-destructive">{form.formState.errors.currency.message}</p>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground">
+                                        Suppliers and downstream documents inherit this currency for pricing, so select carefully.
+                                    </p>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -1175,6 +1472,37 @@ export function RfqCreateWizard() {
                                 ) : null}
                             </label>
 
+                            {digitalTwinPrefill && digitalTwinPrefill.attachments.length > 0 ? (
+                                <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm">
+                                    <p className="font-semibold text-foreground">Linked digital twin files</p>
+                                    <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                        {digitalTwinPrefill.attachments.map((asset) => (
+                                            <li key={asset.id} className="flex flex-wrap items-center justify-between gap-2">
+                                                <span className="text-foreground">
+                                                    {asset.filename}{' '}
+                                                    <span className="text-muted-foreground">
+                                                        ({asset.type ?? 'file'} · {formatFileSize(asset.size_bytes)})
+                                                    </span>
+                                                </span>
+                                                {asset.download_url ? (
+                                                    <a
+                                                        href={asset.download_url}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                                                    >
+                                                        Download
+                                                    </a>
+                                                ) : null}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        These files stay in the Digital Twin Library. Upload additional RFQ-only references below if needed.
+                                    </p>
+                                </div>
+                            ) : null}
+
                             {attachments.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No attachments selected yet.</p>
                             ) : (
@@ -1206,16 +1534,26 @@ export function RfqCreateWizard() {
                             <CardTitle>Review & publish</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4">
+                            {digitalTwinPrefill ? (
+                                <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm">
+                                    <p className="font-semibold text-foreground">Digital twin reference</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Linked twin #{digitalTwinPrefill.digital_twin_id} contributed {digitalTwinPrefill.specs.length} specs and{' '}
+                                        {digitalTwinPrefill.attachments.length} asset{digitalTwinPrefill.attachments.length === 1 ? '' : 's'}. Changes here do not modify the source digital twin.
+                                    </p>
+                                </div>
+                            ) : null}
+
                             <div className="grid gap-1 text-sm">
                                 <p className="font-semibold text-foreground">{reviewSnapshot.title}</p>
                                 <p className="text-muted-foreground">{reviewSnapshot.summary}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Type: {reviewSnapshot.type === RfqTypeEnum.Manufacture ? 'Manufacture' : 'Ready made'} •{' '}
+                                    Method: {getRfqMethodLabel(reviewSnapshot.method)} •{' '}
                                     {reviewSnapshot.openBidding ? 'Open bidding enabled' : 'Private invitations'} •{' '}
                                     {(reviewSnapshot.lines?.length ?? 0)} line{(reviewSnapshot.lines?.length ?? 0) === 1 ? '' : 's'}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Publish at: {formatDateLabel(reviewSnapshot.publishAt, true)} • Due: {formatDateLabel(reviewSnapshot.dueDate, true)}
+                                    Currency: {reviewSnapshot.currency ?? '—'} • Tax: {typeof reviewSnapshot.taxPercent === 'number' ? `${reviewSnapshot.taxPercent}%` : '—'} • Publish at: {formatDateLabel(reviewSnapshot.publishAt, true)} • Due: {formatDateLabel(reviewSnapshot.dueDate, true)}
                                 </p>
                             </div>
 

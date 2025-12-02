@@ -26,6 +26,7 @@ class RetryFailedWebhooksJob implements ShouldQueue
     {
         WebhookDelivery::query()
             ->where('status', WebhookDeliveryStatus::Failed)
+            ->whereNull('dead_lettered_at')
             ->where('updated_at', '<', now()->subMinutes(5))
             ->chunkById(100, function ($deliveries): void {
                 foreach ($deliveries as $delivery) {
@@ -36,8 +37,14 @@ class RetryFailedWebhooksJob implements ShouldQueue
                     }
 
                     $policy = $subscription->retry_policy_json ?? ['max' => 5];
+                    $maxAttempts = (int) ($delivery->max_attempts ?: $policy['max'] ?? 5);
 
-                    if ($delivery->attempts >= ($policy['max'] ?? 5)) {
+                    if ($delivery->attempts >= $maxAttempts) {
+                        $delivery->forceFill([
+                            'status' => WebhookDeliveryStatus::DeadLettered,
+                            'dead_lettered_at' => now(),
+                        ])->save();
+
                         continue;
                     }
 

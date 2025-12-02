@@ -1,14 +1,9 @@
 <?php
 
-use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
-use App\Models\Company;
-use App\Models\Customer;
-use App\Models\Plan;
 use App\Models\RFQ;
 use App\Models\RfqInvitation;
 use App\Models\RfqItem;
-use App\Models\Subscription;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,36 +11,6 @@ use Illuminate\Support\Facades\DB;
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
-
-function createSubscribedCompany(array $overrides = []): Company
-{
-    $plan = Plan::firstOrCreate(
-        ['code' => 'starter'],
-        Plan::factory()->make(['code' => 'starter'])->getAttributes()
-    );
-
-    $company = Company::factory()->create(array_merge([
-        'status' => CompanyStatus::Active->value,
-        'supplier_status' => CompanySupplierStatus::Pending->value,
-        'is_verified' => false,
-        'plan_id' => $plan->id,
-        'plan_code' => $plan->code,
-        'rfqs_monthly_used' => 0,
-        'storage_used_mb' => 0,
-    ], $overrides));
-
-    $customer = Customer::factory()->create([
-        'company_id' => $company->id,
-    ]);
-
-    Subscription::factory()->create([
-        'company_id' => $company->id,
-        'customer_id' => $customer->id,
-        'stripe_status' => 'active',
-    ]);
-
-    return $company;
-}
 
 it('returns forbidden when RFQ belongs to another company', function (): void {
     $company = createSubscribedCompany([

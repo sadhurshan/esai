@@ -87,9 +87,12 @@ export interface SupplierDocument {
     id: number;
     supplierId: number;
     companyId: number;
+    documentId?: number | null;
     type: SupplierDocumentType;
     status: SupplierDocumentStatus;
     path: string;
+    downloadUrl?: string | null;
+    filename?: string | null;
     mime: string;
     sizeBytes: number;
     issuedAt?: string | null;
@@ -99,18 +102,18 @@ export interface SupplierDocument {
 }
 
 export interface RfqItem {
-    id: number;
+    id: number | string;
     lineNo: number;
     partName: string;
     spec?: string | null;
     quantity: number;
-    uom: string;
+    uom?: string | null;
     targetPrice?: number | null;
 }
 
 export interface RfqInvitation {
     id: number;
-    status: 'invited' | 'accepted' | 'declined';
+    status: 'pending' | 'accepted' | 'declined';
     invitedAt?: string | null;
     supplier: {
         id: number;
@@ -363,6 +366,29 @@ export interface GrnLine {
     currency?: string;
     variance?: 'over' | 'short' | null;
     notes?: string | null;
+    ncrFlag?: boolean;
+    openNcrCount?: number;
+    ncrs?: NcrRecord[];
+}
+
+export type NcrStatus = 'open' | 'closed';
+
+export type NcrDisposition = 'rework' | 'return' | 'accept_as_is';
+
+export interface NcrRecord {
+    id: number;
+    grnId: number;
+    poLineId: number;
+    status: NcrStatus;
+    disposition?: NcrDisposition | null;
+    reason: string;
+    attachments?: Array<{ id: number }>;
+    raisedBy?: {
+        id?: number | null;
+        name?: string | null;
+    } | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
 }
 
 export interface GrnTimelineEntry {
@@ -399,6 +425,10 @@ export interface GoodsReceiptNoteDetail extends GoodsReceiptNoteSummary {
     lines: GrnLine[];
     attachments: DocumentAttachment[];
     timeline?: GrnTimelineEntry[];
+    ncrSummary?: {
+        total?: number;
+        open?: number;
+    };
 }
 
 export interface MatchDiscrepancy {

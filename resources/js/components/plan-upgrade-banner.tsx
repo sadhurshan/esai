@@ -25,7 +25,7 @@ export function PlanUpgradeBanner() {
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate('/app/settings?tab=billing')}
+                    onClick={() => navigate('/app/settings/billing')}
                 >
                     View plans
                 </Button>

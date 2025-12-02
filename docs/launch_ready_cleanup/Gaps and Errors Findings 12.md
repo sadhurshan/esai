@@ -1,0 +1,9 @@
+1. ✅ `routes/api.php` now wraps `/api/files/cad/{rfq}` and `/api/files/attachments/{quote}` in `auth` middleware, and `App/Http/Controllers/Api/FileController.php` resolves the active company via `requireCompanyContext()`, enforces `Gate::forUser(...)->authorize('view', $rfq|$quote)`, and only returns download URLs when the RFQ/quote belongs to the caller’s tenant, closing the public CAD/attachment leak.
+
+2. ✅ `app/Actions/Supplier/StoreSupplierDocumentAction.php` injects `App\Support\Security\VirusScanner` and asserts uploaded files are clean (including supplier/company/user/type context) before calling `DocumentStorer`, so supplier compliance/KYC uploads follow the same malware screening mandated in `documents.md`.
+
+3. ✅ `app/Http/Controllers/Api/DownloadJobController.php::download()` now uses `Storage::disk(...)->temporaryUrl()` for remote disks and falls back to a streamed response built from `readStream()`, eliminating the `$disk->path()` dependency so signed download links work on S3/private storage.
+
+4. ✅ All Download Job endpoints call `requireCompanyContext()`; `store()` sets `$user->company_id` before invoking `DownloadJobService::request()`, and `index/show/retry/download` scope visibility via the resolved company id, so multi-company buyers keep their tenant context instead of tripping the “User must belong to a company” validation.
+
+5. ✅ `app/Http/Controllers/Api/RfqAttachmentController.php` now uses `requireCompanyContext()` for both `index()` and `store()`, compares the resolved `companyId` to `$rfq->company_id`, and scopes attachment queries by that value, removing the stale `users.company_id` checks that previously caused 403s or cross-tenant access.

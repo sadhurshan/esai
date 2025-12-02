@@ -42,6 +42,9 @@ class RfqTimelineController extends ApiController
             'awards' => static function ($query): void {
                 $query->with(['awarder:id,name,email'])->orderBy('awarded_at');
             },
+            'deadlineExtensions' => static function ($query): void {
+                $query->with(['extendedBy:id,name,email'])->orderBy('created_at');
+            },
         ]);
 
         $timeline = $this->buildTimeline($rfq);
@@ -75,6 +78,14 @@ class RfqTimelineController extends ApiController
 
         foreach ($rfq->clarifications as $clarification) {
             $entries->push($this->makeClarificationEntry($clarification));
+        }
+
+        foreach ($rfq->deadlineExtensions as $extension) {
+            $entries->push($this->makeEntry('deadline_extended', $extension->created_at, $extension->extendedBy, array_filter([
+                'previous_due_at' => optional($extension->previous_due_at)?->toIso8601String(),
+                'new_due_at' => optional($extension->new_due_at)?->toIso8601String(),
+                'reason' => Str::limit((string) $extension->reason, 240),
+            ])));
         }
 
         if ($rfq->awards->isNotEmpty()) {

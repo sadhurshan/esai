@@ -16,8 +16,27 @@ class AwardController extends ApiController
 
     public function store(RFQ $rfq, AwardQuoteRequest $request): JsonResponse
     {
-        $user = $request->user();
-        abort_if($user === null || $user->company_id !== $rfq->company_id, 403);
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
+        if ((int) $rfq->company_id !== $companyId) {
+            return $this->fail('RFQ not found for this company.', 404);
+        }
 
         $validated = $request->validated();
 

@@ -4,12 +4,8 @@ use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Models\Company;
 use App\Models\Plan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Tests\TestCase;
-
-uses(TestCase::class, RefreshDatabase::class);
 
 test('community plan can access analytics endpoints', function (): void {
     $plan = Plan::factory()->create([
@@ -28,7 +24,7 @@ test('community plan can access analytics endpoints', function (): void {
     $request = Request::create('/api/dashboard/metrics', 'GET');
     $request->setUserResolver(static fn () => $user);
 
-    $middleware = new EnsureAnalyticsAccess();
+    $middleware = app(EnsureAnalyticsAccess::class);
 
     $response = $middleware->handle($request, static fn () => new Response('ok'));
 
@@ -53,7 +49,7 @@ test('paid plans without analytics require upgrade', function (): void {
     $request = Request::create('/api/dashboard/metrics', 'GET');
     $request->setUserResolver(static fn () => $user);
 
-    $middleware = new EnsureAnalyticsAccess();
+    $middleware = app(EnsureAnalyticsAccess::class);
 
     $response = $middleware->handle($request, static fn () => new Response('ok'));
 
@@ -72,7 +68,7 @@ test('companies without a plan are blocked', function (): void {
     $request = Request::create('/api/dashboard/metrics', 'GET');
     $request->setUserResolver(static fn () => $user);
 
-    $middleware = new EnsureAnalyticsAccess();
+    $middleware = app(EnsureAnalyticsAccess::class);
 
     $response = $middleware->handle($request, static fn () => new Response('ok'));
 
@@ -96,9 +92,61 @@ test('analytics-enabled plans can access analytics endpoints', function (): void
     $request = Request::create('/api/dashboard/metrics', 'GET');
     $request->setUserResolver(static fn () => $user);
 
-    $middleware = new EnsureAnalyticsAccess();
+    $middleware = app(EnsureAnalyticsAccess::class);
 
     $response = $middleware->handle($request, static fn () => new Response('ok'));
 
     expect($response->getContent())->toBe('ok');
+});
+
+test('finance role can access analytics endpoints', function (): void {
+    $plan = Plan::factory()->create([
+        'code' => 'pro',
+        'analytics_enabled' => true,
+    ]);
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+    ]);
+
+    $user = User::factory()->for($company)->create([
+        'role' => 'finance',
+    ]);
+
+    $request = Request::create('/api/dashboard/metrics', 'GET');
+    $request->setUserResolver(static fn () => $user);
+
+    $middleware = app(EnsureAnalyticsAccess::class);
+
+    $response = $middleware->handle($request, static fn () => new Response('ok'));
+
+    expect($response->getStatusCode())->toBe(Response::HTTP_OK)
+        ->and($response->getContent())->toBe('ok');
+});
+
+test('supplier roles cannot access analytics endpoints', function (): void {
+    $plan = Plan::factory()->create([
+        'code' => 'growth',
+        'analytics_enabled' => true,
+    ]);
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+    ]);
+
+    $user = User::factory()->for($company)->create([
+        'role' => 'supplier_admin',
+    ]);
+
+    $request = Request::create('/api/dashboard/metrics', 'GET');
+    $request->setUserResolver(static fn () => $user);
+
+    $middleware = app(EnsureAnalyticsAccess::class);
+
+    $response = $middleware->handle($request, static fn () => new Response('ok'));
+
+    expect($response->getStatusCode())->toBe(Response::HTTP_FORBIDDEN)
+        ->and($response->getContent())->toContain('Analytics role required.');
 });

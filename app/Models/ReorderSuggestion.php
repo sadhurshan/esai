@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ReorderSuggestion extends Model
+class ReorderSuggestion extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\ReorderSuggestionFactory> */
     use HasFactory;

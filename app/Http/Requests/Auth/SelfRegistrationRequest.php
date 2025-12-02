@@ -57,7 +57,12 @@ class SelfRegistrationRequest extends ApiFormRequest
             'country' => ['nullable', 'string', 'size:2'],
             'company_documents' => ['required', 'array', 'min:1', 'max:5'],
             'company_documents.*.type' => ['required', 'string', Rule::in(['registration', 'tax', 'esg', 'other'])],
-            'company_documents.*.file' => ['required', 'file', 'mimetypes:application/pdf,image/png,image/jpeg', 'max:8192'],
+            'company_documents.*.file' => [
+                'required',
+                'file',
+                'max:'.$this->maxFileSizeKilobytes(),
+                'mimes:'.implode(',', $this->allowedExtensions()),
+            ],
         ];
     }
 
@@ -94,5 +99,27 @@ class SelfRegistrationRequest extends ApiFormRequest
         }
 
         return $resolved;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedExtensions(): array
+    {
+        $extensions = config('documents.allowed_extensions', []);
+
+        $normalized = array_values(array_filter(array_map(
+            static fn (mixed $value): string => strtolower(trim((string) $value)),
+            is_array($extensions) ? $extensions : []
+        ), static fn (string $value): bool => $value !== ''));
+
+        return $normalized === [] ? ['pdf'] : $normalized;
+    }
+
+    private function maxFileSizeKilobytes(): int
+    {
+        $maxSizeMb = (int) config('documents.max_size_mb', 50);
+
+        return max(1, $maxSizeMb) * 1024;
     }
 }

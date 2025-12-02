@@ -10,6 +10,7 @@ use App\Models\QuoteItem;
 use App\Models\QuoteRevision;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Documents\DocumentStorer;
 use App\Support\Notifications\NotificationService;
 use Illuminate\Http\UploadedFile;
@@ -41,60 +42,64 @@ class QuoteRevisionService
      */
     public function submitRevision(Quote $quote, array $payload, ?UploadedFile $attachment, User $supplier): QuoteRevision
     {
-        $quote->loadMissing(['rfq', 'supplier.company', 'company', 'items']);
+        CompanyContext::bypass(static function () use ($quote): void {
+            $quote->load(['rfq', 'supplier.company', 'company', 'items']);
+        });
 
         $this->assertSupplierOwnsQuote($quote, $supplier);
         $this->assertQuoteActive($quote);
         $this->assertDeadlineNotPassed($quote);
 
-        $revision = DB::transaction(function () use ($quote, $payload, $attachment, $supplier): QuoteRevision {
-            $nextRevision = ($quote->revision_no ?? 1) + 1;
+        $revision = CompanyContext::bypass(function () use ($quote, $payload, $attachment, $supplier): QuoteRevision {
+            return DB::transaction(function () use ($quote, $payload, $attachment, $supplier): QuoteRevision {
+                $nextRevision = ($quote->revision_no ?? 1) + 1;
 
-            $revision = QuoteRevision::create([
-                'company_id' => $quote->company_id,
-                'quote_id' => $quote->id,
-                'revision_no' => $nextRevision,
-                'data_json' => array_merge($payload, [
-                    'submitted_by' => $supplier->id,
-                ]),
-            ]);
+                $revision = QuoteRevision::create([
+                    'company_id' => $quote->company_id,
+                    'quote_id' => $quote->id,
+                    'revision_no' => $nextRevision,
+                    'data_json' => array_merge($payload, [
+                        'submitted_by' => $supplier->id,
+                    ]),
+                ]);
 
-            if ($attachment instanceof UploadedFile) {
-                $document = $this->documentStorer->store(
-                    $supplier,
-                    $attachment,
-                    DocumentCategory::Commercial->value,
-                    $quote->company_id,
-                    $revision->getMorphClass(),
-                    $revision->id,
-                    [
-                        'kind' => DocumentKind::Quote->value,
-                        'visibility' => 'company',
-                        'meta' => [
-                            'context' => 'quote_revision_attachment',
-                            'quote_id' => $quote->id,
-                            'revision_no' => $nextRevision,
-                        ],
-                    ]
-                );
+                if ($attachment instanceof UploadedFile) {
+                    $document = $this->documentStorer->store(
+                        $supplier,
+                        $attachment,
+                        DocumentCategory::Commercial->value,
+                        $quote->company_id,
+                        $revision->getMorphClass(),
+                        $revision->id,
+                        [
+                            'kind' => DocumentKind::Quote->value,
+                            'visibility' => 'company',
+                            'meta' => [
+                                'context' => 'quote_revision_attachment',
+                                'quote_id' => $quote->id,
+                                'revision_no' => $nextRevision,
+                            ],
+                        ]
+                    );
 
-                $revision->document_id = $document->id;
-                $revision->setRelation('document', $document);
-                $revision->save();
-            }
+                    $revision->document_id = $document->id;
+                    $revision->setRelation('document', $document);
+                    $revision->save();
+                }
 
-            $this->applyQuoteUpdates($quote, $payload, $nextRevision);
-            $this->updateQuoteItems($quote, $payload['items'] ?? []);
+                $this->applyQuoteUpdates($quote, $payload, $nextRevision);
+                $this->updateQuoteItems($quote, $payload['items'] ?? []);
 
-            $this->auditLogger->created($revision, [
-                'quote_id' => $quote->id,
-                'revision_no' => $revision->revision_no,
-            ]);
+                $this->auditLogger->created($revision, [
+                    'quote_id' => $quote->id,
+                    'revision_no' => $revision->revision_no,
+                ]);
 
-            return $revision->fresh(['document']);
+                return $revision->fresh(['document']);
+            });
         });
 
-        $refreshedQuote = $quote->fresh(['supplier', 'company']);
+        $refreshedQuote = CompanyContext::bypass(static fn () => $quote->fresh(['supplier', 'company']));
 
         $supplierName = $refreshedQuote?->supplier?->name ?? 'A supplier';
 
@@ -117,23 +122,27 @@ class QuoteRevisionService
 
     public function withdrawQuote(Quote $quote, User $supplier, string $reason): Quote
     {
-        $quote->loadMissing(['rfq', 'supplier.company', 'company']);
+        CompanyContext::bypass(static function () use ($quote): void {
+            $quote->load(['rfq', 'supplier.company', 'company']);
+        });
 
         $this->assertSupplierOwnsQuote($quote, $supplier);
         $this->assertQuoteActive($quote);
         $this->assertDeadlineNotPassed($quote);
 
-        $withdrawn = DB::transaction(function () use ($quote, $reason): Quote {
-            $before = $quote->getOriginal();
+        $withdrawn = CompanyContext::bypass(function () use ($quote, $reason): Quote {
+            return DB::transaction(function () use ($quote, $reason): Quote {
+                $before = $quote->getOriginal();
 
-            $quote->withdrawn_at = now();
-            $quote->withdraw_reason = $reason;
-            $quote->status = 'withdrawn';
-            $quote->save();
+                $quote->withdrawn_at = now();
+                $quote->withdraw_reason = $reason;
+                $quote->status = 'withdrawn';
+                $quote->save();
 
-            $this->auditLogger->updated($quote, $before, $quote->only(['withdrawn_at', 'withdraw_reason', 'status']));
+                $this->auditLogger->updated($quote, $before, $quote->only(['withdrawn_at', 'withdraw_reason', 'status']));
 
-            return $quote->fresh(['supplier', 'items', 'revisions.document']);
+                return $quote->fresh(['supplier', 'items', 'revisions.document']);
+            });
         });
 
         $supplierName = $withdrawn->supplier?->name ?? 'A supplier';

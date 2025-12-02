@@ -33,16 +33,17 @@ class RmaController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if ($companyId === null) {
             return $this->fail('Company context required.', 403);
         }
 
         $query = Rma::query()
-            ->where('company_id', $company->id)
+            ->where('company_id', $companyId)
             ->with(['purchaseOrder', 'purchaseOrderLine', 'goodsReceiptNote', 'documents'])
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         $status = $request->query('status');
         if ($status !== null) {
@@ -85,11 +86,11 @@ class RmaController extends ApiController
         // TODO: add supplier filter once purchase orders expose supplier references.
 
         $perPage = $this->perPage($request, 15, 50);
-        $paginator = $query->paginate($perPage);
+        $paginator = $query->cursorPaginate($perPage);
 
-        $result = $this->paginate($paginator, $request, RmaResource::class);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, RmaResource::class);
 
-        return $this->ok($result, 'RMAs retrieved.');
+        return $this->ok(['items' => $items], 'RMAs retrieved.', $meta);
     }
 
     public function store(StoreRmaRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
@@ -100,7 +101,13 @@ class RmaController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        $company = Company::query()->with('plan')->find($companyId);
 
         if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);
@@ -161,7 +168,9 @@ class RmaController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $rma->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $rma->company_id !== (int) $companyId) {
             return $this->fail('RMA not accessible.', 403);
         }
 
@@ -178,7 +187,9 @@ class RmaController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $rma->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $rma->company_id !== (int) $companyId) {
             return $this->fail('RMA not accessible.', 403);
         }
 

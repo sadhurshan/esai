@@ -4,6 +4,7 @@ use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
 use App\Events\CompanyPendingVerification;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 it('self registers a company owner and issues a session token', function (): void {
-    Event::fake([CompanyPendingVerification::class]);
+    Event::fake([CompanyPendingVerification::class, Registered::class]);
 
     Storage::fake();
 
@@ -74,5 +75,9 @@ it('self registers a company owner and issues a session token', function (): voi
 
     Event::assertDispatched(CompanyPendingVerification::class, function (CompanyPendingVerification $event) use ($company): bool {
         return $event->company->is($company);
+    });
+
+    Event::assertDispatched(Registered::class, function (Registered $event) use ($user): bool {
+        return $event->user->is($user);
     });
 });

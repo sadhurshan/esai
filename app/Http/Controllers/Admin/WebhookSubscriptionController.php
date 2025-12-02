@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Admin\StoreWebhookSubscriptionRequest;
 use App\Http\Requests\Admin\UpdateWebhookSubscriptionRequest;
 use App\Http\Requests\Admin\TestWebhookSubscriptionRequest;
@@ -11,10 +11,9 @@ use App\Models\WebhookSubscription;
 use App\Services\Admin\WebhookService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\CursorPaginator;
 use Symfony\Component\HttpFoundation\Response;
 
-class WebhookSubscriptionController extends Controller
+class WebhookSubscriptionController extends ApiController
 {
     public function __construct(private readonly WebhookService $service)
     {
@@ -27,52 +26,47 @@ class WebhookSubscriptionController extends Controller
         $perPage = (int) $request->integer('per_page', 25);
         $perPage = $perPage > 0 ? min($perPage, 100) : 25;
 
-        $subscriptions = WebhookSubscription::query()
+        $paginator = WebhookSubscription::query()
             ->with('company:id,name')
             ->when($request->filled('company_id'), fn ($query) => $query->where('company_id', $request->input('company_id')))
             ->orderByDesc('created_at')
-            ->cursorPaginate($perPage);
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
-        return $this->paginatedResponse($subscriptions, 'Webhook subscriptions retrieved.');
+        $paginated = $this->paginate($paginator, $request, WebhookSubscriptionResource::class);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Webhook subscriptions retrieved.', $paginated['meta']);
     }
 
     public function store(StoreWebhookSubscriptionRequest $request): JsonResponse
     {
         $subscription = $this->service->createSubscription($request->validated());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook subscription created.',
-            'data' => [
-                'subscription' => WebhookSubscriptionResource::make($subscription),
-            ],
-        ], Response::HTTP_CREATED);
+        $response = $this->ok([
+            'subscription' => (new WebhookSubscriptionResource($subscription))->toArray($request),
+        ], 'Webhook subscription created.');
+
+        return $response->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function show(WebhookSubscription $webhookSubscription): JsonResponse
     {
         $this->authorize('view', $webhookSubscription);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook subscription retrieved.',
-            'data' => [
-                'subscription' => WebhookSubscriptionResource::make($webhookSubscription->loadMissing('company:id,name')),
-            ],
-        ]);
+        return $this->ok([
+            'subscription' => (new WebhookSubscriptionResource($webhookSubscription->loadMissing('company:id,name')))->toArray($request),
+        ], 'Webhook subscription retrieved.');
     }
 
     public function update(UpdateWebhookSubscriptionRequest $request, WebhookSubscription $webhookSubscription): JsonResponse
     {
         $subscription = $this->service->updateSubscription($webhookSubscription, $request->validated());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook subscription updated.',
-            'data' => [
-                'subscription' => WebhookSubscriptionResource::make($subscription),
-            ],
-        ]);
+        return $this->ok([
+            'subscription' => (new WebhookSubscriptionResource($subscription))->toArray($request),
+        ], 'Webhook subscription updated.');
     }
 
     public function destroy(WebhookSubscription $webhookSubscription): JsonResponse
@@ -81,11 +75,7 @@ class WebhookSubscriptionController extends Controller
 
         $this->service->deleteSubscription($webhookSubscription);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook subscription deleted.',
-            'data' => null,
-        ]);
+        return $this->ok(null, 'Webhook subscription deleted.');
     }
 
     public function test(TestWebhookSubscriptionRequest $request, WebhookSubscription $webhookSubscription): JsonResponse
@@ -94,28 +84,6 @@ class WebhookSubscriptionController extends Controller
 
         $this->service->sendTestEvent($webhookSubscription, $payload['event'], $payload['payload'] ?? []);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Webhook test event queued.',
-            'data' => null,
-        ]);
-    }
-
-    private function paginatedResponse(CursorPaginator $paginator, string $message): JsonResponse
-    {
-        $items = WebhookSubscriptionResource::collection(collect($paginator->items()))->resolve(request());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => $message,
-            'data' => [
-                'items' => $items,
-                'meta' => [
-                    'next_cursor' => $paginator->nextCursor()?->encode(),
-                    'prev_cursor' => $paginator->previousCursor()?->encode(),
-                    'per_page' => $paginator->perPage(),
-                ],
-            ],
-        ]);
+        return $this->ok(null, 'Webhook test event queued.');
     }
 }

@@ -6,8 +6,10 @@ use App\Http\Resources\AnalyticsSnapshotResource;
 use App\Models\AnalyticsSnapshot;
 use App\Models\Company;
 use App\Models\CopilotPrompt;
+use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Notifications\NotificationService;
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,6 +19,7 @@ class CopilotController extends ApiController
     public function __construct(
         private readonly NotificationService $notificationService,
         private readonly AuditLogger $auditLogger,
+        private readonly PermissionRegistry $permissionRegistry,
     ) {
     }
 
@@ -36,6 +39,10 @@ class CopilotController extends ApiController
         }
 
         $plan = $company->plan;
+
+        if ($denial = $this->ensureAnalyticsPermission($user, $company)) {
+            return $denial;
+        }
 
         if ($plan === null || ! $plan->analytics_enabled) {
             return $this->fail('Analytics not available on current plan.', 403);
@@ -144,5 +151,16 @@ class CopilotController extends ApiController
                 'metrics' => $metrics,
             ]
         );
+    }
+
+    private function ensureAnalyticsPermission(User $user, Company $company): ?JsonResponse
+    {
+        if (! $this->permissionRegistry->userHasAny($user, ['analytics.read'], (int) $company->id)) {
+            return $this->fail('Analytics role required.', 403, [
+                'code' => 'analytics_role_required',
+            ]);
+        }
+
+        return null;
     }
 }

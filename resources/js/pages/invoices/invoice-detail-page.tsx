@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Download, Wallet } from 'lucide-react';
 
+import { ExportButtons } from '@/components/downloads/export-buttons';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
@@ -53,7 +54,7 @@ export function InvoiceDetailPage() {
                     description="Upgrade your plan to review invoices and file attachments."
                     icon={<Wallet className="h-10 w-10" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );
@@ -158,6 +159,12 @@ export function InvoiceDetailPage() {
                             <Link to={`/app/purchase-orders/${invoice.purchaseOrderId}`}>View purchase order</Link>
                         </Button>
                     ) : null}
+                    <ExportButtons
+                        documentType="invoice"
+                        documentId={invoice.id}
+                        reference={invoice.invoiceNumber ? `Invoice ${invoice.invoiceNumber}` : undefined}
+                        size="sm"
+                    />
                     <Badge variant={statusVariant} className="h-9 rounded-full px-4 text-base capitalize">
                         {invoice.status}
                     </Badge>

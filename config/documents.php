@@ -3,6 +3,7 @@
 return [
     'disk' => env('DOCUMENTS_DISK', env('FILESYSTEM_DISK', 's3')),
     'max_size_mb' => env('DOCUMENTS_MAX_SIZE_MB', 50),
+    'download_ttl_minutes' => (int) env('DOCUMENTS_DOWNLOAD_TTL', 10),
     'allowed_extensions' => [
         'step',
         'stp',
@@ -10,6 +11,9 @@ return [
         'igs',
         'dwg',
         'dxf',
+        'sldprt',
+        'stl',
+        '3mf',
         'pdf',
         'doc',
         'docx',

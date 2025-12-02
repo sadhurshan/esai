@@ -215,7 +215,9 @@ class GlobalSearchService
             ->select([
                 'rfq_items.id',
                 'rfq_items.rfq_id',
+                'rfq_items.part_number',
                 'rfq_items.part_name',
+                'rfq_items.description',
                 'rfq_items.spec',
                 'rfqs.title as rfq_title',
                 'rfqs.company_id',
@@ -226,7 +228,7 @@ class GlobalSearchService
             ->where('rfqs.company_id', $company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
-        $relevanceColumn = $this->applySearchCondition($builder, ['rfq_items.part_name', 'rfq_items.spec'], $booleanQuery, $tokens);
+        $relevanceColumn = $this->applySearchCondition($builder, ['rfq_items.part_number', 'rfq_items.part_name', 'rfq_items.description', 'rfq_items.spec'], $booleanQuery, $tokens);
 
         $this->applyDateFilter($builder, $filters, 'rfqs.publish_at');
 
@@ -247,11 +249,11 @@ class GlobalSearchService
             return [
                 'type' => SearchEntityType::Part->value,
                 'id' => $item->id,
-                'title' => $item->part_name,
+                'title' => $item->part_number ?? $item->part_name,
                 'identifier' => 'RFQ #'.$item->rfq_id,
                 'status' => null,
                 'created_at' => optional($item->publish_at ?? $item->rfq_created_at)->toAtomString(),
-                'snippet' => Str::limit((string) ($item->spec ?? ''), 160),
+                'snippet' => Str::limit((string) ($item->description ?? $item->spec ?? ''), 160),
                 'additional' => array_filter([
                     'rfq_id' => $item->rfq_id,
                     'rfq_title' => $item->rfq_title,

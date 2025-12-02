@@ -20,6 +20,8 @@ class QuoteResource extends JsonResource
         $taxMinor = $this->tax_amount_minor ?? $this->decimalToMinor($this->tax_amount, $currency, $minorUnit);
         $totalMinor = $this->total_minor ?? $this->decimalToMinor($this->total, $currency, $minorUnit);
 
+        $attachments = $this->relationLoaded('documents') ? $this->documents : null;
+
         return [
             'id' => (string) $this->getRouteKey(),
             'rfq_id' => $this->rfq_id !== null ? (int) $this->rfq_id : null,
@@ -34,17 +36,21 @@ class QuoteResource extends JsonResource
             'subtotal_minor' => $subtotalMinor,
             'tax_amount' => $this->formatMinor($taxMinor, $currency, $minorUnit),
             'tax_amount_minor' => $taxMinor,
-            'total' => $this->formatMinor($totalMinor, $currency, $minorUnit),
+            'total_price' => $this->formatMinor($totalMinor, $currency, $minorUnit),
+            'total_price_minor' => $totalMinor,
+            'total' => $this->formatMinor($totalMinor, $currency, $minorUnit), // legacy alias
             'total_minor' => $totalMinor,
             'min_order_qty' => $this->min_order_qty,
             'lead_time_days' => $this->lead_time_days,
-            'note' => $this->note,
+            'notes' => $this->notes,
+            'note' => $this->notes, // legacy alias
             'status' => $this->status,
             'revision_no' => $this->revision_no,
             'submitted_by' => $this->submitted_by,
             'submitted_at' => optional($this->submitted_at ?? $this->created_at)?->toIso8601String(),
             'withdrawn_at' => optional($this->withdrawn_at)?->toIso8601String(),
             'withdraw_reason' => $this->withdraw_reason,
+            'attachments_count' => $this->attachments_count ?? ($attachments?->count() ?? 0),
             'items' => $this->whenLoaded('items', fn () => $this->items
                 ->map(fn ($item) => (new QuoteItemResource($item))->toArray($request))
                 ->values()

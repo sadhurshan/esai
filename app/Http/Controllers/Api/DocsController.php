@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class DocsController extends Controller
+class DocsController extends ApiController
 {
     public function openApi(): BinaryFileResponse|JsonResponse
     {
@@ -24,13 +23,9 @@ class DocsController extends Controller
         $path = storage_path($relativePath);
 
         if (! File::exists($path)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Artifact not generated yet.',
-                'errors' => [
-                    'artifact' => ['Run the corresponding `api:spec:*` command to generate this file.'],
-                ],
-            ], 404);
+            return $this->fail('Artifact not generated yet.', 404, [
+                'artifact' => ['Run the corresponding `api:spec:*` command to generate this file.'],
+            ]);
         }
 
         return response()->file($path, [

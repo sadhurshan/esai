@@ -186,8 +186,16 @@ export interface ListRfqTimelineRequest {
 export interface ListRfqsRequest {
     perPage?: number;
     page?: number;
+    cursor?: string;
     tab?: ListRfqsTabEnum;
     q?: string;
+    status?: Array<ListRfqsStatusEnum> | ListRfqsStatusEnum | string;
+    openBidding?: boolean;
+    method?: Array<string> | string;
+    material?: string;
+    dueFrom?: string;
+    dueTo?: string;
+    search?: string;
     sort?: ListRfqsSortEnum;
     sortDirection?: ListRfqsSortDirectionEnum;
 }
@@ -1840,12 +1848,48 @@ export class RFQsApi extends runtime.BaseAPI implements RFQsApiInterface {
             queryParameters['page'] = requestParameters['page'];
         }
 
+        if (requestParameters['cursor'] != null) {
+            queryParameters['cursor'] = requestParameters['cursor'];
+        }
+
         if (requestParameters['tab'] != null) {
             queryParameters['tab'] = requestParameters['tab'];
         }
 
         if (requestParameters['q'] != null) {
             queryParameters['q'] = requestParameters['q'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = Array.isArray(requestParameters['status'])
+                ? requestParameters['status'].join(',')
+                : requestParameters['status'];
+        }
+
+        if (requestParameters['openBidding'] != null) {
+            queryParameters['open_bidding'] = requestParameters['openBidding'];
+        }
+
+        if (requestParameters['method'] != null) {
+            queryParameters['method'] = Array.isArray(requestParameters['method'])
+                ? requestParameters['method'].join(',')
+                : requestParameters['method'];
+        }
+
+        if (requestParameters['material'] != null) {
+            queryParameters['material'] = requestParameters['material'];
+        }
+
+        if (requestParameters['dueFrom'] != null) {
+            queryParameters['due_from'] = requestParameters['dueFrom'];
+        }
+
+        if (requestParameters['dueTo'] != null) {
+            queryParameters['due_to'] = requestParameters['dueTo'];
+        }
+
+        if (requestParameters['search'] != null) {
+            queryParameters['search'] = requestParameters['search'];
         }
 
         if (requestParameters['sort'] != null) {
@@ -2279,9 +2323,20 @@ export type ListRfqsTabEnum = typeof ListRfqsTabEnum[keyof typeof ListRfqsTabEnu
 /**
  * @export
  */
+export const ListRfqsStatusEnum = {
+    Draft: 'draft',
+    Open: 'open',
+    Closed: 'closed',
+    Awarded: 'awarded',
+    Cancelled: 'cancelled'
+} as const;
+export type ListRfqsStatusEnum = typeof ListRfqsStatusEnum[keyof typeof ListRfqsStatusEnum];
+/**
+ * @export
+ */
 export const ListRfqsSortEnum = {
-    SentAt: 'sent_at',
-    DeadlineAt: 'deadline_at'
+    CreatedAt: 'created_at',
+    DueAt: 'due_at'
 } as const;
 export type ListRfqsSortEnum = typeof ListRfqsSortEnum[keyof typeof ListRfqsSortEnum];
 /**

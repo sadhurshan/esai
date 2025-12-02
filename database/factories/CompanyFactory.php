@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 class CompanyFactory extends Factory
 {
     protected $model = Company::class;
+    private const ALLOWED_PLAN_CODES = ['community', 'starter', 'growth', 'enterprise'];
 
     public function definition(): array
     {
@@ -85,7 +86,7 @@ class CompanyFactory extends Factory
         if ($company->plan_id !== null) {
             $plan = Plan::query()->find($company->plan_id);
 
-            if ($plan instanceof Plan && $company->plan_code !== $plan->code) {
+            if ($plan instanceof Plan && $company->plan_code !== $plan->code && $this->isAllowedPlanCode($plan->code)) {
                 $company->plan_code = $plan->code;
 
                 if ($persist && $company->plan_code !== $originalPlanCode) {
@@ -93,5 +94,10 @@ class CompanyFactory extends Factory
                 }
             }
         }
+    }
+
+    private function isAllowedPlanCode(?string $code): bool
+    {
+        return $code !== null && in_array($code, self::ALLOWED_PLAN_CODES, true);
     }
 }

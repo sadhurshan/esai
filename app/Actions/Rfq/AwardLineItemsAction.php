@@ -15,7 +15,9 @@ use App\Models\RfqItem;
 use App\Models\RfqItemAward;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\RfqVersionService;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Notifications\NotificationService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Arr;
@@ -33,6 +35,7 @@ class AwardLineItemsAction
         private readonly CreatePurchaseOrderFromQuoteItemsAction $createPurchaseOrderFromQuoteItemsAction,
         private readonly NotificationService $notifications,
         protected readonly AuditLogger $auditLogger,
+        protected readonly RfqVersionService $rfqVersionService,
     ) {
     }
 
@@ -169,14 +172,14 @@ class AwardLineItemsAction
             $winnerQuoteItemIds = array_values(array_unique($winnerQuoteItemIds));
             $winnerSupplierIds = array_values(array_unique($winnerSupplierIds));
 
-            $losingQuoteItems = QuoteItem::query()
+            $losingQuoteItems = CompanyContext::bypass(fn () => QuoteItem::query()
                 ->with('quote')
                 ->whereIn('rfq_item_id', $rfqItemIds)
                 ->whereNotIn('id', $winnerQuoteItemIds)
-                ->get();
+                ->get());
 
             foreach ($losingQuoteItems as $quoteItem) {
-                $this->updateQuoteItemStatus($quoteItem, 'lost');
+                $this->updateQuoteItemStatus($quoteItem, 'rejected');
 
                 $supplierId = $quoteItem->quote?->supplier_id;
                 if ($supplierId !== null) {
@@ -246,11 +249,11 @@ class AwardLineItemsAction
             ->keyBy('id');
 
         /** @var EloquentCollection<int, QuoteItem> $quoteItems */
-        $quoteItems = QuoteItem::query()
+        $quoteItems = CompanyContext::bypass(fn () => QuoteItem::query()
             ->with(['quote.supplier.company', 'rfqItem'])
             ->whereIn('id', $quoteItemIds)
             ->get()
-            ->keyBy('id');
+            ->keyBy('id'));
 
         return $payload->map(function (array $row, int $index) use ($rfq, $rfqItems, $quoteItems) {
             $rfqItemId = (int) ($row['rfq_item_id'] ?? 0);
@@ -287,7 +290,7 @@ class AwardLineItemsAction
                 ]);
             }
 
-            if (in_array($quote->status, ['withdrawn', 'lost'], true) || $quote->withdrawn_at !== null) {
+            if (in_array($quote->status, ['withdrawn', 'rejected'], true) || $quote->withdrawn_at !== null) {
                 throw ValidationException::withMessages([
                     "awards.$index.quote_item_id" => ['Selected quote is not eligible for awarding.'],
                 ]);
@@ -378,7 +381,7 @@ class AwardLineItemsAction
         }
 
         foreach ($loserItems as $supplierId => $itemIds) {
-            $supplier = Supplier::query()->with('company')->find($supplierId);
+            $supplier = CompanyContext::bypass(fn () => Supplier::query()->with('company')->find($supplierId));
 
             if (! $supplier instanceof Supplier) {
                 continue;

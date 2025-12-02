@@ -1,3 +1,374 @@
+components:
+  schemas:
+    SalesOrderStatus:
+      type: string
+      enum: [draft, pending_ack, accepted, partially_fulfilled, fulfilled, cancelled]
+    ShipmentStatus:
+      type: string
+      enum: [pending, in_transit, delivered, cancelled]
+    OrderShippingProfile:
+      type: object
+      properties:
+        shipToName:
+          type: string
+          nullable: true
+        shipToAddress:
+          type: string
+          nullable: true
+        incoterm:
+          type: string
+          nullable: true
+        carrierPreference:
+          type: string
+          nullable: true
+        instructions:
+          type: string
+          nullable: true
+    SalesOrderTotals:
+      type: object
+      required:
+        - currency
+      properties:
+        currency:
+          type: string
+        subtotalMinor:
+          type: integer
+          nullable: true
+        taxMinor:
+          type: integer
+          nullable: true
+        totalMinor:
+          type: integer
+          nullable: true
+    FulfillmentSummary:
+      type: object
+      required:
+        - orderedQty
+        - shippedQty
+        - percent
+      properties:
+        orderedQty:
+          type: number
+        shippedQty:
+          type: number
+        percent:
+          type: number
+          format: float
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    SalesOrderLine:
+      type: object
+      required:
+        - id
+        - description
+        - qtyOrdered
+      properties:
+        id:
+          type: integer
+        soLineId:
+          type: integer
+          nullable: true
+        poLineId:
+          type: integer
+          nullable: true
+        itemId:
+          type: integer
+          nullable: true
+        sku:
+          type: string
+          nullable: true
+        description:
+          type: string
+        uom:
+          type: string
+          nullable: true
+        qtyOrdered:
+          type: number
+        qtyAllocated:
+          type: number
+          nullable: true
+        qtyShipped:
+          type: number
+          nullable: true
+        unitPriceMinor:
+          type: integer
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+    ShipmentLineItem:
+      type: object
+      required:
+        - soLineId
+        - qtyShipped
+      properties:
+        soLineId:
+          type: integer
+        qtyShipped:
+          type: number
+    SalesOrderShipment:
+      type: object
+      required:
+        - id
+        - soId
+        - shipmentNo
+        - status
+        - lines
+      properties:
+        id:
+          type: integer
+        soId:
+          type: integer
+        shipmentNo:
+          type: string
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        carrier:
+          type: string
+          nullable: true
+        trackingNumber:
+          type: string
+          nullable: true
+        shippedAt:
+          type: string
+          format: date-time
+          nullable: true
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentLineItem'
+    SalesOrderTimelineEntry:
+      type: object
+      required:
+        - id
+        - type
+        - summary
+      properties:
+        id:
+          oneOf:
+            - type: integer
+            - type: string
+        type:
+          type: string
+          enum: [acknowledged, shipment, status_change, note]
+        summary:
+          type: string
+        description:
+          type: string
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+          nullable: true
+        actor:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+              nullable: true
+            email:
+              type: string
+              format: email
+              nullable: true
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+    SalesOrderAcknowledgement:
+      type: object
+      required:
+        - decision
+      properties:
+        decision:
+          type: string
+          enum: [accept, decline]
+        reason:
+          type: string
+          nullable: true
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+        actorName:
+          type: string
+          nullable: true
+    SalesOrderSummary:
+      type: object
+      required:
+        - id
+        - soNumber
+        - poId
+        - buyerCompanyId
+        - supplierCompanyId
+        - status
+        - currency
+      properties:
+        id:
+          type: integer
+        soNumber:
+          type: string
+        poId:
+          type: integer
+        buyerCompanyId:
+          type: integer
+        buyerCompanyName:
+          type: string
+          nullable: true
+        supplierCompanyId:
+          type: integer
+        supplierCompanyName:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/SalesOrderStatus'
+        currency:
+          type: string
+        totals:
+          $ref: '#/components/schemas/SalesOrderTotals'
+        issueDate:
+          type: string
+          format: date-time
+          nullable: true
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        shipping:
+          allOf:
+            - $ref: '#/components/schemas/OrderShippingProfile'
+          nullable: true
+        fulfillment:
+          $ref: '#/components/schemas/FulfillmentSummary'
+        shipmentsCount:
+          type: integer
+          nullable: true
+        lastEventAt:
+          type: string
+          format: date-time
+          nullable: true
+    SalesOrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/SalesOrderSummary'
+        - type: object
+          required:
+            - lines
+            - shipments
+            - timeline
+          properties:
+            lines:
+              type: array
+              items:
+                $ref: '#/components/schemas/SalesOrderLine'
+            shipments:
+              type: array
+              items:
+                $ref: '#/components/schemas/SalesOrderShipment'
+            timeline:
+              type: array
+              items:
+                $ref: '#/components/schemas/SalesOrderTimelineEntry'
+            acknowledgements:
+              type: array
+              items:
+                $ref: '#/components/schemas/SalesOrderAcknowledgement'
+              nullable: true
+    SalesOrderCursorCollection:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOrderSummary'
+        meta:
+          type: object
+          required:
+            - per_page
+          properties:
+            next_cursor:
+              type: string
+              nullable: true
+            prev_cursor:
+              type: string
+              nullable: true
+            per_page:
+              type: integer
+    AcknowledgeOrderPayload:
+      type: object
+      required:
+        - decision
+      properties:
+        decision:
+          type: string
+          enum: [accept, decline]
+        reason:
+          type: string
+          nullable: true
+          maxLength: 500
+    ShipmentLineInput:
+      type: object
+      required:
+        - so_line_id
+        - qty_shipped
+      properties:
+        so_line_id:
+          type: integer
+        qty_shipped:
+          type: number
+    CreateShipmentPayload:
+      type: object
+      required:
+        - carrier
+        - tracking_number
+        - shipped_at
+        - lines
+      properties:
+        carrier:
+          type: string
+        tracking_number:
+          type: string
+        shipped_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+        lines:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ShipmentLineInput'
+    UpdateShipmentStatusPayload:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [in_transit, delivered]
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Required when `status` is `delivered`.
 paths:
   /api/orders:
     get:
@@ -31,3 +402,274 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/buyer/orders:
+    get:
+      tags:
+        - Orders
+      summary: List sales orders for the buyer company
+      operationId: listBuyerOrders
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/SalesOrderStatus'
+          style: form
+          explode: true
+          description: Filter by normalized sales order status.
+        - name: supplier_id
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: Restrict to orders issued to the specified supplier company ID.
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+          required: false
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+          required: false
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          required: false
+          description: Search by PO number or supplier name.
+      responses:
+        '200':
+          description: Cursor-paginated list of buyer sales orders.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderCursorCollection'
+  /api/buyer/orders/{orderId}:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Orders
+      summary: Show a buyer-owned sales order
+      operationId: showBuyerOrder
+      responses:
+        '200':
+          description: Detailed sales order payload for the buyer company.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderDetail'
+  /api/supplier/orders:
+    get:
+      tags:
+        - Orders
+      summary: List sales orders for the supplier company
+      operationId: listSupplierOrders
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/SalesOrderStatus'
+          style: form
+          explode: true
+          description: Filter by normalized sales order status.
+        - name: buyer_id
+          in: query
+          schema:
+            type: integer
+          required: false
+          description: Restrict to purchase orders issued by the specified buyer company ID.
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+          required: false
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+          required: false
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          required: false
+          description: Search by PO number or buyer company name.
+      responses:
+        '200':
+          description: Cursor-paginated list of supplier-facing sales orders.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderCursorCollection'
+  /api/supplier/orders/{orderId}:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Orders
+      summary: Show a supplier-facing sales order
+      operationId: showSupplierOrder
+      responses:
+        '200':
+          description: Detailed sales order payload for the supplier.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderDetail'
+  /api/supplier/orders/{orderId}/ack:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Orders
+      summary: Record supplier acknowledgement
+      operationId: acknowledgeSupplierOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgeOrderPayload'
+      responses:
+        '200':
+          description: Updated sales order with acknowledgement trail.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderDetail'
+  /api/supplier/orders/{orderId}/shipments:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Orders
+      summary: Create a supplier shipment for a sales order
+      operationId: createSupplierShipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShipmentPayload'
+      responses:
+        '200':
+          description: Sales order with refreshed shipment summary.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderDetail'
+  /api/supplier/shipments/{shipmentId}/status:
+    parameters:
+      - name: shipmentId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Orders
+      summary: Update a supplier shipment status
+      operationId: updateSupplierShipmentStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShipmentStatusPayload'
+      responses:
+        '200':
+          description: Sales order with updated shipment status.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SalesOrderDetail'

@@ -22,6 +22,24 @@ class LocationController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
         $this->authorize('viewAny', Location::class);
 
         $validated = $request->validate([
@@ -30,13 +48,13 @@ class LocationController extends ApiController
             'search' => ['nullable', 'string', 'max:191'],
         ]);
 
-        $companyId = (int) $request->user()->company_id;
         $perPage = $this->perPage($request, 25, 100);
 
         $query = Location::query()
             ->where('company_id', $companyId)
             ->withCount(['systems', 'assets'])
-            ->orderBy('name');
+            ->orderBy('name')
+            ->orderByDesc('id');
 
         if (isset($validated['parent_id'])) {
             $query->where('parent_id', $validated['parent_id']);
@@ -51,26 +69,33 @@ class LocationController extends ApiController
         }
 
         $locations = $query->cursorPaginate($perPage, ['*'], 'cursor', $validated['cursor'] ?? null);
+        $collection = $this->paginate($locations, $request, LocationResource::class);
 
-        $items = collect($locations->items())
-            ->map(fn (Location $location) => (new LocationResource($location))->toArray($request))
-            ->values()
-            ->all();
-
-        return $this->ok(
-            ['items' => $items],
-            'Locations retrieved.',
-            [
-                'next_cursor' => optional($locations->nextCursor())->encode(),
-                'prev_cursor' => optional($locations->previousCursor())->encode(),
-            ]
-        );
+        return $this->ok($collection, 'Locations retrieved.');
     }
 
     public function store(StoreLocationRequest $request): JsonResponse
     {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
         $data = $request->validated();
-        $data['company_id'] = (int) $request->user()->company_id;
+        $data['company_id'] = $companyId;
 
         $location = Location::create($data)->loadCount(['systems', 'assets']);
         $this->auditLogger->created($location, Arr::only($location->getAttributes(), array_keys($data)));

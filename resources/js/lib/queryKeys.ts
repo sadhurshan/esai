@@ -20,6 +20,12 @@ export const queryKeys = {
         list: (params?: Record<string, unknown>) => ['suppliers', 'list', params ?? {}] as const,
         detail: (id: string | number) => ['suppliers', 'detail', String(id)] as const,
     },
+    rfps: {
+        root: () => ['rfps'] as const,
+        list: (params?: Record<string, unknown>) => ['rfps', 'list', params ?? {}] as const,
+        detail: (id: string | number) => ['rfps', 'detail', String(id)] as const,
+        proposals: (id: string | number) => ['rfps', 'detail', String(id), 'proposals'] as const,
+    },
     rfqs: {
         root: () => ['rfqs'] as const,
         list: (params?: Record<string, unknown>) => ['rfqs', 'list', params ?? {}] as const,
@@ -44,9 +50,30 @@ export const queryKeys = {
         company: () => ['settings', 'company'] as const,
         localization: () => ['settings', 'localization'] as const,
         numbering: () => ['settings', 'numbering'] as const,
+        notificationPreferences: () => ['settings', 'notification-preferences'] as const,
+    },
+    companyInvitations: {
+        list: (params?: Record<string, unknown>) => ['company-invitations', 'list', params ?? {}] as const,
+    },
+    companyMembers: {
+        list: (params?: Record<string, unknown>) => ['company-members', 'list', params ?? {}] as const,
+    },
+    companyRoleTemplates: {
+        list: () => ['company-role-templates', 'list'] as const,
     },
     orders: {
         list: (params?: Record<string, unknown>) => ['orders', 'list', params ?? {}] as const,
+        supplierList: (params?: Record<string, unknown>) => ['orders', 'supplier', 'list', params ?? {}] as const,
+        supplierDetail: (id: string | number) => ['orders', 'supplier', 'detail', String(id)] as const,
+        buyerList: (params?: Record<string, unknown>) => ['orders', 'buyer', 'list', params ?? {}] as const,
+        buyerDetail: (id: string | number) => ['orders', 'buyer', 'detail', String(id)] as const,
+    },
+    downloads: {
+        root: () => ['downloads'] as const,
+        list: (params?: Record<string, unknown>) => ['downloads', 'list', params ?? {}] as const,
+    },
+    analytics: {
+        overview: () => ['analytics', 'overview'] as const,
     },
     purchaseOrders: {
         root: () => ['purchase-orders'] as const,
@@ -71,10 +98,33 @@ export const queryKeys = {
     matching: {
         candidates: (params?: Record<string, unknown>) => ['matching', 'candidates', params ?? {}] as const,
     },
+    notifications: {
+        list: (params?: Record<string, unknown>) => ['notifications', 'list', params ?? {}] as const,
+        badge: () => ['notifications', 'badge'] as const,
+    },
+    risk: {
+        root: () => ['risk'] as const,
+        list: (params?: Record<string, unknown>) => ['risk', 'list', params ?? {}] as const,
+        detail: (supplierId: string | number) => ['risk', 'detail', String(supplierId)] as const,
+    },
+    events: {
+        deliveries: (params?: Record<string, unknown>) => ['events', 'deliveries', params ?? {}] as const,
+    },
     credits: {
         root: () => ['credits'] as const,
         list: (params?: Record<string, unknown>) => ['credits', 'list', params ?? {}] as const,
         detail: (id: string | number) => ['credits', 'detail', String(id)] as const,
+    },
+    digitalTwins: {
+        libraryRoot: () => ['digital-twins', 'library'] as const,
+        libraryList: (params?: Record<string, unknown>) => ['digital-twins', 'library', 'list', params ?? {}] as const,
+        libraryDetail: (id: string | number) => ['digital-twins', 'library', 'detail', String(id)] as const,
+        categories: () => ['digital-twins', 'library', 'categories'] as const,
+        adminRoot: () => ['digital-twins', 'admin'] as const,
+        adminList: (params?: Record<string, unknown>) => ['digital-twins', 'admin', 'list', params ?? {}] as const,
+        adminDetail: (id: string | number) => ['digital-twins', 'admin', 'detail', String(id)] as const,
+        adminCategories: () => ['digital-twins', 'admin', 'categories'] as const,
+        adminAuditEvents: (id: string | number) => ['digital-twins', 'admin', 'audit-events', String(id)] as const,
     },
     inventory: {
         root: () => ['inventory'] as const,
@@ -87,6 +137,10 @@ export const queryKeys = {
     },
     admin: {
         companyApprovals: () => ['admin', 'company-approvals'] as const,
+            supplierApplications: (params?: Record<string, unknown>) =>
+                ['admin', 'supplier-applications', params ?? {}] as const,
+        supplierApplicationAuditLogs: (id: string | number, params?: Record<string, unknown>) =>
+            ['admin', 'supplier-applications', String(id), 'audit-logs', params ?? {}] as const,
         analyticsOverview: () => ['admin', 'analytics', 'overview'] as const,
         companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
         plans: () => ['admin', 'plans'] as const,
@@ -101,12 +155,20 @@ export const queryKeys = {
     },
     me: {
         supplierStatus: () => ['me', 'supplier', 'status'] as const,
+        profile: () => ['me', 'profile'] as const,
+        companies: () => ['me', 'companies'] as const,
+        supplierDocuments: () => ['me', 'supplier', 'documents'] as const,
+        supplierApplications: () => ['me', 'supplier', 'applications'] as const,
     },
 };
 
 export type QueryKey = ReturnType<
     | (typeof queryKeys)['suppliers']['list']
     | (typeof queryKeys)['suppliers']['detail']
+    | (typeof queryKeys)['rfps']['root']
+    | (typeof queryKeys)['rfps']['list']
+    | (typeof queryKeys)['rfps']['detail']
+    | (typeof queryKeys)['rfps']['proposals']
     | (typeof queryKeys)['quotes']['root']
     | (typeof queryKeys)['quotes']['rfq']
     | (typeof queryKeys)['quotes']['list']
@@ -123,6 +185,13 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['rfqs']['detail']
     | (typeof queryKeys)['rfqs']['quotes']
     | (typeof queryKeys)['orders']['list']
+    | (typeof queryKeys)['orders']['supplierList']
+    | (typeof queryKeys)['orders']['supplierDetail']
+    | (typeof queryKeys)['orders']['buyerList']
+    | (typeof queryKeys)['orders']['buyerDetail']
+    | (typeof queryKeys)['downloads']['root']
+    | (typeof queryKeys)['downloads']['list']
+    | (typeof queryKeys)['analytics']['overview']
     | (typeof queryKeys)['rfqs']['invitations']
     | (typeof queryKeys)['rfqs']['lines']
     | (typeof queryKeys)['rfqs']['suppliers']
@@ -136,6 +205,10 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['settings']['company']
     | (typeof queryKeys)['settings']['localization']
     | (typeof queryKeys)['settings']['numbering']
+    | (typeof queryKeys)['settings']['notificationPreferences']
+    | (typeof queryKeys)['companyInvitations']['list']
+    | (typeof queryKeys)['companyMembers']['list']
+    | (typeof queryKeys)['companyRoleTemplates']['list']
     | (typeof queryKeys)['purchaseOrders']['root']
     | (typeof queryKeys)['purchaseOrders']['list']
     | (typeof queryKeys)['purchaseOrders']['detail']
@@ -149,9 +222,24 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['receiving']['list']
     | (typeof queryKeys)['receiving']['detail']
     | (typeof queryKeys)['matching']['candidates']
+    | (typeof queryKeys)['notifications']['list']
+    | (typeof queryKeys)['notifications']['badge']
+    | (typeof queryKeys)['risk']['root']
+    | (typeof queryKeys)['risk']['list']
+    | (typeof queryKeys)['risk']['detail']
+    | (typeof queryKeys)['events']['deliveries']
     | (typeof queryKeys)['credits']['root']
     | (typeof queryKeys)['credits']['list']
     | (typeof queryKeys)['credits']['detail']
+    | (typeof queryKeys)['digitalTwins']['libraryRoot']
+    | (typeof queryKeys)['digitalTwins']['libraryList']
+    | (typeof queryKeys)['digitalTwins']['libraryDetail']
+    | (typeof queryKeys)['digitalTwins']['categories']
+    | (typeof queryKeys)['digitalTwins']['adminRoot']
+    | (typeof queryKeys)['digitalTwins']['adminList']
+    | (typeof queryKeys)['digitalTwins']['adminDetail']
+    | (typeof queryKeys)['digitalTwins']['adminCategories']
+    | (typeof queryKeys)['digitalTwins']['adminAuditEvents']
     | (typeof queryKeys)['inventory']['root']
     | (typeof queryKeys)['inventory']['items']
     | (typeof queryKeys)['inventory']['item']
@@ -162,6 +250,8 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['admin']['analyticsOverview']
     | (typeof queryKeys)['admin']['companies']
     | (typeof queryKeys)['admin']['companyApprovals']
+    | (typeof queryKeys)['admin']['supplierApplications']
+    | (typeof queryKeys)['admin']['supplierApplicationAuditLogs']
     | (typeof queryKeys)['admin']['plans']
     | (typeof queryKeys)['admin']['plan']
     | (typeof queryKeys)['admin']['roles']
@@ -171,4 +261,8 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['admin']['rateLimits']
     | (typeof queryKeys)['admin']['auditLog']
     | (typeof queryKeys)['me']['supplierStatus']
+    | (typeof queryKeys)['me']['profile']
+    | (typeof queryKeys)['me']['companies']
+    | (typeof queryKeys)['me']['supplierDocuments']
+    | (typeof queryKeys)['me']['supplierApplications']
 >;

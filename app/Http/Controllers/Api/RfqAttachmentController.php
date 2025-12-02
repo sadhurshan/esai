@@ -18,37 +18,44 @@ class RfqAttachmentController extends ApiController
 
     public function index(RFQ $rfq, Request $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        if ($user->company_id === null || (int) $rfq->company_id !== (int) $user->company_id) {
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        if ((int) $rfq->company_id !== $companyId) {
             return $this->fail('Forbidden.', 403);
         }
 
         $documents = Document::query()
-            ->where('company_id', $user->company_id)
+            ->where('company_id', $companyId)
             ->where('documentable_type', $rfq->getMorphClass())
             ->where('documentable_id', $rfq->getKey())
             ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request, 20, 100));
+
+        ['items' => $items, 'meta' => $meta] = $this->paginate($documents, $request, RfqAttachmentResource::class);
 
         return $this->ok([
-            'items' => RfqAttachmentResource::collection($documents)->resolve(),
-        ]);
+            'items' => $items,
+        ], 'RFQ attachments retrieved.', $meta);
     }
 
     public function store(UploadRfqAttachmentRequest $request, RFQ $rfq): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        if ($user->company_id === null || (int) $rfq->company_id !== (int) $user->company_id) {
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        if ((int) $rfq->company_id !== $companyId) {
             return $this->fail('Forbidden.', 403);
         }
 
@@ -62,10 +69,9 @@ class RfqAttachmentController extends ApiController
             'description' => $payload['description'] ?? null,
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Attachment uploaded.',
-            'data' => (new RfqAttachmentResource($document))->toArray($request),
-        ], 201);
+        return $this->ok(
+            (new RfqAttachmentResource($document))->toArray($request),
+            'Attachment uploaded.'
+        )->setStatusCode(201);
     }
 }

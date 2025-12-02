@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { Building2, Globe, Hash } from 'lucide-react';
-import type { ComponentType } from 'react';
+import { useEffect, type ComponentType } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Bell, Building2, CreditCard, Globe, Hash, ShieldQuestion, UserPlus2, UserRound, Users2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +15,46 @@ interface SettingsCard {
 
 const SETTINGS_CARDS: SettingsCard[] = [
     {
+        title: 'Personal profile',
+        description: 'Manage your name, avatar, contact info, and locale preferences.',
+        to: '/app/settings/profile',
+        icon: UserRound,
+    },
+    {
+        title: 'Billing & plan',
+        description: 'Upgrade tiers, review usage, and manage payment status.',
+        to: '/app/settings/billing',
+        icon: CreditCard,
+    },
+    {
+        title: 'Notification preferences',
+        description: 'Choose which events trigger email, push, or digest alerts for your user.',
+        to: '/app/settings/notifications',
+        icon: Bell,
+    },
+    {
         title: 'Company profile',
         description: 'Legal entity details, billing + ship-from addresses, and brand assets.',
         to: '/app/settings/company',
         icon: Building2,
+    },
+    {
+        title: 'Team invitations',
+        description: 'Invite buyers, suppliers, and finance collaborators with role-scoped access.',
+        to: '/app/settings/invitations',
+        icon: UserPlus2,
+    },
+    {
+        title: 'Team roster',
+        description: 'Review existing members, edit roles, and remove workspace access.',
+        to: '/app/settings/team',
+        icon: Users2,
+    },
+    {
+        title: 'Role definitions',
+        description: 'View each seeded role template and the permissions it grants.',
+        to: '/app/settings/roles',
+        icon: ShieldQuestion,
     },
     {
         title: 'Localization & units',
@@ -35,6 +71,15 @@ const SETTINGS_CARDS: SettingsCard[] = [
 ];
 
 export function SettingsPage() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get('tab') === 'billing') {
+            navigate('/app/settings/billing', { replace: true });
+        }
+    }, [navigate, searchParams]);
+
     return (
         <div className="space-y-8">
             <div>

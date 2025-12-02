@@ -254,7 +254,11 @@ it('allows platform super admins to list pending companies', function () {
         ->assertJsonStructure([
             'data' => [
                 'items',
-                'meta' => ['total', 'per_page', 'current_page', 'last_page'],
+                'meta' => ['next_cursor', 'prev_cursor', 'per_page'],
+            ],
+            'meta' => [
+                'request_id',
+                'cursor' => ['next_cursor', 'prev_cursor', 'has_next', 'has_prev'],
             ],
         ]);
 });

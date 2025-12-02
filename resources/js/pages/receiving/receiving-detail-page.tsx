@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Download, PackageOpen, PackageSearch } from 'lucide-react';
 
+import { ExportButtons } from '@/components/downloads/export-buttons';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
@@ -10,13 +12,19 @@ import { FileDropzone } from '@/components/file-dropzone';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useGrn } from '@/hooks/api/receiving/use-grn';
 import { useAttachGrnFile } from '@/hooks/api/receiving/use-attach-grn-file';
-import type { DocumentAttachment, GrnLine } from '@/types/sourcing';
+import { useCloseNcr } from '@/hooks/api/receiving/use-close-ncr';
+import { useCreateNcr } from '@/hooks/api/receiving/use-create-ncr';
+import type { DocumentAttachment, GrnLine, NcrDisposition } from '@/types/sourcing';
 
 export function ReceivingDetailPage() {
     const { formatDate } = useFormatting();
@@ -29,6 +37,11 @@ export function ReceivingDetailPage() {
     const grnId = Number(grnIdParam);
     const grnQuery = useGrn(Number.isFinite(grnId) ? grnId : 0);
     const attachMutation = useAttachGrnFile();
+    const createNcrMutation = useCreateNcr();
+    const closeNcrMutation = useCloseNcr();
+    const [isNcrDialogOpen, setIsNcrDialogOpen] = useState(false);
+    const [selectedLine, setSelectedLine] = useState<GrnLine | null>(null);
+    const [closingNcrId, setClosingNcrId] = useState<number | null>(null);
 
     if (featureFlagsLoaded && !receivingEnabled) {
         return (
@@ -43,7 +56,7 @@ export function ReceivingDetailPage() {
                     description="Upgrade your Elements Supply plan to view and manage GRNs."
                     icon={<PackageOpen className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );
@@ -113,6 +126,56 @@ export function ReceivingDetailPage() {
 
     const attachments: DocumentAttachment[] = grn.attachments ?? [];
 
+    const handleRaiseNcr = (line: GrnLine) => {
+        setSelectedLine(line);
+        setIsNcrDialogOpen(true);
+    };
+
+    const handleNcrDialogChange = (open: boolean) => {
+        setIsNcrDialogOpen(open);
+        if (!open) {
+            setSelectedLine(null);
+        }
+    };
+
+    const handleSubmitNcr = (values: { reason: string; disposition?: 'rework' | 'return' | 'accept_as_is' }) => {
+        if (!selectedLine) {
+            return;
+        }
+
+        createNcrMutation.mutate(
+            {
+                grnId: grn.id,
+                poLineId: selectedLine.poLineId,
+                reason: values.reason,
+                disposition: values.disposition,
+            },
+            {
+                onSuccess: () => {
+                    setIsNcrDialogOpen(false);
+                    setSelectedLine(null);
+                },
+            },
+        );
+    };
+
+    const handleCloseNcr = (ncrId: number) => {
+        setClosingNcrId(ncrId);
+        closeNcrMutation.mutate(
+            { grnId: grn.id, ncrId },
+            {
+                onSettled: () => setClosingNcrId(null),
+            },
+        );
+    };
+
+    const linesWithNcrs = grn.lines.filter((line) => (line.ncrs?.length ?? 0) > 0 || line.ncrFlag).length;
+    const ncrSummary = {
+        open: grn.ncrSummary?.open ?? 0,
+        total: grn.ncrSummary?.total ?? 0,
+        flaggedLines: linesWithNcrs,
+    };
+
     const handleUpload = (files: File[]) => {
         if (!grn || files.length === 0) {
             return;
@@ -159,6 +222,12 @@ export function ReceivingDetailPage() {
                             <Link to={`/app/purchase-orders/${grn.purchaseOrderId}`}>View PO</Link>
                         </Button>
                     ) : null}
+                    <ExportButtons
+                        documentType="grn"
+                        documentId={grn.id}
+                        reference={grn.grnNumber ? `GRN ${grn.grnNumber}` : undefined}
+                        size="sm"
+                    />
                     <GrnStatusBadge status={grn.status} />
                 </div>
             </div>
@@ -212,6 +281,23 @@ export function ReceivingDetailPage() {
 
             <Card className="border-border/70">
                 <CardHeader>
+                    <CardTitle>Quality overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                    {ncrSummary.total === 0 ? (
+                        <p className="text-muted-foreground">No NCRs recorded for this receipt.</p>
+                    ) : (
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            <QualityMetric label="Open NCRs" value={ncrSummary.open} highlight={ncrSummary.open > 0} />
+                            <QualityMetric label="Total NCRs" value={ncrSummary.total} />
+                            <QualityMetric label="Lines flagged" value={ncrSummary.flaggedLines} />
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card className="border-border/70">
+                <CardHeader>
                     <CardTitle>GRN lines</CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
@@ -224,17 +310,27 @@ export function ReceivingDetailPage() {
                                 <th className="py-2 pr-4">This GRN</th>
                                 <th className="py-2 pr-4">UoM</th>
                                 <th className="py-2 pr-4">Variance</th>
+                                <th className="py-2 pr-4">Quality</th>
                             </tr>
                         </thead>
                         <tbody>
                             {grn.lines.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                                    <td colSpan={7} className="py-6 text-center text-muted-foreground">
                                         No lines recorded on this GRN.
                                     </td>
                                 </tr>
                             ) : (
-                                grn.lines.map((line) => <GrnLineRow key={`${line.poLineId}-${line.id ?? line.poLineId}`} line={line} />)
+                                grn.lines.map((line) => (
+                                    <GrnLineRow
+                                        key={`${line.poLineId}-${line.id ?? line.poLineId}`}
+                                        line={line}
+                                        onRaiseNcr={handleRaiseNcr}
+                                        onCloseNcr={handleCloseNcr}
+                                        closingNcrId={closingNcrId}
+                                        isCreatingNcr={createNcrMutation.isPending}
+                                    />
+                                ))
                             )}
                         </tbody>
                     </table>
@@ -266,15 +362,23 @@ export function ReceivingDetailPage() {
                         </ul>
                     )}
 
-                    <FileDropzone
-                        label="Upload packing slip or photo"
-                        description={attachMutation.isPending ? 'Uploading…' : 'PDF or image files up to 25 MB.'}
-                        accept={['application/pdf', 'image/*']}
-                        disabled={attachMutation.isPending}
-                        onFilesSelected={handleUpload}
+                            <FileDropzone
+                                label="Upload packing slip or photo"
+                                description={attachMutation.isPending ? 'Uploading…' : 'PDF or image files up to 25 MB.'}
+                                accept={['application/pdf', 'image/*']}
+                                disabled={attachMutation.isPending}
+                                onFilesSelected={handleUpload}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <RaiseNcrDialog
+                        open={isNcrDialogOpen}
+                        line={selectedLine}
+                        onOpenChange={handleNcrDialogChange}
+                        isSubmitting={createNcrMutation.isPending}
+                        onSubmit={handleSubmitNcr}
                     />
-                </CardContent>
-            </Card>
         </div>
     );
 }
@@ -288,9 +392,23 @@ function MetadataItem({ label, value }: { label: string; value: string | number 
     );
 }
 
-function GrnLineRow({ line }: { line: GrnLine }) {
+function GrnLineRow({
+    line,
+    onRaiseNcr,
+    onCloseNcr,
+    closingNcrId,
+    isCreatingNcr,
+}: {
+    line: GrnLine;
+    onRaiseNcr: (line: GrnLine) => void;
+    onCloseNcr: (ncrId: number) => void;
+    closingNcrId: number | null;
+    isCreatingNcr: boolean;
+}) {
     const { formatNumber } = useFormatting();
     const varianceVariant = line.variance === 'over' ? 'destructive' : line.variance === 'short' ? 'secondary' : 'outline';
+    const ncrs = line.ncrs ?? [];
+    const isFlagged = Boolean(line.ncrFlag);
 
     return (
         <tr className="border-t border-border/60">
@@ -310,6 +428,40 @@ function GrnLineRow({ line }: { line: GrnLine }) {
                 ) : (
                     <span className="text-xs text-muted-foreground">Balanced</span>
                 )}
+            </td>
+            <td className="py-3 pr-4">
+                <div className="space-y-2">
+                    {ncrs.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">{isFlagged ? 'Flagged for review' : 'No NCRs'}</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {ncrs.map((ncr) => (
+                                <div key={ncr.id} className="flex items-center justify-between rounded border border-border/60 px-2 py-1 text-xs">
+                                    <div>
+                                        <span className={`font-semibold ${ncr.status === 'open' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                                            NCR #{ncr.id}
+                                        </span>
+                                        <span className="ml-2 capitalize text-muted-foreground">{ncr.status}</span>
+                                    </div>
+                                    {ncr.status === 'open' ? (
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2 text-xs"
+                                            onClick={() => onCloseNcr(ncr.id)}
+                                            disabled={closingNcrId === ncr.id}
+                                        >
+                                            {closingNcrId === ncr.id ? 'Closing…' : 'Close'}
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <Button size="sm" className="h-7 px-2 text-xs" variant="outline" onClick={() => onRaiseNcr(line)} disabled={isCreatingNcr}>
+                        Raise NCR
+                    </Button>
+                </div>
             </td>
         </tr>
     );
@@ -338,6 +490,100 @@ function formatFileSize(bytes?: number | null): string {
         unitIndex += 1;
     }
     return `${value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function RaiseNcrDialog({
+    open,
+    line,
+    onOpenChange,
+    isSubmitting,
+    onSubmit,
+}: {
+    open: boolean;
+    line: GrnLine | null;
+    onOpenChange: (open: boolean) => void;
+    isSubmitting: boolean;
+    onSubmit: (values: { reason: string; disposition?: NcrDisposition }) => void;
+}) {
+    const [reason, setReason] = useState('');
+    const [disposition, setDisposition] = useState<NcrDisposition | undefined>();
+
+    useEffect(() => {
+        if (open) {
+            setReason('');
+            setDisposition(undefined);
+        }
+    }, [open, line?.poLineId]);
+
+    const disableSubmit = !reason.trim() || !line;
+
+    const handleSubmit = () => {
+        if (disableSubmit) {
+            return;
+        }
+        onSubmit({ reason: reason.trim(), disposition });
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Raise non-conformance</DialogTitle>
+                    <DialogDescription>
+                        {line ? `Line ${line.lineNo ?? line.poLineId} · ${line.description ?? 'PO line'}` : 'Select a line to continue.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="ncr-reason">Reason</Label>
+                        <Textarea
+                            id="ncr-reason"
+                            placeholder="Describe the non-conformance"
+                            value={reason}
+                            onChange={(event) => setReason(event.target.value)}
+                            rows={4}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Disposition</Label>
+                        <Select
+                            value={disposition ?? 'none'}
+                            onValueChange={(value) => setDisposition(value === 'none' ? undefined : (value as NcrDisposition))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select disposition" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">Decide later</SelectItem>
+                                <SelectItem value="rework">Send to rework</SelectItem>
+                                <SelectItem value="return">Return to supplier</SelectItem>
+                                <SelectItem value="accept_as_is">Accept as-is</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} disabled={disableSubmit || isSubmitting}>
+                        {isSubmitting ? 'Submitting…' : 'Submit NCR'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function QualityMetric({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+    return (
+        <div
+            className={`rounded-lg border px-4 py-3 ${highlight ? 'border-destructive/60 bg-destructive/5' : 'border-border/70 bg-muted/10'}`}
+        >
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-2xl font-semibold text-foreground">{value}</p>
+        </div>
+    );
 }
 
 function ReceivingDetailSkeleton() {

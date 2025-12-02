@@ -187,7 +187,7 @@ export function DashboardPage() {
                     description="Your current plan does not include the analytics dashboard. Upgrade to unlock sourcing insights."
                     icon={<TriangleAlert className="h-6 w-6" />}
                     ctaLabel="View plans"
-                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings/billing') }}
                 />
             ) : null}
         </div>

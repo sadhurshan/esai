@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
     Toast,
+    ToastAction,
     ToastClose,
     ToastDescription,
     ToastProvider,
@@ -71,6 +73,13 @@ export function Toaster() {
                     {toast.title ? <ToastTitle>{toast.title}</ToastTitle> : null}
                     {toast.description ? (
                         <ToastDescription>{toast.description}</ToastDescription>
+                    ) : null}
+                    {toast.actionLabel && toast.actionHref ? (
+                        <ToastAction asChild altText={toast.actionLabel}>
+                            <Link to={toast.actionHref} className="text-sm font-semibold text-primary underline">
+                                {toast.actionLabel}
+                            </Link>
+                        </ToastAction>
                     ) : null}
                     <ToastClose />
                 </Toast>

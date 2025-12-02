@@ -18,10 +18,18 @@ vi.mock('react-router-dom', async () => {
     };
 });
 
+const unauthenticatedState = {
+    status: 'unauthenticated' as const,
+    error: null,
+    requiresEmailVerification: false,
+    requiresPlanSelection: false,
+    company: null,
+};
+
 vi.mock('@/contexts/auth-context', () => ({
     useAuth: () => ({
         register: registerMock,
-        state: { error: null },
+        state: unauthenticatedState,
         isAuthenticated: false,
     }),
 }));
@@ -30,7 +38,11 @@ describe('RegisterPage', () => {
     beforeEach(() => {
         mockedNavigate.mockReset();
         registerMock.mockReset();
-        registerMock.mockResolvedValue(undefined);
+        registerMock.mockResolvedValue({
+            requiresEmailVerification: false,
+            requiresPlanSelection: true,
+            userRole: 'buyer_admin',
+        });
     });
 
     afterEach(() => {

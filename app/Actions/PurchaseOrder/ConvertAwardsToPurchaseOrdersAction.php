@@ -8,6 +8,7 @@ use App\Models\PurchaseOrderLine;
 use App\Models\RFQ;
 use App\Models\RfqItemAward;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class ConvertAwardsToPurchaseOrdersAction
 
         $this->assertAwardsConvertible($rfq, $awards);
 
-        $awards->loadMissing(['supplier', 'quote', 'quoteItem']);
+        CompanyContext::bypass(fn () => $awards->loadMissing(['supplier', 'quote', 'quoteItem']));
 
         return DB::transaction(function () use ($rfq, $awards): Collection {
             $purchaseOrders = collect();

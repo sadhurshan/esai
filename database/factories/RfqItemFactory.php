@@ -13,13 +13,24 @@ class RfqItemFactory extends Factory
 {
     protected $model = RfqItem::class;
 
+    public function configure(): static
+    {
+        return $this->afterMaking(function (RfqItem $item): void {
+            $this->hydrateTenantMeta($item);
+        })->afterCreating(function (RfqItem $item): void {
+            if ($this->hydrateTenantMeta($item)) {
+                $item->saveQuietly();
+            }
+        });
+    }
+
     public function definition(): array
     {
         return [
             'rfq_id' => RFQ::factory(),
             'line_no' => $this->faker->unique()->numberBetween(1, 10),
-            'part_name' => $this->faker->words(3, true),
-            'spec' => $this->faker->sentence(),
+            'part_number' => strtoupper($this->faker->bothify('PART-###')),
+            'description' => $this->faker->sentence(),
             'method' => $this->faker->randomElement([
                 'CNC Milling',
                 'CNC Turning',
@@ -36,9 +47,38 @@ class RfqItemFactory extends Factory
             ]),
             'tolerance' => $this->faker->optional(0.5)->randomElement(['±0.005"', '±0.010"', '±0.25mm']),
             'finish' => $this->faker->optional(0.5)->randomElement(['Anodized', 'Powder Coat', 'Polished']),
-            'quantity' => $this->faker->numberBetween(1, 100),
+            'qty' => $this->faker->numberBetween(1, 100),
             'uom' => 'pcs',
             'target_price' => $this->faker->randomFloat(2, 10, 500),
+            'specs_json' => [
+                'notes' => $this->faker->sentence(),
+                'revision' => 1,
+            ],
         ];
+    }
+
+    private function hydrateTenantMeta(RfqItem $item): bool
+    {
+        $rfq = $item->relationLoaded('rfq')
+            ? $item->rfq
+            : ($item->rfq_id ? RFQ::query()->find($item->rfq_id) : null);
+
+        if (! $rfq) {
+            return false;
+        }
+
+        $dirty = false;
+
+        if ($item->company_id === null) {
+            $item->company_id = $rfq->company_id;
+            $dirty = true;
+        }
+
+        if ($item->created_by === null) {
+            $item->created_by = $rfq->created_by;
+            $dirty = true;
+        }
+
+        return $dirty;
     }
 }

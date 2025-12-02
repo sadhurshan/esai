@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Admin\StorePlanRequest;
 use App\Http\Requests\Admin\UpdatePlanRequest;
 use App\Http\Resources\Admin\PlanResource;
@@ -10,10 +10,9 @@ use App\Models\Plan;
 use App\Services\Admin\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\CursorPaginator;
 use Symfony\Component\HttpFoundation\Response;
 
-class PlanController extends Controller
+class PlanController extends ApiController
 {
     public function __construct(private readonly PlanService $planService)
     {
@@ -26,50 +25,45 @@ class PlanController extends Controller
         $perPage = (int) $request->integer('per_page', 25);
         $perPage = $perPage > 0 ? min($perPage, 100) : 25;
 
-        $plans = Plan::query()
+        $paginator = Plan::query()
             ->orderBy('id')
-            ->cursorPaginate($perPage);
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
-        return $this->paginatedResponse($plans, 'Plans retrieved.');
+        $paginated = $this->paginate($paginator, $request, PlanResource::class);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Plans retrieved.', $paginated['meta']);
     }
 
     public function store(StorePlanRequest $request): JsonResponse
     {
         $plan = $this->planService->create($request->validated());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Plan created.',
-            'data' => [
-                'plan' => PlanResource::make($plan),
-            ],
-        ], Response::HTTP_CREATED);
+        $response = $this->ok([
+            'plan' => (new PlanResource($plan))->toArray($request),
+        ], 'Plan created.');
+
+        return $response->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function show(Plan $plan): JsonResponse
     {
         $this->authorize('view', $plan);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Plan retrieved.',
-            'data' => [
-                'plan' => PlanResource::make($plan),
-            ],
-        ]);
+        return $this->ok([
+            'plan' => (new PlanResource($plan))->toArray($request),
+        ], 'Plan retrieved.');
     }
 
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
         $plan = $this->planService->update($plan, $request->validated());
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Plan updated.',
-            'data' => [
-                'plan' => PlanResource::make($plan),
-            ],
-        ]);
+        return $this->ok([
+            'plan' => (new PlanResource($plan))->toArray($request),
+        ], 'Plan updated.');
     }
 
     public function destroy(Plan $plan): JsonResponse
@@ -78,28 +72,6 @@ class PlanController extends Controller
 
         $this->planService->delete($plan);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Plan deleted.',
-            'data' => null,
-        ]);
-    }
-
-    private function paginatedResponse(CursorPaginator $paginator, string $message): JsonResponse
-    {
-    $items = PlanResource::collection(collect($paginator->items()))->resolve(request());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => $message,
-            'data' => [
-                'items' => $items,
-                'meta' => [
-                    'next_cursor' => $paginator->nextCursor()?->encode(),
-                    'prev_cursor' => $paginator->previousCursor()?->encode(),
-                    'per_page' => $paginator->perPage(),
-                ],
-            ],
-        ]);
+        return $this->ok(null, 'Plan deleted.');
     }
 }

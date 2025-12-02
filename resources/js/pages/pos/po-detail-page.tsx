@@ -19,10 +19,8 @@ import { usePo } from '@/hooks/api/pos/use-po';
 import { useRecalcPo } from '@/hooks/api/pos/use-recalc-po';
 import { useSendPo } from '@/hooks/api/pos/use-send-po';
 import { useCancelPo } from '@/hooks/api/pos/use-cancel-po';
-import { useExportPo } from '@/hooks/api/pos/use-export-po';
 import { usePoEvents } from '@/hooks/api/pos/use-events';
 import { useCreateInvoice, type CreateInvoiceInput } from '@/hooks/api/invoices/use-create-invoice';
-import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 
@@ -38,7 +36,6 @@ export function PoDetailPage() {
     const recalcMutation = useRecalcPo();
     const sendMutation = useSendPo();
     const cancelMutation = useCancelPo();
-    const exportMutation = useExportPo();
     const eventsQuery = usePoEvents(poId);
     const createInvoiceMutation = useCreateInvoice();
     const { hasFeature, notifyPlanLimit } = useAuth();
@@ -144,33 +141,6 @@ export function PoDetailPage() {
         cancelMutation.mutate({ poId });
     };
 
-    const handleExport = () => {
-        exportMutation.mutate(
-            { poId },
-            {
-                onSuccess: (payload) => {
-                    if (typeof window === 'undefined') {
-                        return;
-                    }
-
-                    const popup = window.open(payload.downloadUrl, '_blank', 'noopener');
-
-                    if (!popup) {
-                        publishToast({
-                            variant: 'default',
-                            title: 'Download link ready',
-                            description: 'Pop-up blocked. Link copied to your clipboard.',
-                        });
-
-                        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                            void navigator.clipboard.writeText(payload.downloadUrl).catch(() => undefined);
-                        }
-                    }
-                },
-            },
-        );
-    };
-
     const handleCreateInvoice = () => {
         if (!invoicesEnabled) {
             notifyPlanLimit({ code: 'invoices', message: 'Upgrade required to create invoices.' });
@@ -242,14 +212,12 @@ export function PoDetailPage() {
                 onRecalculate={handleRecalculate}
                 onSend={canSend ? handleSend : undefined}
                 onCancel={canCancel ? handleCancel : undefined}
-                onExport={handleExport}
                 onCreateInvoice={invoicesEnabled ? handleCreateInvoice : undefined}
                 canCreateInvoice={hasInvoiceableLines}
                 isCreatingInvoice={createInvoiceMutation.isPending}
                 isRecalculating={recalcMutation.isPending}
                 isCancelling={cancelMutation.isPending}
                 isSending={sendMutation.isPending}
-                isExporting={exportMutation.isPending}
             />
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">

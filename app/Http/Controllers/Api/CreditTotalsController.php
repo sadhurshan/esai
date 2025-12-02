@@ -22,7 +22,9 @@ class CreditTotalsController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ($user->company_id === null || (int) $user->company_id !== (int) $creditNote->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $companyId !== (int) $creditNote->company_id) {
             return $this->fail('Credit note not found for this company.', 404);
         }
 

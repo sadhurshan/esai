@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Resources\UserProfileResource;
+use App\Support\Audit\AuditLogger;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class UserProfileController extends ApiController
+{
+    public function __construct(private readonly AuditLogger $auditLogger)
+    {
+    }
+
+    public function show(Request $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        return $this->ok(UserProfileResource::make($user), 'Profile retrieved.');
+    }
+
+    public function update(ProfileUpdateRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $payload = $request->validated();
+
+        $before = $user->only(array_keys($payload));
+
+        $user->fill($payload);
+
+        if (array_key_exists('email', $payload) && $user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        $after = $user->only(array_keys($payload));
+
+        $this->auditLogger->updated($user, $before, $after);
+
+        return $this->ok(UserProfileResource::make($user), 'Profile updated.');
+    }
+}

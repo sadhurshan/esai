@@ -8,6 +8,8 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Security\Exceptions\VirusScanFailedException;
+use App\Support\Security\VirusScanner;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -264,6 +266,56 @@ test('company receiving endpoint accepts attachment uploads', function (): void 
     Storage::disk('s3')->assertExists($document->path);
 });
 
+test('company receiving endpoint rejects attachments flagged by virus scanner', function (): void {
+    [
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    $createPayload = [
+        'number' => 'GRN-VSCAN-'.Str::upper(Str::random(5)),
+        'lines' => [
+            [
+                'purchase_order_line_id' => $line->id,
+                'received_qty' => 2,
+                'accepted_qty' => 2,
+                'rejected_qty' => 0,
+            ],
+        ],
+    ];
+
+    $noteResponse = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/grns", $createPayload);
+    $noteResponse->assertOk();
+
+    $noteId = (int) $noteResponse->json('data.id');
+
+    Storage::fake('s3');
+    config(['documents.disk' => 's3']);
+
+    $file = UploadedFile::fake()->create('infected.pdf', 150, 'application/pdf');
+
+    $scanner = \Mockery::mock(VirusScanner::class);
+    $scanner->shouldReceive('assertClean')
+        ->once()
+        ->andThrow(new VirusScanFailedException('Virus detected.'));
+
+    $this->app->instance(VirusScanner::class, $scanner);
+
+    $response = $this->post(
+        "/api/receiving/grns/{$noteId}/attachments",
+        ['file' => $file],
+        ['Accept' => 'application/json']
+    );
+
+    $response->assertStatus(422)
+        ->assertJsonPath('status', 'error')
+        ->assertJsonPath('message', 'Attachment failed malware scan: Virus detected.')
+        ->assertJsonPath('errors.file.0', 'Attachment failed malware scan: Virus detected.');
+});
+
 test('validation fails when accepted and rejected quantities do not balance', function (): void {
     [
         'user' => $user,
@@ -290,6 +342,51 @@ test('validation fails when accepted and rejected quantities do not balance', fu
     $response->assertStatus(422)
         ->assertJsonPath('status', 'error')
         ->assertJsonStructure(['errors' => ['lines.0.rejected_qty']]);
+});
+
+test('po-scoped receiving rejects infected line attachments', function (): void {
+    [
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    Storage::fake('s3');
+    config(['documents.disk' => 's3']);
+
+    $file = UploadedFile::fake()->create('dangerous.pdf', 180, 'application/pdf');
+
+    $scanner = \Mockery::mock(VirusScanner::class);
+    $scanner->shouldReceive('assertClean')
+        ->once()
+        ->andThrow(new VirusScanFailedException('Malware detected.'));
+
+    $this->app->instance(VirusScanner::class, $scanner);
+
+    $payload = [
+        'number' => 'GRN-VIRUS',
+        'lines' => [
+            [
+                'purchase_order_line_id' => $line->id,
+                'received_qty' => 3,
+                'accepted_qty' => 3,
+                'rejected_qty' => 0,
+                'attachments' => [$file],
+            ],
+        ],
+    ];
+
+    $response = $this->post(
+        "/api/purchase-orders/{$purchaseOrder->id}/grns",
+        $payload,
+        ['Accept' => 'application/json']
+    );
+
+    $response->assertStatus(422)
+        ->assertJsonPath('status', 'error')
+        ->assertJsonPath('errors.lines.0', 'Attachment dangerous.pdf failed malware scan: Malware detected.');
 });
 
 test('validation fails when received quantity exceeds remaining open quantity', function (): void {

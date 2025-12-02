@@ -6,20 +6,36 @@ use App\Models\Document;
 use App\Models\GoodsReceiptNote;
 use App\Models\User;
 use App\Support\Documents\DocumentStorer;
+use App\Support\Security\Exceptions\VirusScanException;
+use App\Support\Security\VirusScanner;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class AttachGoodsReceiptFileAction
 {
-    public function __construct(private readonly DocumentStorer $documentStorer)
-    {
-    }
+    public function __construct(
+        private readonly DocumentStorer $documentStorer,
+        private readonly VirusScanner $virusScanner,
+    ) {}
 
     public function execute(User $user, GoodsReceiptNote $note, UploadedFile $file): Document
     {
         if ($user->company_id === null || (int) $note->company_id !== (int) $user->company_id) {
             throw ValidationException::withMessages([
                 'goods_receipt_note_id' => ['Goods receipt note not found for this company.'],
+            ]);
+        }
+
+        try {
+            $this->virusScanner->assertClean($file, [
+                'context' => 'receiving_note_attachment',
+                'company_id' => $note->company_id,
+                'goods_receipt_note_id' => $note->getKey(),
+                'uploaded_by' => $user->getKey(),
+            ]);
+        } catch (VirusScanException $exception) {
+            throw ValidationException::withMessages([
+                'file' => ['Attachment failed malware scan: '.$exception->getMessage()],
             ]);
         }
 

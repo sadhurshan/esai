@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Models\Company;
+use App\Models\Document;
+use App\Models\SupplierApplication;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SupplierDocument extends Model
+class SupplierDocument extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;
@@ -17,6 +20,7 @@ class SupplierDocument extends Model
         'supplier_id',
         'company_id',
         'type',
+        'document_id',
         'path',
         'mime',
         'size_bytes',
@@ -36,8 +40,18 @@ class SupplierDocument extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class);
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function applications(): BelongsToMany
+    {
+        return $this->belongsToMany(SupplierApplication::class, 'supplier_application_documents');
     }
 }

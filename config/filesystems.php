@@ -68,6 +68,14 @@ return [
             'report' => false,
         ],
 
+        'downloads' => [
+            'driver' => 'local',
+            'root' => env('DOWNLOADS_STORAGE_PATH', storage_path('app/private/downloads')),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

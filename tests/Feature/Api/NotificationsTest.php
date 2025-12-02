@@ -175,6 +175,7 @@ it('lists notifications for the current user and supports read filters', functio
         ->assertJsonPath('status', 'success')
         ->assertJsonFragment(['id' => $unread->id])
         ->assertJsonFragment(['id' => $secondUnread->id])
+        ->assertJsonPath('meta.unread_count', 2)
         ->assertJsonMissing(['id' => $read->id]);
 
     $markResponse = $this->putJson("/api/notifications/{$unread->id}/read");
@@ -186,6 +187,75 @@ it('lists notifications for the current user and supports read filters', functio
     $allResponse->assertOk()->assertJsonPath('data.updated', 1);
 
     expect($secondUnread->fresh()->read_at)->not->toBeNull();
+});
+
+it('marks selected notifications as read via bulk endpoint', function (): void {
+    $company = onboardedCompany();
+
+    $user = User::factory()->for($company)->create([
+        'role' => 'buyer_admin',
+    ]);
+
+    actingAs($user);
+
+    $first = Notification::create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'event_type' => 'invoice_created',
+        'title' => 'Invoice ready',
+        'body' => 'Please review the invoice.',
+        'entity_type' => \App\Models\Invoice::class,
+        'entity_id' => 10,
+        'channel' => 'both',
+    ]);
+
+    $second = Notification::create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'event_type' => 'po_issued',
+        'title' => 'PO ready',
+        'body' => 'A PO is ready.',
+        'entity_type' => \App\Models\PurchaseOrder::class,
+        'entity_id' => 11,
+        'channel' => 'push',
+    ]);
+
+    $otherUserNotification = Notification::create([
+        'company_id' => $company->id,
+        'user_id' => User::factory()->for($company)->create()->id,
+        'event_type' => 'invoice_created',
+        'title' => 'Other user',
+        'body' => 'Ignore me.',
+        'entity_type' => \App\Models\Invoice::class,
+        'entity_id' => 99,
+        'channel' => 'email',
+    ]);
+
+    $response = $this->postJson('/api/notifications/read', [
+        'ids' => [$first->id, $second->id, $otherUserNotification->id],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.updated', 2);
+
+    expect($first->fresh()->read_at)->not->toBeNull();
+    expect($second->fresh()->read_at)->not->toBeNull();
+    expect($otherUserNotification->fresh()->read_at)->toBeNull();
+});
+
+it('denies notifications access when the role is platform only', function (): void {
+    $company = onboardedCompany();
+
+    $platformUser = User::factory()->for($company)->create([
+        'role' => 'platform_support',
+    ]);
+
+    actingAs($platformUser);
+
+    $response = $this->getJson('/api/notifications');
+
+    $response->assertForbidden()
+        ->assertJsonPath('message', 'Notifications require module read access.');
 });
 
 it('updates notification preferences and validates payloads', function (): void {

@@ -24,6 +24,12 @@ const quickLinks = [
         icon: Building2,
     },
     {
+        title: 'Supplier applications',
+        description: 'Verify KYC documents and activate supplier access.',
+        href: '/app/admin/supplier-applications',
+        icon: Users,
+    },
+    {
         title: 'Plans & features',
         description: 'Control plan pricing, seat limits, and feature toggles.',
         href: '/app/admin/plans',

@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\RespondsWithEnvelope;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\CompanyContext;
+use App\Support\RequestCompanyContextResolver;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\DB;
 
 abstract class ApiController extends Controller
 {
@@ -19,22 +21,56 @@ abstract class ApiController extends Controller
      * @template TResource of object
      *
      * @param  class-string<TResource>  $resourceClass
-     * @return array{items: array<int, mixed>, meta: array<string, int>}
+     * @return array{items: array<int, mixed>, meta: array{data?: array<string, mixed>, envelope?: array<string, mixed>}}
      */
-    protected function paginate(LengthAwarePaginator $paginator, Request $request, string $resourceClass): array
+    protected function paginate(CursorPaginator|LengthAwarePaginator $paginator, Request $request, string $resourceClass): array
     {
         $items = collect($paginator->items())
             ->map(static fn ($item) => (new $resourceClass($item))->toArray($request))
             ->values()
             ->all();
 
+        if ($paginator instanceof CursorPaginator) {
+            $next = $paginator->nextCursor()?->encode();
+            $prev = $paginator->previousCursor()?->encode();
+
+            return [
+                'items' => $items,
+                'meta' => [
+                    'data' => [
+                        'next_cursor' => $next,
+                        'prev_cursor' => $prev,
+                        'per_page' => $paginator->perPage(),
+                    ],
+                    'envelope' => [
+                        'cursor' => [
+                            'next_cursor' => $next,
+                            'prev_cursor' => $prev,
+                            'has_next' => $next !== null,
+                            'has_prev' => $prev !== null,
+                        ],
+                    ],
+                ],
+            ];
+        }
+
         return [
             'items' => $items,
             'meta' => [
-                'total' => $paginator->total(),
-                'per_page' => $paginator->perPage(),
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
+                'data' => [
+                    'total' => $paginator->total(),
+                    'per_page' => $paginator->perPage(),
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                ],
+                'envelope' => [
+                    'pagination' => [
+                        'total' => $paginator->total(),
+                        'per_page' => $paginator->perPage(),
+                        'current_page' => $paginator->currentPage(),
+                        'last_page' => $paginator->lastPage(),
+                    ],
+                ],
             ],
         ];
     }
@@ -58,99 +94,42 @@ abstract class ApiController extends Controller
 
     protected function resolveRequestUser(Request $request): ?User
     {
-        if (config('auth.guards.sanctum') !== null) {
-            try {
-                $sanctumUser = $request->user('sanctum');
-            } catch (\InvalidArgumentException) {
-                $sanctumUser = null;
-            }
-
-            if ($sanctumUser instanceof User) {
-                return $sanctumUser;
-            }
-        }
-
-        $defaultUser = $request->user();
-
-        if ($defaultUser instanceof User) {
-            return $defaultUser;
-        }
-
-        $sessionId = $this->resolveSessionId($request);
-
-        if ($sessionId === null) {
-            return null;
-        }
-
-        $session = DB::table(config('session.table', 'sessions'))
-            ->where('id', $sessionId)
-            ->first();
-
-        if (! $session || ! $session->user_id) {
-            return null;
-        }
-
-        $user = User::find((int) $session->user_id);
-
-        if (! $user instanceof User) {
-            return null;
-        }
-
-        $request->setUserResolver(static fn () => $user);
-
-        DB::table(config('session.table', 'sessions'))
-            ->where('id', $sessionId)
-            ->update(['last_activity' => Carbon::now()->getTimestamp()]);
-
-        return $user;
-    }
-
-    private function resolveSessionId(Request $request): ?string
-    {
-        $cookieName = config('session.cookie');
-
-        if ($cookieName && $request->cookies->has($cookieName)) {
-            $value = (string) $request->cookies->get($cookieName);
-            if ($value !== '') {
-                return $value;
-            }
-        }
-
-        $bearer = $request->bearerToken();
-
-        return $bearer !== '' ? $bearer : null;
+        return RequestCompanyContextResolver::resolveRequestUser($request);
     }
 
     protected function resolveUserCompanyId(User $user): ?int
     {
-        if ($user->company_id !== null) {
-            return (int) $user->company_id;
+        return RequestCompanyContextResolver::resolveUserCompanyId($user);
+    }
+
+    /**
+     * @return array{user:User, companyId:int}|JsonResponse
+     */
+    protected function requireCompanyContext(Request $request): array|JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
         }
 
-        $companyId = DB::table('company_user')
-            ->where('user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->value('company_id');
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if ($companyId) {
-            return (int) $companyId;
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
         }
 
-        $ownedCompanyId = DB::table('companies')
-            ->where('owner_user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->value('id');
-
-        if ($ownedCompanyId) {
-            return (int) $ownedCompanyId;
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
         }
 
-        $supplierCompanyId = DB::table('suppliers')
-            ->where('email', $user->email)
-            ->orderByDesc('created_at')
-            ->value('company_id');
+        CompanyContext::set($companyId);
 
-        return $supplierCompanyId ? (int) $supplierCompanyId : null;
+        $request->setUserResolver(static fn () => $user);
+
+        return ['user' => $user, 'companyId' => $companyId];
     }
 
     protected function authorizeDenied(?User $user, string $ability, mixed $arguments): bool

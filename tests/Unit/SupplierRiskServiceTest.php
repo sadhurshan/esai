@@ -21,8 +21,6 @@ use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
-
 it('calculates supplier risk metrics and assigns grades', function (): void {
     $periodStart = Carbon::create(2025, 4, 1, 0, 0, 0, 'UTC');
     Carbon::setTestNow($periodStart->copy()->addDays(12));
@@ -152,7 +150,7 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
         'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
         'invited_by' => $user->id,
-        'status' => 'invited',
+        'status' => RfqInvitation::STATUS_PENDING,
     ]);
 
     foreach (range(1, 2) as $index) {
@@ -164,7 +162,7 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
             'rfq_id' => $additionalRfq->id,
             'supplier_id' => $supplier->id,
             'invited_by' => $user->id,
-            'status' => 'invited',
+            'status' => RfqInvitation::STATUS_PENDING,
             'created_at' => $periodStart->copy()->addDays($index + 1),
             'updated_at' => $periodStart->copy()->addDays($index + 1),
         ]);

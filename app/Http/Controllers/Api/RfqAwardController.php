@@ -19,10 +19,16 @@ class RfqAwardController extends ApiController
 
     public function awardLines(AwardLinesRequest $request, RFQ $rfq): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        if ((int) $rfq->company_id !== $companyId) {
+            return $this->fail('RFQ not found.', 404);
         }
 
         Gate::forUser($user)->authorize('awardLines', $rfq);

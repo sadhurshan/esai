@@ -301,7 +301,7 @@ function createRfqWithQuote(): array
         'status' => 'open',
         'is_open_bidding' => true,
         'sent_at' => now()->subDay(),
-        'deadline_at' => now()->addDays(7),
+        'due_at' => now()->addDays(7),
     ]);
 
     $supplier = Supplier::factory()->create([

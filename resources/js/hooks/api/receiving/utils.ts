@@ -1,4 +1,4 @@
-import type { DocumentAttachment, GoodsReceiptNoteDetail, GoodsReceiptNoteSummary, GrnLine } from '@/types/sourcing';
+import type { DocumentAttachment, GoodsReceiptNoteDetail, GoodsReceiptNoteSummary, GrnLine, NcrRecord } from '@/types/sourcing';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
@@ -95,6 +95,10 @@ export function mapGrnLine(payload: Record<string, unknown>): GrnLine {
     const currency = toStringValue(pick(payload, 'currency')) ?? undefined;
     const variance = toStringValue(pick(payload, 'variance', 'variance_type')) as GrnLine['variance'];
 
+    const ncrFlagSource = pick(payload, 'ncr_flag', 'ncrFlag');
+    const ncrsSource = pick(payload, 'ncrs');
+    const openNcrCount = toNumber(pick(payload, 'open_ncr_count', 'openNcrCount'));
+
     return {
         id: toNumber(pick(payload, 'id')),
         grnId: toNumber(pick(payload, 'grn_id', 'grnId')),
@@ -110,6 +114,51 @@ export function mapGrnLine(payload: Record<string, unknown>): GrnLine {
         currency,
         variance: variance ?? null,
         notes: toStringValue(pick(payload, 'notes', 'note')) ?? undefined,
+        ncrFlag: ncrFlagSource !== undefined ? Boolean(ncrFlagSource) : undefined,
+        openNcrCount,
+        ncrs: Array.isArray(ncrsSource)
+            ? ncrsSource.filter(isRecord).map((record) => mapNcr(record))
+            : undefined,
+    };
+}
+
+function mapNcr(payload: Record<string, unknown>): NcrRecord {
+    const attachmentsSource = pick(payload, 'attachments', 'documents', 'documents_json');
+    const attachments = Array.isArray(attachmentsSource)
+        ? attachmentsSource
+              .map((value) => {
+                  if (isRecord(value)) {
+                      const id = toNumber(pick(value, 'id'));
+                      return id ? { id } : null;
+                  }
+
+                  if (typeof value === 'number' && Number.isFinite(value)) {
+                      return { id: value };
+                  }
+
+                  return null;
+              })
+              .filter((item): item is { id: number } => item !== null)
+        : undefined;
+
+    const raisedBySource = pick(payload, 'raised_by', 'raisedBy');
+
+    return {
+        id: toNumber(pick(payload, 'id')) ?? 0,
+        grnId: toNumber(pick(payload, 'grn_id', 'grnId', 'goods_receipt_note_id')) ?? 0,
+        poLineId: toNumber(pick(payload, 'po_line_id', 'poLineId', 'purchase_order_line_id')) ?? 0,
+        status: (toStringValue(pick(payload, 'status')) as NcrRecord['status']) ?? 'open',
+        disposition: toStringValue(pick(payload, 'disposition')) as NcrRecord['disposition'],
+        reason: toStringValue(pick(payload, 'reason')) ?? '',
+        attachments,
+        raisedBy: isRecord(raisedBySource)
+            ? {
+                  id: toNumber(pick(raisedBySource, 'id')),
+                  name: toStringValue(pick(raisedBySource, 'name')),
+              }
+            : undefined,
+        createdAt: toDateString(pick(payload, 'created_at', 'createdAt')),
+        updatedAt: toDateString(pick(payload, 'updated_at', 'updatedAt')),
     };
 }
 
@@ -151,6 +200,14 @@ export function mapGrnDetail(payload: Record<string, unknown>): GoodsReceiptNote
               }))
         : undefined;
 
+    const ncrSummarySource = pick(payload, 'ncr_summary');
+    const ncrSummary = isRecord(ncrSummarySource)
+        ? {
+              total: toNumber(pick(ncrSummarySource, 'total')),
+              open: toNumber(pick(ncrSummarySource, 'open')),
+          }
+        : undefined;
+
     return {
         ...summary,
         reference,
@@ -158,5 +215,6 @@ export function mapGrnDetail(payload: Record<string, unknown>): GoodsReceiptNote
         lines,
         attachments,
         timeline,
+        ncrSummary,
     };
 }

@@ -10,8 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
-
 beforeEach(function (): void {
     app(CurrenciesSeeder::class)->run();
     Cache::clear();

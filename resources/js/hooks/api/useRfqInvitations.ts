@@ -6,7 +6,7 @@ import type { RfqInvitation } from '@/types/sourcing';
 
 interface InvitationResponseItem {
     id: number;
-    status: 'invited' | 'accepted' | 'declined';
+    status: 'pending' | 'accepted' | 'declined';
     invited_at: string | null;
     supplier: {
         id: number;

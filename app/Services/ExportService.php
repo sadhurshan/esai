@@ -73,12 +73,11 @@ class ExportService
     {
     }
 
-    public function createRequest(User $user, string $type, array $filters = []): ExportRequest
+    public function createRequest(User $user, int $companyId, string $type, array $filters = []): ExportRequest
     {
         $typeEnum = ExportRequestType::from($type);
 
-        $user->loadMissing('company.plan');
-        $company = $user->company;
+        $company = Company::query()->with('plan')->find($companyId);
 
         if (! $company instanceof Company) {
             throw ValidationException::withMessages([

@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth-context';
 
 export function RequireAuth() {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, requiresEmailVerification } = useAuth();
     const location = useLocation();
 
     if (isLoading) {
@@ -16,6 +16,10 @@ export function RequireAuth() {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    }
+
+    if (requiresEmailVerification) {
+        return <Navigate to="/verify-email" replace />;
     }
 
     return <Outlet />;

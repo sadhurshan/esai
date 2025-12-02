@@ -11,7 +11,16 @@ Create/publish RFQs (direct or open bidding), manage items, clarifications, invi
 - Indexes: FULLTEXT(rfqs.title), rfqs(status, open_bidding, due_at), rfq_items(rfq_id, line_no).
 
 ## API Surface
-GET /rfqs — filters: status, open_bidding, due_range, method, material, text; sort by created_at|due_at.
+GET /rfqs — filters use explicit query params and return cursor pagination (`meta.next_cursor`, `meta.prev_cursor`, `meta.per_page`):
+
+- `status`: comma-delimited list of RFQ statuses (`draft,open,closed,awarded,cancelled`).
+- `open_bidding`: boolean flag (`true|false`).
+- `method`: comma-delimited list of manufacturing methods (values match `RFQ::METHODS`).
+- `material`: material strings (comma-delimited) matched exactly.
+- `due_from` / `due_to`: inclusive due date range in `YYYY-MM-DD`.
+- `search`: text search across RFQ number, title, method, and material.
+
+Sorting is controlled via `sort=created_at|due_at` with `sort_direction=asc|desc`.
 POST /rfqs — validates fields; stores attachments as documents; default status=draft.
 PUT /rfqs/{id} — version bumps on structural change.
 POST /rfqs/{id}/publish — transitions to open with due_at required; queues notifications.

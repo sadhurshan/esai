@@ -1,0 +1,34 @@
+export interface CatalogPlan {
+    code: string;
+    name: string;
+    price_usd: number | string | null;
+    rfqs_per_month: number;
+    invoices_per_month: number;
+    users_max: number;
+    storage_gb: number;
+    erp_integrations_max: number;
+    analytics_enabled: boolean;
+    analytics_history_months: number;
+    risk_scores_enabled: boolean;
+    risk_history_months: number;
+    approvals_enabled: boolean;
+    approval_levels_limit: number;
+    rma_enabled: boolean;
+    rma_monthly_limit: number;
+    credit_notes_enabled: boolean;
+    global_search_enabled: boolean;
+    quote_revisions_enabled: boolean;
+    digital_twin_enabled: boolean;
+    maintenance_enabled: boolean;
+    inventory_enabled: boolean;
+    inventory_history_months: number;
+    pr_enabled: boolean;
+    multi_currency_enabled: boolean;
+    tax_engine_enabled: boolean;
+    localization_enabled: boolean;
+    exports_enabled: boolean;
+    export_row_limit: number;
+    data_export_enabled: boolean;
+    export_history_days: number;
+    is_free: boolean;
+}

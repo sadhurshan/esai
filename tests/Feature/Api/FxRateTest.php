@@ -88,14 +88,14 @@ it('upserts fx rates', function (): void {
     ]);
 });
 
-it('enforces role authorization for fx endpoints', function (): void {
-    createMoneyFeatureUser(role: 'finance');
+it('enforces billing permissions for fx endpoints', function (): void {
+    createMoneyFeatureUser(role: 'buyer_member');
 
     $response = $this->getJson('/api/money/fx');
 
     $response->assertStatus(403)
         ->assertJsonPath('status', 'error')
-        ->assertJsonPath('message', 'Forbidden.');
+        ->assertJsonPath('message', 'Billing permissions required.');
 
     $postResponse = $this->postJson('/api/money/fx', [
         'rates' => [
@@ -108,7 +108,44 @@ it('enforces role authorization for fx endpoints', function (): void {
         ],
     ]);
 
-    $postResponse->assertStatus(403);
+    $postResponse->assertStatus(403)
+        ->assertJsonPath('message', 'Billing permissions required.');
+});
+
+it('allows finance roles to manage fx rates', function (): void {
+    createMoneyFeatureUser(role: 'finance');
+
+    FxRate::create([
+        'base_code' => 'USD',
+        'quote_code' => 'EUR',
+        'rate' => '1.10000000',
+        'as_of' => '2024-01-15',
+    ]);
+
+    $this->getJson('/api/money/fx')
+        ->assertOk()
+        ->assertJsonPath('data.items.0.base_code', 'USD');
+
+    $payload = [
+        'rates' => [
+            [
+                'base_code' => 'USD',
+                'quote_code' => 'CAD',
+                'rate' => '1.30000000',
+                'as_of' => '2024-03-15',
+            ],
+        ],
+    ];
+
+    $this->postJson('/api/money/fx', $payload)
+        ->assertOk()
+        ->assertJsonPath('message', 'FX rates updated.');
+
+    $this->assertDatabaseHas('fx_rates', [
+        'base_code' => 'USD',
+        'quote_code' => 'CAD',
+        'as_of' => '2024-03-15 00:00:00',
+    ]);
 });
 
 it('returns validation errors when base and quote currencies match', function (): void {

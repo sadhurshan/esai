@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\AuditSupplierDocumentExpiryJob;
 use App\Jobs\PurgeExpiredExportsJob;
 use App\Jobs\RetryFailedWebhooksJob;
 use Illuminate\Console\Scheduling\Schedule;
@@ -11,6 +12,11 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
+        $schedule->job(new AuditSupplierDocumentExpiryJob())
+            ->dailyAt('01:15')
+            ->withoutOverlapping()
+            ->onOneServer();
+
         $schedule->job(new PurgeExpiredExportsJob())
             ->dailyAt('02:00')
             ->withoutOverlapping()

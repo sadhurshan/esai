@@ -1,0 +1,258 @@
+components:
+  schemas:
+    DownloadJob:
+      type: object
+      required:
+        - id
+        - document_type
+        - document_id
+        - format
+        - status
+        - attempts
+        - requested_at
+      properties:
+        id:
+          type: integer
+        document_type:
+          type: string
+          enum: [rfq, quote, purchase_order, invoice, grn, credit_note]
+        document_id:
+          type: integer
+        reference:
+          type: string
+          nullable: true
+        format:
+          type: string
+          enum: [pdf, csv]
+        status:
+          type: string
+          enum: [queued, processing, ready, failed]
+        filename:
+          type: string
+          nullable: true
+        attempts:
+          type: integer
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+        error_message:
+          type: string
+          nullable: true
+        requested_at:
+          type: string
+          format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_attempted_at:
+          type: string
+          format: date-time
+          nullable: true
+        requested_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+        download_url:
+          type: string
+          format: uri
+          nullable: true
+paths:
+  /api/downloads:
+    get:
+      tags:
+        - Downloads
+      summary: List queued download jobs for the tenant
+      operationId: listDownloadJobs
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, processing, ready, failed]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [pdf, csv]
+        - name: document_type
+          in: query
+          schema:
+            type: string
+            enum: [rfq, quote, purchase_order, invoice, grn, credit_note]
+      responses:
+        '200':
+          description: Cursor-paginated download jobs scoped to the authenticated company.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/DownloadJob'
+                          meta:
+                            type: object
+                            properties:
+                              per_page:
+                                type: integer
+                              next_cursor:
+                                type: string
+                                nullable: true
+                              prev_cursor:
+                                type: string
+                                nullable: true
+    post:
+      tags:
+        - Downloads
+      summary: Queue a download job
+      operationId: createDownloadJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - document_type
+                - document_id
+                - format
+              properties:
+                document_type:
+                  type: string
+                  enum: [rfq, quote, purchase_order, invoice, grn, credit_note]
+                document_id:
+                  type: integer
+                  minimum: 1
+                format:
+                  type: string
+                  enum: [pdf, csv]
+                reference:
+                  type: string
+                  maxLength: 120
+                meta:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Download queued for processing.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DownloadJob'
+  /api/downloads/{downloadId}:
+    parameters:
+      - name: downloadId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Downloads
+      summary: Retrieve a download job
+      operationId: showDownloadJob
+      responses:
+        '200':
+          description: Download job details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DownloadJob'
+  /api/downloads/{downloadId}/retry:
+    parameters:
+      - name: downloadId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Downloads
+      summary: Retry a failed or expired download job
+      operationId: retryDownloadJob
+      responses:
+        '200':
+          description: Download job queued again.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DownloadJob'
+  /api/downloads/{downloadId}/file:
+    parameters:
+      - name: downloadId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: signature
+        in: query
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Downloads
+      summary: Download the generated artifact
+      operationId: downloadJobFile
+      responses:
+        '200':
+          description: Signed download of the generated PDF or CSV artifact.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '409':
+          description: Download not ready yet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '410':
+          description: Download has expired or file is missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'

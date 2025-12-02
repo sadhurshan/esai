@@ -30,11 +30,16 @@ class CompanyDocumentController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $documents = $company->documents()->latest()->get();
+        $paginator = $company->documents()
+            ->with('document')
+            ->latest('created_at')
+            ->cursorPaginate($this->perPage($request));
 
-        $data = $documents->map(fn (CompanyDocument $document) => (new CompanyDocumentResource($document))->toArray($request))->all();
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, CompanyDocumentResource::class);
 
-        return $this->ok(['items' => $data]);
+        return $this->ok([
+            'items' => $items,
+        ], 'Company documents retrieved.', $meta);
     }
 
     public function store(StoreCompanyDocumentRequest $request, Company $company): JsonResponse
@@ -53,7 +58,8 @@ class CompanyDocumentController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $document = $this->storeCompanyDocumentAction->execute($company, $request->validated('type'), $request->document());
+        $document = $this->storeCompanyDocumentAction->execute($company, $user, $request->validated('type'), $request->document())
+            ->load('document');
 
         return $this->ok((new CompanyDocumentResource($document))->toArray($request), 'Document uploaded.')
             ->setStatusCode(201);

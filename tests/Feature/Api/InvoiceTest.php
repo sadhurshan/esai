@@ -177,6 +177,39 @@ test('finance user can create invoice and receives match summary', function (): 
         ->and(array_unique($results))->toEqual(['qty_mismatch']);
 });
 
+test('roles without billing permission cannot create invoices', function (): void {
+    [
+        'company' => $company,
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'supplier' => $supplier,
+    ] = provisionInvoiceContext();
+
+    $unauthorizedUser = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'buyer_member',
+    ]);
+
+    $this->actingAs($unauthorizedUser);
+
+    $payload = [
+        'supplier_id' => $supplier->id,
+        'lines' => [
+            [
+                'po_line_id' => $poLines[0]->id,
+                'description' => 'Precision plates',
+                'quantity' => 1,
+                'uom' => 'EA',
+                'unit_price' => 120,
+            ],
+        ],
+    ];
+
+    $response = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/invoices", $payload);
+
+    $response->assertForbidden();
+});
+
 test('finance user can create invoice via from-po endpoint', function (): void {
     [
         'company' => $company,
@@ -344,6 +377,20 @@ test('over-invoicing is rejected via from-po endpoint', function (): void {
     $this->assertDatabaseMissing('invoices', [
         'purchase_order_id' => $purchaseOrder->id,
     ]);
+});
+
+test('listing invoices treats zero supplier filters as all suppliers', function (): void {
+    [
+        'finance' => $financeUser,
+    ] = provisionInvoiceContext();
+
+    $this->actingAs($financeUser);
+
+    $response = $this->getJson('/api/invoices?supplier_id=0');
+
+    $response->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonCount(0, 'data.items');
 });
 
 test('price mismatch recalculates invoice match results and notifies finance team', function (): void {

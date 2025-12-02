@@ -63,7 +63,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'mysql') {
             DB::statement(
-                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','po','grn_attachment','invoice','supplier','part','cad','manual','certificate','esg_pack','other') NOT NULL DEFAULT 'other'"
+                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','rfp','rfp_proposal','po','grn_attachment','invoice','supplier','part','cad','manual','certificate','esg_pack','other') NOT NULL DEFAULT 'other'"
             );
         }
 
@@ -85,7 +85,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'mysql') {
             DB::statement(
-                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','po','grn_attachment','invoice','grn','ncr','supplier','template','other') NOT NULL DEFAULT 'other'"
+                "ALTER TABLE documents MODIFY kind ENUM('rfq','quote','rfp','rfp_proposal','po','grn_attachment','invoice','grn','ncr','supplier','template','other') NOT NULL DEFAULT 'other'"
             );
         }
 

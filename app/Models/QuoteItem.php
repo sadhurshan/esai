@@ -8,15 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class QuoteItem extends Model
+class QuoteItem extends CompanyScopedModel
 {
     use HasFactory;
-
-    public $timestamps = false;
+    use SoftDeletes;
 
     protected $fillable = [
         'quote_id',
+        'company_id',
         'rfq_item_id',
         'unit_price',
         'currency',

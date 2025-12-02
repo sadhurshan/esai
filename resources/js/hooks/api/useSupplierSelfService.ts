@@ -2,14 +2,27 @@ import { useMutation, useQuery, useQueryClient, type UseMutationResult, type Use
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import type { SupplierDocument } from './useSupplierDocuments';
 
 export type DirectoryVisibility = 'private' | 'public';
+
+export type SupplierApplicationStatusValue = 'pending' | 'approved' | 'rejected';
+
+export interface SupplierApplicationSummary {
+    id: number;
+    status: SupplierApplicationStatusValue;
+    notes?: string | null;
+    submitted_at?: string | null;
+    auto_reverification?: boolean;
+    documents?: SupplierDocument[];
+}
 
 export interface SupplierSelfStatus {
     supplier_status: string;
     directory_visibility: DirectoryVisibility;
     supplier_profile_completed_at: string | null;
     is_listed: boolean;
+    current_application?: SupplierApplicationSummary | null;
 }
 
 export interface UpdateVisibilityInput {

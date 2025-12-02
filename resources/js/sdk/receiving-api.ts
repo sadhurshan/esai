@@ -35,6 +35,19 @@ export interface AttachGrnFilePayload {
     filename?: string;
 }
 
+export interface CreateNcrPayload {
+    grnId: number;
+    poLineId: number;
+    reason: string;
+    disposition?: 'rework' | 'return' | 'accept_as_is';
+    documents?: number[];
+}
+
+export interface UpdateNcrPayload {
+    ncrId: number;
+    disposition?: 'rework' | 'return' | 'accept_as_is';
+}
+
 export class ReceivingApi extends BaseAPI {
     constructor(configuration: Configuration) {
         super(configuration);
@@ -128,6 +141,50 @@ export class ReceivingApi extends BaseAPI {
                 method: 'POST',
                 headers,
                 body: formData,
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope(response);
+    }
+
+    async createNcr(payload: CreateNcrPayload, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+        const headers: HTTPHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        const response = await this.request(
+            {
+                path: `/api/receiving/grns/${payload.grnId}/ncrs`,
+                method: 'POST',
+                headers,
+                body: {
+                    purchase_order_line_id: payload.poLineId,
+                    reason: payload.reason,
+                    disposition: payload.disposition,
+                    documents: payload.documents,
+                },
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope(response);
+    }
+
+    async updateNcr(payload: UpdateNcrPayload, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+        const headers: HTTPHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        const response = await this.request(
+            {
+                path: `/api/receiving/ncrs/${payload.ncrId}`,
+                method: 'PATCH',
+                headers,
+                body: {
+                    status: 'closed',
+                    disposition: payload.disposition,
+                },
             },
             initOverrides,
         );

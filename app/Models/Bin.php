@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Bin extends Model
+class Bin extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\BinFactory> */
     use HasFactory;

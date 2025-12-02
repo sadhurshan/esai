@@ -2,6 +2,7 @@
 
 namespace App\Actions\Receiving;
 
+use App\Enums\DocumentKind;
 use App\Models\GoodsReceiptLine;
 use App\Models\GoodsReceiptNote;
 use App\Models\PurchaseOrder;
@@ -9,6 +10,8 @@ use App\Models\PurchaseOrderLine;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Documents\DocumentStorer;
+use App\Support\Security\Exceptions\VirusScanException;
+use App\Support\Security\VirusScanner;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
@@ -24,7 +27,8 @@ class CreateGoodsReceiptNoteAction
     public function __construct(
         private readonly DocumentStorer $documentStorer,
         private readonly AuditLogger $auditLogger,
-        private readonly DatabaseManager $db
+        private readonly DatabaseManager $db,
+        private readonly VirusScanner $virusScanner,
     ) {}
 
     /**
@@ -33,16 +37,8 @@ class CreateGoodsReceiptNoteAction
      *
      * @throws ValidationException
      */
-    public function execute(User $user, PurchaseOrder $purchaseOrder, array $payload): array
+    public function execute(User $user, int $companyId, PurchaseOrder $purchaseOrder, array $payload): array
     {
-        $companyId = $user->company_id;
-
-        if ($companyId === null) {
-            throw ValidationException::withMessages([
-                'company_id' => ['User company context missing.'],
-            ]);
-        }
-
         if ((int) $purchaseOrder->company_id !== $companyId) {
             throw ValidationException::withMessages([
                 'purchase_order_id' => ['Purchase order not found for this company.'],
@@ -123,6 +119,7 @@ class CreateGoodsReceiptNoteAction
                     'rejected_qty' => $rejectedQty,
                     'defect_notes' => $linePayload['defect_notes'] ?? null,
                     'attachment_ids' => [],
+                    'ncr_flag' => $rejectedQty > 0,
                 ]);
 
                 $attachmentIds = $this->storeAttachments($attachments, $companyId, $grnLine, $user);
@@ -170,6 +167,8 @@ class CreateGoodsReceiptNoteAction
                 continue;
             }
 
+            $this->assertAttachmentClean($file, $companyId, $line, $user);
+
             $document = $this->documentStorer->store(
                 $user,
                 $file,
@@ -178,7 +177,7 @@ class CreateGoodsReceiptNoteAction
                 $line->getMorphClass(),
                 $line->id,
                 [
-                    'kind' => 'po',
+                    'kind' => DocumentKind::GoodsReceipt->value,
                     'visibility' => 'company',
                     'meta' => ['context' => 'grn_attachment'],
                 ]
@@ -188,6 +187,30 @@ class CreateGoodsReceiptNoteAction
         }
 
         return $documents;
+    }
+
+    private function assertAttachmentClean(UploadedFile $file, int $companyId, GoodsReceiptLine $line, User $user): void
+    {
+        try {
+            $this->virusScanner->assertClean($file, [
+                'context' => 'receiving_line_attachment',
+                'company_id' => $companyId,
+                'goods_receipt_note_id' => $line->goods_receipt_note_id,
+                'goods_receipt_line_id' => $line->id,
+                'purchase_order_line_id' => $line->purchase_order_line_id,
+                'uploaded_by' => $user->getKey(),
+            ]);
+        } catch (VirusScanException $exception) {
+            $message = sprintf(
+                'Attachment %s failed malware scan: %s',
+                $file->getClientOriginalName(),
+                $exception->getMessage()
+            );
+
+            throw ValidationException::withMessages([
+                'lines' => [$message],
+            ]);
+        }
     }
 
     private function resolvePurchaseOrderLine(PurchaseOrder $purchaseOrder, int $lineId): PurchaseOrderLine

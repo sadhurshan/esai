@@ -174,7 +174,7 @@ export function PoListPage() {
                     description="Upgrade your Elements Supply plan to access purchase order workflows."
                     icon={<ClipboardList className="h-10 w-10" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

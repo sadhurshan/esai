@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Resources\Admin\HealthResource;
 use App\Services\Admin\HealthService;
 use Illuminate\Http\JsonResponse;
 
-class HealthController extends Controller
+class HealthController extends ApiController
 {
     public function __construct(private readonly HealthService $service)
     {
@@ -17,10 +17,6 @@ class HealthController extends Controller
     {
         $payload = $this->service->summary();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Platform health retrieved.',
-            'data' => HealthResource::make($payload),
-        ]);
+        return $this->ok((new HealthResource($payload))->toArray(request()), 'Platform health retrieved.');
     }
 }

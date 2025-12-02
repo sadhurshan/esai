@@ -1,151 +1,212 @@
 import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
-import { useSdkClient } from '@/contexts/api-client-context';
+import { useApiClientContext } from '@/contexts/api-client-context';
 import {
     ListRfqsSortDirectionEnum,
     ListRfqsSortEnum,
-    ListRfqsTabEnum,
-    RfqStatusEnum,
-    type PageMeta,
+    ListRfqsStatusEnum,
+    type ListRfqs200Response,
     type Rfq,
-    type RfqCollection,
-    RFQsApi,
+    ListRfqs200ResponseFromJSON,
 } from '@/sdk';
 
-export type RfqStatusFilter = 'all' | 'draft' | 'open' | 'closed' | 'awarded';
+export type RfqStatusFilter = 'all' | 'draft' | 'open' | 'closed' | 'awarded' | 'cancelled';
 
 export interface UseRfqsParams {
-    page?: number;
     perPage?: number;
+    cursor?: string;
     status?: RfqStatusFilter;
     search?: string;
-    dateFrom?: string;
-    dateTo?: string;
+    dueFrom?: string;
+    dueTo?: string;
+    openBidding?: boolean;
+    method?: string;
 }
 
-export type UseRfqsResult = UseQueryResult<RfqCollection, unknown> & {
+export interface CursorState {
+    nextCursor?: string;
+    prevCursor?: string;
+    perPage?: number;
+}
+
+export type UseRfqsResult = UseQueryResult<ListRfqs200Response, unknown> & {
     items: Rfq[];
-    meta?: PageMeta;
-    total: number;
-    isClientSideFiltered: boolean;
+    cursor?: CursorState;
 };
 
-const STATUS_MAP: Record<Exclude<RfqStatusFilter, 'all'>, RfqStatusEnum> = {
-    draft: RfqStatusEnum.Awaiting,
-    open: RfqStatusEnum.Open,
-    closed: RfqStatusEnum.Closed,
-    awarded: RfqStatusEnum.Awarded,
+const STATUS_MAP: Record<Exclude<RfqStatusFilter, 'all'>, ListRfqsStatusEnum> = {
+    draft: ListRfqsStatusEnum.Draft,
+    open: ListRfqsStatusEnum.Open,
+    closed: ListRfqsStatusEnum.Closed,
+    awarded: ListRfqsStatusEnum.Awarded,
+    cancelled: ListRfqsStatusEnum.Cancelled,
 };
 
-function resolveStatus(status: RfqStatusFilter): RfqStatusEnum | undefined {
+function normalizeStatusFilters(status: RfqStatusFilter): ListRfqsStatusEnum[] | undefined {
     if (status === 'all') {
         return undefined;
     }
 
-    return STATUS_MAP[status];
+    return [STATUS_MAP[status]];
 }
 
-function resolveTab(status: RfqStatusFilter): ListRfqsTabEnum {
-    if (status === 'open') {
-        return ListRfqsTabEnum.Open;
+function extractCursorState(meta?: unknown): CursorState | undefined {
+    if (!meta || typeof meta !== 'object') {
+        return undefined;
     }
 
-    // TODO: clarify how API tabs should map to remaining status filters once backend exposes dedicated segments.
-    return ListRfqsTabEnum.All;
+    const record = meta as Record<string, unknown>;
+
+    const cursorFromRecord = readCursorMeta(record);
+
+    if (cursorFromRecord) {
+        return cursorFromRecord;
+    }
+
+    const cursor = record.cursor;
+    if (cursor && typeof cursor === 'object') {
+        const nestedCursor = readCursorMeta(cursor as Record<string, unknown>);
+        if (nestedCursor) {
+            return nestedCursor;
+        }
+    }
+
+    const pagination = record.pagination;
+    if (pagination && typeof pagination === 'object') {
+        const perPage = readNumber(pagination as Record<string, unknown>, 'per_page', 'perPage');
+        if (perPage !== undefined) {
+            return { perPage };
+        }
+    }
+
+    return undefined;
 }
 
-function toStartOfDayTimestamp(value?: string): number | undefined {
-    if (!value) {
-        return undefined;
+function readCursorMeta(record: Record<string, unknown>): CursorState | undefined {
+    const nextCursor = readString(record, 'next_cursor', 'nextCursor');
+    const prevCursor = readString(record, 'prev_cursor', 'prevCursor');
+    const perPage = readNumber(record, 'per_page', 'perPage');
+
+    if (nextCursor || prevCursor || perPage !== undefined) {
+        return { nextCursor, prevCursor, perPage };
     }
 
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return undefined;
-    }
-
-    parsed.setHours(0, 0, 0, 0);
-    return parsed.getTime();
+    return undefined;
 }
 
-function toEndOfDayTimestamp(value?: string): number | undefined {
-    if (!value) {
-        return undefined;
+function readString(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'string') {
+            return value;
+        }
     }
+    return undefined;
+}
 
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return undefined;
+function readNumber(record: Record<string, unknown>, ...keys: string[]): number | undefined {
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'number') {
+            return value;
+        }
     }
-
-    parsed.setHours(23, 59, 59, 999);
-    return parsed.getTime();
+    return undefined;
 }
 
 export function useRfqs(params: UseRfqsParams = {}): UseRfqsResult {
-    const rfqsApi = useSdkClient(RFQsApi);
-    const { page = 1, perPage = 10, status = 'all', search, dateFrom, dateTo } = params;
-    const tab = resolveTab(status);
-    const sanitizedSearch = search?.trim();
-    const fromTimestamp = toStartOfDayTimestamp(dateFrom);
-    const toTimestamp = toEndOfDayTimestamp(dateTo);
-    const statusFilter = resolveStatus(status);
+    const { configuration } = useApiClientContext();
+    const {
+        perPage = 25,
+        status = 'all',
+        search,
+        dueFrom,
+        dueTo,
+        cursor,
+        openBidding,
+        method,
+    } = params;
 
-    const query = useQuery<RfqCollection>({
-        queryKey: ['rfqs', { page, perPage, status, search, dateFrom, dateTo }],
+    const sanitizedSearch = search?.trim() || undefined;
+    const statusFilters = normalizeStatusFilters(status);
+
+    const query = useQuery<ListRfqs200Response>({
+        queryKey: ['rfqs', { perPage, status, sanitizedSearch, dueFrom, dueTo, cursor, openBidding, method }],
         queryFn: async () => {
-            const response = await rfqsApi.listRfqs({
+            const fetchApi = configuration.fetchApi ?? fetch;
+            const queryString = buildQueryString({
                 perPage,
-                page,
-                tab: tab === ListRfqsTabEnum.All ? undefined : tab,
-                q: sanitizedSearch && sanitizedSearch.length > 0 ? sanitizedSearch : undefined,
-                sort: ListRfqsSortEnum.DeadlineAt,
-                sortDirection: ListRfqsSortDirectionEnum.Asc,
+                cursor,
+                status: statusFilters,
+                search: sanitizedSearch,
+                dueFrom,
+                dueTo,
+                openBidding,
+                method,
             });
-
-            return response.data;
+            const url = `${configuration.basePath.replace(/\/$/, '')}/api/rfqs${queryString}`;
+            const response = await fetchApi(url);
+            const data = await response.json();
+            return ListRfqs200ResponseFromJSON(data);
         },
         placeholderData: keepPreviousData,
     });
 
-    const shouldFilterByStatusClientSide = Boolean(statusFilter && tab === ListRfqsTabEnum.All);
-    const shouldFilterByDate = fromTimestamp != null || toTimestamp != null;
-
-    const items = useMemo<Rfq[]>(() => {
-        const sourceItems = query.data?.items ?? [];
-
-        if (!shouldFilterByStatusClientSide && !shouldFilterByDate) {
-            return sourceItems;
-        }
-
-        return sourceItems.filter((item) => {
-            if (shouldFilterByStatusClientSide && statusFilter && item.status !== statusFilter) {
-                return false;
-            }
-
-            const sentAtTimestamp = item.sentAt?.getTime();
-
-            if (fromTimestamp != null && (sentAtTimestamp == null || sentAtTimestamp < fromTimestamp)) {
-                return false;
-            }
-
-            if (toTimestamp != null && (sentAtTimestamp == null || sentAtTimestamp > toTimestamp)) {
-                return false;
-            }
-
-            return true;
-        });
-    }, [query.data, statusFilter, fromTimestamp, toTimestamp, shouldFilterByStatusClientSide, shouldFilterByDate]);
-    const meta = query.data?.meta;
-    const isClientSideFiltered = shouldFilterByStatusClientSide || shouldFilterByDate;
-    const total = isClientSideFiltered ? items.length : meta?.total ?? items.length;
+    const items = query.data?.data.items ?? [];
+    const cursorState = extractCursorState(query.data?.meta);
 
     return {
         ...query,
         items,
-        meta,
-        total,
-        isClientSideFiltered,
+        cursor: cursorState,
     } satisfies UseRfqsResult;
+}
+
+interface QueryBuilderInput {
+    perPage: number;
+    cursor?: string;
+    status?: ListRfqsStatusEnum[];
+    search?: string;
+    dueFrom?: string;
+    dueTo?: string;
+    openBidding?: boolean;
+    method?: string;
+}
+
+function buildQueryString(params: QueryBuilderInput): string {
+    const searchParams = new URLSearchParams();
+    searchParams.set('per_page', String(params.perPage));
+    searchParams.set('sort', ListRfqsSortEnum.DueAt);
+    searchParams.set('sort_direction', ListRfqsSortDirectionEnum.Asc);
+
+    if (params.cursor) {
+        searchParams.set('cursor', params.cursor);
+    }
+
+    if (params.search) {
+        searchParams.set('search', params.search);
+    }
+
+    if (params.dueFrom) {
+        searchParams.set('due_from', params.dueFrom);
+    }
+
+    if (params.dueTo) {
+        searchParams.set('due_to', params.dueTo);
+    }
+
+    if (params.openBidding !== undefined) {
+        searchParams.set('open_bidding', String(params.openBidding));
+    }
+
+    if (params.method) {
+        searchParams.set('method', params.method);
+    }
+
+    if (params.status && params.status.length > 0) {
+        searchParams.set('status', params.status.join(','));
+    }
+
+    const queryString = searchParams.toString();
+    return queryString.length > 0 ? `?${queryString}` : '';
 }

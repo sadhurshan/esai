@@ -6,6 +6,7 @@ use App\Http\Resources\PoChangeOrderResource;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PoChangeOrder;
 use App\Models\PurchaseOrder;
+use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -14,13 +15,21 @@ use Illuminate\Support\Facades\Log;
 
 class PoChangeOrderController extends ApiController
 {
+    public function __construct(private readonly AuditLogger $auditLogger)
+    {
+    }
+
     public function index(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 401);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
@@ -28,7 +37,9 @@ class PoChangeOrderController extends ApiController
         $isBuyer = $companyId === $purchaseOrder->company_id;
         $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
 
-        abort_if(! $isBuyer && ! $isSupplier, 403);
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden.', 403);
+        }
 
         $changeOrders = $purchaseOrder->changeOrders()
             ->with(['proposedByUser'])
@@ -43,15 +54,21 @@ class PoChangeOrderController extends ApiController
     public function store(PurchaseOrder $purchaseOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 401);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $purchaseOrder->loadMissing(['quote.supplier']);
 
         $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
-        abort_if($supplierCompanyId === null || $companyId !== $supplierCompanyId, 403);
+        if ($supplierCompanyId === null || $companyId !== $supplierCompanyId) {
+            return $this->fail('Forbidden.', 403);
+        }
 
         $validated = $this->validateChangeOrderPayload($request);
 
@@ -65,26 +82,37 @@ class PoChangeOrderController extends ApiController
 
         $changeOrder->load('proposedByUser');
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Change order proposed successfully.',
-            'data' => (new PoChangeOrderResource($changeOrder))->toArray($request),
-        ], 201);
+        $this->auditLogger->created($changeOrder, [
+            'reason' => $changeOrder->reason,
+            'changes_json' => $changeOrder->changes_json,
+            'status' => $changeOrder->status,
+        ]);
+
+        return $this->ok((new PoChangeOrderResource($changeOrder))->toArray($request), 'Change order proposed successfully.')->setStatusCode(201);
     }
 
     public function approve(PoChangeOrder $changeOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 401);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $changeOrder->loadMissing(['purchaseOrder.lines', 'purchaseOrder.quote.supplier']);
 
         $purchaseOrder = $changeOrder->purchaseOrder;
-        abort_if($purchaseOrder === null, 404);
-        abort_if($companyId !== $purchaseOrder->company_id, 403);
+        if ($purchaseOrder === null) {
+            return $this->fail('Change order not associated with a purchase order.', 404);
+        }
+
+        if ($companyId !== $purchaseOrder->company_id) {
+            return $this->fail('Forbidden.', 403);
+        }
 
         if ($changeOrder->status !== 'proposed') {
             return $this->fail('Only proposed change orders can be approved.', 422);
@@ -110,6 +138,12 @@ class PoChangeOrderController extends ApiController
             'approved_by_user_id' => $user->id,
         ]);
 
+        $this->auditLogger->custom($changeOrder, 'po_change_order_approved', [
+            'approved_by_user_id' => $user->id,
+            'purchase_order_id' => $changeOrder->purchase_order_id,
+            'po_revision_no' => $changeOrder->po_revision_no,
+        ]);
+
         $purchaseOrder->refresh()->load(['lines', 'rfq', 'quote.supplier', 'changeOrders.proposedByUser']);
 
         return $this->ok(
@@ -121,16 +155,25 @@ class PoChangeOrderController extends ApiController
     public function reject(PoChangeOrder $changeOrder, Request $request): JsonResponse
     {
         $user = $this->resolveRequestUser($request);
-        abort_if($user === null, 401);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
 
         $companyId = $this->resolveUserCompanyId($user);
-        abort_if($companyId === null, 403, 'Company context required.');
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
 
         $changeOrder->loadMissing(['purchaseOrder.quote.supplier', 'proposedByUser']);
 
         $purchaseOrder = $changeOrder->purchaseOrder;
-        abort_if($purchaseOrder === null, 404);
-        abort_if($companyId !== $purchaseOrder->company_id, 403);
+        if ($purchaseOrder === null) {
+            return $this->fail('Change order not associated with a purchase order.', 404);
+        }
+
+        if ($companyId !== $purchaseOrder->company_id) {
+            return $this->fail('Forbidden.', 403);
+        }
 
         if ($changeOrder->status !== 'proposed') {
             return $this->fail('Only proposed change orders can be rejected.', 422);
@@ -143,6 +186,11 @@ class PoChangeOrderController extends ApiController
             'change_order_id' => $changeOrder->id,
             'purchase_order_id' => $changeOrder->purchase_order_id,
             'rejected_by_user_id' => $user->id,
+        ]);
+
+        $this->auditLogger->custom($changeOrder, 'po_change_order_rejected', [
+            'rejected_by_user_id' => $user->id,
+            'purchase_order_id' => $changeOrder->purchase_order_id,
         ]);
 
         return $this->ok((new PoChangeOrderResource($changeOrder))->toArray($request), 'Change order rejected.');

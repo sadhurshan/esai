@@ -24,7 +24,7 @@ class StripeWebhookService
     ) {
     }
 
-    public function verify(Request $request, string $expectedType): StripeEvent
+    public function verify(Request $request, ?string $expectedType = null): StripeEvent
     {
         $secret = config('services.stripe.webhook_secret');
 
@@ -44,7 +44,7 @@ class StripeWebhookService
             throw StripeWebhookException::invalidPayload($exception);
         }
 
-        if ($event->type !== $expectedType) {
+        if ($expectedType !== null && $event->type !== $expectedType) {
             throw StripeWebhookException::unexpectedEvent($expectedType, (string) ($event->type ?? 'unknown'));
         }
 

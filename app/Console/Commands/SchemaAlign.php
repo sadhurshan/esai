@@ -378,7 +378,7 @@ class SchemaAlign extends Command
                     'unit_price',
                     'min_order_qty',
                     'lead_time_days',
-                    'note',
+                    'notes',
                     'status',
                     'revision_no',
                     'created_at',

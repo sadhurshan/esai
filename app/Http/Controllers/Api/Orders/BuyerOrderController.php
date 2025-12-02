@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Http\Controllers\Api\Orders;
+
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Orders\ListBuyerOrdersRequest;
+use App\Http\Resources\SalesOrderDetailResource;
+use App\Http\Resources\SalesOrderSummaryResource;
+use App\Models\Order;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+
+class BuyerOrderController extends ApiController
+{
+    public function index(ListBuyerOrdersRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context missing.', 422);
+        }
+
+        $query = $this->baseQuery()->where('company_id', $companyId);
+        $this->applyFilters($query, $request);
+
+        $paginator = $query
+            ->cursorPaginate(
+                $this->resolvePerPage($request->integer('per_page')),
+                ['*'],
+                'cursor',
+                $request->input('cursor')
+            )
+            ->withQueryString();
+
+        $items = SalesOrderSummaryResource::collection($paginator->items())->toArray($request);
+
+        $meta = [
+            'next_cursor' => optional($paginator->nextCursor())->encode(),
+            'prev_cursor' => optional($paginator->previousCursor())->encode(),
+            'per_page' => $paginator->perPage(),
+        ];
+
+        return $this->ok([
+            'items' => $items,
+        ], null, $meta);
+    }
+
+    public function show(string $orderId, ListBuyerOrdersRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context missing.', 422);
+        }
+
+        $order = $this->detailQuery()
+            ->where('company_id', $companyId)
+            ->whereKey($orderId)
+            ->first();
+
+        if ($order === null) {
+            return $this->fail('Sales order not found.', 404);
+        }
+
+        return $this->ok((new SalesOrderDetailResource($order))->toArray($request));
+    }
+
+    private function baseQuery(): Builder
+    {
+        return Order::query()
+            ->with(['company', 'supplierCompany'])
+            ->orderByDesc('ordered_at')
+            ->orderByDesc('id');
+    }
+
+    private function detailQuery(): Builder
+    {
+        return Order::query()
+            ->with([
+                'company',
+                'supplierCompany',
+                'purchaseOrder.company',
+                'purchaseOrder.supplier',
+                'purchaseOrder.quote.supplier',
+                'purchaseOrder.lines.shipmentLines.shipment',
+                'purchaseOrder.shipments.lines',
+                'purchaseOrder.events' => fn ($query) => $query->orderByDesc('occurred_at'),
+            ]);
+    }
+
+    private function applyFilters(Builder $query, ListBuyerOrdersRequest $request): void
+    {
+        $this->applyStatusFilters($query, $request->statuses());
+
+        if ($supplierId = $request->input('supplier_id')) {
+            $query->where('supplier_company_id', (int) $supplierId);
+        }
+
+        if ($dateFrom = $request->input('date_from')) {
+            $query->whereDate('ordered_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->input('date_to')) {
+            $query->whereDate('ordered_at', '<=', $dateTo);
+        }
+
+        if ($search = $request->input('search')) {
+            $like = '%' . $search . '%';
+            $query->where(function (Builder $builder) use ($like): void {
+                $builder
+                    ->where('so_number', 'like', $like)
+                    ->orWhereHas('supplierCompany', fn (Builder $supplier) => $supplier->where('name', 'like', $like));
+            });
+        }
+    }
+
+    private function applyStatusFilters(Builder $query, array $statuses): void
+    {
+        if (empty($statuses)) {
+            return;
+        }
+
+        $query->where(function (Builder $builder) use ($statuses): void {
+            foreach ($statuses as $status) {
+                $builder->orWhere(function (Builder $clause) use ($status): void {
+                    match ($status) {
+                        'draft' => $clause
+                            ->where('status', 'pending')
+                            ->where('metadata->po_status', 'draft'),
+                        'pending_ack' => $clause
+                            ->where('status', 'pending')
+                            ->where('metadata->po_status', 'sent'),
+                        'accepted' => $clause->where('status', 'in_production'),
+                        'partially_fulfilled' => $clause->where('status', 'in_transit'),
+                        'fulfilled' => $clause->where('status', 'delivered'),
+                        'cancelled' => $clause->where('status', 'cancelled'),
+                        default => $clause->whereRaw('0 = 1'),
+                    };
+                });
+            }
+        });
+    }
+
+    private function resolvePerPage(?int $candidate): int
+    {
+        $perPage = $candidate ?? 25;
+
+        if ($perPage < 1) {
+            $perPage = 25;
+        }
+
+        return min($perPage, 100);
+    }
+}

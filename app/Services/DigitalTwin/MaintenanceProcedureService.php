@@ -20,9 +20,9 @@ class MaintenanceProcedureService
     /**
      * @param array<string, mixed> $payload
      */
-    public function create(User $user, array $payload): MaintenanceProcedure
+    public function create(User $user, int $companyId, array $payload): MaintenanceProcedure
     {
-        $attributes = $this->extractAttributes($payload, (int) $user->company_id, false);
+        $attributes = $this->extractAttributes($payload, $companyId, false);
         $steps = $this->normalizeSteps($payload['steps'] ?? [], false);
 
         /** @var MaintenanceProcedure $procedure */

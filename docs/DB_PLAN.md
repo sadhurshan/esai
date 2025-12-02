@@ -44,7 +44,7 @@ Seeders follow each domain group (see §26.15) to ensure fixtures stay in sync w
 - **rfqs**: sourcing headers with buyer `company_id`, author, commercial fields (`type`, `material`, `method`, `incoterm`, `currency`), lifecycle timestamps (`publish_at`, `due_at`, `close_at`), status enum, versioning, soft deletes. Indexes: `(company_id, status, due_at)` plus `FULLTEXT(title)`.
 - **rfq_items**: line-level specs with `rfq_id`, `line_no`, `part_name`, `spec`, `quantity`, `uom`, optional `target_price`. Unique `(rfq_id, line_no)`.
 - **rfq_invitations**: supplier invitations with `rfq_id`, `supplier_id`, inviter, status enum. Unique `(rfq_id, supplier_id)`.
-- **rfq_clarifications**: RFQ Q&A/amendments with `kind`, `message`, optional `attachment_id`, `rfq_version`, timestamps. Index `(rfq_id, kind)`.
+- **rfq_clarifications**: RFQ Q&A/amendments with `kind`, `message`, `attachments_json` (document metadata list), `rfq_version`, timestamps. Index `(rfq_id, created_at)`.
 - **quotes**: supplier responses scoped by buyer `company_id`, linking to `rfq_id`, `supplier_id`, submitter, money fields (`currency`, `unit_price`, `min_order_qty`), `lead_time_days`, `note`, status enum with revisioning, soft deletes. Unique `(rfq_id, supplier_id, revision_no)`; index `(rfq_id, supplier_id, status)`.
 - **quote_items**: quote line details mapping `quote_id` to `rfq_item_id`, pricing, lead time, optional note. Unique `(quote_id, rfq_item_id)`.
 

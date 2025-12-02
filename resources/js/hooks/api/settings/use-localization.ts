@@ -23,7 +23,11 @@ export function mapLocalizationSettings(payload: ApiLocalizationSettings): Local
     };
 }
 
-export function useLocalizationSettings(): UseQueryResult<LocalizationSettings, ApiError> {
+export interface UseLocalizationSettingsOptions {
+    enabled?: boolean;
+}
+
+export function useLocalizationSettings(options?: UseLocalizationSettingsOptions): UseQueryResult<LocalizationSettings, ApiError> {
     const settingsApi = useSdkClient(SettingsApi);
 
     return useQuery<LocalizationSettings, ApiError>({
@@ -33,5 +37,6 @@ export function useLocalizationSettings(): UseQueryResult<LocalizationSettings, 
             return mapLocalizationSettings(response.data);
         },
         staleTime: 5 * 60 * 1000,
+        enabled: options?.enabled ?? true,
     });
 }

@@ -2,9 +2,11 @@
 
 use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
+use App\Models\Document;
 use App\Models\RFQ;
 use App\Models\Quote;
 use App\Models\QuoteItem;
@@ -46,11 +48,17 @@ it('returns suppliers with envelope and pagination metadata', function () {
             'message',
             'data' => [
                 'items',
-                'meta' => ['total', 'per_page', 'current_page', 'last_page'],
+                'meta',
+            ],
+            'meta' => [
+                'cursor' => ['next_cursor', 'prev_cursor', 'has_next', 'has_prev'],
             ],
         ]);
 
-    expect($response->json('data.meta.total'))->toBe(3);
+    $response->assertJsonCount(3, 'data.items')
+        ->assertJsonPath('meta.cursor.next_cursor', null)
+        ->assertJsonPath('meta.cursor.prev_cursor', null)
+        ->assertJsonPath('data.meta.per_page', 10);
 });
 
 beforeEach(function (): void {
@@ -98,38 +106,38 @@ function actingAsSubscribedUser(): User
 }
 
 it('creates an rfq with cad upload', function () {
-    Storage::fake('local');
+    Storage::fake('public');
     actingAsSubscribedUser();
 
     $payload = [
-        'item_name' => 'Gearbox Housing',
-        'type' => 'manufacture',
-        'client_company' => 'Elements Supply AI',
-        'status' => 'awaiting',
-        'deadline_at' => now()->addDays(14)->toDateString(),
-        'sent_at' => now()->toDateString(),
-        'is_open_bidding' => true,
+        'title' => 'Gearbox Housing',
+        'method' => 'cnc',
+        'material' => 'aluminum 7075-t6',
+        'delivery_location' => 'Elements Supply AI',
+        'due_at' => now()->addDays(14)->toIso8601String(),
+        'open_bidding' => true,
         'notes' => 'Include inspection report.',
         'cad' => UploadedFile::fake()->create('housing.step', 50),
         'items' => [
             [
-                'part_name' => 'Valve Body',
-                'spec' => 'CNC machined, tolerance ±0.01mm',
-                'quantity' => 60,
+                'part_number' => 'Valve Body',
+                'description' => 'CNC machined, tolerance +/-0.01mm',
+                'qty' => 60,
                 'uom' => 'pcs',
                 'target_price' => 125.50,
-                'method' => 'CNC Milling',
+                'method' => 'cnc',
                 'material' => 'Aluminum 7075-T6',
-                'tolerance' => '±0.01 mm',
+                'tolerance' => '+/-0.01 mm',
                 'finish' => 'Anodized',
+                'specs_json' => ['dwg' => 'valve-body.dwg'],
             ],
             [
-                'part_name' => 'Cover Plate',
-                'spec' => 'Anodized exterior',
-                'quantity' => 60,
+                'part_number' => 'Cover Plate',
+                'description' => 'Anodized exterior',
+                'qty' => 60,
                 'uom' => 'pcs',
                 'target_price' => 48.20,
-                'method' => 'Sheet Metal',
+                'method' => 'sheet_metal',
                 'material' => 'Stainless Steel 304',
                 'tolerance' => null,
                 'finish' => 'Powder Coat',
@@ -145,15 +153,111 @@ it('creates an rfq with cad upload', function () {
             'data' => [
                 'id',
                 'number',
-                'cad_path',
+                'cad_document_id',
             ],
         ]);
 
-    $rfq = RFQ::with('items')->first();
+    $rfq = RFQ::with(['items', 'cadDocument'])->first();
     expect($rfq)->not->toBeNull()
-        ->and($rfq->items)->toHaveCount(2);
+        ->and($rfq->items)->toHaveCount(2)
+        ->and($rfq->items->first()->part_number)->toBe('Valve Body')
+        ->and($rfq->items->first()->qty)->toBe(60)
+        ->and($rfq->items->first()->company_id)->toBe($rfq->company_id)
+        ->and($rfq->items->first()->specs_json)->toBe(['dwg' => 'valve-body.dwg'])
+        ->and($rfq->cad_document_id)->not->toBeNull();
 
-    Storage::disk('local')->assertExists($rfq->cad_path);
+    $document = $rfq->cadDocument;
+    expect($document)->not->toBeNull()
+        ->and($document->kind)->toBe('cad')
+        ->and($document->category)->toBe('technical');
+
+    Storage::disk('public')->assertExists($document->path);
+    expect(Document::count())->toBe(1);
+});
+
+it('replaces the rfq cad document on update', function () {
+    Storage::fake('public');
+    actingAsSubscribedUser();
+
+    $createPayload = [
+        'title' => 'Precision Bracket',
+        'method' => 'cnc',
+        'material' => 'aluminum 6061',
+        'delivery_location' => 'Elements Supply AI',
+        'due_at' => now()->addDays(7)->toIso8601String(),
+        'items' => [[
+            'part_number' => 'Bracket',
+            'qty' => 10,
+            'method' => 'cnc',
+            'material' => 'aluminum 6061',
+        ]],
+        'cad' => UploadedFile::fake()->create('initial.step', 40),
+    ];
+
+    $this->postJson('/api/rfqs', $createPayload)->assertCreated();
+
+    $rfq = RFQ::with('cadDocument')->firstOrFail();
+    $originalDocumentId = $rfq->cad_document_id;
+
+    $this->putJson("/api/rfqs/{$rfq->id}", [
+        'cad' => UploadedFile::fake()->create('replacement.step', 30),
+    ])->assertOk();
+
+    $rfq->refresh()->load('cadDocument');
+
+    expect($rfq->cad_document_id)->not->toEqual($originalDocumentId)
+        ->and($rfq->cadDocument?->version_number)->toBe(2);
+
+    $documents = Document::query()
+        ->where('documentable_type', $rfq->getMorphClass())
+        ->where('documentable_id', $rfq->id)
+        ->orderBy('version_number')
+        ->get();
+
+    expect($documents)->toHaveCount(2)
+        ->and($documents->first()->meta['status'] ?? null)->toBe('superseded');
+
+    expect(
+        AuditLog::query()
+            ->where('entity_type', RFQ::class)
+            ->where('entity_id', $rfq->id)
+            ->where('action', 'updated')
+            ->exists()
+    )->toBeTrue();
+});
+
+it('soft deletes cad documents when rfqs are deleted', function () {
+    Storage::fake('public');
+    actingAsSubscribedUser();
+
+    $payload = [
+        'title' => 'Fixture Plate',
+        'method' => 'cnc',
+        'material' => 'steel',
+        'delivery_location' => 'Elements Supply AI',
+        'due_at' => now()->addDays(14)->toIso8601String(),
+        'items' => [[
+            'part_number' => 'Plate',
+            'qty' => 5,
+            'method' => 'cnc',
+            'material' => 'Steel',
+        ]],
+        'cad' => UploadedFile::fake()->create('fixture.step', 35),
+    ];
+
+    $this->postJson('/api/rfqs', $payload)->assertCreated();
+
+    $rfq = RFQ::with('cadDocument')->firstOrFail();
+    $documentId = $rfq->cad_document_id;
+
+    $this->deleteJson("/api/rfqs/{$rfq->id}")->assertOk();
+
+    $rfq = RFQ::withTrashed()->findOrFail($rfq->id);
+    expect($rfq->cad_document_id)->toBeNull();
+
+    $document = Document::withTrashed()->find($documentId);
+    expect($document)->not->toBeNull()
+        ->and($document?->trashed())->toBeTrue();
 });
 
 it('creates a quote with items and attachment upload', function () {
@@ -162,7 +266,10 @@ it('creates a quote with items and attachment upload', function () {
     $user = actingAsSubscribedUser();
 
     $rfq = RFQ::factory()->for($user->company)->create([
-        'is_open_bidding' => true,
+        'open_bidding' => true,
+        'status' => RFQ::STATUS_OPEN,
+        'due_at' => now()->addDays(5),
+        'close_at' => now()->addDays(5),
     ]);
     $items = RfqItem::factory()->count(2)->for($rfq)->sequence(
         ['line_no' => 1],
@@ -219,14 +326,14 @@ it('returns validation errors for invalid rfq payloads', function () {
     $response->assertStatus(422)
         ->assertJsonPath('status', 'error')
         ->assertJsonPath('message', 'Validation failed')
-        ->assertJsonStructure(['errors' => ['item_name']]);
+        ->assertJsonStructure(['errors' => ['title']]);
 });
 
 it('returns validation errors for invalid quote payloads', function () {
     $user = actingAsSubscribedUser();
 
     $rfq = RFQ::factory()->for($user->company)->create([
-        'is_open_bidding' => true,
+        'open_bidding' => true,
     ]);
 
     $supplier = Supplier::factory()

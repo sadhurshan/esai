@@ -66,7 +66,7 @@ class QuoteRevisionController extends ApiController
         if (! $this->planAllowsRevisions($quote)) {
             return $this->fail('Upgrade required', 402, [
                 'code' => 'quote_revisions_disabled',
-                'upgrade_url' => url('/pricing'),
+                'upgrade_url' => url('/app/setup/plan').'?mode=change',
             ]);
         }
 

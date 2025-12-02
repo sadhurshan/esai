@@ -10,6 +10,8 @@ use App\Models\Part;
 use App\Models\PurchaseOrder;
 use App\Models\Quote;
 use App\Models\RFQ;
+use App\Models\Rfp;
+use App\Models\RfpProposal;
 use App\Models\Supplier;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +23,8 @@ class StoreDocumentRequest extends ApiFormRequest
     private const ENTITY_MAP = [
         'rfq' => RFQ::class,
         'quote' => Quote::class,
+        'rfp' => Rfp::class,
+        'rfp_proposal' => RfpProposal::class,
         'po' => PurchaseOrder::class,
         'invoice' => Invoice::class,
         'supplier' => Supplier::class,

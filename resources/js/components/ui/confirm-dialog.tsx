@@ -8,6 +8,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 
+type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+
 export interface ConfirmDialogProps {
     open: boolean;
     title: string;
@@ -15,6 +17,8 @@ export interface ConfirmDialogProps {
     confirmLabel?: string;
     cancelLabel?: string;
     isProcessing?: boolean;
+    confirmVariant?: ButtonVariant;
+    disableConfirm?: boolean;
     onConfirm: () => void;
     onOpenChange: (open: boolean) => void;
 }
@@ -27,6 +31,8 @@ export function ConfirmDialog({
     confirmLabel = 'Continue',
     cancelLabel = 'Cancel',
     isProcessing = false,
+    confirmVariant = 'default',
+    disableConfirm = false,
     onConfirm,
 }: ConfirmDialogProps) {
     return (
@@ -40,7 +46,11 @@ export function ConfirmDialog({
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>
                         {cancelLabel}
                     </Button>
-                    <Button onClick={onConfirm} disabled={isProcessing}>
+                    <Button
+                        onClick={onConfirm}
+                        disabled={isProcessing || disableConfirm}
+                        variant={confirmVariant}
+                    >
                         {confirmLabel}
                     </Button>
                 </DialogFooter>

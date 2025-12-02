@@ -30,24 +30,26 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-    $status = $request->query('status', CompanyStatus::PendingVerification->value);
+        $status = $request->query('status', CompanyStatus::PendingVerification->value);
 
         if (! in_array($status, array_map(static fn (CompanyStatus $value) => $value->value, CompanyStatus::cases()), true)) {
             return $this->fail('Invalid status filter.', 422);
         }
 
+        $perPage = $this->perPage($request, 25, 100);
+
         $paginator = Company::query()
             ->where('status', $status)
             ->orderByDesc('created_at')
-            ->paginate($this->perPage($request, 25, 100))
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'))
             ->withQueryString();
 
-        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, CompanyResource::class);
+        $paginated = $this->paginate($paginator, $request, CompanyResource::class);
 
         return $this->ok([
-            'items' => $items,
-            'meta' => $meta,
-        ]);
+            'items' => $paginated['items'],
+        ], 'Companies retrieved.', $paginated['meta']);
     }
 
     public function approve(Request $request, Company $company): JsonResponse

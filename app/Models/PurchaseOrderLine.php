@@ -64,4 +64,9 @@ class PurchaseOrderLine extends Model
     {
         return $this->hasMany(InvoiceLine::class, 'po_line_id');
     }
+
+    public function shipmentLines(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderShipmentLine::class, 'purchase_order_line_id');
+    }
 }

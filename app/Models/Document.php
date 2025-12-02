@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
-class Document extends Model
+class Document extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

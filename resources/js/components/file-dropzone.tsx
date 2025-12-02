@@ -7,6 +7,7 @@ interface FileDropzoneProps {
     label?: string;
     description?: string;
     accept?: string[];
+    acceptLabel?: string;
     multiple?: boolean;
     disabled?: boolean;
     onFilesSelected?: (files: File[]) => void;
@@ -17,6 +18,7 @@ export function FileDropzone({
     label = 'Drag and drop files',
     description = 'or click to browse',
     accept,
+    acceptLabel,
     multiple = false,
     disabled = false,
     onFilesSelected,
@@ -38,6 +40,9 @@ export function FileDropzone({
         const files = Array.from(event.target.files);
         onFilesSelected?.(files);
     };
+
+    const acceptedDisplay = acceptLabel ??
+        (accept && accept.length > 0 && accept.length <= 6 ? accept.join(', ') : null);
 
     return (
         <div
@@ -62,11 +67,9 @@ export function FileDropzone({
             <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">{label}</p>
                 <p className="text-xs text-muted-foreground">{description}</p>
-                {accept && accept.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                        Accepted: {accept.join(', ')}
-                    </p>
-                )}
+                {acceptedDisplay ? (
+                    <p className="text-xs text-muted-foreground">Accepted: {acceptedDisplay}</p>
+                ) : null}
             </div>
             <Button
                 type="button"

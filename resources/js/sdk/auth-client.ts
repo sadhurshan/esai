@@ -136,6 +136,16 @@ export class AuthApi extends BaseAPI {
         });
     }
 
+    async resendVerificationEmail(): Promise<void> {
+        await this.request({
+            path: '/email/verification-notification',
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+    }
+
     async requestPasswordReset(payload: ForgotPasswordRequest): Promise<void> {
         await this.request({
             path: '/api/auth/forgot-password',

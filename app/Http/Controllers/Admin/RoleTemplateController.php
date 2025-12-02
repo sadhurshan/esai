@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Admin\UpdateRoleTemplateRequest;
-use App\Http\Resources\Admin\RoleTemplateResource;
+use App\Http\Resources\RoleTemplateResource;
 use App\Models\RoleTemplate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
-class RoleTemplateController extends Controller
+class RoleTemplateController extends ApiController
 {
     public function index(): JsonResponse
     {
@@ -17,14 +17,10 @@ class RoleTemplateController extends Controller
 
         $roles = RoleTemplate::query()->orderBy('name')->get();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Roles retrieved.',
-            'data' => [
-                'roles' => RoleTemplateResource::collection($roles),
-                'permission_groups' => config('rbac.permission_groups'),
-            ],
-        ]);
+        return $this->ok([
+            'roles' => RoleTemplateResource::collection($roles)->toArray(request()),
+            'permission_groups' => config('rbac.permission_groups'),
+        ], 'Roles retrieved.');
     }
 
     public function update(UpdateRoleTemplateRequest $request, RoleTemplate $roleTemplate): JsonResponse
@@ -40,13 +36,9 @@ class RoleTemplateController extends Controller
 
         $roleTemplate->refresh();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Role updated.',
-            'data' => [
-                'role' => RoleTemplateResource::make($roleTemplate),
-            ],
-        ]);
+        return $this->ok([
+            'role' => (new RoleTemplateResource($roleTemplate))->toArray($request),
+        ], 'Role updated.');
     }
 
     /**

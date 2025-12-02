@@ -5,6 +5,8 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use App\Http\Resources\SupplierDocumentResource;
+
 /** @mixin \App\Models\SupplierApplication */
 class SupplierApplicationResource extends JsonResource
 {
@@ -22,6 +24,14 @@ class SupplierApplicationResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'company' => CompanyResource::make($this->whenLoaded('company')),
+            'documents' => $this->whenLoaded('documents', function () use ($request): array {
+                $documents = $this->documents;
+                if (method_exists($documents, 'load')) {
+                    $documents->load('document');
+                }
+
+                return SupplierDocumentResource::collection($documents)->toArray($request);
+            }, []),
         ];
     }
 }

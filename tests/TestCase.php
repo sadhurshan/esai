@@ -19,4 +19,11 @@ abstract class TestCase extends BaseTestCase
 
         $this->seed(CurrenciesSeeder::class);
     }
+
+    protected function tearDown(): void
+    {
+        \App\Support\CompanyContext::clear();
+
+        parent::tearDown();
+    }
 }

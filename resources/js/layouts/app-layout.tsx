@@ -1,12 +1,32 @@
 import { Sidebar, SidebarFooter, SidebarHeader, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Branding } from '@/config/branding';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { BillingStatusBanner } from '@/components/billing-status-banner';
 import { SidebarNav } from '@/components/sidebar-nav';
 import { TopBar } from '@/components/top-bar';
 import { FormattingProvider } from '@/contexts/formatting-context';
+import { useAuth } from '@/contexts/auth-context';
+import { useEffect } from 'react';
+import { isPlatformRole } from '@/constants/platform-roles';
 
 export function AppLayout() {
+    const { state } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const role = state.user?.role ?? null;
+    const isPlatformOperator = isPlatformRole(role);
+
+    useEffect(() => {
+        if (!isPlatformOperator) {
+            return;
+        }
+
+        if (location.pathname === '/app' || location.pathname === '/app/') {
+            navigate('/app/admin', { replace: true });
+        }
+    }, [isPlatformOperator, location.pathname, navigate]);
+
     return (
         <FormattingProvider>
             <SidebarProvider>
@@ -22,6 +42,7 @@ export function AppLayout() {
                     </Sidebar>
                     <SidebarInset>
                         <TopBar />
+                        <BillingStatusBanner />
                         <PlanUpgradeBanner />
                         <main className="flex flex-1 flex-col overflow-y-auto px-4 pb-8 pt-4">
                             <Outlet />

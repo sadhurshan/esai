@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\Auth\AuthSessionController;
 use App\Http\Controllers\Api\Auth\PasswordResetController;
 use App\Http\Controllers\Api\Auth\SelfRegistrationController;
+use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'app')->name('home');
@@ -22,6 +25,17 @@ Route::prefix('api/auth')->group(function (): void {
 
 Route::middleware(['auth'])->group(function () {
     Route::view('/company-registration', 'app')->name('company.registration');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/user/password', [PasswordController::class, 'edit'])->name('user-password.edit');
+    Route::put('/user/password', [PasswordController::class, 'update'])->name('user-password.update');
+
+    Route::get('/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
 });
 
 Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(function () {

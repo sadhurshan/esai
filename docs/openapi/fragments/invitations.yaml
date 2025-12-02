@@ -1,5 +1,5 @@
 paths:
-  /api/invitations:
+  /api/company-invitations:
     get:
       tags:
         - Companies
@@ -11,7 +11,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/CompanyInvitation'
     post:
       tags:
         - Companies
@@ -30,34 +40,46 @@ paths:
           content:
             application/json:
               schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompanyInvitation'
+  /api/company-invitations/{invitation}:
+    parameters:
+      - name: invitation
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Companies
+      summary: Revoke invitation by id
+      operationId: deleteInvitation
+      responses:
+        '200':
+          description: Invitation revoked.
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
-  /api/invitations/{token}:
+  /api/company-invitations/{token}/accept:
     parameters:
       - name: token
         in: path
         required: true
         schema:
           type: string
-    get:
+    post:
       tags:
         - Companies
-      summary: Show invitation by token
-      operationId: showInvitation
+      summary: Accept invitation using token
+      operationId: acceptInvitation
       responses:
         '200':
-          description: Invitation details.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiSuccessResponse'
-    delete:
-      tags:
-        - Companies
-      summary: Revoke invitation by token
-      operationId: deleteInvitation
-      responses:
-        '200':
-          description: Invitation revoked.
+          description: Invitation accepted and membership added.
           content:
             application/json:
               schema:

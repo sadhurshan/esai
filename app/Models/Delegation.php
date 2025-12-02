@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
-class Delegation extends Model
+class Delegation extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

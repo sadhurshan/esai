@@ -9,6 +9,7 @@ use App\Models\RfqItem;
 use App\Services\LineTaxSyncService;
 use App\Services\TotalsCalculator;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use App\Support\Documents\DocumentStorer;
@@ -64,11 +65,13 @@ class SubmitQuoteAction
             ]);
         }
 
-        $rfqItems = RfqItem::query()
-            ->where('rfq_id', $rfqId)
-            ->whereIn('id', $itemsPayload->pluck('rfq_item_id')->all())
-            ->get()
-            ->keyBy('id');
+        $rfqItems = CompanyContext::bypass(static function () use ($rfqId, $itemsPayload) {
+            return RfqItem::query()
+                ->where('rfq_id', $rfqId)
+                ->whereIn('id', $itemsPayload->pluck('rfq_item_id')->all())
+                ->get()
+                ->keyBy('id');
+        });
 
         if ($rfqItems->count() !== $itemsPayload->count()) {
             throw ValidationException::withMessages([
@@ -104,25 +107,28 @@ class SubmitQuoteAction
             $companyId,
             $calculation
         ): Quote {
+            $status = $data['status'] ?? 'submitted';
+
             $quote = Quote::create([
                 'company_id' => (int) $data['company_id'],
                 'rfq_id' => (int) $data['rfq_id'],
                 'supplier_id' => (int) $data['supplier_id'],
                 'submitted_by' => $data['submitted_by'] ?? null,
-                'submitted_at' => (($data['status'] ?? 'submitted') === 'submitted') ? now() : null,
+                'submitted_at' => $status === 'submitted' ? now() : null,
                 'currency' => $currency,
                 'unit_price' => $averageUnitMoney->toDecimal($minorUnit),
                 'min_order_qty' => $data['min_order_qty'] ?? null,
                 'lead_time_days' => (int) $data['lead_time_days'],
-                'note' => $data['note'] ?? null,
-                'status' => $data['status'] ?? 'submitted',
+                'notes' => $data['notes'] ?? $data['note'] ?? null,
+                'status' => $status,
                 'revision_no' => $data['revision_no'] ?? 1,
                 'subtotal' => Money::fromMinor($subtotalMinor, $currency)->toDecimal($minorUnit),
                 'tax_amount' => Money::fromMinor($taxMinor, $currency)->toDecimal($minorUnit),
-                'total' => Money::fromMinor($totalMinor, $currency)->toDecimal($minorUnit),
+                'total_price' => Money::fromMinor($totalMinor, $currency)->toDecimal($minorUnit),
                 'subtotal_minor' => $subtotalMinor,
                 'tax_amount_minor' => $taxMinor,
-                'total_minor' => $totalMinor,
+                'total_price_minor' => $totalMinor,
+                'attachments_count' => 0,
             ]);
 
             $lineResults = collect($calculation['lines'])->keyBy('key');
@@ -141,6 +147,7 @@ class SubmitQuoteAction
 
                 $quoteItem = QuoteItem::create([
                     'quote_id' => $quote->id,
+                    'company_id' => $companyId,
                     'rfq_item_id' => $rfqItemId,
                     'unit_price' => $unitPrice,
                     'unit_price_minor' => $result['unit_price_minor'],

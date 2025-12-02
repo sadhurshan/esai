@@ -49,7 +49,8 @@ class SupplierEsgController extends ApiController
         $query = SupplierEsgRecord::query()
             ->with('document')
             ->where('supplier_id', $supplier->id)
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         $category = $request->query('category');
         if ($category !== null) {
@@ -78,16 +79,16 @@ class SupplierEsgController extends ApiController
             }
         }
 
-        $records = $query->get();
+        $paginator = $query->cursorPaginate($this->perPage($request, 15, 75));
 
-        $this->queueReminders($records);
+        $this->queueReminders(collect($paginator->items()));
+
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, SupplierEsgRecordResource::class);
 
         return $this->ok(
-            SupplierEsgRecordResource::collection($records)->toArray($request),
+            $items,
             'Supplier ESG records retrieved.',
-            [
-                'count' => $records->count(),
-            ]
+            ['envelope' => $meta['envelope'] ?? []]
         );
     }
 

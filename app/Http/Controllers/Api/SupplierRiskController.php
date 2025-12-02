@@ -36,7 +36,8 @@ class SupplierRiskController extends ApiController
 
         $query = SupplierRiskScore::query()
             ->where('company_id', $company->id)
-            ->orderByDesc('updated_at');
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id');
 
         $gradeFilter = $request->query('grade');
         if ($gradeFilter !== null) {
@@ -64,14 +65,14 @@ class SupplierRiskController extends ApiController
             $query->where('updated_at', '<=', $toDate);
         }
 
-        $scores = $query->get();
+        $paginator = $query->cursorPaginate($this->perPage($request, 20, 100));
+
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, SupplierRiskScoreResource::class);
 
         return $this->ok(
-            SupplierRiskScoreResource::collection($scores)->toArray($request),
+            $items,
             'Supplier risk scores retrieved.',
-            [
-                'count' => $scores->count(),
-            ]
+            ['envelope' => $meta['envelope'] ?? []]
         );
     }
 

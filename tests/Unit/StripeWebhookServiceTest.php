@@ -10,8 +10,6 @@ use Illuminate\Support\Str;
 use Stripe\Event as StripeEvent;
 use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
-
 beforeEach(function (): void {
     config()->set('services.stripe.prices', [
         'community' => null,

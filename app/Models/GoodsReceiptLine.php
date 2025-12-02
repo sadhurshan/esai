@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GoodsReceiptLine extends Model
@@ -20,6 +21,7 @@ class GoodsReceiptLine extends Model
         'rejected_qty',
         'defect_notes',
         'attachment_ids',
+        'ncr_flag',
     ];
 
     protected $casts = [
@@ -29,10 +31,12 @@ class GoodsReceiptLine extends Model
         'accepted_qty' => 'integer',
         'rejected_qty' => 'integer',
         'attachment_ids' => 'array',
+        'ncr_flag' => 'boolean',
     ];
 
     protected $attributes = [
         'attachment_ids' => '[]',
+        'ncr_flag' => false,
     ];
 
     public function goodsReceiptNote(): BelongsTo
@@ -43,5 +47,11 @@ class GoodsReceiptLine extends Model
     public function purchaseOrderLine(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrderLine::class);
+    }
+
+    public function ncrs(): HasMany
+    {
+        return $this->hasMany(Ncr::class, 'purchase_order_line_id', 'purchase_order_line_id')
+            ->where('goods_receipt_note_id', $this->goods_receipt_note_id);
     }
 }

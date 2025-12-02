@@ -22,7 +22,23 @@ class PoTotalsController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ($user->company_id === null || (int) $user->company_id !== (int) $purchaseOrder->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
+        if ($this->authorizeDenied($user, 'update', $purchaseOrder)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        if ((int) $purchaseOrder->company_id !== $companyId) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 

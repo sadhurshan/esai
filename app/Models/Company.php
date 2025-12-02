@@ -37,6 +37,7 @@ use App\Models\ApiKey;
 use App\Models\RateLimit;
 use App\Models\WebhookSubscription;
 use App\Models\WebhookDelivery;
+use App\Models\DigitalTwin;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -161,8 +162,22 @@ class Company extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function digitalTwins(): HasMany
+    {
+        return $this->hasMany(DigitalTwin::class);
+    }
+
     public function currentSubscription(): ?Subscription
     {
+        if ($this->relationLoaded('subscriptions')) {
+            /** @var \Illuminate\Support\Collection<int, Subscription> $subscriptions */
+            $subscriptions = $this->getRelation('subscriptions');
+
+            return $subscriptions
+                ->sortByDesc(static fn (Subscription $subscription) => $subscription->created_at)
+                ->first();
+        }
+
         return $this->subscriptions()
             ->latest('created_at')
             ->first();
@@ -203,6 +218,37 @@ class Company extends Model
         }
 
         return 'inactive';
+    }
+
+    public function isInBillingGracePeriod(): bool
+    {
+        return $this->billingGraceEndsAt() !== null;
+    }
+
+    public function billingGraceEndsAt(): ?Carbon
+    {
+        $subscription = $this->currentSubscription();
+
+        if ($subscription === null) {
+            return null;
+        }
+
+        return $subscription->graceEndsAt();
+    }
+
+    public function billingLockDate(): ?Carbon
+    {
+        $subscription = $this->currentSubscription();
+
+        if ($subscription === null) {
+            return null;
+        }
+
+        if ($subscription->ends_at instanceof Carbon) {
+            return $subscription->ends_at;
+        }
+
+        return null;
     }
 
     public function rfqs(): HasMany

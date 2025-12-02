@@ -7,6 +7,7 @@ use App\Enums\DocumentKind;
 use App\Models\Document;
 use App\Models\RFQ;
 use App\Models\User;
+use App\Services\RfqVersionService;
 use App\Support\Documents\DocumentStorer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -14,8 +15,10 @@ use Illuminate\Validation\ValidationException;
 
 class UploadRfqAttachmentAction
 {
-    public function __construct(private readonly DocumentStorer $documentStorer)
-    {
+    public function __construct(
+        private readonly DocumentStorer $documentStorer,
+        private readonly RfqVersionService $rfqVersionService,
+    ) {
     }
 
     /**
@@ -37,7 +40,7 @@ class UploadRfqAttachmentAction
             'uploaded_by_name' => $user->name,
         ], static fn ($value) => $value !== null && $value !== '');
 
-        return $this->documentStorer->store(
+        $document = $this->documentStorer->store(
             $user,
             $file,
             DocumentCategory::Technical->value,
@@ -50,5 +53,11 @@ class UploadRfqAttachmentAction
                 'meta' => $metaPayload,
             ],
         );
+
+        $this->rfqVersionService->bump($rfq, null, 'rfq_attachment_uploaded', [
+            'document_id' => $document->id,
+        ]);
+
+        return $document;
     }
 }

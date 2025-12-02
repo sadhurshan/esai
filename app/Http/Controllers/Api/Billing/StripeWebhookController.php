@@ -31,6 +31,43 @@ class StripeWebhookController extends ApiController
         return $this->handle($request, 'customer.subscription.updated', fn ($event) => $this->stripeWebhookService->handleCustomerSubscriptionUpdated($event));
     }
 
+    public function catchAll(Request $request): JsonResponse
+    {
+        try {
+            $event = $this->stripeWebhookService->verify($request);
+        } catch (StripeWebhookException $exception) {
+            Log::warning('Stripe webhook rejected', [
+                'expected' => null,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return $this->fail($exception->getMessage(), 400);
+        }
+
+        $eventType = (string) ($event->type ?? 'unknown');
+        $this->recordWebhook($eventType, $request->all());
+
+        $processed = match ($eventType) {
+            'invoice.payment_succeeded' => $this->stripeWebhookService->handleInvoicePaymentSucceeded($event) !== null,
+            'invoice.payment_failed' => $this->stripeWebhookService->handleInvoicePaymentFailed($event) !== null,
+            'customer.subscription.updated' => $this->stripeWebhookService->handleCustomerSubscriptionUpdated($event) !== null,
+            'customer.subscription.created' => $this->stripeWebhookService->handleCustomerSubscriptionUpdated($event) !== null,
+            default => false,
+        };
+
+        if (! $processed) {
+            Log::info('Stripe webhook ignored', [
+                'event' => $eventType,
+            ]);
+        }
+
+        return $this->ok([
+            'received' => true,
+            'processed' => $processed,
+            'event' => $eventType,
+        ]);
+    }
+
     private function handle(Request $request, string $expectedEvent, callable $callback): JsonResponse
     {
         try {

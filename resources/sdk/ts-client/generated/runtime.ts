@@ -217,11 +217,15 @@ export class BaseAPI {
                 }
             }
             if (response === undefined) {
-              if (e instanceof Error) {
-                throw new FetchError(e, 'The request failed and the interceptors did not return an alternative response');
-              } else {
-                throw e;
-              }
+                if (e instanceof ResponseError) {
+                    throw e;
+                }
+                if (e instanceof Error) {
+                    const message = `The request failed and the interceptors did not return an alternative response${e.message ? `: ${e.message}` : ''}`;
+                    throw new FetchError(e, message);
+                } else {
+                    throw e;
+                }
             }
         }
         for (const middleware of this.middleware) {

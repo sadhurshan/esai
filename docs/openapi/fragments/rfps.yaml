@@ -1,0 +1,560 @@
+components:
+  schemas:
+    Rfp:
+      type: object
+      required:
+        - id
+        - company_id
+        - title
+        - status
+        - problem_objectives
+        - scope
+        - timeline
+        - evaluation_criteria
+        - proposal_format
+        - ai_assist_enabled
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        title:
+          type: string
+          maxLength: 200
+        status:
+          type: string
+          enum: [draft, published, in_review, awarded, no_award]
+        problem_objectives:
+          type: string
+        scope:
+          type: string
+        timeline:
+          type: string
+        evaluation_criteria:
+          type: string
+        proposal_format:
+          type: string
+        ai_assist_enabled:
+          type: boolean
+        ai_suggestions:
+          type: object
+          nullable: true
+          additionalProperties: true
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        in_review_at:
+          type: string
+          format: date-time
+          nullable: true
+        awarded_at:
+          type: string
+          format: date-time
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfpCollection:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rfp'
+        meta:
+          type: object
+          properties:
+            per_page:
+              type: integer
+            next_cursor:
+              type: string
+              nullable: true
+            prev_cursor:
+              type: string
+              nullable: true
+    RfpRequest:
+      type: object
+      required:
+        - title
+        - problem_objectives
+        - scope
+        - timeline
+        - evaluation_criteria
+        - proposal_format
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        problem_objectives:
+          type: string
+        scope:
+          type: string
+        timeline:
+          type: string
+          maxLength: 1000
+        evaluation_criteria:
+          type: string
+        proposal_format:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, in_review, awarded, no_award]
+        ai_assist_enabled:
+          type: boolean
+        ai_suggestions:
+          type: object
+          nullable: true
+          additionalProperties: true
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+    RfpUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        problem_objectives:
+          type: string
+        scope:
+          type: string
+        timeline:
+          type: string
+          maxLength: 1000
+        evaluation_criteria:
+          type: string
+        proposal_format:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, in_review, awarded, no_award]
+        ai_assist_enabled:
+          type: boolean
+        ai_suggestions:
+          type: object
+          nullable: true
+          additionalProperties: true
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+    RfpProposal:
+      type: object
+      required:
+        - id
+        - rfp_id
+        - company_id
+        - supplier_company_id
+        - status
+        - lead_time_days
+        - approach_summary
+        - schedule_summary
+      properties:
+        id:
+          type: integer
+        rfp_id:
+          type: integer
+        company_id:
+          type: integer
+        supplier_company_id:
+          type: integer
+        status:
+          type: string
+        price_total:
+          type: number
+          format: float
+          nullable: true
+        price_total_minor:
+          type: integer
+          nullable: true
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: true
+        lead_time_days:
+          type: integer
+          minimum: 1
+        approach_summary:
+          type: string
+        schedule_summary:
+          type: string
+        value_add_summary:
+          type: string
+          nullable: true
+        attachments_count:
+          type: integer
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+        supplier_company:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+              nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        submitted_by:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfpProposalSummary:
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          type: integer
+        min_price_minor:
+          type: integer
+          nullable: true
+        max_price_minor:
+          type: integer
+          nullable: true
+        min_lead_time_days:
+          type: integer
+          nullable: true
+        max_lead_time_days:
+          type: integer
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+    RfpProposalCollection:
+      type: object
+      required:
+        - items
+        - summary
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RfpProposal'
+        summary:
+          $ref: '#/components/schemas/RfpProposalSummary'
+    RfpProposalRequest:
+      type: object
+      required:
+        - currency
+        - lead_time_days
+        - approach_summary
+        - schedule_summary
+      properties:
+        supplier_company_id:
+          type: integer
+          nullable: true
+        price_total:
+          type: number
+          format: float
+          nullable: true
+        price_total_minor:
+          type: integer
+          nullable: true
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        lead_time_days:
+          type: integer
+          minimum: 1
+          maximum: 3650
+        approach_summary:
+          type: string
+        schedule_summary:
+          type: string
+        value_add_summary:
+          type: string
+          nullable: true
+        attachments:
+          type: array
+          items:
+            type: string
+            format: binary
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+paths:
+  /api/rfps:
+    get:
+      tags:
+        - RFPs
+      summary: List project RFPs
+      operationId: listRfps
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
+      responses:
+        '200':
+          description: Cursor-paginated list of RFPs within the active tenant.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfpCollection'
+    post:
+      tags:
+        - RFPs
+      summary: Create RFP
+      operationId: createRfp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RfpRequest'
+      responses:
+        '201':
+          description: RFP authored.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+  /api/rfps/{rfpId}:
+    parameters:
+      - name: rfpId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - RFPs
+      summary: Show RFP
+      operationId: showRfp
+      responses:
+        '200':
+          description: RFP detail record.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - RFPs
+      summary: Update RFP
+      operationId: updateRfp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RfpUpdateRequest'
+      responses:
+        '200':
+          description: RFP updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfps/{rfpId}/publish:
+    post:
+      tags:
+        - RFPs
+      summary: Publish RFP
+      operationId: publishRfp
+      parameters:
+        - name: rfpId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: RFP published.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfps/{rfpId}/move-to-review:
+    post:
+      tags:
+        - RFPs
+      summary: Move RFP to review
+      operationId: moveRfpToReview
+      parameters:
+        - name: rfpId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: RFP transitioned to review.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfps/{rfpId}/award:
+    post:
+      tags:
+        - RFPs
+      summary: Award RFP
+      operationId: awardRfp
+      parameters:
+        - name: rfpId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: RFP marked as awarded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfps/{rfpId}/close-no-award:
+    post:
+      tags:
+        - RFPs
+      summary: Close RFP without award
+      operationId: closeRfpWithoutAward
+      parameters:
+        - name: rfpId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: RFP closed without awarding suppliers.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfp'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/rfps/{rfpId}/proposals:
+    parameters:
+      - name: rfpId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - RFPs
+      summary: List RFP proposals
+      operationId: listRfpProposals
+      responses:
+        '200':
+          description: Buyer view of supplier proposals for the RFP.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfpProposalCollection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - RFPs
+      summary: Submit RFP proposal
+      operationId: submitRfpProposal
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RfpProposalRequest'
+      responses:
+        '201':
+          description: Supplier proposal submitted.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfpProposal'
+        '404':
+          $ref: '#/components/responses/NotFound'

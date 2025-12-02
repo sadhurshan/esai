@@ -66,6 +66,12 @@ class GoodsReceiptNoteResource extends JsonResource
                 })->values()->all();
             }, []),
             'attachments' => $attachments,
+            'ncr_summary' => $this->when($this->relationLoaded('ncrs'), function () {
+                return [
+                    'total' => $this->ncrs->count(),
+                    'open' => $this->ncrs->where('status', 'open')->count(),
+                ];
+            }),
             'timeline' => [],
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),

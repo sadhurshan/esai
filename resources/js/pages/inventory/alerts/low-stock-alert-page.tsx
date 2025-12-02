@@ -219,7 +219,7 @@ export function LowStockAlertPage() {
                     description="Upgrade your plan to monitor low-stock alerts."
                     icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ExportRequest extends Model
+class ExportRequest extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;
@@ -42,11 +42,6 @@ class ExportRequest extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
-    }
-
-    public function scopeForCompany($query, int $companyId)
-    {
-        return $query->where('company_id', $companyId);
     }
 
     public function isDownloadable(): bool

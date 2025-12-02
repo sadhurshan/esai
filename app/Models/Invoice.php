@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Invoice extends Model
+class Invoice extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

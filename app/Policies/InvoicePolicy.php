@@ -4,43 +4,76 @@ namespace App\Policies;
 
 use App\Models\Invoice;
 use App\Models\User;
+use App\Support\Permissions\PermissionRegistry;
 
 class InvoicePolicy
 {
-    private const ALLOWED_ROLES = ['finance', 'buyer_admin'];
+    public function __construct(private readonly PermissionRegistry $permissionRegistry)
+    {
+    }
 
     public function viewAny(User $user): bool
     {
-        return $this->hasRole($user) && $user->company_id !== null;
+        return $this->hasBillingPermission($user, 'billing.read');
     }
 
     public function view(User $user, Invoice $invoice): bool
     {
-        return $this->hasRole($user) && $this->matchesCompany($user, $invoice);
+        if (! $this->matchesCompany($user, $invoice) && ! $user->isPlatformAdmin()) {
+            return false;
+        }
+
+        return $this->hasBillingPermission($user, 'billing.read', $invoice);
     }
 
     public function create(User $user): bool
     {
-        return $this->hasRole($user) && $user->company_id !== null;
+        return $this->hasBillingPermission($user, 'billing.write');
     }
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return $this->hasRole($user) && $this->matchesCompany($user, $invoice) && $invoice->status === 'pending';
+        if ($invoice->status !== 'pending') {
+            return false;
+        }
+
+        if (! $this->matchesCompany($user, $invoice) && ! $user->isPlatformAdmin()) {
+            return false;
+        }
+
+        return $this->hasBillingPermission($user, 'billing.write', $invoice);
     }
 
     public function delete(User $user, Invoice $invoice): bool
     {
-        return $this->hasRole($user) && $this->matchesCompany($user, $invoice) && $invoice->status === 'pending';
-    }
+        if ($invoice->status !== 'pending') {
+            return false;
+        }
 
-    private function hasRole(User $user): bool
-    {
-        return in_array($user->role, self::ALLOWED_ROLES, true);
+        if (! $this->matchesCompany($user, $invoice) && ! $user->isPlatformAdmin()) {
+            return false;
+        }
+
+        return $this->hasBillingPermission($user, 'billing.write', $invoice);
     }
 
     private function matchesCompany(User $user, Invoice $invoice): bool
     {
         return $user->company_id !== null && (int) $user->company_id === (int) $invoice->company_id;
+    }
+
+    private function hasBillingPermission(User $user, string $permission, ?Invoice $invoice = null): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $companyId = $invoice?->company_id ?? $user->company_id;
+
+        if ($companyId === null) {
+            return false;
+        }
+
+        return $this->permissionRegistry->userHasAny($user, [$permission], (int) $companyId);
     }
 }

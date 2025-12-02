@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 
 import { Branding } from '@/config/branding';
+import { DOCUMENT_ACCEPT_LABEL, DOCUMENT_INPUT_ACCEPT } from '@/config/documents';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { HttpError } from '@/sdk';
 
 const domainRegex = /^(?!-)(?:[a-z0-9-]+\.)+[a-z]{2,}$/i;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
@@ -113,6 +115,21 @@ const registerSchema = z
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
+const serverFieldMap: Record<string, keyof RegisterFormValues> = {
+    name: 'name',
+    email: 'email',
+    password: 'password',
+    password_confirmation: 'passwordConfirmation',
+    company_name: 'companyName',
+    company_domain: 'companyDomain',
+    registration_no: 'registrationNo',
+    tax_id: 'taxId',
+    website: 'website',
+    phone: 'phone',
+    address: 'address',
+    country: 'country',
+};
+
 export function RegisterPage() {
     const navigate = useNavigate();
     const { register: registerAccount, state, isAuthenticated } = useAuth();
@@ -123,6 +140,7 @@ export function RegisterPage() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
@@ -169,7 +187,7 @@ export function RegisterPage() {
         });
     };
 
-    const errorMessage = useMemo(() => submitError ?? state.error ?? null, [state.error, submitError]);
+    const errorMessage = submitError;
 
     const onSubmit = handleSubmit(async (values) => {
         setSubmitError(null);
@@ -184,8 +202,52 @@ export function RegisterPage() {
         const documentPayload = documents.map((doc) => ({ type: doc.type, file: doc.file as File }));
         setDocumentsError(null);
 
+        const pickMessage = (value: unknown): string | null => {
+            if (typeof value === 'string' && value.trim().length > 0) {
+                return value;
+            }
+
+            if (Array.isArray(value)) {
+                const candidate = value.find((item) => typeof item === 'string' && item.trim().length > 0);
+                return candidate ?? null;
+            }
+
+            return null;
+        };
+
+        const applyServerErrors = (errorBag: Record<string, unknown> | undefined | null): string | null => {
+            if (!errorBag) {
+                return null;
+            }
+
+            let firstMessage: string | null = null;
+
+            Object.entries(errorBag).forEach(([field, messageValue]) => {
+                const message = pickMessage(messageValue);
+                if (!message) {
+                    return;
+                }
+
+                if (!firstMessage) {
+                    firstMessage = message;
+                }
+
+                const mappedField = serverFieldMap[field];
+                if (mappedField) {
+                    setError(mappedField, { type: 'server', message });
+                    return;
+                }
+
+                if (field.startsWith('company_documents')) {
+                    setDocumentsError(message);
+                }
+            });
+
+            return firstMessage;
+        };
+
         try {
-            await registerAccount({
+            const result = await registerAccount({
                 name: values.name,
                 email: values.email,
                 password: values.password,
@@ -201,18 +263,33 @@ export function RegisterPage() {
                 companyDocuments: documentPayload,
             });
 
-            navigate('/app/setup/plan', { replace: true });
+            const destination = result.requiresEmailVerification ? '/verify-email' : '/app/setup/plan';
+            navigate(destination, { replace: true });
         } catch (error) {
+            if (error instanceof HttpError) {
+                const body = error.body as { message?: string; errors?: Record<string, unknown> } | undefined;
+                const validationMessage = applyServerErrors(body?.errors ?? null);
+                const backendMessage = typeof body?.message === 'string' && body.message.trim().length > 0 ? body.message : null;
+                setSubmitError(validationMessage ?? backendMessage ?? 'Unable to create your workspace.');
+                return;
+            }
+
             if (error instanceof Error) {
                 setSubmitError(error.message);
-            } else {
-                setSubmitError('Unable to create your workspace.');
+                return;
             }
+
+            setSubmitError('Unable to create your workspace.');
         }
     });
 
     if (isAuthenticated) {
-        return <Navigate to="/app" replace />;
+        if (state.requiresEmailVerification) {
+            return <Navigate to="/verify-email" replace />;
+        }
+
+        const needsPlan = state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+        return <Navigate to={needsPlan ? '/app/setup/plan' : '/app'} replace />;
     }
 
     return (
@@ -338,7 +415,7 @@ export function RegisterPage() {
                             <div>
                                 <Label className="text-sm font-medium">Company documents</Label>
                                 <p className="text-xs text-muted-foreground">
-                                    Upload incorporation, tax, ESG, or other compliance documents (PDF, PNG, JPG up to 8 MB).
+                                    Upload incorporation, tax, ESG, or other compliance documents. {DOCUMENT_ACCEPT_LABEL}
                                 </p>
                             </div>
                             <div className="space-y-3">
@@ -367,7 +444,7 @@ export function RegisterPage() {
                                             <Input
                                                 id={`document-file-${document.id}`}
                                                 type="file"
-                                                accept=".pdf,.png,.jpg,.jpeg"
+                                                accept={DOCUMENT_INPUT_ACCEPT}
                                                 onChange={(event) => handleDocumentFileChange(document.id, event.target.files?.[0] ?? null)}
                                             />
                                         </div>

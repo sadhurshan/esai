@@ -35,6 +35,8 @@ tags:
     description: Authentication session management and API key usage
   - name: RFQs
     description: Manage requests for quotation and related supplier interactions
+  - name: RFPs
+    description: Project RFP authoring, publishing, and proposal workflows
   - name: Quotes
     description: Quote submission, revision, and award workflows
   - name: Purchase Orders
@@ -47,6 +49,8 @@ tags:
     description: Goods receipt, issues, and warehouse movements
   - name: Exports
     description: Bulk data export creation and download
+  - name: Downloads
+    description: On-demand PDF or CSV document downloads queued from the workspace
   - name: CRM
     description: Customer relationship data exports and insights
   - name: Suppliers
@@ -69,6 +73,8 @@ tags:
     description: Localization settings, units of measure, and conversions
   - name: Money
     description: Monetary settings, FX rates, and tax configuration
+  - name: Billing
+    description: Subscription management, billing portal access, and plan checkout flows
   - name: Approvals
     description: Purchase order approval rules, requests, and delegations
   - name: Admin
@@ -84,6 +90,7 @@ x-fragments:
     - suppliers.yaml
     - crm.yaml
     - rfqs.yaml
+    - rfps.yaml
     - quotes.yaml
     - purchase_orders.yaml
     - orders.yaml
@@ -91,6 +98,7 @@ x-fragments:
     - credit_notes.yaml
     - inventory.yaml
     - exports.yaml
+    - downloads.yaml
     - analytics.yaml
     - risk.yaml
     - digital_twin.yaml

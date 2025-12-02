@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { Rfq } from '@/sdk';
-import { ChevronDown, FileDown, FileText, PenLine, UploadCloud } from 'lucide-react';
+import { CalendarClock, ChevronDown, FileDown, FileText, PenLine, UploadCloud } from 'lucide-react';
 import { Fragment } from 'react';
 import { RfqStatusBadge } from './rfq-status-badge';
 
@@ -13,6 +13,7 @@ export interface RfqActionBarProps {
     onInviteSuppliers?: () => void;
     onPublish?: () => void;
     onAmend?: () => void;
+    onExtendDeadline?: () => void;
     onClose?: () => void;
     className?: string;
 }
@@ -23,13 +24,16 @@ export function RfqActionBar({
     onInviteSuppliers,
     onPublish,
     onAmend,
+    onExtendDeadline,
     onClose,
     className,
 }: RfqActionBarProps) {
-    const isDraft = rfq.status === 'awaiting';
+    const isDraft = rfq.status === 'awaiting' || rfq.status === 'draft';
     const isOpen = rfq.status === 'open';
     const isClosed = rfq.status === 'closed' || rfq.status === 'cancelled';
     const isAwarded = rfq.status === 'awarded';
+    const canInviteSuppliersCta = isDraft || isOpen;
+    const canEditDetails = isDraft;
 
     return (
         <div className={cn('flex flex-col gap-4 rounded-lg border bg-card px-4 py-3 shadow-sm', className)}>
@@ -54,17 +58,24 @@ export function RfqActionBar({
                             <Button variant="secondary" onClick={onAmend} disabled={!onAmend}>
                                 <PenLine className="mr-2 h-4 w-4" /> Amend
                             </Button>
+                            <Button variant="outline" onClick={onExtendDeadline} disabled={!onExtendDeadline}>
+                                <CalendarClock className="mr-2 h-4 w-4" /> Extend deadline
+                            </Button>
                             <Button variant="destructive" onClick={onClose} disabled={!onClose}>
                                 Close RFQ
                             </Button>
                         </Fragment>
                     ) : null}
 
-                    <Button variant="outline" onClick={onEdit} disabled={!onEdit}>
+                    <Button variant="outline" onClick={onEdit} disabled={!onEdit || !canEditDetails}>
                         <PenLine className="mr-2 h-4 w-4" /> Edit details
                     </Button>
 
-                    <Button variant="outline" onClick={onInviteSuppliers} disabled={!onInviteSuppliers || isClosed}>
+                    <Button
+                        variant="outline"
+                        onClick={onInviteSuppliers}
+                        disabled={!onInviteSuppliers || !canInviteSuppliersCta}
+                    >
                         <FileText className="mr-2 h-4 w-4" /> Invite suppliers
                     </Button>
 

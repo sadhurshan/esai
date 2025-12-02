@@ -42,17 +42,18 @@ it('blocks rfq creation when monthly limit exceeded', function (): void {
     actingAs($user);
 
     $response = postJson('/api/rfqs', [
-        'item_name' => 'Housing',
-        'type' => 'manufacture',
-        'client_company' => 'Test Co',
-        'status' => 'awaiting',
+        'title' => 'Housing',
+        'method' => 'cnc',
+        'material' => 'aluminum',
+        'delivery_location' => 'Test Co',
         'items' => [
             [
-                'part_name' => 'Housing line',
-                'quantity' => 1,
+                'part_number' => 'Housing line',
+                'description' => 'Housing line',
+                'qty' => 1,
                 'uom' => 'pcs',
-                'method' => 'CNC Milling',
-                'material' => 'Aluminum',
+                'method' => 'cnc',
+                'material' => 'aluminum',
                 'tolerance' => null,
                 'finish' => null,
             ],
@@ -62,5 +63,5 @@ it('blocks rfq creation when monthly limit exceeded', function (): void {
     $response->assertStatus(402)
         ->assertJsonPath('status', 'error')
         ->assertJsonPath('errors.code', 'rfqs_per_month')
-        ->assertJsonPath('errors.upgrade_url', url('/pricing'));
+        ->assertJsonPath('errors.upgrade_url', url('/app/setup/plan').'?mode=change');
 });

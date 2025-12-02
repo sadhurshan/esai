@@ -7,8 +7,10 @@ use App\Enums\DocumentKind;
 use App\Enums\RfqClarificationType;
 use App\Models\RFQ;
 use App\Models\RfqClarification;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Documents\DocumentStorer;
 use App\Support\Notifications\NotificationService;
 use Illuminate\Http\UploadedFile;
@@ -40,8 +42,7 @@ class RfqClarificationService
      */
     public function postQuestion(RFQ $rfq, User $user, string $message, array $attachments = []): RfqClarification
     {
-        $this->assertSameCompany($rfq, $user);
-        $this->assertCanParticipate($rfq, $user);
+        $this->assertQuestionAccess($rfq, $user);
 
         $clarification = $this->storeClarification(
             $rfq,
@@ -71,8 +72,7 @@ class RfqClarificationService
      */
     public function postAnswer(RFQ $rfq, User $user, string $message, array $attachments = []): RfqClarification
     {
-        $this->assertSameCompany($rfq, $user);
-        $this->assertBuyerRole($user);
+        $this->assertBuyerAccess($rfq, $user);
 
         $clarification = $this->storeClarification(
             $rfq,
@@ -102,8 +102,7 @@ class RfqClarificationService
      */
     public function postAmendment(RFQ $rfq, User $user, string $message, array $attachments = []): RfqClarification
     {
-        $this->assertSameCompany($rfq, $user);
-        $this->assertBuyerRole($user);
+        $this->assertBuyerAccess($rfq, $user);
 
         if (in_array($rfq->status, ['closed', 'awarded', 'cancelled'], true)) {
             throw ValidationException::withMessages([
@@ -146,8 +145,8 @@ class RfqClarificationService
         bool $versionIncrement
     ): RfqClarification {
         return DB::transaction(function () use ($rfq, $user, $message, $attachments, $type, $versionIncrement): RfqClarification {
-            $attachmentIds = $this->storeAttachments($rfq, $user, $attachments);
-            $currentVersion = $rfq->version_no ?? $rfq->version ?? 1;
+            $attachmentPayloads = $this->storeAttachments($rfq, $user, $attachments);
+            $currentVersion = $rfq->rfq_version ?? 1;
             $targetVersion = $versionIncrement ? $currentVersion + 1 : $currentVersion;
 
             $clarification = RfqClarification::create([
@@ -156,7 +155,7 @@ class RfqClarificationService
                 'user_id' => $user->id,
                 'type' => $type,
                 'message' => $message,
-                'attachments_json' => $attachmentIds,
+                'attachments_json' => $attachmentPayloads,
                 'version_increment' => $versionIncrement,
                 'version_no' => $versionIncrement ? $targetVersion : $currentVersion,
             ]);
@@ -169,19 +168,16 @@ class RfqClarificationService
 
             if ($versionIncrement) {
                 $before = [
-                    'version_no' => $rfq->version_no,
-                    'version' => $rfq->version,
+                    'rfq_version' => $rfq->rfq_version,
                     'current_revision_id' => $rfq->current_revision_id,
                 ];
 
-                $rfq->version_no = $targetVersion;
-                $rfq->version = $targetVersion;
+                $rfq->rfq_version = $targetVersion;
                 $rfq->current_revision_id = $clarification->id;
                 $rfq->save();
 
                 $this->auditLogger->updated($rfq, $before, [
-                    'version_no' => $rfq->version_no,
-                    'version' => $rfq->version,
+                    'rfq_version' => $rfq->rfq_version,
                     'current_revision_id' => $clarification->id,
                 ]);
             }
@@ -192,11 +188,11 @@ class RfqClarificationService
 
     /**
      * @param list<UploadedFile|null> $attachments
-     * @return list<int>
+     * @return list<array<string, mixed>>
      */
     private function storeAttachments(RFQ $rfq, User $user, array $attachments): array
     {
-        $ids = [];
+        $payloads = [];
 
         foreach ($attachments as $file) {
             if (! $file instanceof UploadedFile) {
@@ -216,10 +212,17 @@ class RfqClarificationService
                 ]
             );
 
-            $ids[] = $document->id;
+            $payloads[] = [
+                'document_id' => $document->id,
+                'filename' => $document->filename,
+                'mime' => $document->mime,
+                'size_bytes' => (int) ($document->size_bytes ?? 0),
+                'uploaded_by' => $user->id,
+                'uploaded_at' => $document->created_at?->toIso8601String(),
+            ];
         }
 
-        return $ids;
+        return $payloads;
     }
 
     private function notifyParticipants(
@@ -266,45 +269,149 @@ class RfqClarificationService
 
     private function resolveSupplierParticipants(RFQ $rfq): Collection
     {
-        // TODO: clarify with spec - supplier user invitations should be linked for finer access control.
+        $companyIds = $this->invitedSupplierCompanyIds($rfq);
+
+        if ($companyIds === []) {
+            // TODO: clarify how open bidding broadcasts supplier notifications to avoid spamming the entire network.
+            return collect();
+        }
+
         return User::query()
-            ->where('company_id', $rfq->company_id)
+            ->whereIn('company_id', $companyIds)
             ->whereIn('role', $this->supplierRoles)
             ->get();
     }
 
-    private function assertSameCompany(RFQ $rfq, User $user): void
+    private function assertQuestionAccess(RFQ $rfq, User $user): void
     {
-        if ((int) $rfq->company_id !== (int) $user->company_id) {
-            throw ValidationException::withMessages([
-                'rfq' => ['You do not have access to this RFQ.'],
-            ]);
-        }
-    }
-
-    private function assertBuyerRole(User $user): void
-    {
-        if (! in_array($user->role, [...$this->buyerRoles, 'platform_super', 'platform_support'], true)) {
-            throw ValidationException::withMessages([
-                'user' => ['Only buyer roles can perform this action.'],
-            ]);
-        }
-    }
-
-    private function assertCanParticipate(RFQ $rfq, User $user): void
-    {
-        if ($user->role === null) {
-            throw ValidationException::withMessages([
-                'user' => ['Your role does not allow participation in clarifications.'],
-            ]);
+        if ($this->isPlatformRole($user)) {
+            return;
         }
 
-        if (in_array($user->role, array_merge($this->buyerRoles, $this->supplierRoles, ['platform_super', 'platform_support']), true)) {
+        if ($this->belongsToBuyerCompany($rfq, $user) && ($this->isBuyerRole($user) || $this->isSupplierRole($user))) {
+            return;
+        }
+
+        if ($this->isSupplierRole($user) && $this->supplierHasInvitationAccess($rfq, $user)) {
             return;
         }
 
         throw ValidationException::withMessages([
-            'user' => ['Your role does not allow participation in clarifications.'],
+            'user' => ['You do not have access to this RFQ.'],
         ]);
+    }
+
+    private function assertBuyerAccess(RFQ $rfq, User $user): void
+    {
+        if ($this->isPlatformRole($user)) {
+            return;
+        }
+
+        if ($this->belongsToBuyerCompany($rfq, $user) && $this->isBuyerRole($user)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'user' => ['Only buyer roles can perform this action.'],
+        ]);
+    }
+
+    private function belongsToBuyerCompany(RFQ $rfq, User $user): bool
+    {
+        return $user->company_id !== null && (int) $rfq->company_id === (int) $user->company_id;
+    }
+
+    private function supplierHasInvitationAccess(RFQ $rfq, User $user): bool
+    {
+        if (! $this->isSupplierRole($user)) {
+            return false;
+        }
+
+        if ((bool) $rfq->is_open_bidding) {
+            return true;
+        }
+
+        if ($user->company_id === null) {
+            return false;
+        }
+
+        $supplierIds = $this->supplierIdsForCompany((int) $user->company_id);
+
+        if ($supplierIds === []) {
+            return false;
+        }
+
+        $invitedSupplierIds = $this->invitedSupplierIds($rfq);
+
+        return array_intersect($supplierIds, $invitedSupplierIds) !== [];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function supplierIdsForCompany(int $companyId): array
+    {
+        return CompanyContext::bypass(static function () use ($companyId): array {
+            return Supplier::query()
+                ->where('company_id', $companyId)
+                ->pluck('id')
+                ->map(static fn ($id) => (int) $id)
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function invitedSupplierIds(RFQ $rfq): array
+    {
+        $rfq->loadMissing('invitations');
+
+        return $rfq->invitations
+            ->pluck('supplier_id')
+            ->filter()
+            ->map(static fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function invitedSupplierCompanyIds(RFQ $rfq): array
+    {
+        $supplierIds = $this->invitedSupplierIds($rfq);
+
+        if ($supplierIds === []) {
+            return [];
+        }
+
+        return CompanyContext::bypass(static function () use ($supplierIds): array {
+            return Supplier::query()
+                ->whereIn('id', $supplierIds)
+                ->pluck('company_id')
+                ->filter()
+                ->map(static fn ($companyId) => (int) $companyId)
+                ->unique()
+                ->values()
+                ->all();
+        });
+    }
+
+    private function isBuyerRole(User $user): bool
+    {
+        return in_array($user->role, $this->buyerRoles, true);
+    }
+
+    private function isSupplierRole(User $user): bool
+    {
+        return in_array($user->role, $this->supplierRoles, true);
+    }
+
+    private function isPlatformRole(User $user): bool
+    {
+        return in_array($user->role, ['platform_super', 'platform_support'], true);
     }
 }

@@ -32,13 +32,17 @@ class FormattingService
         $setting = $this->localeService->getForCompany($company);
         $locale = $this->resolveNumberLocale($setting);
 
-        $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
-
         $scale = $this->detectScale($decimal);
-        $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $scale);
-    $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, max($scale, self::DEFAULT_SCALE));
 
-    $formatted = $formatter->format((float) $decimal->__toString());
+        if (! class_exists('NumberFormatter')) {
+            return number_format((float) $decimal->__toString(), max($scale, 0), '.', ',');
+        }
+
+        $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $scale);
+        $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, max($scale, self::DEFAULT_SCALE));
+
+        $formatted = $formatter->format((float) $decimal->__toString());
 
         if ($formatted === false) {
             return $decimal->__toString();
@@ -53,6 +57,10 @@ class FormattingService
         $locale = $setting->locale ?: self::DEFAULT_LOCALE;
         $timezone = $setting->timezone ?: config('app.timezone');
         $pattern = $this->datePattern($setting->date_format);
+
+        if (! class_exists('IntlDateFormatter')) {
+            return $date->copy()->setTimezone($timezone)->format($pattern ?? 'M j, Y g:i A');
+        }
 
         $formatter = new IntlDateFormatter(
             $locale,
@@ -79,6 +87,10 @@ class FormattingService
         $locale = $this->resolveNumberLocale($setting);
         $currency = $money->currency();
         $minorUnit = $this->minorUnit($currency);
+
+        if (! class_exists('NumberFormatter')) {
+            return sprintf('%s %s', $currency, $money->format($minorUnit));
+        }
 
         $formatter = new NumberFormatter($locale, NumberFormatter::CURRENCY);
         $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $minorUnit);

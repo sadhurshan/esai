@@ -92,6 +92,7 @@ class PerformInvoiceMatchAction
                 }
 
                 InvoiceMatch::create([
+                    'company_id' => $invoice->company_id,
                     'invoice_id' => $invoice->id,
                     'purchase_order_id' => $purchaseOrder?->id,
                     'goods_receipt_note_id' => $relatedGrnLines->first()?->goods_receipt_note_id,

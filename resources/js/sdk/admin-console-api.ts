@@ -17,6 +17,10 @@ import type {
     CreateWebhookPayload,
     ListWebhookDeliveriesParams,
     ListWebhooksParams,
+    SupplierApplicationFilters,
+    SupplierApplicationItem,
+    SupplierApplicationAuditLogResponse,
+    SupplierApplicationResponse,
     UpdateRolePayload,
     UpdateWebhookPayload,
     WebhookDeliveryItem,
@@ -150,6 +154,60 @@ export class AdminConsoleApi extends BaseAPI {
         } satisfies CompanyApprovalResponse;
     }
 
+    async listSupplierApplications(
+        params: SupplierApplicationFilters = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierApplicationResponse> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: '/api/admin/supplier-applications',
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    status: params.status,
+                    page: params.page,
+                    per_page: params.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<SupplierApplicationItem>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toOffsetMeta(data.meta),
+        } satisfies SupplierApplicationResponse;
+    }
+
+    async listSupplierApplicationAuditLogs(
+        applicationId: number,
+        params: { limit?: number } = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierApplicationAuditLogResponse> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/supplier-applications/${applicationId}/audit-logs`,
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    limit: params.limit,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ items?: AuditLogEntry[] }>(response);
+
+        return {
+            items: data.items ?? [],
+        } satisfies SupplierApplicationAuditLogResponse;
+    }
+
     async approveCompany(companyId: number, initOverrides?: RequestInit | InitOverrideFunction): Promise<CompanyApprovalItem> {
         const headers: HTTPHeaders = {};
 
@@ -187,6 +245,55 @@ export class AdminConsoleApi extends BaseAPI {
         );
 
         return parseEnvelope<CompanyApprovalItem>(response);
+    }
+
+    async approveSupplierApplication(
+        applicationId: number,
+        payload?: { notes?: string | null },
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierApplicationItem> {
+        const noteValue = typeof payload?.notes === 'string' ? payload.notes.trim() : '';
+        const hasNotes = noteValue.length > 0;
+        const headers: HTTPHeaders = hasNotes
+            ? {
+                  'Content-Type': 'application/json',
+              }
+            : {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/supplier-applications/${applicationId}/approve`,
+                method: 'POST',
+                headers,
+                body: hasNotes ? { notes: noteValue } : undefined,
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope<SupplierApplicationItem>(response);
+    }
+
+    async rejectSupplierApplication(
+        applicationId: number,
+        payload: { notes: string },
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierApplicationItem> {
+        const noteValue = payload.notes.trim();
+        const headers: HTTPHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        const response = await this.request(
+            {
+                path: `/api/admin/supplier-applications/${applicationId}/reject`,
+                method: 'POST',
+                headers,
+                body: { notes: noteValue },
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope<SupplierApplicationItem>(response);
     }
 
     async sendWebhookTest(

@@ -36,7 +36,13 @@ class InvoiceController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 422);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
@@ -64,11 +70,14 @@ class InvoiceController extends ApiController
             $query->whereDate('invoice_date', '<=', $filters['to']);
         }
 
-        $paginator = $query->orderByDesc('created_at')->paginate($this->perPage($request))->withQueryString();
+        $paginator = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request));
 
-        $result = $this->paginate($paginator, $request, InvoiceResource::class);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, InvoiceResource::class);
 
-        return $this->ok($result);
+        return $this->ok(['items' => $items], null, $meta);
     }
 
     public function list(ListInvoicesRequest $request): JsonResponse
@@ -114,12 +123,12 @@ class InvoiceController extends ApiController
         $paginator = $query
             ->orderByDesc('invoice_date')
             ->orderByDesc('created_at')
-            ->paginate($this->perPage($request))
-            ->withQueryString();
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request));
 
-        $result = $this->paginate($paginator, $request, InvoiceResource::class);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, InvoiceResource::class);
 
-        return $this->ok($result);
+        return $this->ok(['items' => $items], null, $meta);
     }
 
     public function store(CreateInvoiceFromPurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
@@ -130,7 +139,13 @@ class InvoiceController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 422);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
@@ -168,7 +183,13 @@ class InvoiceController extends ApiController
             return $this->fail('Purchase order not found.', 404);
         }
 
-        if (! $this->purchaseOrderAccessible($purchaseOrder, $user->company_id)) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 422);
+        }
+
+        if (! $this->purchaseOrderAccessible($purchaseOrder, $companyId)) {
             return $this->fail('Purchase order not found for this company.', 404);
         }
 
@@ -199,7 +220,9 @@ class InvoiceController extends ApiController
 
         $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'purchaseOrder', 'supplier']);
 
-        if ($user->company_id === null || (int) $invoice->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $invoice->company_id !== (int) $companyId) {
             return $this->fail('Invoice not found for this company.', 404);
         }
 

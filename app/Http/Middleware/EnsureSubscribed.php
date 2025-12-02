@@ -37,7 +37,34 @@ class EnsureSubscribed
             return $next($request);
         }
 
+        if ($this->isInGraceReadOnlyWindow($company)) {
+            if ($this->isReadOnlyRequest($request)) {
+                $request->attributes->set('billing.read_only', true);
+                $request->attributes->set('billing.grace_expires_at', $company->billingGraceEndsAt());
+
+                return $next($request);
+            }
+
+            return $this->upgradeRequired('subscription_past_due', array_filter([
+                'message' => 'Your payment method needs attention before you can resume write access.',
+                'grace_expires_at' => $company->billingGraceEndsAt()?->toIso8601String(),
+                'read_only' => true,
+            ]));
+        }
+
         if (! $this->hasActiveSubscription($company)) {
+            if (app()->environment('testing')) {
+                logger()->debug('ensure_subscribed_inactive', [
+                    'company_id' => $company->getKey(),
+                    'plan_code' => $company->plan?->code,
+                    'plan_price' => $company->plan?->price_usd,
+                    'subscription_count' => $company->subscriptions()->count(),
+                    'subscription_statuses' => $company->subscriptions()->pluck('stripe_status')->all(),
+                    'subscription_ids' => $company->subscriptions()->pluck('id')->all(),
+                    'billing_status' => $company->billingStatus(),
+                    'auth_user_company_id' => optional($user)->company_id ?? null,
+                ]);
+            }
             return $this->upgradeRequired('subscription_inactive', [
                 'message' => 'Your subscription is inactive or has expired.',
             ]);
@@ -65,6 +92,16 @@ class EnsureSubscribed
         $subscription = $company->currentSubscription();
 
         return $subscription?->isActive() === true;
+    }
+
+    private function isInGraceReadOnlyWindow(Company $company): bool
+    {
+        return $company->isInBillingGracePeriod();
+    }
+
+    private function isReadOnlyRequest(Request $request): bool
+    {
+        return in_array(strtoupper($request->getMethod()), ['GET', 'HEAD', 'OPTIONS'], true);
     }
 
     /**
@@ -142,9 +179,14 @@ class EnsureSubscribed
             'data' => null,
             'errors' => array_merge($context, [
                 'code' => $code,
-                'upgrade_url' => url('/pricing'),
+                'upgrade_url' => $this->upgradeUrl(),
             ]),
         ], 402);
+    }
+
+    private function upgradeUrl(): string
+    {
+        return url('/app/setup/plan').'?mode=change';
     }
 
     private function errorResponse(string $message, int $status): JsonResponse

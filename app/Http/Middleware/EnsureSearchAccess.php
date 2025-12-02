@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
+use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,14 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureSearchAccess
 {
     use RespondsWithPlanUpgrade;
+
+    private const PERMISSIONS = [
+        'search.use',
+    ];
+
+    public function __construct(private readonly PermissionRegistry $permissionRegistry)
+    {
+    }
 
     public function handle(Request $request, Closure $next): JsonResponse|Response
     {
@@ -42,6 +51,14 @@ class EnsureSearchAccess
             return $this->upgradeRequiredResponse([
                 'code' => 'search_disabled',
             ], 'Global search is disabled for this plan.', Response::HTTP_FORBIDDEN);
+        }
+
+        if (! $this->permissionRegistry->userHasAny($user, self::PERMISSIONS, (int) $company->id)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Search access requires read permissions.',
+                'data' => null,
+            ], Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

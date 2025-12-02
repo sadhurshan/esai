@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class CompanyProfile extends Model
+class CompanyProfile extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

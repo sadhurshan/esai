@@ -22,6 +22,14 @@ class TaxCodeController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
         $this->authorize('viewAny', TaxCode::class);
 
         $validated = $request->validate([
@@ -30,8 +38,6 @@ class TaxCodeController extends ApiController
             'active' => ['nullable', 'boolean'],
             'type' => ['nullable', Rule::in(['vat', 'gst', 'sales', 'withholding', 'custom'])],
         ]);
-
-        $companyId = (int) $request->user()->company_id;
         $perPage = $this->perPage($request, 25, 100);
 
         $query = TaxCode::query()
@@ -57,28 +63,25 @@ class TaxCodeController extends ApiController
         }
 
         $taxCodes = $query->cursorPaginate($perPage, ['*'], 'cursor', $validated['cursor'] ?? null);
+        $collection = $this->paginate($taxCodes, $request, TaxCodeResource::class);
 
-        $items = collect($taxCodes->items())
-            ->map(fn (TaxCode $taxCode) => (new TaxCodeResource($taxCode))->toArray($request))
-            ->values()
-            ->all();
-
-        return $this->ok(
-            ['items' => $items],
-            'Tax codes retrieved.',
-            [
-                'next_cursor' => optional($taxCodes->nextCursor())->encode(),
-                'prev_cursor' => optional($taxCodes->previousCursor())->encode(),
-            ]
-        );
+        return $this->ok($collection, 'Tax codes retrieved.');
     }
 
     public function store(StoreTaxCodeRequest $request): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
         $this->authorize('create', TaxCode::class);
 
         $payload = $request->payload();
-        $payload['company_id'] = (int) $request->user()->company_id;
+        $payload['company_id'] = $companyId;
 
         $taxCode = TaxCode::create($payload);
 

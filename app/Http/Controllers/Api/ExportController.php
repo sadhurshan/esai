@@ -6,7 +6,6 @@ use App\Enums\ExportRequestStatus;
 use App\Enums\ExportRequestType;
 use App\Http\Requests\Export\StoreExportRequest;
 use App\Http\Resources\ExportRequestResource;
-use App\Models\Company;
 use App\Models\ExportRequest;
 use App\Models\User;
 use App\Services\ExportService;
@@ -32,34 +31,26 @@ class ExportController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if ($companyId === null) {
             return $this->fail('Company context required.', 403);
         }
 
         $perPage = $this->perPage($request, 15, 50);
 
         $paginator = ExportRequest::query()
-            ->forCompany($company->id)
-            ->latest('created_at')
+            ->forCompany($companyId)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->with('requester')
-            ->paginate($perPage);
+            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'));
 
-        $items = collect($paginator->items())
-            ->map(fn (ExportRequest $exportRequest) => (new ExportRequestResource($exportRequest))->toArray($request))
-            ->values()
-            ->all();
+        $paginated = $this->paginate($paginator, $request, ExportRequestResource::class);
 
         return $this->ok([
-            'items' => $items,
-            'meta' => [
-                'total' => $paginator->total(),
-                'per_page' => $paginator->perPage(),
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ], 'Export requests retrieved.');
+            'items' => $paginated['items'],
+        ], 'Export requests retrieved.', $paginated['meta']);
     }
 
     public function store(StoreExportRequest $request): JsonResponse
@@ -70,11 +61,17 @@ class ExportController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Company context required.', 403);
+        }
+
         $validated = $request->validated();
         $filters = $validated['filters'] ?? [];
 
         try {
-            $exportRequest = $this->exportService->createRequest($user, $validated['type'], $filters);
+            $exportRequest = $this->exportService->createRequest($user, $companyId, $validated['type'], $filters);
         } catch (ValidationException $exception) {
             return $this->fail('Validation failed', 422, $exception->errors());
         }
@@ -91,7 +88,9 @@ class ExportController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $exportRequest->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $exportRequest->company_id !== (int) $companyId) {
             return $this->fail('Export request not accessible.', 403);
         }
 
@@ -112,7 +111,9 @@ class ExportController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        if ((int) $exportRequest->company_id !== (int) $user->company_id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null || (int) $exportRequest->company_id !== (int) $companyId) {
             return $this->fail('Export request not accessible.', 403);
         }
 

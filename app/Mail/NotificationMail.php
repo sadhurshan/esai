@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Notification;
+use App\Support\Notifications\NotificationTemplateDataFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -19,9 +20,9 @@ class NotificationMail extends Mailable implements ShouldQueue
 
     public function build(): self
     {
+        $payload = app(NotificationTemplateDataFactory::class)->build($this->notification);
+
         return $this->subject($this->notification->title)
-            ->markdown('emails.notifications.generic', [
-                'notification' => $this->notification,
-            ]);
+            ->markdown($payload['view'], $payload['data']);
     }
 }

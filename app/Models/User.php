@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserStatus;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PlatformAdminRole;
 use App\Models\ApiKey;
 use App\Models\CopilotPrompt;
@@ -11,13 +12,15 @@ use App\Models\PurchaseRequisition;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -36,7 +39,20 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status',
+        'job_title',
+        'phone',
+        'locale',
+        'timezone',
+        'avatar_path',
         'last_login_at',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'avatar_url',
     ];
 
     /**
@@ -49,6 +65,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'avatar_path',
     ];
 
     /**
@@ -63,12 +80,35 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'status' => UserStatus::class,
         ];
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        $path = $this->avatar_path;
+
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class)
+            ->withPivot(['role', 'is_default', 'last_used_at'])
+            ->withTimestamps();
     }
 
     public function purchaseRequisitions(): HasMany

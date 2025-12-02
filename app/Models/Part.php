@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Part extends Model
+class Part extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

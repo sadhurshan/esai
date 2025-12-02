@@ -100,7 +100,11 @@ class CompanyLifecycleService
             }
 
             $form = Arr::wrap($application->form_json);
-            $supplier = Supplier::firstOrNew(['company_id' => $company->id]);
+            $supplier = Supplier::withTrashed()->firstOrNew(['company_id' => $company->id]);
+
+            if ($supplier->exists && method_exists($supplier, 'trashed') && $supplier->trashed()) {
+                $supplier->restore();
+            }
 
             $supplier->fill(array_filter([
                 'name' => $form['company_name'] ?? $company->name,

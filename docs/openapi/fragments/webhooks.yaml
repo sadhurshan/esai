@@ -74,6 +74,64 @@ components:
         created_at:
           type: string
           format: date-time
+    EventDelivery:
+      type: object
+      required:
+        - id
+        - subscription_id
+        - event
+        - status
+        - attempts
+      properties:
+        id:
+          type: integer
+        subscription_id:
+          type: integer
+        endpoint:
+          type: string
+          format: uri
+          nullable: true
+        event:
+          type: string
+        status:
+          type: string
+          enum: [pending, success, failed, dead_letter]
+        attempts:
+          type: integer
+        max_attempts:
+          type: integer
+          nullable: true
+        latency_ms:
+          type: integer
+          nullable: true
+        response_code:
+          type: integer
+          nullable: true
+        response_body:
+          type: string
+          nullable: true
+        last_error:
+          type: string
+          nullable: true
+        payload:
+          type: object
+          nullable: true
+          additionalProperties: true
+        dead_lettered_at:
+          type: string
+          format: date-time
+          nullable: true
+        dispatched_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
 paths:
   /api/admin/webhook-subscriptions:
     get:
@@ -267,6 +325,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/billing/stripe/webhook:
+    post:
+      tags:
+        - Webhooks
+      summary: Stripe catch-all billing webhook
+      operationId: stripeBillingCatchAll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook received and optionally processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+        '400':
+          description: Invalid Stripe signature or malformed payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/admin/webhook-deliveries:
     get:
       tags:
@@ -320,3 +404,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/events/deliveries:
+    get:
+      tags:
+        - Webhooks
+      summary: List webhook event deliveries for the tenant
+      operationId: listEventDeliveries
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, success, failed, dead_letter]
+        - name: event
+          in: query
+          schema:
+            type: string
+        - name: subscription_id
+          in: query
+          schema:
+            type: integer
+        - name: endpoint
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: dlq_only
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Cursor-paginated event deliveries for the company or platform admin scope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - items
+                          - meta
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/EventDelivery'
+                          meta:
+                            type: object
+                            properties:
+                              per_page:
+                                type: integer
+                              next_cursor:
+                                type: string
+                                nullable: true
+                              prev_cursor:
+                                type: string
+                                nullable: true
+  /api/events/deliveries/{deliveryId}/retry:
+    post:
+      tags:
+        - Webhooks
+      summary: Retry a failed delivery owned by the tenant
+      operationId: retryEventDelivery
+      parameters:
+        - name: deliveryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Delivery re-queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+  /api/events/dlq/replay:
+    post:
+      tags:
+        - Webhooks
+      summary: Replay dead-lettered deliveries
+      operationId: replayDeadLetters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Dead-lettered deliveries scheduled for replay.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          replayed:
+                            type: integer

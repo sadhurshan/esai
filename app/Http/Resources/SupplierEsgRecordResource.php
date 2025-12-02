@@ -17,14 +17,9 @@ class SupplierEsgRecordResource extends JsonResource
         $document = $this->document;
         $downloadUrl = null;
 
-        if ($document !== null) {
+        if ($document !== null && $document->path !== null) {
             $disk = config('documents.disk', config('filesystems.default', 'local'));
-
-            try {
-                $downloadUrl = Storage::disk($disk)->temporaryUrl($document->path, now()->addMinutes(10));
-            } catch (\Throwable) {
-                $downloadUrl = Storage::disk($disk)->url($document->path);
-            }
+            $downloadUrl = $this->buildDownloadUrl($disk, $document->path);
         }
 
         return [
@@ -42,5 +37,20 @@ class SupplierEsgRecordResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
             'is_expired' => $this->isExpired(),
         ];
+    }
+
+    private function buildDownloadUrl(string $disk, string $path): string
+    {
+        try {
+            return Storage::disk($disk)->temporaryUrl($path, now()->addMinutes(10));
+        } catch (\Throwable) {
+            try {
+                return Storage::disk($disk)->url($path);
+            } catch (\Throwable) {
+                $normalized = ltrim($path, '/');
+
+                return url('/storage/'.$normalized);
+            }
+        }
     }
 }

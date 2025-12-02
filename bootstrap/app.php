@@ -10,18 +10,26 @@ use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
+use App\Http\Middleware\EnsureBuyerAccess;
+use App\Http\Middleware\EnsureBillingAccess;
 use App\Http\Middleware\EnsureRiskAccess;
 use App\Http\Middleware\EnsureCompanyApproved;
 use App\Http\Middleware\EnsureApprovalsAccess;
 use App\Http\Middleware\EnsureRmaAccess;
 use App\Http\Middleware\EnsureCreditNotesAccess;
 use App\Http\Middleware\EnsureSearchAccess;
+use App\Http\Middleware\EnsureNotificationAccess;
+use App\Http\Middleware\EnsureEventAccess;
 use App\Http\Middleware\EnsureDigitalTwinAccess;
 use App\Http\Middleware\EnsurePrAccess;
+use App\Http\Middleware\EnsureRfpAccess;
 use App\Http\Middleware\EnsureMoneyAccess;
+use App\Http\Middleware\EnsureOrdersAccess;
+use App\Http\Middleware\EnsureSourcingAccess;
 use App\Http\Middleware\EnsureLocalizationAccess;
 use App\Http\Middleware\EnsureInventoryAccess;
 use App\Http\Middleware\EnsureExportAccess;
+use App\Http\Middleware\ResolveCompanyContext;
 use App\Http\Middleware\RateLimitEnforcer;
 use App\Http\Middleware\BuyerAdminOnly;
 use App\Http\Middleware\HandleAppearance;
@@ -29,6 +37,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -70,23 +80,62 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.rma.access' => EnsureRmaAccess::class,
             'ensure.credit_notes.access' => EnsureCreditNotesAccess::class,
             'ensure.search.access' => EnsureSearchAccess::class,
+            'ensure.notifications.access' => EnsureNotificationAccess::class,
+            'ensure.events.access' => EnsureEventAccess::class,
             'ensure.digital_twin.access' => EnsureDigitalTwinAccess::class,
             'ensure.pr.access' => EnsurePrAccess::class,
             'ensure.money.access' => EnsureMoneyAccess::class,
             'ensure.localization.access' => EnsureLocalizationAccess::class,
             'ensure.inventory.access' => EnsureInventoryAccess::class,
             'ensure.export.access' => EnsureExportAccess::class,
+            'buyer_access' => EnsureBuyerAccess::class,
+            'billing_access' => EnsureBillingAccess::class,
+            'orders_access' => EnsureOrdersAccess::class,
+            'sourcing_access' => EnsureSourcingAccess::class,
+            'rfp_access' => EnsureRfpAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
-            'role' => \App\Http\Middleware\EnsureUserRole::class,
             'apply.company.locale' => ApplyCompanyLocale::class,
             'admin.guard' => AdminGuard::class,
+            'bypass.company.context' => \App\Http\Middleware\BypassCompanyContext::class,
             'api.key.auth' => ApiKeyAuth::class,
             'rate.limit.enforcer' => RateLimitEnforcer::class,
             'auth.session' => AuthenticateApiSession::class,
         ]);
 
         $middleware->prependToGroup('api', AuthenticateApiSession::class);
+        $middleware->appendToGroup('api', ResolveCompanyContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (ValidationException $exception, $request) {
+            if (! $request->expectsJson()) {
+                return null;
+            }
+
+            $errors = $exception->errors();
+            $firstError = collect($errors)->flatten()->first();
+
+            $message = $exception->getMessage();
+            if ($firstError !== null && ($message === '' || $message === 'The given data was invalid.')) {
+                $message = $firstError;
+            }
+
+            $requestId = (string) ($request->headers->get('X-Request-Id')
+                ?? $request->attributes->get('request_id')
+                ?? Str::uuid());
+
+            $request->attributes->set('request_id', $requestId);
+
+            $payload = [
+                'status' => 'error',
+                'message' => $message,
+                'data' => null,
+                'meta' => ['request_id' => $requestId],
+            ];
+
+            if ($errors !== []) {
+                $payload['errors'] = $errors;
+            }
+
+            return response()->json($payload, $exception->status);
+        });
     })->create();

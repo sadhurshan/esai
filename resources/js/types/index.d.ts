@@ -28,7 +28,13 @@ export interface User {
     name: string;
     email: string;
     company_id?: number | null;
-    avatar?: string;
+    avatar?: string | null;
+    avatar_url?: string | null;
+    avatar_path?: string | null;
+    job_title?: string | null;
+    phone?: string | null;
+    locale?: string | null;
+    timezone?: string | null;
     email_verified_at: string | null;
     role?: string | null;
     two_factor_enabled?: boolean;

@@ -175,7 +175,7 @@ export function ReceivingListPage() {
                     description="Upgrade your Elements Supply plan to enable goods receipt workflows."
                     icon={<Truck className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

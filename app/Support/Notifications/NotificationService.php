@@ -99,6 +99,31 @@ class NotificationService
         return true;
     }
 
+    /**
+     * @param  list<int>  $ids
+     */
+    public function markSelectedAsRead(User $user, array $ids): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+
+        $notifications = Notification::query()
+            ->where('user_id', $user->id)
+            ->whereIn('id', $ids)
+            ->get();
+
+        $updated = 0;
+
+        foreach ($notifications as $notification) {
+            if ($this->markAsRead($notification, $user)) {
+                $updated++;
+            }
+        }
+
+        return $updated;
+    }
+
     public function markAllAsRead(User $user): int
     {
         $notifications = Notification::query()
@@ -106,10 +131,14 @@ class NotificationService
             ->whereNull('read_at')
             ->get();
 
+        $updated = 0;
+
         foreach ($notifications as $notification) {
-            $this->markAsRead($notification, $user);
+            if ($this->markAsRead($notification, $user)) {
+                $updated++;
+            }
         }
 
-        return $notifications->count();
+        return $updated;
     }
 }

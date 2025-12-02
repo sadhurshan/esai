@@ -7,6 +7,7 @@ use App\Models\Approval;
 use App\Models\ApprovalRule;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Models\Ncr;
 use App\Models\PoChangeOrder;
 use App\Models\PurchaseOrder;
 use App\Models\RFQ;
@@ -279,7 +280,8 @@ class ApprovalWorkflowService
             PurchaseOrder::class => 'purchase_order',
             PoChangeOrder::class => 'change_order',
             Invoice::class => 'invoice',
-            default => 'ncr', // TODO: clarify target type mapping when NCR model is available.
+            Ncr::class => 'ncr',
+            default => 'ncr',
         };
     }
 
@@ -339,6 +341,7 @@ class ApprovalWorkflowService
             'purchase_order' => PurchaseOrder::class,
             'change_order' => PoChangeOrder::class,
             'invoice' => Invoice::class,
+            'ncr' => Ncr::class,
             default => null,
         };
 
@@ -368,8 +371,10 @@ class ApprovalWorkflowService
             $entity->status = $outcome === 'approved' ? 'pending' : 'disputed';
         } elseif ($targetType === 'rfq') {
             $entity->status = $outcome === 'approved' ? 'open' : 'cancelled';
+        } elseif ($targetType === 'ncr') {
+            $entity->status = $outcome === 'approved' ? 'closed' : 'open';
         } else {
-            // TODO: clarify NCR status mapping once the model is introduced.
+            // TODO: clarify status mapping once additional approval targets are added.
         }
 
         $entity->save();

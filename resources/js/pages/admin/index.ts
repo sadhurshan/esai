@@ -7,3 +7,8 @@ export * from './admin-webhooks-page';
 export * from './admin-rate-limits-page';
 export * from './admin-audit-log-page';
 export * from './admin-company-approvals-page';
+export * from './admin-supplier-applications-page';
+export * from './admin-digital-twin-list-page';
+export * from './admin-digital-twin-create-page';
+export * from './admin-digital-twin-detail-page';
+export * from './admin-digital-twin-categories-page';

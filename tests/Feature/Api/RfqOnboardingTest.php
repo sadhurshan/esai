@@ -8,31 +8,10 @@ use App\Models\RFQ;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\RfqPayloadFactory;
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
-
-function validRfqPayload(): array
-{
-    return [
-        'item_name' => 'Precision Bracket',
-        'type' => 'manufacture',
-        'client_company' => 'Elements Supply AI',
-        'status' => 'awaiting',
-        'notes' => 'Urgent run for pilot build.',
-        'items' => [
-            [
-                'part_name' => 'Bracket A',
-                'quantity' => 100,
-                'uom' => 'pcs',
-                'method' => 'CNC Milling',
-                'material' => 'Aluminium 6061',
-                'tolerance' => '±0.01 mm',
-                'finish' => 'Anodized',
-            ],
-        ],
-    ];
-}
 
 it('rejects RFQ creation when company onboarding is incomplete', function (): void {
     $company = Company::factory()->create([
@@ -53,7 +32,7 @@ it('rejects RFQ creation when company onboarding is incomplete', function (): vo
 
     actingAs($user);
 
-    $response = $this->postJson('/api/rfqs', validRfqPayload());
+    $response = $this->postJson('/api/rfqs', RfqPayloadFactory::make());
 
     $response->assertStatus(403)
         ->assertJsonPath('status', 'error')
@@ -83,7 +62,7 @@ it('blocks RFQ creation until the company is approved even when onboarding is co
 
     actingAs($user);
 
-    $response = $this->postJson('/api/rfqs', validRfqPayload());
+    $response = $this->postJson('/api/rfqs', RfqPayloadFactory::make());
 
     $response->assertStatus(403)
         ->assertJsonPath('errors.company.0', 'Company approval pending. A platform admin must verify your documents first.');
@@ -120,7 +99,7 @@ it('allows RFQ creation after approval is complete', function (): void {
 
     actingAs($user);
 
-    $response = $this->postJson('/api/rfqs', validRfqPayload());
+    $response = $this->postJson('/api/rfqs', RfqPayloadFactory::make());
 
     $response->assertCreated()
         ->assertJsonPath('status', 'success');

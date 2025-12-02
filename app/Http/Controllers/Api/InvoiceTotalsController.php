@@ -22,11 +22,23 @@ class InvoiceTotalsController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if ($companyId === null) {
+            return $this->fail('Active company context required.', 422, [
+                'code' => 'company_context_missing',
+            ]);
+        }
+
+        if ($user->company_id === null) {
+            $user->company_id = $companyId;
+        }
+
         if ($this->authorizeDenied($user, 'update', $invoice)) {
             return $this->fail('Forbidden.', 403);
         }
 
-        if ($user->company_id === null || (int) $user->company_id !== (int) $invoice->company_id) {
+        if ((int) $invoice->company_id !== $companyId) {
             return $this->fail('Invoice not found for this company.', 404);
         }
 

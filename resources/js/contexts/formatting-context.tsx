@@ -2,6 +2,8 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { useLocalizationSettings } from '@/hooks/api/settings';
 import type { LocalizationSettings } from '@/types/settings';
+import { useAuth } from '@/contexts/auth-context';
+import { isPlatformRole } from '@/constants/platform-roles';
 
 const DEFAULT_SETTINGS: LocalizationSettings = {
     timezone: 'UTC',
@@ -44,8 +46,16 @@ export interface FormattingContextValue {
 
 const FormattingContext = createContext<FormattingContextValue | undefined>(undefined);
 
-export function FormattingProvider({ children }: { children: ReactNode }) {
-    const localization = useLocalizationSettings();
+interface FormattingProviderProps {
+    children: ReactNode;
+    disableRemoteFetch?: boolean;
+}
+
+export function FormattingProvider({ children, disableRemoteFetch = false }: FormattingProviderProps) {
+    const { state } = useAuth();
+    const role = state.user?.role ?? null;
+    const allowRemoteFetch = !disableRemoteFetch && !isPlatformRole(role);
+    const localization = useLocalizationSettings({ enabled: allowRemoteFetch });
 
     const value = useMemo(() => buildFormattingContext(localization.data), [localization.data]);
 

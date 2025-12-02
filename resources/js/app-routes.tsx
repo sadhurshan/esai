@@ -1,11 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from '@/components/require-auth';
 import { RequireSupplierAccess } from '@/components/require-supplier-access';
+import { RequireDigitalTwinAccess } from '@/components/require-digital-twin-access';
 import { RequireActivePlan } from '@/components/require-active-plan';
 import { RequireAdminConsole } from '@/components/require-admin-console';
 import { AppLayout } from '@/layouts/app-layout';
 import { DashboardPage } from '@/pages/dashboard';
 import { RfqCreateWizard, RfqDetailPage, RfqListPage } from '@/pages/rfqs';
+import { RfpProposalReviewPage } from '@/pages/rfps';
 import { AwardReviewPage } from '@/pages/awards/award-review-page';
 import {
     QuoteDetailPage,
@@ -15,7 +17,12 @@ import {
 } from '@/pages/quotes';
 import { PoDetailPage, PoListPage } from '@/pages/pos';
 import { InvoiceDetailPage, InvoiceListPage } from '@/pages/invoices';
-import { SupplierDirectoryPage, SupplierPoDetailPage, SupplierProfilePage } from '@/pages/suppliers';
+import {
+    SupplierDirectoryPage,
+    SupplierPoDetailPage,
+    SupplierProfilePage,
+    SupplierRfpProposalPage,
+} from '@/pages/suppliers';
 import { InventoryPage } from '@/pages/inventory';
 import { ItemListPage } from '@/pages/inventory/items/item-list-page';
 import { ItemCreatePage } from '@/pages/inventory/items/item-create-page';
@@ -25,7 +32,12 @@ import { MovementCreatePage } from '@/pages/inventory/movements/movement-create-
 import { MovementDetailPage } from '@/pages/inventory/movements/movement-detail-page';
 import { LowStockAlertPage } from '@/pages/inventory/alerts/low-stock-alert-page';
 import { AssetsPage } from '@/pages/assets';
-import { OrdersPage } from '@/pages/orders';
+import {
+    BuyerOrderDetailPage,
+    BuyerOrderListPage,
+    SupplierOrderDetailPage,
+    SupplierOrderListPage,
+} from '@/pages/orders';
 import { RiskPage } from '@/pages/risk';
 import { AnalyticsPage } from '@/pages/analytics';
 import {
@@ -33,28 +45,53 @@ import {
     CompanySettingsPage,
     LocalizationSettingsPage,
     NumberingSettingsPage,
+    ProfileSettingsPage,
+    NotificationSettingsPage,
+    CompanyInvitationsPage,
+    CompanyMembersPage,
+    CompanyRolesPage,
+    BillingSettingsPage,
 } from '@/pages/settings';
 import {
     AdminApiKeysPage,
     AdminAuditLogPage,
     AdminCompanyApprovalsPage,
+    AdminDigitalTwinCategoriesPage,
+    AdminDigitalTwinCreatePage,
+    AdminDigitalTwinDetailPage,
+    AdminDigitalTwinListPage,
     AdminHomePage,
     AdminPlansPage,
     AdminRateLimitsPage,
     AdminRolesPage,
+    AdminSupplierApplicationsPage,
     AdminWebhooksPage,
 } from '@/pages/admin';
+import { NotificationCenterPage } from '@/pages/notifications/notification-center-page';
+import { EventDeliveriesPage } from '@/pages/events/event-deliveries-page';
 import { ReceivingListPage } from '@/pages/receiving/receiving-list-page';
 import { ReceivingCreatePage } from '@/pages/receiving/receiving-create-page';
 import { ReceivingDetailPage } from '@/pages/receiving/receiving-detail-page';
+import { DownloadCenterPage } from '@/pages/downloads';
 import { MatchWorkbenchPage } from '@/pages/matching/match-workbench-page';
 import { CreditNoteListPage } from '@/pages/credits/credit-note-list-page';
 import { CreditNoteDetailPage } from '@/pages/credits/credit-note-detail-page';
-import { LoginPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage, RegisterPage } from '@/pages/auth';
+import {
+    LoginPage,
+    AcceptCompanyInvitationPage,
+    ForgotPasswordPage,
+    ResetPasswordPage,
+    VerifyEmailPage,
+    RegisterPage,
+} from '@/pages/auth';
 import { PlanSelectionPage } from '@/pages/onboarding';
+import { DigitalTwinLibraryPage, DigitalTwinDetailPage } from '@/pages/digital-twins';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { NotFoundPage } from '@/pages/errors/not-found-page';
 import { type ReactElement } from 'react';
+import { FormattingProvider } from '@/contexts/formatting-context';
+import { useAuth } from '@/contexts/auth-context';
+import { isPlatformRole } from '@/constants/platform-roles';
 
 export function AppRoutes(): ReactElement {
     return (
@@ -65,23 +102,38 @@ export function AppRoutes(): ReactElement {
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route element={<RequireAuth />}>
-                <Route path="/app/setup/plan" element={<PlanSelectionPage />} />
+                <Route path="/invitations/accept/:token" element={<AcceptCompanyInvitationPage />} />
+                <Route
+                    path="/app/setup/plan"
+                    element={(
+                        <FormattingProvider disableRemoteFetch>
+                            <PlanSelectionPage />
+                        </FormattingProvider>
+                    )}
+                />
                 <Route element={<RequireActivePlan />}>
                     <Route path="/app" element={<AppLayout />}>
-                        <Route index element={<DashboardPage />} />
+                        <Route index element={<AppIndexRoute />} />
+                        <Route path="notifications" element={<NotificationCenterPage />} />
+                        <Route path="downloads" element={<DownloadCenterPage />} />
+                        <Route path="events/deliveries" element={<EventDeliveriesPage />} />
                         <Route path="rfqs" element={<RfqListPage />} />
                         <Route path="rfqs/new" element={<RfqCreateWizard />} />
                         <Route path="rfqs/:id" element={<RfqDetailPage />} />
                         <Route path="rfqs/:rfqId/awards" element={<AwardReviewPage />} />
                         <Route path="rfqs/:rfqId/quotes" element={<QuoteListPage />} />
+                        <Route path="rfps/:rfpId/proposals" element={<RfpProposalReviewPage />} />
                         <Route path="quotes" element={<QuoteListPage />} />
                         <Route path="quotes/:quoteId" element={<QuoteDetailPage />} />
                         <Route path="suppliers" element={<SupplierDirectoryPage />} />
                         <Route path="suppliers/:supplierId" element={<SupplierProfilePage />} />
                         <Route element={<RequireSupplierAccess />}>
+                            <Route path="suppliers/rfps/:rfpId/proposals/new" element={<SupplierRfpProposalPage />} />
                             <Route path="suppliers/rfqs/:rfqId/quotes/new" element={<SupplierQuoteCreatePage />} />
                             <Route path="suppliers/quotes/:quoteId" element={<SupplierQuoteEditPage />} />
                             <Route path="suppliers/pos/:purchaseOrderId" element={<SupplierPoDetailPage />} />
+                            <Route path="supplier/orders" element={<SupplierOrderListPage />} />
+                            <Route path="supplier/orders/:soId" element={<SupplierOrderDetailPage />} />
                         </Route>
                         <Route path="purchase-orders" element={<PoListPage />} />
                         <Route path="purchase-orders/:purchaseOrderId" element={<PoDetailPage />} />
@@ -103,24 +155,40 @@ export function AppRoutes(): ReactElement {
                         <Route path="inventory/movements/new" element={<MovementCreatePage />} />
                         <Route path="inventory/movements/:movementId" element={<MovementDetailPage />} />
                         <Route path="inventory/alerts" element={<LowStockAlertPage />} />
+                        <Route element={<RequireDigitalTwinAccess />}>
+                            <Route path="library/digital-twins" element={<DigitalTwinLibraryPage />} />
+                            <Route path="library/digital-twins/:id" element={<DigitalTwinDetailPage />} />
+                        </Route>
                         <Route path="assets" element={<AssetsPage />} />
-                        <Route path="orders" element={<OrdersPage />} />
+                        <Route path="orders" element={<BuyerOrderListPage />} />
+                        <Route path="orders/:soId" element={<BuyerOrderDetailPage />} />
                         <Route path="risk" element={<RiskPage />} />
                         <Route path="analytics" element={<AnalyticsPage />} />
                         <Route path="settings" element={<SettingsPage />} />
+                        <Route path="settings/profile" element={<ProfileSettingsPage />} />
+                        <Route path="settings/notifications" element={<NotificationSettingsPage />} />
+                        <Route path="settings/team" element={<CompanyMembersPage />} />
+                        <Route path="settings/invitations" element={<CompanyInvitationsPage />} />
+                        <Route path="settings/roles" element={<CompanyRolesPage />} />
                         <Route path="settings/company" element={<CompanySettingsPage />} />
+                        <Route path="settings/billing" element={<BillingSettingsPage />} />
                         <Route path="settings/localization" element={<LocalizationSettingsPage />} />
                         <Route path="settings/numbering" element={<NumberingSettingsPage />} />
-                    <Route element={<RequireAdminConsole />}>
-                        <Route path="admin" element={<AdminHomePage />} />
-                        <Route path="admin/plans" element={<AdminPlansPage />} />
-                        <Route path="admin/roles" element={<AdminRolesPage />} />
-                        <Route path="admin/api-keys" element={<AdminApiKeysPage />} />
-                        <Route path="admin/webhooks" element={<AdminWebhooksPage />} />
-                        <Route path="admin/rate-limits" element={<AdminRateLimitsPage />} />
-                        <Route path="admin/audit" element={<AdminAuditLogPage />} />
-                        <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />
-                    </Route>
+                        <Route element={<RequireAdminConsole />}>
+                            <Route path="admin" element={<AdminHomePage />} />
+                            <Route path="admin/plans" element={<AdminPlansPage />} />
+                            <Route path="admin/roles" element={<AdminRolesPage />} />
+                            <Route path="admin/api-keys" element={<AdminApiKeysPage />} />
+                            <Route path="admin/webhooks" element={<AdminWebhooksPage />} />
+                            <Route path="admin/rate-limits" element={<AdminRateLimitsPage />} />
+                            <Route path="admin/audit" element={<AdminAuditLogPage />} />
+                            <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />
+                            <Route path="admin/supplier-applications" element={<AdminSupplierApplicationsPage />} />
+                            <Route path="admin/digital-twins" element={<AdminDigitalTwinListPage />} />
+                            <Route path="admin/digital-twins/categories" element={<AdminDigitalTwinCategoriesPage />} />
+                            <Route path="admin/digital-twins/new" element={<AdminDigitalTwinCreatePage />} />
+                            <Route path="admin/digital-twins/:id" element={<AdminDigitalTwinDetailPage />} />
+                        </Route>
                         <Route path="access-denied" element={<AccessDeniedPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
@@ -129,4 +197,15 @@ export function AppRoutes(): ReactElement {
             <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>
     );
+}
+
+function AppIndexRoute(): ReactElement {
+    const { state } = useAuth();
+    const role = state.user?.role ?? null;
+
+    if (isPlatformRole(role)) {
+        return <Navigate to="/app/admin" replace />;
+    }
+
+    return <DashboardPage />;
 }

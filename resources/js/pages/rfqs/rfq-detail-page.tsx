@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, useReducer } from 'react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { addDays, format, formatDistanceToNow } from 'date-fns';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { Plus, PenLine, Trash2 } from 'lucide-react';
 
 import { AttachmentUploader } from '@/components/rfqs/attachment-uploader';
+import { ExportButtons } from '@/components/downloads/export-buttons';
 import { ClarificationThread } from '@/components/rfqs/clarification-thread';
 import { RfqLineEditorModal, type RfqLineFormValues } from '@/components/rfqs/rfq-line-editor-modal';
 import { InviteSuppliersDialog } from '@/components/rfqs/invite-suppliers-dialog';
@@ -39,6 +40,7 @@ import {
     useAmendRfq,
     useCloseRfq,
     useDeleteLine,
+    useExtendRfqDeadline,
     usePublishRfq,
     useRfq,
     useRfqAttachments,
@@ -50,7 +52,7 @@ import {
     useUpdateRfq,
 } from '@/hooks/api/rfqs';
 import type { Rfq, RfqInvitation, RfqItem, RfqLinePayload, RfqTimelineEntry } from '@/sdk';
-import { RfqTypeEnum } from '@/sdk';
+import { RFQ_METHOD_OPTIONS, isRfqMethod, type RfqMethod } from '@/constants/rfq';
 
 interface PublishFormState {
     dueAt: string;
@@ -66,21 +68,37 @@ const DEFAULT_PUBLISH_FORM: PublishFormState = {
     message: '',
 };
 
+const DEFAULT_METHOD: RfqMethod = RFQ_METHOD_OPTIONS[0]?.value ?? 'other';
+
 interface EditDetailsFormState {
-    itemName: string;
-    type: RfqTypeEnum;
-    deadlineAt: string;
+    title: string;
+    method: RfqMethod;
+    dueAt: string;
     isOpenBidding: boolean;
     notes: string;
 }
 
 const DEFAULT_EDIT_FORM: EditDetailsFormState = {
-    itemName: '',
-    type: RfqTypeEnum.Manufacture,
-    deadlineAt: '',
+    title: '',
+    method: DEFAULT_METHOD,
+    dueAt: '',
     isOpenBidding: false,
     notes: '',
 };
+
+interface ExtendDeadlineFormState {
+    newDueAt: string;
+    reason: string;
+    notifySuppliers: boolean;
+}
+
+const DEFAULT_EXTEND_FORM: ExtendDeadlineFormState = {
+    newDueAt: '',
+    reason: '',
+    notifySuppliers: true,
+};
+
+const MIN_EXTEND_REASON_LENGTH = 10;
 
 const TIMELINE_EVENT_LABELS: Record<string, string> = {
     created: 'RFQ created',
@@ -91,6 +109,25 @@ const TIMELINE_EVENT_LABELS: Record<string, string> = {
     answer_posted: 'Clarification answered',
     closed: 'RFQ closed',
     awarded: 'RFQ awarded',
+    deadline_extended: 'Deadline extended',
+};
+
+const TIMELINE_CONTEXT_LABELS: Record<string, string> = {
+    previous_due_at: 'Previous deadline',
+    new_due_at: 'New deadline',
+    deadline_at: 'Deadline',
+    due_at: 'Due date',
+    closes_at: 'Close date',
+    reason: 'Reason',
+    supplier_name: 'Supplier',
+    supplier_email: 'Supplier email',
+    status: 'Status',
+    number: 'Reference #',
+    question: 'Question',
+    answer: 'Answer',
+    document: 'Document',
+    body: 'Message',
+    awards_count: 'Awards recorded',
 };
 
 function toDateTimeLocalInput(date?: Date | null): string {
@@ -132,6 +169,15 @@ function toRelativeDate(date?: Date | null): string {
     }
 }
 
+function parseDateInput(value?: Date | string | null): Date | null {
+    if (!value) {
+        return null;
+    }
+
+    const parsed = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(parsed.valueOf()) ? null : parsed;
+}
+
 function normalizeEventLabel(event: string): string {
     if (TIMELINE_EVENT_LABELS[event]) {
         return TIMELINE_EVENT_LABELS[event];
@@ -143,26 +189,80 @@ function normalizeEventLabel(event: string): string {
         .join(' ');
 }
 
-function normalizeTimelineContext(context?: object): Array<{ key: string; value: string }> {
+function normalizeTimelineContext(context?: object): Array<{ key: string; label: string; value: string }> {
     if (!context || typeof context !== 'object' || Array.isArray(context)) {
         return [];
     }
 
     return Object.entries(context as Record<string, unknown>).map(([key, value]) => ({
         key,
-        value: typeof value === 'string' ? value : JSON.stringify(value),
+        label: formatTimelineContextLabel(key),
+        value: formatTimelineContextValue(key, value),
     }));
+}
+
+function formatTimelineContextLabel(key: string): string {
+    if (TIMELINE_CONTEXT_LABELS[key]) {
+        return TIMELINE_CONTEXT_LABELS[key];
+    }
+
+    return key
+        .split('_')
+        .map((segment) => (segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : segment))
+        .join(' ')
+        .trim();
+}
+
+function formatTimelineContextValue(key: string, value: unknown): string {
+    if (value === null || value === undefined) {
+        return '—';
+    }
+
+    if (value instanceof Date) {
+        return format(value, 'PPpp');
+    }
+
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) {
+            return '—';
+        }
+
+        if (isDateLikeContextKey(key)) {
+            const parsed = new Date(trimmed);
+            if (!Number.isNaN(parsed.valueOf())) {
+                return format(parsed, 'PPpp');
+            }
+        }
+
+        return trimmed;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+
+    try {
+        return JSON.stringify(value);
+    } catch (error) {
+        void error;
+        return String(value);
+    }
+}
+
+function isDateLikeContextKey(key: string): boolean {
+    return /(_at|_on|_due|_deadline|deadline|due)/i.test(key);
 }
 
 function computeSupplierStats(invitations: RfqInvitation[]) {
     const totalInvited = invitations.length;
-    const responded = invitations.filter((invitation) => Boolean(invitation.respondedAt)).length;
-    const accepted = invitations.filter((invitation) => invitation.status === 'responded' || invitation.status === 'accepted').length;
+    const accepted = invitations.filter((invitation) => invitation.status === 'accepted').length;
+    const declined = invitations.filter((invitation) => invitation.status === 'declined').length;
 
     return {
         totalInvited,
-        responded,
         accepted,
+        declined,
     };
 }
 
@@ -412,7 +512,10 @@ function SuppliersList({ invitations }: { invitations: RfqInvitation[] }) {
                                     {invitation.respondedAt ? ` • Responded ${toRelativeDate(invitation.respondedAt)}` : ''}
                                 </p>
                             </div>
-                            <Badge variant={invitation.status === 'responded' ? 'default' : 'secondary'} className="self-start capitalize">
+                            <Badge
+                                variant={invitation.status === 'accepted' ? 'default' : invitation.status === 'declined' ? 'destructive' : 'secondary'}
+                                className="self-start capitalize"
+                            >
                                 {invitation.status.replace(/_/g, ' ')}
                             </Badge>
                         </div>
@@ -451,8 +554,8 @@ function TimelineView({ items }: { items: RfqTimelineEntry[] }) {
                                 <dl className="mt-3 grid gap-1 text-xs text-muted-foreground">
                                     {contextEntries.map((item) => (
                                         <div key={item.key} className="flex gap-2">
-                                            <dt className="font-medium text-foreground">{item.key}</dt>
-                                            <dd className="flex-1 break-words">{item.value}</dd>
+                                            <dt className="font-medium text-foreground">{item.label}</dt>
+                                            <dd className="flex-1 whitespace-pre-line break-words">{item.value}</dd>
                                         </div>
                                     ))}
                                 </dl>
@@ -482,6 +585,8 @@ export function RfqDetailPage() {
     const [pendingDeleteLine, setPendingDeleteLine] = useState<RfqItem | null>(null);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
     const [editForm, setEditForm] = useState<EditDetailsFormState>(DEFAULT_EDIT_FORM);
+    const [isExtendDialogOpen, setExtendDialogOpen] = useState(false);
+    const [extendForm, setExtendForm] = useState<ExtendDeadlineFormState>(DEFAULT_EXTEND_FORM);
 
     const { hasFeature, state: authState } = useAuth();
     const featureFlagsLoaded = Object.keys(authState.featureFlags ?? {}).length > 0;
@@ -512,6 +617,7 @@ export function RfqDetailPage() {
             void rfqQuery.refetch();
         },
     });
+    const extendDeadlineMutation = useExtendRfqDeadline();
 
     const isLoading = rfqQuery.isLoading || !rfqId;
     const rfq = rfqQuery.data ?? null;
@@ -534,10 +640,12 @@ export function RfqDetailPage() {
     const canCloseRfq = allowFeature('rfqs.close');
     const canEditMetadata = allowFeature('rfqs.edit');
     const canManageClarifications = allowFeature('rfqs.clarifications.manage');
+    const canExtendDeadline = allowFeature('rfqs.deadline.extend');
 
     const isSavingLine = addLineMutation.isPending || updateLineMutation.isPending;
     const isDeletingLine = deleteLineMutation.isPending;
     const isLineMutationPending = isSavingLine || isDeletingLine;
+    const isExtendingDeadline = extendDeadlineMutation.isPending;
 
     const handleCreateLine = () => {
         setEditingLine(null);
@@ -635,6 +743,30 @@ export function RfqDetailPage() {
             });
         } finally {
             setPendingDeleteLine(null);
+        }
+    };
+
+    const handleOpenExtendDeadlineDialog = () => {
+        if (!rfq) {
+            return;
+        }
+
+        const currentDeadline = parseDateInput(rfq.deadlineAt ?? null);
+        const baseline = currentDeadline ?? new Date();
+        const suggestedDate = addDays(baseline, 3);
+
+        setExtendForm({
+            newDueAt: toDateTimeLocalInput(suggestedDate),
+            reason: '',
+            notifySuppliers: true,
+        });
+        setExtendDialogOpen(true);
+    };
+
+    const handleExtendDialogOpenChange = (open: boolean) => {
+        setExtendDialogOpen(open);
+        if (!open) {
+            setExtendForm(DEFAULT_EXTEND_FORM);
         }
     };
 
@@ -816,17 +948,97 @@ export function RfqDetailPage() {
         }
     };
 
+    const handleExtendDeadline = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!rfqId || !rfq) {
+            publishToast({
+                variant: 'destructive',
+                title: 'RFQ unavailable',
+                description: 'Select an RFQ before extending its deadline.',
+            });
+            return;
+        }
+
+        if (!extendForm.newDueAt) {
+            publishToast({
+                variant: 'destructive',
+                title: 'New deadline required',
+                description: 'Pick the new deadline you would like to apply.',
+            });
+            return;
+        }
+
+        const parsedNewDeadline = new Date(extendForm.newDueAt);
+        if (Number.isNaN(parsedNewDeadline.valueOf())) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Invalid deadline',
+                description: 'Double-check the new deadline and try again.',
+            });
+            return;
+        }
+
+        const currentDeadline = parseDateInput(rfq.deadlineAt ?? null);
+        if (currentDeadline && parsedNewDeadline.valueOf() <= currentDeadline.valueOf()) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Deadline must move forward',
+                description: 'Pick a date that is later than the current deadline.',
+            });
+            return;
+        }
+
+        const trimmedReason = extendForm.reason.trim();
+        if (trimmedReason.length < MIN_EXTEND_REASON_LENGTH) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Reason too short',
+                description: `Provide at least ${MIN_EXTEND_REASON_LENGTH} characters describing why you are extending the deadline.`,
+            });
+            return;
+        }
+
+        try {
+            await extendDeadlineMutation.mutateAsync({
+                rfqId,
+                newDueAt: parsedNewDeadline,
+                reason: trimmedReason,
+                notifySuppliers: extendForm.notifySuppliers,
+            });
+
+            publishToast({
+                variant: 'success',
+                title: 'Deadline extended',
+                description: 'Suppliers will see the new due date immediately.',
+            });
+            handleExtendDialogOpenChange(false);
+            void rfqQuery.refetch();
+            void timelineQuery.refetch();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to extend the deadline right now.';
+            publishToast({
+                variant: 'destructive',
+                title: 'Extension failed',
+                description: message,
+            });
+        }
+    };
+
     const handleEditDetails = () => {
         if (!rfq) {
             return;
         }
 
         const deadlineDate = rfq.deadlineAt ? new Date(rfq.deadlineAt) : null;
+        const normalizedMethod = isRfqMethod(rfq.method) ? rfq.method : DEFAULT_METHOD;
+        const extended = rfq as Rfq & { title?: string | null };
+        const candidateTitle = typeof extended.title === 'string' && extended.title.trim().length > 0 ? extended.title : rfq.itemName;
 
         setEditForm({
-            itemName: rfq.itemName ?? '',
-            type: rfq.type ?? RfqTypeEnum.Manufacture,
-            deadlineAt: toDateTimeLocalInput(deadlineDate),
+            title: candidateTitle ?? '',
+            method: normalizedMethod,
+            dueAt: toDateTimeLocalInput(deadlineDate),
             isOpenBidding: Boolean(rfq.isOpenBidding),
             notes: rfq.notes ?? '',
         });
@@ -852,19 +1064,19 @@ export function RfqDetailPage() {
             return;
         }
 
-        const trimmedName = editForm.itemName.trim();
-        if (!trimmedName) {
+        const trimmedTitle = editForm.title.trim();
+        if (!trimmedTitle) {
             publishToast({
                 variant: 'destructive',
                 title: 'Title required',
-                description: 'Provide a descriptive item name before saving.',
+                description: 'Provide a descriptive title before saving.',
             });
             return;
         }
 
         let parsedDeadline: Date | undefined;
-        if (editForm.deadlineAt) {
-            const candidate = new Date(editForm.deadlineAt);
+        if (editForm.dueAt) {
+            const candidate = new Date(editForm.dueAt);
             if (Number.isNaN(candidate.getTime())) {
                 publishToast({
                     variant: 'destructive',
@@ -879,11 +1091,11 @@ export function RfqDetailPage() {
         try {
             await updateRfqMutation.mutateAsync({
                 rfqId,
-                itemName: trimmedName,
-                type: editForm.type,
-                isOpenBidding: editForm.isOpenBidding,
+                title: trimmedTitle,
+                method: editForm.method,
+                openBidding: editForm.isOpenBidding,
                 notes: editForm.notes.trim() || undefined,
-                deadlineAt: parsedDeadline,
+                dueAt: parsedDeadline,
             });
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to save changes right now.';
@@ -921,10 +1133,18 @@ export function RfqDetailPage() {
         );
     }
 
-    const extendedRfq = rfq as Rfq & { incoterm?: string | null; paymentTerms?: string | null };
+    const extendedRfq = rfq as Rfq & { incoterm?: string | null; paymentTerms?: string | null; taxPercent?: number | null };
     const incoterm = extendedRfq.incoterm ?? '—';
     const paymentTerms = extendedRfq.paymentTerms ?? '—';
+    const taxPercent =
+        typeof extendedRfq.taxPercent === 'number' && Number.isFinite(extendedRfq.taxPercent)
+            ? `${extendedRfq.taxPercent}%`
+            : '—';
     const visibilityLabel = extendedRfq.isOpenBidding ? 'Public (open bidding)' : 'Invite only';
+    const currentDeadlineDate = parseDateInput(rfq.deadlineAt ?? null);
+    const currentDeadlineLabel = currentDeadlineDate ? format(currentDeadlineDate, 'PPpp') : 'Not set';
+    const extendDeadlineMinValue = currentDeadlineDate ? toDateTimeLocalInput(currentDeadlineDate) : undefined;
+    const showExtendDeadlineAction = canExtendDeadline && rfq.status === 'open';
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -942,6 +1162,7 @@ export function RfqDetailPage() {
                         setAmendDialogOpen(true);
                     }
                     : undefined}
+                onExtendDeadline={showExtendDeadlineAction ? handleOpenExtendDeadlineDialog : undefined}
                 onClose={canCloseRfq ? () => {
                         setCloseReason('');
                         setCloseDialogOpen(true);
@@ -953,6 +1174,11 @@ export function RfqDetailPage() {
                 <Button asChild variant="secondary">
                     <Link to={`/app/rfqs/${rfq.id}/awards`}>Review awards &amp; convert to POs</Link>
                 </Button>
+                <ExportButtons
+                    documentType="rfq"
+                    documentId={rfq.id}
+                    reference={rfq.number ?? rfq.itemName ?? undefined}
+                />
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="overview">
@@ -1013,6 +1239,10 @@ export function RfqDetailPage() {
                                         <span className="block text-xs uppercase tracking-wide text-muted-foreground">Payment terms</span>
                                         <span className="mt-1 block text-foreground">{paymentTerms}</span>
                                     </div>
+                                    <div>
+                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Tax rate</span>
+                                        <span className="mt-1 block text-foreground">{taxPercent}</span>
+                                    </div>
                                     {rfq.tolerance ? (
                                         <div>
                                             <span className="block text-xs uppercase tracking-wide text-muted-foreground">Tolerance</span>
@@ -1047,13 +1277,13 @@ export function RfqDetailPage() {
                                 </div>
                                 <Separator />
                                 <div>
-                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Responses received</span>
-                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.responded}</div>
+                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Accepted invitations</span>
+                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.accepted}</div>
                                 </div>
                                 <Separator />
                                 <div>
-                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Accepted invitations</span>
-                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.accepted}</div>
+                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Declined invitations</span>
+                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.declined}</div>
                                 </div>
                                 <Button
                                     type="button"
@@ -1131,12 +1361,12 @@ export function RfqDetailPage() {
                         <div className="flex flex-col gap-4">
                             <ClarificationThread
                                 clarifications={clarificationsQuery.items ?? []}
-                                onAskQuestion={(body) => clarificationsQuery.askQuestion({ body })}
-                                onAnswerQuestion={(body) => clarificationsQuery.answerQuestion({ body })}
+                                onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
+                                onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
                                 isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
                                 isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
-                                        canAskQuestion={canManageClarifications}
-                                        canAnswerQuestion={canManageClarifications}
+                                canAskQuestion={canManageClarifications}
+                                canAnswerQuestion={canManageClarifications}
                             />
                         </div>
                     </div>
@@ -1226,14 +1456,14 @@ export function RfqDetailPage() {
 
                     <form className="grid gap-4" onSubmit={handleUpdateRfq}>
                         <div className="grid gap-2">
-                            <Label htmlFor="edit-item-name">Item name</Label>
+                            <Label htmlFor="edit-title">Title</Label>
                             <Input
-                                id="edit-item-name"
-                                value={editForm.itemName}
+                                id="edit-title"
+                                value={editForm.title}
                                 onChange={(event) =>
                                     setEditForm((state) => ({
                                         ...state,
-                                        itemName: event.target.value,
+                                        title: event.target.value,
                                     }))
                                 }
                                 placeholder="e.g. CNC machined bracket"
@@ -1242,22 +1472,28 @@ export function RfqDetailPage() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="edit-type">RFQ type</Label>
+                            <Label htmlFor="edit-method">Manufacturing method</Label>
                             <Select
-                                value={editForm.type}
-                                onValueChange={(value: RfqTypeEnum) =>
+                                value={editForm.method}
+                                onValueChange={(value: RfqMethod) =>
                                     setEditForm((state) => ({
                                         ...state,
-                                        type: value,
+                                        method: value,
                                     }))
                                 }
                             >
-                                <SelectTrigger id="edit-type">
-                                    <SelectValue placeholder="Select a type" />
+                                <SelectTrigger id="edit-method">
+                                    <SelectValue placeholder="Select a method" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={RfqTypeEnum.Manufacture}>Manufacture</SelectItem>
-                                    <SelectItem value={RfqTypeEnum.ReadyMade}>Ready made</SelectItem>
+                                    {RFQ_METHOD_OPTIONS.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-medium text-foreground">{option.label}</span>
+                                                <span className="text-xs text-muted-foreground">{option.description}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -1267,11 +1503,11 @@ export function RfqDetailPage() {
                             <Input
                                 id="edit-deadline"
                                 type="datetime-local"
-                                value={editForm.deadlineAt}
+                                value={editForm.dueAt}
                                 onChange={(event) =>
                                     setEditForm((state) => ({
                                         ...state,
-                                        deadlineAt: event.target.value,
+                                        dueAt: event.target.value,
                                     }))
                                 }
                             />
@@ -1422,6 +1658,103 @@ export function RfqDetailPage() {
                         <DialogFooter>
                             <Button type="submit" disabled={amendMutation.isPending}>
                                 {amendMutation.isPending ? 'Submitting…' : 'Submit amendment'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isExtendDialogOpen} onOpenChange={handleExtendDialogOpenChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Extend RFQ deadline</DialogTitle>
+                        <DialogDescription>Set the new due date and explain the reason to suppliers.</DialogDescription>
+                    </DialogHeader>
+
+                    <form className="grid gap-4" onSubmit={handleExtendDeadline}>
+                        <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                            <p>
+                                Current deadline <span className="font-semibold text-foreground">{currentDeadlineLabel}</span>
+                            </p>
+                            {!currentDeadlineDate ? (
+                                <p className="mt-1">No deadline has been set yet. Suppliers will only see the new value.</p>
+                            ) : null}
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="extend-new-due-at">New deadline</Label>
+                            <Input
+                                id="extend-new-due-at"
+                                type="datetime-local"
+                                value={extendForm.newDueAt}
+                                onChange={(event) =>
+                                    setExtendForm((state) => ({
+                                        ...state,
+                                        newDueAt: event.target.value,
+                                    }))
+                                }
+                                min={extendDeadlineMinValue}
+                                required
+                                disabled={isExtendingDeadline}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Must be later than the current deadline. Suppliers will immediately see the new date.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="extend-reason">Reason shared with suppliers</Label>
+                            <Textarea
+                                id="extend-reason"
+                                rows={4}
+                                value={extendForm.reason}
+                                onChange={(event) =>
+                                    setExtendForm((state) => ({
+                                        ...state,
+                                        reason: event.target.value,
+                                    }))
+                                }
+                                placeholder="Describe why the timeline changed and any required supplier actions."
+                                minLength={MIN_EXTEND_REASON_LENGTH}
+                                required
+                                disabled={isExtendingDeadline}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Provide at least {MIN_EXTEND_REASON_LENGTH} characters so suppliers have the right context.
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-2 rounded-md border border-dashed p-3">
+                            <Checkbox
+                                id="extend-notify"
+                                checked={extendForm.notifySuppliers}
+                                onCheckedChange={(checked) =>
+                                    setExtendForm((state) => ({
+                                        ...state,
+                                        notifySuppliers: Boolean(checked),
+                                    }))
+                                }
+                                disabled={isExtendingDeadline}
+                            />
+                            <div className="space-y-1">
+                                <Label htmlFor="extend-notify">Notify invited suppliers</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    We will email the RFQ timeline update and new deadline to invited suppliers.
+                                </p>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleExtendDialogOpenChange(false)}
+                                disabled={isExtendingDeadline}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isExtendingDeadline}>
+                                {isExtendingDeadline ? 'Extending…' : 'Extend deadline'}
                             </Button>
                         </DialogFooter>
                     </form>

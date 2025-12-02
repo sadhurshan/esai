@@ -8,6 +8,7 @@ use App\Models\QuoteItem;
 use App\Services\LineTaxSyncService;
 use App\Services\TotalsCalculator;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Money\Money;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +24,9 @@ class RecalculateQuoteTotalsAction
 
     public function execute(Quote $quote): Quote
     {
-        $quote->loadMissing(['items.taxes', 'items.rfqItem']);
+        CompanyContext::bypass(function () use ($quote): void {
+            $quote->loadMissing(['items.taxes', 'items.rfqItem']);
+        });
 
         if ($quote->company_id === null) {
             throw ValidationException::withMessages([
@@ -113,7 +116,7 @@ class RecalculateQuoteTotalsAction
                 'total_minor' => $quote->total_minor,
             ]);
 
-            return $quote->load(['items.taxes.taxCode', 'items.rfqItem']);
+            return CompanyContext::bypass(fn () => $quote->load(['items.taxes.taxCode', 'items.rfqItem']));
         });
     }
 

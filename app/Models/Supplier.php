@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Supplier extends Model
+class Supplier extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\SupplierFactory> */
     use HasFactory;

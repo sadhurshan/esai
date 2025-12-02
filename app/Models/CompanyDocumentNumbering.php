@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
-class CompanyDocumentNumbering extends Model
+class CompanyDocumentNumbering extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

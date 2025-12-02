@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Document;
 use App\Models\QuoteRevision;
 use App\Models\Company;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Quote extends Model
+class Quote extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;
@@ -26,18 +27,19 @@ class Quote extends Model
         'unit_price',
         'min_order_qty',
         'lead_time_days',
-        'note',
+        'notes',
         'status',
         'revision_no',
         'withdrawn_at',
         'withdraw_reason',
         'subtotal',
         'tax_amount',
-        'total',
+        'total_price',
         'subtotal_minor',
         'tax_amount_minor',
-        'total_minor',
+        'total_price_minor',
         'submitted_at',
+        'attachments_count',
     ];
 
     protected $casts = [
@@ -48,11 +50,16 @@ class Quote extends Model
         'withdrawn_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
-        'total' => 'decimal:2',
+        'total_price' => 'decimal:2',
         'subtotal_minor' => 'integer',
         'tax_amount_minor' => 'integer',
-        'total_minor' => 'integer',
+        'total_price_minor' => 'integer',
         'submitted_at' => 'datetime',
+        'attachments_count' => 'integer',
+    ];
+
+    protected $attributes = [
+        'attachments_count' => 0,
     ];
 
     public function rfq(): BelongsTo
@@ -88,5 +95,29 @@ class Quote extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(QuoteRevision::class)->orderBy('revision_no');
+    }
+
+    protected function note(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, array $attributes): ?string => $attributes['notes'] ?? null,
+            set: fn (?string $value): array => ['notes' => $value],
+        );
+    }
+
+    protected function total(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, array $attributes): ?string => $attributes['total_price'] ?? null,
+            set: fn ($value): array => ['total_price' => $value],
+        );
+    }
+
+    protected function totalMinor(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, array $attributes): ?int => $attributes['total_price_minor'] ?? null,
+            set: fn ($value): array => ['total_price_minor' => $value],
+        );
     }
 }

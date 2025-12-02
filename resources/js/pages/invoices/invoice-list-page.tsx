@@ -183,7 +183,7 @@ export function InvoiceListPage() {
                     description="Upgrade your Elements Supply plan to unlock invoice tracking and matching."
                     icon={<Wallet className="h-10 w-10" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

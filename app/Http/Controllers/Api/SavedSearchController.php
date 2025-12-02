@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\Search\StoreSavedSearchRequest;
 use App\Http\Requests\Search\UpdateSavedSearchRequest;
 use App\Http\Resources\SavedSearchResource;
-use App\Models\Company;
 use App\Models\SavedSearch;
 use App\Models\User;
 use App\Services\GlobalSearchService;
@@ -26,23 +25,26 @@ class SavedSearchController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if (! $companyId) {
             return $this->fail('Company context required.', 403);
         }
 
-        $searches = SavedSearch::query()
-            ->where('company_id', $company->id)
+        $perPage = $this->perPage($request, 25, 100);
+
+        $paginator = SavedSearch::query()
+            ->where('company_id', $companyId)
             ->where('user_id', $user->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
-        $items = $searches
-            ->map(static fn (SavedSearch $search) => (new SavedSearchResource($search))->toArray($request))
-            ->all();
+        $paginated = $this->paginate($paginator, $request, SavedSearchResource::class);
 
-        return $this->ok(['items' => $items], 'Saved searches retrieved.');
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Saved searches retrieved.', $paginated['meta']);
     }
 
     public function store(StoreSavedSearchRequest $request): JsonResponse
@@ -53,13 +55,13 @@ class SavedSearchController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if (! $companyId) {
             return $this->fail('Company context required.', 403);
         }
 
-        if ($this->nameExists($request->input('name'), $company->id, $user->id)) {
+        if ($this->nameExists($request->input('name'), $companyId, $user->id)) {
             return $this->fail('Saved search name already in use.', 422, [
                 'name' => ['Name must be unique per user.'],
             ]);
@@ -76,7 +78,7 @@ class SavedSearchController extends ApiController
         }
 
         $saved = SavedSearch::create([
-            'company_id' => $company->id,
+            'company_id' => $companyId,
             'user_id' => $user->id,
             'name' => $request->input('name'),
             'query' => $request->input('q'),
@@ -183,7 +185,13 @@ class SavedSearchController extends ApiController
 
     private function canAccess(SavedSearch $savedSearch, User $user): bool
     {
-        return (int) $savedSearch->company_id === (int) $user->company_id
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if (! $companyId) {
+            return false;
+        }
+
+        return (int) $savedSearch->company_id === $companyId
             && (int) $savedSearch->user_id === (int) $user->id;
     }
 }

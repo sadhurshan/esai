@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 import { Branding } from '@/config/branding';
@@ -10,33 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-
-interface CatalogPlan {
-    code: string;
-    name: string;
-    price_usd: number | string | null;
-    rfqs_per_month: number;
-    invoices_per_month: number;
-    users_max: number;
-    storage_gb: number;
-    analytics_enabled: boolean;
-    risk_scores_enabled: boolean;
-    approvals_enabled: boolean;
-    rma_enabled: boolean;
-    credit_notes_enabled: boolean;
-    global_search_enabled: boolean;
-    quote_revisions_enabled: boolean;
-    digital_twin_enabled: boolean;
-    maintenance_enabled: boolean;
-    inventory_enabled: boolean;
-    pr_enabled: boolean;
-    multi_currency_enabled: boolean;
-    tax_engine_enabled: boolean;
-    localization_enabled: boolean;
-    exports_enabled: boolean;
-    data_export_enabled: boolean;
-    is_free: boolean;
-}
+import type { CatalogPlan } from '@/types/plans';
 
 type PlanResponseEnvelope = {
     status?: string;
@@ -49,21 +23,83 @@ type PlanResponseEnvelope = {
 type SelectionEnvelope = {
     status?: string;
     message?: string;
-    data?: Record<string, unknown>;
+    data?: {
+        company?: {
+            plan?: string | null;
+            requires_plan_selection?: boolean;
+        };
+        plan?: CatalogPlan;
+    } | null;
 };
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const plansUrl = apiBase ? `${apiBase}/api/plans` : '/api/plans';
 const planSelectionUrl = apiBase ? `${apiBase}/api/company/plan-selection` : '/api/company/plan-selection';
+const billingCheckoutUrl = apiBase ? `${apiBase}/api/billing/checkout` : '/api/billing/checkout';
+const enterpriseContactUrl = (import.meta.env.VITE_ENTERPRISE_CONTACT_URL ?? '').trim();
+
+type CheckoutEnvelope = {
+    status?: string;
+    message?: string;
+    data?: {
+        requires_checkout?: boolean;
+        checkout?: {
+            provider?: string;
+            session_id?: string | null;
+            checkout_url?: string | null;
+            status?: string | null;
+        };
+    };
+};
 
 export function PlanSelectionPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { state, refresh } = useAuth();
     const { formatMoney } = useFormatting();
     const [plans, setPlans] = useState<CatalogPlan[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
+
+    const checkoutStatus = searchParams.get('status');
+
+    const isChangePlanFlow = useMemo(() => {
+        const mode = searchParams.get('mode');
+        const changeParam = searchParams.get('change');
+        return mode === 'change' || changeParam === '1' || changeParam === 'true';
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (!checkoutStatus) {
+            return;
+        }
+
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('status');
+        setSearchParams(nextParams, { replace: true });
+
+        if (checkoutStatus === 'success') {
+            void (async () => {
+                await refresh();
+                publishToast({
+                    variant: 'success',
+                    title: 'Payment confirmed',
+                    description: 'Your plan is active. Redirecting you to the workspace…',
+                });
+                navigate('/app', { replace: true });
+            })();
+            return;
+        }
+
+        if (checkoutStatus === 'cancelled') {
+            publishToast({
+                variant: 'default',
+                title: 'Checkout canceled',
+                description: 'You can pick a plan again whenever you are ready.',
+            });
+        }
+    }, [checkoutStatus, navigate, refresh, searchParams, setSearchParams]);
 
     const requiresPlanSelection = useMemo(() => {
         if (state.status !== 'authenticated') {
@@ -73,10 +109,10 @@ export function PlanSelectionPage() {
     }, [state]);
 
     useEffect(() => {
-        if (state.status === 'authenticated' && !requiresPlanSelection) {
+        if (state.status === 'authenticated' && !requiresPlanSelection && !isChangePlanFlow) {
             navigate('/app', { replace: true });
         }
-    }, [state.status, requiresPlanSelection, navigate]);
+    }, [state.status, requiresPlanSelection, isChangePlanFlow, navigate]);
 
     const fetchPlans = useCallback(async () => {
         setIsLoading(true);
@@ -86,8 +122,7 @@ export function PlanSelectionPage() {
                 credentials: 'include',
             });
             const payload = (await response.json()) as PlanResponseEnvelope;
-            const items = payload?.data?.items ?? [];
-            setPlans(items);
+            setPlans(payload?.data?.items ?? []);
         } catch (error) {
             console.error('Failed to load plans', error);
             setLoadError('Unable to load plans right now.');
@@ -100,10 +135,53 @@ export function PlanSelectionPage() {
         fetchPlans().catch((error) => console.error(error));
     }, [fetchPlans]);
 
+    const requiresCheckout = useCallback((plan: CatalogPlan) => !plan.is_free && Number(plan.price_usd ?? 0) > 0, []);
+
+    const isEnterprisePlan = useCallback((plan: CatalogPlan) => {
+        const code = (plan.code ?? '').toLowerCase();
+        const name = (plan.name ?? '').toLowerCase();
+        return code === 'enterprise' || name === 'enterprise';
+    }, []);
+
     const selectPlan = useCallback(
-        async (planCode: string) => {
-            setIsSubmitting(planCode);
+        async (plan: CatalogPlan) => {
+            setIsSubmitting(plan.code);
             try {
+                if (isEnterprisePlan(plan)) {
+                    if (!enterpriseContactUrl) {
+                        throw new Error('Enterprise contact URL is not configured.');
+                    }
+                    window.location.assign(enterpriseContactUrl);
+                    return;
+                }
+
+                if (requiresCheckout(plan)) {
+                    const checkoutResponse = await fetch(billingCheckoutUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ plan_code: plan.code }),
+                    });
+
+                    const checkoutPayload = (await checkoutResponse.json()) as CheckoutEnvelope;
+
+                    if (!checkoutResponse.ok) {
+                        const message = checkoutPayload?.message ?? 'Unable to start checkout.';
+                        throw new Error(message);
+                    }
+
+                    const checkoutUrl = checkoutPayload?.data?.checkout?.checkout_url;
+                    if (!checkoutUrl) {
+                        throw new Error('Checkout URL was not returned by Stripe.');
+                    }
+
+                    window.location.assign(checkoutUrl);
+                    return;
+                }
+
                 const response = await fetch(planSelectionUrl, {
                     method: 'POST',
                     headers: {
@@ -111,11 +189,12 @@ export function PlanSelectionPage() {
                         Accept: 'application/json',
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ plan_code: planCode }),
+                    body: JSON.stringify({ plan_code: plan.code }),
                 });
 
+                const payload = (await response.json()) as SelectionEnvelope;
+
                 if (!response.ok) {
-                    const payload = (await response.json()) as SelectionEnvelope;
                     const message = payload?.message ?? 'Unable to save plan selection.';
                     throw new Error(message);
                 }
@@ -124,9 +203,9 @@ export function PlanSelectionPage() {
                 publishToast({
                     variant: 'success',
                     title: 'Plan locked in',
-                    description: 'Your workspace is ready to go.',
+                    description: payload?.message ?? 'Your workspace is ready to go.',
                 });
-                navigate('/app', { replace: true });
+                navigate(isChangePlanFlow ? '/app/settings/billing' : '/app', { replace: true });
             } catch (error) {
                 const description = error instanceof Error ? error.message : 'Unable to save plan selection.';
                 publishToast({
@@ -138,7 +217,7 @@ export function PlanSelectionPage() {
                 setIsSubmitting(null);
             }
         },
-        [navigate, refresh],
+        [navigate, refresh, requiresCheckout, isEnterprisePlan, isChangePlanFlow],
     );
 
     const renderPrice = useCallback((plan: CatalogPlan) => {
@@ -197,7 +276,9 @@ export function PlanSelectionPage() {
                     <img src={Branding.logo.symbol} alt={Branding.name} className="mx-auto h-10" />
                     <h1 className="text-3xl font-semibold text-foreground">Select your Elements Supply plan</h1>
                     <p className="text-muted-foreground">
-                        Pick the workspace tier that matches your current volume. You can change plans later from Settings → Billing.
+                        Pick the workspace tier that matches your current volume. {isChangePlanFlow
+                            ? 'You are updating your existing plan; new entitlements apply immediately after checkout.'
+                            : 'You can update plans later from Settings → Billing.'}
                     </p>
                     {loadError ? (
                         <div className="flex items-center justify-center gap-2 text-sm text-destructive">
@@ -258,7 +339,7 @@ export function PlanSelectionPage() {
                                     <Button
                                         type="button"
                                         className="w-full"
-                                        onClick={() => selectPlan(plan.code)}
+                                        onClick={() => selectPlan(plan)}
                                         disabled={isSubmitting !== null}
                                     >
                                         {isSubmitting === plan.code ? (
@@ -268,6 +349,10 @@ export function PlanSelectionPage() {
                                             </span>
                                         ) : plan.price_usd === 0 ? (
                                             'Continue with Community'
+                                        ) : requiresCheckout(plan) ? (
+                                            'Checkout with Stripe'
+                                        ) : isEnterprisePlan(plan) ? (
+                                            'Contact Sales'
                                         ) : (
                                             'Continue with this plan'
                                         )}

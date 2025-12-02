@@ -5,14 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\Approval\ApproveRequestActionRequest;
 use App\Http\Resources\ApprovalResource;
 use App\Models\Approval;
-use App\Models\ApprovalRule;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\ApprovalWorkflowService;
 use App\Services\DelegationService;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Cursor;
+use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Carbon;
 
 class ApprovalRequestController extends ApiController
 {
@@ -36,55 +38,77 @@ class ApprovalRequestController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $approvals = Approval::query()
+        $perPage = $this->perPage($request, 25, 100);
+        $requestedCursor = $request->query('cursor');
+        $cursor = null;
+
+        if ($requestedCursor !== null && $requestedCursor !== '') {
+            try {
+                $cursor = Cursor::fromEncoded($requestedCursor);
+            } catch (\Throwable $exception) {
+                return $this->fail('Invalid cursor token.', 422, [
+                    'cursor' => ['The provided cursor is invalid.'],
+                ]);
+            }
+        }
+
+        $query = Approval::query()
             ->with('approvalRule')
             ->where('company_id', $company->id)
             ->where('status', 'pending')
             ->orderBy('level_no')
-            ->get()
-            ->filter(function (Approval $approval) use ($user): bool {
-                $rule = $approval->approvalRule;
+            ->orderBy('id');
 
-                if (! $rule instanceof ApprovalRule) {
-                    return false;
-                }
+        $buffer = collect();
+        $chunkSize = max($perPage * 2, $perPage + 5);
+        $nextCursor = $cursor;
 
-                $level = $rule->levelConfig($approval->level_no);
+        while (true) {
+            $page = (clone $query)->cursorPaginate($chunkSize, ['*'], 'cursor', $nextCursor);
 
-                if ($level === null) {
-                    return false;
-                }
+            $items = $page->items();
 
-                $expectedUserId = $level['approver_user_id'] ?? null;
+            if ($items === [] && $page->nextCursor() === null) {
+                break;
+            }
 
-                if ($expectedUserId !== null) {
-                    if ((int) $expectedUserId === (int) $user->id) {
-                        return true;
+            foreach ($items as $approval) {
+                if ($this->approvalVisibleToUser($user, $approval)) {
+                    $buffer->push($approval);
+
+                    if ($buffer->count() >= $perPage + 1) {
+                        break 2;
                     }
-
-                    $delegate = $this->delegations->resolveActiveDelegate(
-                        $approval->company_id,
-                        (int) $expectedUserId,
-                        Carbon::today()
-                    );
-
-                    return $delegate !== null && (int) $delegate->delegate_user_id === (int) $user->id;
                 }
+            }
 
-                $role = $level['approver_role'] ?? null;
+            $nextCursor = $page->nextCursor();
 
-                if ($role !== null) {
-                    return $user->role === $role;
-                }
+            if ($nextCursor === null) {
+                break;
+            }
+        }
 
-                return false;
-            })
-            ->values();
-
-        return $this->ok(
-            ApprovalResource::collection($approvals)->resolve(),
-            'Pending approvals fetched.'
+        $paginator = new CursorPaginator(
+            $buffer,
+            $perPage,
+            $cursor,
+            [
+                'path' => Paginator::resolveCurrentPath(),
+                'cursorName' => 'cursor',
+                'parameters' => ['level_no', 'id'],
+            ]
         );
+
+        if ($request->query()) {
+            $paginator->appends(collect($request->query())->except('cursor')->all());
+        }
+
+        $paginated = $this->paginate($paginator, $request, ApprovalResource::class);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Pending approvals fetched.', $paginated['meta']);
     }
 
     public function show(Request $request, Approval $approval): JsonResponse
@@ -136,7 +160,16 @@ class ApprovalRequestController extends ApiController
     {
         $user = $this->resolveRequestUser($request);
 
-        if (! $user instanceof User || ! $user->company instanceof Company) {
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        return $this->approvalVisibleToUser($user, $approval);
+    }
+
+    private function approvalVisibleToUser(User $user, Approval $approval): bool
+    {
+        if (! $user->company instanceof Company) {
             return false;
         }
 
@@ -153,11 +186,11 @@ class ApprovalRequestController extends ApiController
 
         $expectedUserId = $level['approver_user_id'] ?? null;
 
-        if ($expectedUserId !== null && (int) $expectedUserId === (int) $user->id) {
-            return true;
-        }
-
         if ($expectedUserId !== null) {
+            if ((int) $expectedUserId === (int) $user->id) {
+                return true;
+            }
+
             $delegate = $this->delegations->resolveActiveDelegate(
                 $approval->company_id,
                 (int) $expectedUserId,

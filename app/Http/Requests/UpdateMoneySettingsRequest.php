@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +20,12 @@ class UpdateMoneySettingsRequest extends FormRequest
             return false;
         }
 
-        return in_array($user->role, ['owner', 'buyer_admin'], true);
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        return app(PermissionRegistry::class)
+            ->userHasAny($user, ['billing.write'], (int) $user->company_id);
     }
 
     public function rules(): array

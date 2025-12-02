@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Warehouse extends Model
+class Warehouse extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\WarehouseFactory> */
     use HasFactory;

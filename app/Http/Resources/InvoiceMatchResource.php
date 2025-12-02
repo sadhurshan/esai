@@ -12,6 +12,7 @@ class InvoiceMatchResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'company_id' => $this->company_id,
             'invoice_id' => $this->invoice_id,
             'purchase_order_id' => $this->purchase_order_id,
             'goods_receipt_note_id' => $this->goods_receipt_note_id,

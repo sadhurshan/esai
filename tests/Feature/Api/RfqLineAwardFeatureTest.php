@@ -82,13 +82,12 @@ function buildRfqAwardScenario(int $rfqItemCount = 3, int $supplierCount = 3): a
         'created_by' => $buyerUser->id,
         'status' => 'open',
         'due_at' => now()->addDays(7),
-        'deadline_at' => now()->addDays(7),
+        'due_at' => now()->addDays(7),
         'incoterm' => 'FOB',
         'currency' => 'USD',
         'is_open_bidding' => true,
         'open_bidding' => true,
-        'version' => 1,
-        'version_no' => 1,
+        'rfq_version' => 1,
     ]);
 
     $rfqItems = Collection::times($rfqItemCount, function (int $lineNo) use ($rfq): RfqItem {
@@ -232,7 +231,7 @@ it('awards rfq line items across suppliers and drafts purchase orders', function
 
     expect($winnerQuote->status)->toBe('awarded')
         ->and($secondWinnerQuote->status)->toBe('awarded')
-        ->and($loserQuote->status)->toBe('lost');
+        ->and($loserQuote->status)->toBe('rejected');
 
     expect(Notification::where('event_type', 'rfq_line_awarded')->count())->toBe(2)
         ->and(Notification::where('event_type', 'rfq_line_lost')->count())->toBeGreaterThanOrEqual(1);
@@ -351,7 +350,7 @@ it('rejects conversion when awards span multiple rfqs', function (): void {
         'created_by' => $buyerUser->id,
         'status' => 'open',
         'due_at' => now()->addDays(5),
-        'deadline_at' => now()->addDays(5),
+        'due_at' => now()->addDays(5),
         'currency' => 'USD',
     ]);
 
@@ -543,7 +542,7 @@ it('blocks awarding once the rfq deadline has passed', function (): void {
 
     $rfq->update([
         'due_at' => now()->subDay(),
-        'deadline_at' => now()->subDay(),
+        'due_at' => now()->subDay(),
     ]);
 
     actingAs($scenario['buyerUser']);

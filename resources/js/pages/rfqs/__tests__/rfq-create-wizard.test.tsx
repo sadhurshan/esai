@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RfqCreateWizard } from '../rfq-create-wizard';
 
@@ -11,6 +11,26 @@ const createRfqMock = vi.fn();
 const inviteSuppliersMock = vi.fn();
 const publishRfqMock = vi.fn();
 const uploadAttachmentMock = vi.fn();
+
+beforeAll(() => {
+    if (!Element.prototype.hasPointerCapture) {
+        Element.prototype.hasPointerCapture = () => false;
+    }
+    if (!Element.prototype.setPointerCapture) {
+        Element.prototype.setPointerCapture = () => {};
+    }
+    if (!Element.prototype.releasePointerCapture) {
+        Element.prototype.releasePointerCapture = () => {};
+    }
+    if (!Element.prototype.scrollIntoView) {
+        Element.prototype.scrollIntoView = () => {};
+    }
+});
+
+beforeEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+});
 
 vi.mock('@/hooks/api/rfqs', () => ({
     useCreateRfq: () => ({
@@ -28,6 +48,16 @@ vi.mock('@/hooks/api/rfqs', () => ({
     useUploadAttachment: () => ({
         mutateAsync: uploadAttachmentMock,
         isPending: false,
+    }),
+}));
+
+vi.mock('@/hooks/api/use-money-settings', () => ({
+    useMoneySettings: () => ({
+        data: {
+            baseCurrency: { code: 'USD', name: 'US Dollar' },
+            pricingCurrency: { code: 'USD', name: 'US Dollar' },
+        },
+        isLoading: false,
     }),
 }));
 
@@ -142,7 +172,7 @@ describe('RfqCreateWizard', () => {
         renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Client company'), 'Elements Supply');
+        await user.type(screen.getByLabelText('Delivery location'), 'Elements Supply · Austin, TX');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -166,7 +196,7 @@ describe('RfqCreateWizard', () => {
         const { container } = renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Client company'), 'Elements Supply');
+        await user.type(screen.getByLabelText('Delivery location'), 'Elements Supply · Austin, TX');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -191,7 +221,9 @@ describe('RfqCreateWizard', () => {
         await user.click(screen.getByRole('button', { name: /next/i }));
 
         await user.type(screen.getByLabelText('Publish date'), '2100-01-01T10:00');
-        await user.type(screen.getByLabelText('Due date'), '2100-01-10T10:00');
+        await user.type(screen.getByLabelText('Quote submission deadline'), '2100-01-10T10:00');
+        await user.type(screen.getByLabelText('Payment terms (optional)'), 'Net 45');
+        await user.type(screen.getByLabelText('Estimated tax rate (optional)'), '8.75');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -214,11 +246,20 @@ describe('RfqCreateWizard', () => {
             expect(createRfqMock).toHaveBeenCalled();
         });
 
-        expect(createRfqMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                itemName: 'Bracket RFQ',
-            }),
-        );
+        expect(createRfqMock).toHaveBeenCalled();
+        const payload = createRfqMock.mock.calls[0]?.[0];
+        expect(payload).toMatchObject({
+            title: 'Bracket RFQ',
+            method: 'cnc',
+            deliveryLocation: 'Elements Supply · Austin, TX',
+            currency: 'USD',
+            paymentTerms: 'Net 45',
+            taxPercent: 8.75,
+        });
+        expect(payload?.items?.[0]).toMatchObject({
+            partNumber: 'Bracket 001',
+            requiredDate: '2100-01-05',
+        });
         expect(inviteSuppliersMock).toHaveBeenCalledWith({
             rfqId: 'rfq-999',
             supplierIds: ['1'],

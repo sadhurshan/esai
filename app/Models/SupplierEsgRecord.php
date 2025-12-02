@@ -11,7 +11,7 @@ use App\Models\Company;
 use App\Models\Supplier;
 use App\Models\Document;
 
-class SupplierEsgRecord extends Model
+class SupplierEsgRecord extends CompanyScopedModel
 {
     use HasFactory;
     use SoftDeletes;

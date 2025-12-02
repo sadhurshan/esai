@@ -22,6 +22,7 @@ class UpdateNotificationPreferenceRequest extends ApiFormRequest
             'rfq.clarification.question',
             'rfq.clarification.answer',
             'rfq.clarification.amendment',
+            'rfq.deadline.extended',
             'quote.revision.submitted',
             'quote.withdrawn',
             'rfq_line_awarded',

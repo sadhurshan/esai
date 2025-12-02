@@ -4,44 +4,78 @@ components:
       type: object
       required:
         - id
+        - company_id
         - number
-        - item_name
-        - type
-        - quantity
-        - material
+        - title
         - method
+        - quantity_total
         - status
-        - is_open_bidding
       properties:
         id:
           type: string
           format: uuid
+        company_id:
+          type: string
+          format: uuid
         number:
+          type: string
+        title:
           type: string
         item_name:
           type: string
-        type:
-          type: string
-          enum: [ready_made, manufacture]
-        quantity:
-          type: integer
-          minimum: 1
-        material:
-          type: string
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `title` kept for downstream clients until they migrate to the new resource.
         method:
           type: string
+          enum: [cnc, sheet_metal, injection_molding, 3d_printing, casting, other]
+        material:
+          type: string
+          nullable: true
         tolerance:
           type: string
           nullable: true
         finish:
           type: string
           nullable: true
+        quantity_total:
+          type: integer
+          minimum: 0
+        quantity:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `quantity_total`.
+        delivery_location:
+          type: string
+          nullable: true
         client_company:
           type: string
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `delivery_location`.
+        incoterm:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+          minLength: 3
+          maxLength: 3
+        notes:
+          type: string
+          nullable: true
+        open_bidding:
+          type: boolean
+        is_open_bidding:
+          type: boolean
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `open_bidding`.
         status:
           type: string
-          enum: [awaiting, open, closed, awarded, cancelled]
-        deadline_at:
+          enum: [draft, open, closed, awarded, cancelled]
+        publish_at:
           type: string
           format: date-time
           nullable: true
@@ -49,14 +83,38 @@ components:
           type: string
           format: date-time
           nullable: true
-        is_open_bidding:
-          type: boolean
-        notes:
+          deprecated: true
+          description: Legacy alias of `publish_at`.
+        due_at:
           type: string
+          format: date-time
           nullable: true
-        cad_path:
+        deadline_at:
           type: string
+          format: date-time
           nullable: true
+          deprecated: true
+          description: Legacy alias of `due_at`.
+        close_at:
+          type: string
+          format: date-time
+          nullable: true
+        rfq_version:
+          type: integer
+        attachments_count:
+          type: integer
+        meta:
+          type: object
+          nullable: true
+          additionalProperties: true
+        cad_document_id:
+          type: string
+          format: uuid
+          nullable: true
+        cad_document:
+          type: object
+          nullable: true
+          description: Condensed document metadata for the attached CAD file. # TODO: replace with the canonical documents schema once available.
         created_at:
           type: string
           format: date-time
@@ -78,32 +136,49 @@ components:
       required:
         - id
         - line_no
-        - part_name
-        - quantity
+        - part_number
+        - qty
       properties:
         id:
           type: string
           format: uuid
         line_no:
           type: integer
+        part_number:
+          type: string
         part_name:
           type: string
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `part_number`.
+        description:
+          type: string
+          nullable: true
         spec:
           type: string
           nullable: true
+          deprecated: true
+          description: Legacy alias of `description`.
         method:
           type: string
+          nullable: true
         material:
           type: string
+          nullable: true
         tolerance:
           type: string
           nullable: true
         finish:
           type: string
           nullable: true
-        quantity:
+        qty:
           type: integer
           minimum: 1
+        quantity:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `qty`.
         uom:
           type: string
           nullable: true
@@ -111,6 +186,14 @@ components:
           type: number
           format: float
           nullable: true
+        cad_doc_id:
+          type: string
+          format: uuid
+          nullable: true
+        specs_json:
+          type: object
+          nullable: true
+          additionalProperties: true
     QuoteSummary:
       type: object
       required:
@@ -284,32 +367,106 @@ components:
           format: date-time
           nullable: true
           description: Overrides the default (now) close timestamp if the backend permits backdating.
+    ExtendRfqDeadlineRequest:
+      type: object
+      required:
+        - new_due_at
+        - reason
+      properties:
+        new_due_at:
+          type: string
+          format: date-time
+          description: New due date for the RFQ. Must be later than the existing deadline.
+        reason:
+          type: string
+          description: Buyer-visible explanation shared with suppliers.
+        notify_suppliers:
+          type: boolean
+          default: true
+          description: Whether invited suppliers should receive notifications about the extension.
+    RfqDeadlineExtension:
+      type: object
+      required:
+        - id
+        - rfq_id
+        - new_due_at
+        - created_at
+      properties:
+        id:
+          type: integer
+        rfq_id:
+          type: integer
+        previous_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        new_due_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        extended_by:
+          type: integer
+          nullable: true
+        extended_by_user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            role:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
     RfqLinePayload:
       type: object
       required:
-        - part_name
-        - method
-        - material
-        - quantity
+        - part_number
+        - qty
       properties:
+        part_number:
+          type: string
         part_name:
           type: string
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `part_number`.
+        description:
+          type: string
+          nullable: true
         spec:
           type: string
           nullable: true
+          deprecated: true
+          description: Legacy alias of `description`.
         method:
           type: string
+          nullable: true
         material:
           type: string
+          nullable: true
         tolerance:
           type: string
           nullable: true
         finish:
           type: string
           nullable: true
-        quantity:
+        qty:
           type: integer
           minimum: 1
+        quantity:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Legacy alias of `qty`.
         uom:
           type: string
           nullable: true
@@ -317,14 +474,14 @@ components:
           type: number
           format: float
           nullable: true
-        notes:
-          type: string
-          nullable: true
-        cad_document_id:
+        cad_doc_id:
           type: string
           format: uuid
           nullable: true
-          description: Reference to an uploaded CAD document.
+        specs_json:
+          type: object
+          nullable: true
+          additionalProperties: true
     RfqTimelineEntry:
       allOf:
         - $ref: '#/components/schemas/Timeline'
@@ -615,15 +772,14 @@ paths:
                       items:
                         - id: 3c3f9b08-8a89-4a5f-9074-828840fe3f4f
                           number: "00421"
-                          item_name: Precision Bracket
-                          type: manufacture
-                          quantity: 250
+                          title: Precision Bracket
                           material: Aluminum 6061
-                          method: CNC Milling
+                          method: cnc
+                          quantity_total: 250
+                          open_bidding: true
+                          due_at: 2025-11-30T23:59:59Z
+                          publish_at: 2025-11-01T16:30:12Z
                           status: open
-                          is_open_bidding: true
-                          deadline_at: 2025-11-30T23:59:59Z
-                          sent_at: 2025-11-01T16:30:12Z
                           notes: Supplier must certify ISO 9001.
                           created_at: 2025-10-28T13:01:45Z
                           updated_at: 2025-10-28T13:05:12Z
@@ -644,27 +800,61 @@ paths:
             schema:
               type: object
               required:
-                - item_name
-                - type
-                - client_company
-                - status
+                - title
+                - method
                 - items
               properties:
+                title:
+                  type: string
                 item_name:
                   type: string
-                type:
+                  nullable: true
+                  deprecated: true
+                  description: Legacy alias of `title`.
+                method:
                   type: string
-                  enum: [ready_made, manufacture]
+                  enum: [cnc, sheet_metal, injection_molding, 3d_printing, casting, other]
+                material:
+                  type: string
+                  nullable: true
+                tolerance:
+                  type: string
+                  nullable: true
+                finish:
+                  type: string
+                  nullable: true
+                quantity_total:
+                  type: integer
+                  minimum: 0
+                delivery_location:
+                  type: string
+                  nullable: true
                 client_company:
                   type: string
-                status:
+                  nullable: true
+                  deprecated: true
+                  description: Legacy alias of `delivery_location`.
+                incoterm:
                   type: string
-                  enum: [awaiting, open, closed, awarded, cancelled]
-                deadline_at:
+                  nullable: true
+                currency:
+                  type: string
+                  nullable: true
+                  minLength: 3
+                  maxLength: 3
+                publish_at:
                   type: string
                   format: date-time
                   nullable: true
-                is_open_bidding:
+                due_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                close_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                open_bidding:
                   type: boolean
                 notes:
                   type: string
@@ -678,29 +868,44 @@ paths:
                   items:
                     type: object
                     required:
-                      - part_name
-                      - method
-                      - material
-                      - quantity
+                      - part_number
+                      - qty
                     properties:
+                      part_number:
+                        type: string
                       part_name:
                         type: string
+                        nullable: true
+                        deprecated: true
+                        description: Legacy alias of `part_number`.
+                      description:
+                        type: string
+                        nullable: true
                       spec:
                         type: string
                         nullable: true
+                        deprecated: true
+                        description: Legacy alias of `description`.
                       method:
                         type: string
+                        nullable: true
                       material:
                         type: string
+                        nullable: true
                       tolerance:
                         type: string
                         nullable: true
                       finish:
                         type: string
                         nullable: true
-                      quantity:
+                      qty:
                         type: integer
                         minimum: 1
+                      quantity:
+                        type: integer
+                        nullable: true
+                        deprecated: true
+                        description: Legacy alias of `qty`.
                       uom:
                         type: string
                         nullable: true
@@ -708,6 +913,14 @@ paths:
                         type: number
                         format: float
                         nullable: true
+                      cad_doc_id:
+                        type: string
+                        format: uuid
+                        nullable: true
+                      specs_json:
+                        type: object
+                        nullable: true
+                        additionalProperties: true
       responses:
         '201':
           description: RFQ created.
@@ -761,21 +974,60 @@ paths:
             schema:
               type: object
               properties:
+                title:
+                  type: string
                 item_name:
                   type: string
-                type:
+                  nullable: true
+                  deprecated: true
+                  description: Legacy alias of `title`.
+                method:
                   type: string
-                status:
+                  enum: [cnc, sheet_metal, injection_molding, 3d_printing, casting, other]
+                material:
                   type: string
-                  enum: [awaiting, open, closed, awarded, cancelled]
-                is_open_bidding:
+                  nullable: true
+                tolerance:
+                  type: string
+                  nullable: true
+                finish:
+                  type: string
+                  nullable: true
+                quantity_total:
+                  type: integer
+                  minimum: 0
+                delivery_location:
+                  type: string
+                  nullable: true
+                client_company:
+                  type: string
+                  nullable: true
+                  deprecated: true
+                  description: Legacy alias of `delivery_location`.
+                incoterm:
+                  type: string
+                  nullable: true
+                currency:
+                  type: string
+                  nullable: true
+                  minLength: 3
+                  maxLength: 3
+                publish_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                due_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                close_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                open_bidding:
                   type: boolean
                 notes:
                   type: string
-                  nullable: true
-                deadline_at:
-                  type: string
-                  format: date-time
                   nullable: true
                 cad:
                   type: string
@@ -1051,6 +1303,89 @@ paths:
       responses:
         '200':
           description: RFQ closed.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/extend-deadline:
+    post:
+      tags:
+        - RFQs
+      summary: Extend RFQ deadline
+      operationId: extendRfqDeadline
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendRfqDeadlineRequest'
+      responses:
+        '200':
+          description: RFQ deadline extended.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - extension
+                          - rfq
+                        properties:
+                          extension:
+                            $ref: '#/components/schemas/RfqDeadlineExtension'
+                          rfq:
+                            $ref: '#/components/schemas/Rfq'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfqs/{rfqId}/cancel:
+    post:
+      tags:
+        - RFQs
+      summary: Cancel RFQ
+      operationId: cancelRfq
+      parameters:
+        - name: rfqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  nullable: true
+                  description: Optional buyer-supplied rationale for cancelling the RFQ.
+      responses:
+        '200':
+          description: RFQ cancelled.
           content:
             application/json:
               schema:

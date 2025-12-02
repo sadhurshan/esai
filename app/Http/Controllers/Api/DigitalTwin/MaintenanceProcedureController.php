@@ -27,6 +27,14 @@ class MaintenanceProcedureController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
         $this->authorize('viewAny', MaintenanceProcedure::class);
 
         $validated = $request->validate([
@@ -34,8 +42,6 @@ class MaintenanceProcedureController extends ApiController
             'category' => ['nullable', 'string', Rule::in(self::CATEGORIES)],
             'search' => ['nullable', 'string', 'max:191'],
         ]);
-
-        $companyId = (int) $request->user()->company_id;
         $perPage = $this->perPage($request, 25, 100);
 
         $query = MaintenanceProcedure::query()
@@ -73,7 +79,15 @@ class MaintenanceProcedureController extends ApiController
 
     public function store(StoreMaintenanceProcedureRequest $request): JsonResponse
     {
-        $procedure = $this->service->create($request->user(), $request->validated());
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        $procedure = $this->service->create($user, $companyId, $request->validated());
 
         return $this->ok(
             (new MaintenanceProcedureResource($procedure))->toArray($request),

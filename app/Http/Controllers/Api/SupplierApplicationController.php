@@ -9,6 +9,7 @@ use App\Http\Requests\SupplierApplicationStoreRequest;
 use App\Http\Resources\SupplierApplicationResource;
 use App\Models\Company;
 use App\Models\SupplierApplication;
+use App\Models\SupplierDocument;
 use App\Models\User;
 use App\Notifications\SupplierApplicationSubmitted;
 use App\Support\Audit\AuditLogger;
@@ -23,31 +24,30 @@ class SupplierApplicationController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
+
+        ['user' => $user, 'companyId' => $companyId] = $context;
 
         if ($this->authorizeDenied($user, 'viewAny', SupplierApplication::class)) {
             return $this->fail('Forbidden.', 403);
         }
 
-        $companyId = $user->company_id;
-
-        if ($companyId === null) {
-            return $this->fail('Company context required.', 403);
-        }
-
         $applications = SupplierApplication::query()
-            ->with(['company'])
+            ->with(['company', 'documents.document'])
             ->where('company_id', $companyId)
             ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request, 20, 100));
+
+        ['items' => $items, 'meta' => $meta] = $this->paginate($applications, $request, SupplierApplicationResource::class);
 
         return $this->ok([
-            'items' => SupplierApplicationResource::collection($applications)->resolve(),
-        ]);
+            'items' => $items,
+        ], 'Supplier applications retrieved.', $meta);
     }
 
     public function selfApply(SupplierApplicationStoreRequest $request): JsonResponse
@@ -94,12 +94,38 @@ class SupplierApplicationController extends ApiController
 
         $payload = $request->payload();
 
+        $documents = collect($payload['documents'] ?? [])
+            ->filter(static fn ($id) => is_numeric($id))
+            ->map(static fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $documentModels = collect();
+
+        if ($documents->isNotEmpty()) {
+            $documentModels = SupplierDocument::query()
+                ->whereIn('id', $documents)
+                ->where('company_id', $company->id)
+                ->whereIn('status', ['valid', 'expiring'])
+                ->get();
+
+            if ($documentModels->count() !== $documents->count()) {
+                return $this->fail('One or more documents are invalid.', 422, [
+                    'documents' => ['Provided documents must exist, belong to your company, and remain active.'],
+                ]);
+            }
+        }
+
         $application = SupplierApplication::create([
             'company_id' => $company->id,
             'submitted_by' => $user->id,
             'status' => SupplierApplicationStatus::Pending,
             'form_json' => $payload,
         ]);
+
+        if ($documentModels->isNotEmpty()) {
+            $application->documents()->sync($documentModels->pluck('id'));
+        }
 
         $this->markCompanyPending($company);
         $this->markSupplierProfileCompleted($company, $payload);
@@ -115,7 +141,7 @@ class SupplierApplicationController extends ApiController
         }
 
         return $this->ok(
-            (new SupplierApplicationResource($application->fresh(['company'])))->toArray($request),
+            (new SupplierApplicationResource($application->fresh(['company', 'documents.document'])))->toArray($request),
             'Supplier application submitted.'
         );
     }
@@ -224,7 +250,7 @@ class SupplierApplicationController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        return $this->ok((new SupplierApplicationResource($application->loadMissing(['company'])))->toArray($request));
+        return $this->ok((new SupplierApplicationResource($application->loadMissing(['company', 'documents.document'])))->toArray($request));
     }
 
     public function destroy(Request $request, SupplierApplication $application): JsonResponse

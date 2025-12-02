@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
+use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureExportAccess
 {
     use RespondsWithPlanUpgrade;
+
+    private const PERMISSIONS = ['orders.read', 'orders.write'];
+
+    public function __construct(private readonly PermissionRegistry $permissionRegistry)
+    {
+    }
 
     public function handle(Request $request, Closure $next): JsonResponse|Response
     {
@@ -42,6 +49,14 @@ class EnsureExportAccess
             return $this->upgradeRequiredResponse([
                 'code' => 'exports_disabled',
             ], 'Upgrade required to access data exports.');
+        }
+
+        if (! $this->permissionRegistry->userHasAny($user, self::PERMISSIONS, (int) $company->id)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Orders access required to run exports.',
+                'data' => null,
+            ], Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

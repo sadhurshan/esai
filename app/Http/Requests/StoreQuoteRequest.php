@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\CompanySupplierStatus;
 use App\Models\RFQ;
 use App\Models\Supplier;
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
@@ -19,12 +20,19 @@ class StoreQuoteRequest extends ApiFormRequest
             return false;
         }
 
-        $rfqId = (int) $this->input('rfq_id');
-        if ($rfqId <= 0) {
-            return false;
+        $routeRfq = $this->route('rfq');
+        if ($routeRfq instanceof RFQ) {
+            $this->rfq = $routeRfq->loadMissing('invitations');
         }
 
-        $this->rfq = RFQ::with('invitations')->find($rfqId);
+        if ($this->rfq === null) {
+            $rfqId = (int) $this->input('rfq_id');
+            if ($rfqId <= 0) {
+                return false;
+            }
+
+            $this->rfq = RFQ::with('invitations')->find($rfqId);
+        }
 
         if ($this->rfq === null) {
             return false;
@@ -52,6 +60,12 @@ class StoreQuoteRequest extends ApiFormRequest
             return false;
         }
 
+        $permissionRegistry = app(PermissionRegistry::class);
+
+        if (! $permissionRegistry->userHasAny($user, ['rfqs.read'], (int) $company->id)) {
+            return false;
+        }
+
         if ($this->rfq->is_open_bidding) {
             return true;
         }
@@ -62,16 +76,16 @@ class StoreQuoteRequest extends ApiFormRequest
 
     public function rules(): array
     {
-        $rfqId = (int) $this->input('rfq_id');
+        $rfqId = $this->rfq()?->id ?? 0;
 
         return [
-            'rfq_id' => ['required', 'integer', 'exists:rfqs,id'],
+            'rfq_id' => ['nullable', 'integer', 'exists:rfqs,id'],
             'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
             'currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
-            'status' => ['nullable', Rule::in(['draft', 'submitted'])],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'min_order_qty' => ['nullable', 'integer', 'min:1'],
             'lead_time_days' => ['required', 'integer', 'min:1'],
+            'notes' => ['nullable', 'string'],
             'note' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.rfq_item_id' => [
@@ -109,8 +123,14 @@ class StoreQuoteRequest extends ApiFormRequest
     public function rfq(): RFQ
     {
         if ($this->rfq === null) {
-            $rfqId = (int) $this->input('rfq_id');
-            $this->rfq = RFQ::with(['company', 'invitations'])->findOrFail($rfqId);
+            $routeRfq = $this->route('rfq');
+
+            if ($routeRfq instanceof RFQ) {
+                $this->rfq = $routeRfq->loadMissing(['company', 'invitations']);
+            } else {
+                $rfqId = (int) $this->input('rfq_id');
+                $this->rfq = RFQ::with(['company', 'invitations'])->findOrFail($rfqId);
+            }
         }
 
         return $this->rfq;

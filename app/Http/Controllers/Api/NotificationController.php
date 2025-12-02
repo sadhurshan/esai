@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Notifications\MarkNotificationsReadRequest;
 use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use App\Support\Notifications\NotificationService;
@@ -25,7 +26,8 @@ class NotificationController extends ApiController
         $query = Notification::query()
             ->with(['user', 'company'])
             ->where('user_id', $user->id)
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         $status = strtolower((string) $request->query('status'));
 
@@ -35,10 +37,20 @@ class NotificationController extends ApiController
             $query->whereNull('read_at');
         }
 
-        $paginator = $query->paginate($this->perPage($request));
+        $paginator = $query->cursorPaginate($this->perPage($request));
         $paginated = $this->paginate($paginator, $request, NotificationResource::class);
+        $unreadCount = Notification::query()
+            ->where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
 
-        return $this->ok($paginated['items'], 'Notifications retrieved.', $paginated['meta']);
+        $meta = array_merge($paginated['meta'], [
+            'unread_count' => $unreadCount,
+        ]);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Notifications retrieved.', $meta);
     }
 
     public function markRead(Request $request, Notification $notification): JsonResponse
@@ -69,5 +81,21 @@ class NotificationController extends ApiController
         $count = $this->notificationService->markAllAsRead($user);
 
         return $this->ok(['updated' => $count], 'Notifications marked as read.');
+    }
+
+    public function markSelectedRead(MarkNotificationsReadRequest $request): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $payload = $request->payload();
+        $updated = $this->notificationService->markSelectedAsRead($user, $payload['ids']);
+
+        return $this->ok([
+            'updated' => $updated,
+        ], 'Notifications marked as read.');
     }
 }

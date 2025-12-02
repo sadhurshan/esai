@@ -1921,7 +1921,7 @@ Create via `php artisan vendor:publish --tag=cashier-migrations`
 
 * `invited_by` BIGINT FK→`users.id`
 
-* `status` ENUM('invited','accepted','declined')
+* `status` ENUM('pending','accepted','declined')
 
 * Unique: (`rfq_id`,`supplier_id`)
 
@@ -1939,7 +1939,7 @@ Create via `php artisan vendor:publish --tag=cashier-migrations`
 
 * `message` TEXT
 
-* `attachment_id` BIGINT FK→`documents.id` NULL
+* `attachments_json` JSON (array of `{document_id, filename, mime, size_bytes, uploaded_by, uploaded_at}` linked to `documents.id`)
 
 * `rfq_version` INT *(increment when amendment)*
 

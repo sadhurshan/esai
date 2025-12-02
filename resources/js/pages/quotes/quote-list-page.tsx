@@ -358,7 +358,7 @@ export function QuoteListPage() {
                     description="Upgrade your workspace plan to unlock supplier quote workflows."
                     icon={<FileText className="h-10 w-10 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings?tab=billing') }}
+                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
                 />
             </div>
         );

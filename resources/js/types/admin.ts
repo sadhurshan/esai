@@ -95,6 +95,10 @@ export interface AuditLogResponse {
     meta?: CursorPaginationMeta;
 }
 
+export interface SupplierApplicationAuditLogResponse {
+    items: AuditLogEntry[];
+}
+
 export interface WebhookTestResult {
     status: 'ok' | 'failed';
     latencyMs?: number;
@@ -201,6 +205,74 @@ export interface CompanyApprovalFilters extends Record<string, unknown> {
 
 export interface CompanyApprovalResponse {
     items: CompanyApprovalItem[];
+    meta?: OffsetPaginationMeta;
+}
+
+export type SupplierApplicationStatusValue = 'pending' | 'approved' | 'rejected';
+
+export interface SupplierApplicationFilters extends Record<string, unknown> {
+    status?: SupplierApplicationStatusValue | 'all' | string;
+    page?: number;
+    perPage?: number;
+}
+
+export interface SupplierApplicationDocumentSummary {
+    id: number;
+    supplier_id?: number | null;
+    company_id: number;
+    document_id?: number | null;
+    type: string;
+    status?: string | null;
+    path?: string | null;
+    download_url?: string | null;
+    filename?: string | null;
+    mime: string;
+    size_bytes: number;
+    issued_at?: string | null;
+    expires_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface SupplierApplicationFormPayload {
+    description?: string;
+    capabilities?: Record<string, string[] | undefined>;
+    address?: string;
+    city?: string;
+    country?: string;
+    moq?: number;
+    min_order_qty?: number;
+    lead_time_days?: number;
+    certifications?: string[];
+    facilities?: string;
+    website?: string;
+    contact?: {
+        name?: string;
+        email?: string;
+        phone?: string;
+    };
+    notes?: string;
+    documents?: number[];
+    [key: string]: unknown;
+}
+
+export interface SupplierApplicationItem {
+    id: number;
+    company_id: number;
+    submitted_by?: number | null;
+    status: SupplierApplicationStatusValue | string;
+    form_json?: SupplierApplicationFormPayload | null;
+    reviewed_by?: number | null;
+    reviewed_at?: string | null;
+    notes?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    company?: CompanyApprovalItem | null;
+    documents?: SupplierApplicationDocumentSummary[];
+}
+
+export interface SupplierApplicationResponse {
+    items: SupplierApplicationItem[];
     meta?: OffsetPaginationMeta;
 }
 

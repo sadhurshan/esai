@@ -10,6 +10,7 @@ use App\Models\QuoteItem;
 use App\Models\RFQ;
 use App\Models\Supplier;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Money\Money;
 use App\Services\LineTaxSyncService;
 use App\Services\TotalsCalculator;
@@ -35,10 +36,10 @@ class CreatePurchaseOrderFromQuoteItemsAction
     public function execute(RFQ $rfq, Supplier $supplier, array $quoteItemIds): array
     {
         return DB::transaction(function () use ($rfq, $supplier, $quoteItemIds): array {
-            $quoteItems = QuoteItem::query()
+            $quoteItems = CompanyContext::bypass(fn () => QuoteItem::query()
                 ->with(['quote', 'rfqItem', 'taxes'])
                 ->whereIn('id', $quoteItemIds)
-                ->get();
+                ->get());
 
             $quote = $this->resolveQuote($quoteItems);
 

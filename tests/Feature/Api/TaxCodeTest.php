@@ -30,8 +30,8 @@ it('lists tax codes for the company', function (): void {
         ->assertJsonPath('status', 'success')
         ->assertJsonPath('data.items.0.code', 'GST01')
         ->assertJsonPath('data.items.1.code', 'VAT20')
-        ->assertJsonPath('meta.next_cursor', null)
-        ->assertJsonPath('meta.prev_cursor', null);
+        ->assertJsonPath('meta.cursor.next_cursor', null)
+        ->assertJsonPath('meta.cursor.prev_cursor', null);
 
     $activeResponse = $this->getJson('/api/money/tax-codes?active=1');
 

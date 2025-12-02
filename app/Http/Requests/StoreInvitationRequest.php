@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\RFQ;
+use App\Models\User;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 
 class StoreInvitationRequest extends ApiFormRequest
 {
@@ -43,5 +47,29 @@ class StoreInvitationRequest extends ApiFormRequest
             'supplier_ids' => ['required', 'array', 'min:1'],
             'supplier_ids.*' => ['integer', 'distinct', 'exists:suppliers,id'],
         ];
+    }
+
+    public function authorize(): bool
+    {
+        $user = $this->user();
+        $rfq = $this->route('rfq');
+
+        if (! $user instanceof User || ! $rfq instanceof RFQ) {
+            return false;
+        }
+
+        return Gate::forUser($user)->allows('manageInvitations', $rfq);
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(response()->json([
+            'status' => 'error',
+            'message' => 'RFQ invitations require sourcing write access.',
+            'data' => null,
+            'errors' => [
+                'code' => 'rfqs_write_required',
+            ],
+        ], 403));
     }
 }

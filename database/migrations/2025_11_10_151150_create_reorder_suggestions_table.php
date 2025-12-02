@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('reorder_suggestions')) {
+            return;
+        }
+
         Schema::create('reorder_suggestions', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
@@ -21,7 +25,7 @@ return new class extends Migration
             $table->dateTime('generated_at');
             $table->dateTime('accepted_at')->nullable();
             $table->enum('status', ['open', 'accepted', 'dismissed', 'converted'])->default('open');
-            $table->foreignId('pr_id')->nullable()->constrained('purchase_requisitions')->nullOnDelete();
+            $table->foreignId('pr_id')->nullable();
             $table->timestamps();
 
             $table->index(['company_id', 'status']);
@@ -32,6 +36,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('reorder_suggestions');
+        Schema::enableForeignKeyConstraints();
     }
 };

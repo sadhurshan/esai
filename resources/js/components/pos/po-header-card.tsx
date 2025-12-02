@@ -1,4 +1,5 @@
-import { RefreshCcw, Send, Ban, Download, FilePlus } from 'lucide-react';
+import { RefreshCcw, Send, Ban, FilePlus } from 'lucide-react';
+import { ExportButtons } from '@/components/downloads/export-buttons';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoneyCell } from '@/components/quotes/money-cell';
@@ -14,12 +15,10 @@ interface PoHeaderCardProps {
     onRecalculate?: () => void;
     onSend?: () => void;
     onCancel?: () => void;
-    onExport?: () => void;
     onCreateInvoice?: () => void;
     isRecalculating?: boolean;
     isCancelling?: boolean;
     isSending?: boolean;
-    isExporting?: boolean;
     isCreatingInvoice?: boolean;
     canCreateInvoice?: boolean;
 }
@@ -30,12 +29,10 @@ export function PoHeaderCard({
     onRecalculate,
     onSend,
     onCancel,
-    onExport,
     onCreateInvoice,
     isRecalculating = false,
     isCancelling = false,
     isSending = false,
-    isExporting = false,
     isCreatingInvoice = false,
     canCreateInvoice = true,
 }: PoHeaderCardProps) {
@@ -92,12 +89,12 @@ export function PoHeaderCard({
                             Send to supplier
                         </Button>
                     ) : null}
-                    {onExport ? (
-                        <Button type="button" size="sm" variant="outline" onClick={onExport} disabled={isExporting}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Export PDF
-                        </Button>
-                    ) : null}
+                    <ExportButtons
+                        documentType="purchase_order"
+                        documentId={po.id}
+                        reference={po.poNumber ? `PO ${po.poNumber}` : undefined}
+                        size="sm"
+                    />
                     {onCancel ? (
                         <Button
                             type="button"
@@ -111,9 +108,9 @@ export function PoHeaderCard({
                             Cancel PO
                         </Button>
                     ) : null}
-                    {!onRecalculate && !onSend && !onExport && !onCancel && !onCreateInvoice ? (
+                    {!onRecalculate && !onSend && !onCancel && !onCreateInvoice ? (
                         <span className="text-sm text-muted-foreground">
-                            Actions unavailable for your role.
+                            Additional actions unavailable for your role.
                         </span>
                     ) : null}
                 </div>

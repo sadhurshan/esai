@@ -25,29 +25,45 @@ class DelegationController extends ApiController
             return $this->fail('Authentication required.', 401);
         }
 
-        $company = $user->company;
+        $companyId = $this->resolveUserCompanyId($user);
 
-        if (! $company instanceof Company) {
+        if (! $companyId) {
             return $this->fail('Company context required.', 403);
         }
 
-        $delegations = Delegation::query()
-            ->with(['approver', 'delegate'])
-            ->where('company_id', $company->id)
-            ->orderByDesc('starts_at')
-            ->get();
+        $perPage = $this->perPage($request, 25, 100);
 
-        return $this->ok(
-            DelegationResource::collection($delegations)->resolve(),
-            'Delegations retrieved.'
-        );
+        $paginator = Delegation::query()
+            ->with(['approver', 'delegate'])
+            ->where('company_id', $companyId)
+            ->orderByDesc('starts_at')
+            ->cursorPaginate($perPage)
+            ->withQueryString();
+
+        $paginated = $this->paginate($paginator, $request, DelegationResource::class);
+
+        return $this->ok([
+            'items' => $paginated['items'],
+        ], 'Delegations retrieved.', $paginated['meta']);
     }
 
     public function store(StoreDelegationRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->resolveRequestUser($request);
 
-        if (! $user instanceof User || ! $user->company instanceof Company) {
+        if (! $user instanceof User) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if (! $companyId) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        $company = Company::query()->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);
         }
 
@@ -55,7 +71,7 @@ class DelegationController extends ApiController
         $data = $request->validated();
 
         if ($delegation instanceof Delegation) {
-            if ((int) $delegation->company_id !== (int) $user->company->id) {
+            if ((int) $delegation->company_id !== (int) $company->id) {
                 return $this->fail('Delegation not accessible.', 403);
             }
 
@@ -68,7 +84,7 @@ class DelegationController extends ApiController
             );
         }
 
-        $created = $this->delegations->create($user->company, $data, $user);
+        $created = $this->delegations->create($company, $data, $user);
         $created->load(['approver', 'delegate']);
 
         return $this->ok(
@@ -81,11 +97,17 @@ class DelegationController extends ApiController
     {
         $user = $this->resolveRequestUser($request);
 
-        if (! $user instanceof User || ! $user->company instanceof Company) {
+        if (! $user instanceof User) {
             return $this->fail('Company context required.', 403);
         }
 
-        if ((int) $delegation->company_id !== (int) $user->company->id) {
+        $companyId = $this->resolveUserCompanyId($user);
+
+        if (! $companyId) {
+            return $this->fail('Company context required.', 403);
+        }
+
+        if ((int) $delegation->company_id !== $companyId) {
             return $this->fail('Delegation not accessible.', 403);
         }
 

@@ -15,9 +15,7 @@ export function useSupplier(id?: number) {
                 throw new Error('Supplier id is required');
             }
 
-            const response = (await api.get<SupplierApiPayload>(`/suppliers/${id}`)) as SupplierApiPayload;
-
-            return response;
+            return (await api.get<SupplierApiPayload>(`/suppliers/${id}`)) as unknown as SupplierApiPayload;
         },
         select: (payload) => mapSupplier(payload),
         staleTime: 30_000,

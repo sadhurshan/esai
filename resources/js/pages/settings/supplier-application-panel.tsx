@@ -1,8 +1,8 @@
-import { useMemo, useState, type ComponentType } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Building2, ShieldCheck, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, ShieldCheck, Clock, AlertCircle, Loader2, Trash2, Download } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +19,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { publishToast } from '@/components/ui/use-toast';
-import { useApplyForSupplier, type SupplierApplicationPayload } from '@/hooks/api/useSupplierSelfService';
+import {
+    useApplyForSupplier,
+    useSupplierSelfStatus,
+    useUpdateSupplierVisibility,
+    type SupplierApplicationPayload,
+    type SupplierSelfStatus,
+    type DirectoryVisibility,
+    type SupplierApplicationStatusValue,
+} from '@/hooks/api/useSupplierSelfService';
+import { useSupplierDocuments, useUploadSupplierDocument, useDeleteSupplierDocument, type SupplierDocument, type SupplierDocumentType } from '@/hooks/api/useSupplierDocuments';
+import { useSupplierApplications, useWithdrawSupplierApplication } from '@/hooks/api/useSupplierApplications';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { FileDropzone } from '@/components/file-dropzone';
+import { DOCUMENT_ACCEPT_EXTENSIONS, DOCUMENT_ACCEPT_LABEL, DOCUMENT_MAX_SIZE_MB } from '@/config/documents';
 
 const optionalTextField = (max: number, message?: string) =>
     z.string().max(max, message ?? `Maximum ${max} characters.`).optional().or(z.literal(''));
@@ -144,6 +165,43 @@ const STATUS_META: Record<
     },
 };
 
+const APPLICATION_STATUS_META: Record<
+    SupplierApplicationStatusValue,
+    { label: string; badge: 'default' | 'secondary' | 'outline' | 'destructive' }
+> = {
+    pending: { label: STATUS_META.pending.label, badge: STATUS_META.pending.badge },
+    approved: { label: STATUS_META.approved.label, badge: STATUS_META.approved.badge },
+    rejected: { label: STATUS_META.rejected.label, badge: STATUS_META.rejected.badge },
+};
+
+const DOCUMENT_TYPE_OPTIONS: Array<{ label: string; value: SupplierDocumentType }> = [
+    { label: 'ISO 9001', value: 'iso9001' },
+    { label: 'ISO 14001', value: 'iso14001' },
+    { label: 'AS 9100', value: 'as9100' },
+    { label: 'ITAR', value: 'itar' },
+    { label: 'REACH', value: 'reach' },
+    { label: 'RoHS', value: 'rohs' },
+    { label: 'Insurance', value: 'insurance' },
+    { label: 'NDA', value: 'nda' },
+    { label: 'Other', value: 'other' },
+];
+
+const DIRECTORY_VISIBILITY_META: Record<DirectoryVisibility, { label: string; description: string }> = {
+    private: {
+        label: 'Private (default)',
+        description: 'Only your internal buyers can view this supplier profile. You remain hidden from the marketplace directory.',
+    },
+    public: {
+        label: 'Public listing',
+        description: 'Buyers browsing the directory can discover your profile, capabilities, and compliance summary.',
+    },
+};
+
+const DIRECTORY_VISIBILITY_OPTIONS: Array<{ value: DirectoryVisibility; label: string }> = [
+    { value: 'private', label: 'Private' },
+    { value: 'public', label: 'Public' },
+];
+
 function splitList(value?: string | null): string[] | undefined {
     if (!value) {
         return undefined;
@@ -177,14 +235,102 @@ function buildCapabilities(values: SupplierApplicationFormValues) {
 export function SupplierApplicationPanel() {
     const { state, refresh } = useAuth();
     const role = state.user?.role ?? null;
-    const status = (state.company?.supplier_status ?? 'none') as SupplierStatus;
+    const initialStatus: SupplierSelfStatus | undefined = state.company
+        ? {
+              supplier_status: (state.company.supplier_status ?? 'none') as string,
+              directory_visibility: (state.company.directory_visibility ?? 'private') as DirectoryVisibility,
+              supplier_profile_completed_at: state.company.supplier_profile_completed_at ?? null,
+              is_listed: Boolean((state.company as { is_listed?: boolean }).is_listed ?? false),
+              current_application: null,
+          }
+        : undefined;
+    const supplierStatusQuery = useSupplierSelfStatus(initialStatus);
+    const supplierStatusData = supplierStatusQuery.data ?? initialStatus;
+    const status = (supplierStatusData?.supplier_status ?? 'none') as SupplierStatus;
+    const directoryVisibility = (supplierStatusData?.directory_visibility ?? 'private') as DirectoryVisibility;
+    const supplierProfileCompletedAt = supplierStatusData?.supplier_profile_completed_at ?? null;
+    const isListed = Boolean(supplierStatusData?.is_listed ?? false);
     const companyStatus = state.company?.status ?? 'pending';
     const isCompanyApproved = ['active', 'trial'].includes(companyStatus);
     const meta = STATUS_META[status] ?? STATUS_META.none;
     const [dialogOpen, setDialogOpen] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const applyMutation = useApplyForSupplier();
+    const updateVisibilityMutation = useUpdateSupplierVisibility();
     const isOwner = role === 'owner';
+    const canViewApplications = isOwner || role === 'buyer_admin';
+    const supplierApplicationsQuery = useSupplierApplications({ enabled: canViewApplications });
+    const supplierApplications = supplierApplicationsQuery.data?.items ?? [];
+    const withdrawApplicationMutation = useWithdrawSupplierApplication();
+    const [withdrawingId, setWithdrawingId] = useState<number | null>(null);
+    const supplierDocumentsQuery = useSupplierDocuments();
+    const uploadSupplierDocumentMutation = useUploadSupplierDocument();
+    const deleteSupplierDocumentMutation = useDeleteSupplierDocument();
+    const documents = useMemo(() => supplierDocumentsQuery.data?.items ?? [], [supplierDocumentsQuery.data]);
+    const documentsLoading = supplierDocumentsQuery.isLoading;
+    const [visibilityDraft, setVisibilityDraft] = useState<DirectoryVisibility>(directoryVisibility);
+    const documentSectionRef = useRef<HTMLDivElement | null>(null);
+    const expiredDocuments = useMemo(() => documents.filter((document) => document.status === 'expired'), [documents]);
+    const expiringDocuments = useMemo(() => documents.filter((document) => document.status === 'expiring'), [documents]);
+    const documentAlertDocuments = expiredDocuments.length > 0 ? expiredDocuments : expiringDocuments;
+    const shouldShowDocumentAlert = !documentsLoading && documentAlertDocuments.length > 0;
+    const hasCompletedProfile = Boolean(supplierProfileCompletedAt);
+    const isUpdatingVisibility = updateVisibilityMutation.isPending;
+    const canEditVisibility = isOwner && isCompanyApproved && status === 'approved';
+    const isVisibilityDirty = visibilityDraft !== directoryVisibility;
+    const requiresDocumentReview = expiredDocuments.length > 0;
+    const isPublicOptionDisabled = requiresDocumentReview || !hasCompletedProfile;
+    const visibilitySubmitDisabled = !canEditVisibility || !isVisibilityDirty || isUpdatingVisibility;
+    const visibilityBlockedReason = (() => {
+        if (!isOwner) {
+            return 'Only workspace owners can change directory visibility.';
+        }
+        if (!isCompanyApproved) {
+            return 'Company verification must be approved before updating directory listings.';
+        }
+        if (status !== 'approved') {
+            return 'Get supplier approval before publishing the profile to the directory.';
+        }
+        return null;
+    })();
+    const publicDisabledReason = (() => {
+        if (requiresDocumentReview) {
+            return 'Resolve expired compliance documents to list publicly again.';
+        }
+        if (!hasCompletedProfile) {
+            return 'Complete your supplier profile before going public.';
+        }
+        return null;
+    })();
+    const listingStatusCopy = (() => {
+        if (isListed) {
+            return {
+                title: 'Visible in directory',
+                description: 'Buyers searching the Elements directory can reach out with new RFQs and invitations.',
+            };
+        }
+
+        if (directoryVisibility === 'public') {
+            return {
+                title: 'Listing paused',
+                description: requiresDocumentReview
+                    ? 'Expired compliance documents temporarily hid your listing. Upload renewed files to restore visibility.'
+                    : 'We are syncing your directory listing. This usually resolves in a few minutes.',
+            };
+        }
+
+        return {
+            title: 'Private listing',
+            description: 'Keep your supplier profile hidden until you are ready for inbound buyer requests.',
+        };
+    })();
+    const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
+    const [documentType, setDocumentType] = useState<SupplierDocumentType>('iso9001');
+    const [documentIssuedAt, setDocumentIssuedAt] = useState('');
+    const [documentExpiresAt, setDocumentExpiresAt] = useState('');
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
+    const [documentError, setDocumentError] = useState<string | null>(null);
+    const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
     const canApply = isOwner && isCompanyApproved && (status === 'none' || status === 'rejected');
     const actionLabel = useMemo(() => {
         if (!isCompanyApproved) {
@@ -208,6 +354,20 @@ export function SupplierApplicationPanel() {
                 return 'Apply as supplier';
         }
     }, [isCompanyApproved, isOwner, status]);
+
+    useEffect(() => {
+        setVisibilityDraft(directoryVisibility);
+    }, [directoryVisibility]);
+
+    useEffect(() => {
+        setSelectedDocumentIds((previous) => previous.filter((id) => documents.some((document) => document.id === id)));
+    }, [documents]);
+
+    const scrollToDocumentSection = () => {
+        if (documentSectionRef.current) {
+            documentSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     const {
         register,
@@ -261,6 +421,10 @@ export function SupplierApplicationPanel() {
             notes: values.notes || undefined,
         };
 
+        if (selectedDocumentIds.length > 0) {
+            payload.documents = selectedDocumentIds;
+        }
+
         try {
             await applyMutation.mutateAsync(payload);
             publishToast({
@@ -271,23 +435,214 @@ export function SupplierApplicationPanel() {
             setDialogOpen(false);
             reset();
             await refresh();
+            await supplierStatusQuery.refetch();
+            if (canViewApplications) {
+                await supplierApplicationsQuery.refetch();
+            }
+            setSelectedDocumentIds([]);
         } catch (error) {
             setFormError(error instanceof Error ? error.message : 'Unable to submit your supplier application.');
         }
     });
 
+    const handleVisibilitySubmit = async () => {
+        if (visibilitySubmitDisabled) {
+            return;
+        }
+
+        try {
+            await updateVisibilityMutation.mutateAsync({ visibility: visibilityDraft });
+            publishToast({
+                variant: 'success',
+                title: 'Directory visibility updated',
+                description:
+                    visibilityDraft === 'public'
+                        ? 'Your supplier profile is now discoverable in the Elements directory.'
+                        : 'Your supplier profile is now private to your workspace.',
+            });
+            await supplierStatusQuery.refetch();
+            await refresh();
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to update visibility',
+                description: error instanceof Error ? error.message : 'Try again in a few moments.',
+            });
+            setVisibilityDraft(directoryVisibility);
+        }
+    };
+
     const StatusIcon = meta.icon;
+    const pendingApplication = status === 'pending' ? (supplierStatusData?.current_application ?? null) : null;
+    const blockingDocuments = pendingApplication?.documents ?? [];
     const statusDescription = useMemo(() => {
         if (status === 'approved') {
             return 'You can now receive RFQs, quotes, and POs from buyers across the Elements Supply network.';
         }
 
         if (status === 'pending') {
+            if (pendingApplication?.auto_reverification) {
+                return 'We paused supplier access because critical certificates expired. Upload renewed documents to resume review.';
+            }
+
             return 'Applications typically take 1-2 business days. We will email the owner once a decision is made.';
         }
 
         return meta.description;
-    }, [meta.description, status]);
+    }, [meta.description, pendingApplication?.auto_reverification, status]);
+
+    const documentStatusVariant: Record<SupplierDocument['status'], 'default' | 'secondary' | 'destructive'> = {
+        valid: 'default',
+        expiring: 'secondary',
+        expired: 'destructive',
+    };
+
+    const formatDate = (value?: string | null) => {
+        if (!value) {
+            return '—';
+        }
+
+        const parsed = new Date(value);
+
+        return Number.isNaN(parsed.getTime()) ? '—' : parsed.toLocaleDateString();
+    };
+
+    const formatFileSize = (value: number): string => {
+        if (!value || value <= 0) {
+            return '0 KB';
+        }
+
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let size = value;
+        let unitIndex = 0;
+
+        while (size >= 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+    };
+
+    const formatDateTime = (value?: string | null) => {
+        if (!value) {
+            return '—';
+        }
+
+        const parsed = new Date(value);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return '—';
+        }
+
+        return parsed.toLocaleString();
+    };
+
+    const handleDocumentToggle = (documentId: number, checked: boolean) => {
+        setSelectedDocumentIds((previous) => {
+            if (checked) {
+                if (previous.includes(documentId)) {
+                    return previous;
+                }
+
+                return [...previous, documentId];
+            }
+
+            return previous.filter((id) => id !== documentId);
+        });
+    };
+
+    const handleDocumentUpload = async () => {
+        if (!pendingFile) {
+            setDocumentError('Attach a file before uploading.');
+            return;
+        }
+
+        setDocumentError(null);
+
+        try {
+            const newDocument = await uploadSupplierDocumentMutation.mutateAsync({
+                file: pendingFile,
+                type: documentType,
+                issued_at: documentIssuedAt || undefined,
+                expires_at: documentExpiresAt || undefined,
+            });
+
+            setPendingFile(null);
+            setDocumentIssuedAt('');
+            setDocumentExpiresAt('');
+            setSelectedDocumentIds((previous) => (previous.includes(newDocument.id) ? previous : [...previous, newDocument.id]));
+
+            publishToast({
+                variant: 'success',
+                title: 'Document uploaded',
+                description: 'Your compliance document is ready to attach to this application.',
+            });
+        } catch (error) {
+            setDocumentError(error instanceof Error ? error.message : 'Unable to upload the document.');
+        }
+    };
+
+    const handleWithdrawApplication = async (applicationId: number) => {
+        if (!isOwner) {
+            return;
+        }
+
+        setWithdrawingId(applicationId);
+
+        try {
+            await withdrawApplicationMutation.mutateAsync(applicationId);
+            publishToast({
+                variant: 'success',
+                title: 'Application withdrawn',
+                description: 'You can resubmit once your profile and documents are ready.',
+            });
+            await refresh();
+            await supplierStatusQuery.refetch();
+            if (canViewApplications) {
+                await supplierApplicationsQuery.refetch();
+            }
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to withdraw application',
+                description: error instanceof Error ? error.message : 'Try again in a moment.',
+            });
+        } finally {
+            setWithdrawingId(null);
+        }
+    };
+
+    const handleDeleteDocument = async (documentId: number) => {
+        setDeletingDocumentId(documentId);
+
+        try {
+            await deleteSupplierDocumentMutation.mutateAsync(documentId);
+            setSelectedDocumentIds((previous) => previous.filter((id) => id !== documentId));
+            publishToast({
+                variant: 'success',
+                title: 'Document removed',
+                description: 'The document is no longer available for future applications.',
+            });
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Failed to delete document',
+                description: error instanceof Error ? error.message : 'Try again in a moment.',
+            });
+        } finally {
+            setDeletingDocumentId(null);
+        }
+    };
+
+    const handleFileSelection = (files: File[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
+        setPendingFile(files[0]);
+        setDocumentError(null);
+    };
 
     return (
         <Card>
@@ -305,6 +660,53 @@ export function SupplierApplicationPanel() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">{statusDescription}</p>
+
+                {status === 'pending' && pendingApplication ? (
+                    <Alert variant={pendingApplication.auto_reverification ? 'destructive' : 'default'}>
+                        <AlertDescription className="space-y-3">
+                            {pendingApplication.auto_reverification ? (
+                                <span>
+                                    Access is temporarily paused because required certificates expired. Upload refreshed documents so we can
+                                    complete re-verification.
+                                </span>
+                            ) : (
+                                <span>Your submission is waiting for review. We will notify the owner once a decision is made.</span>
+                            )}
+                            <div className="space-y-1 text-xs text-muted-foreground">
+                                {pendingApplication.submitted_at ? (
+                                    <p>Submitted {formatDateTime(pendingApplication.submitted_at)}</p>
+                                ) : null}
+                                {pendingApplication.notes ? <p>Notes: {pendingApplication.notes}</p> : null}
+                            </div>
+                            {blockingDocuments.length > 0 ? (
+                                <div className="space-y-2 rounded-md border border-border/60 bg-background/80 p-3">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Documents requiring updates
+                                    </p>
+                                    <div className="space-y-2">
+                                        {blockingDocuments.map((document) => {
+                                            const documentLabel = document.type ? document.type.replace(/_/g, ' ') : 'Document';
+
+                                            return (
+                                                <div key={document.id} className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <p className="font-medium capitalize text-foreground">{documentLabel}</p>
+                                                        <p>
+                                                            Expires {formatDate(document.expires_at)} • {document.status.toUpperCase()}
+                                                        </p>
+                                                    </div>
+                                                    <Badge variant={documentStatusVariant[document.status]} className="w-fit">
+                                                        {document.status}
+                                                    </Badge>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ) : null}
+                        </AlertDescription>
+                    </Alert>
+                ) : null}
 
                 {!isOwner ? (
                     <Alert>
@@ -339,6 +741,351 @@ export function SupplierApplicationPanel() {
                             The previous submission was rejected. Update your capabilities and certifications before applying again.
                         </AlertDescription>
                     </Alert>
+                ) : null}
+
+                {shouldShowDocumentAlert ? (
+                    <Alert variant={expiredDocuments.length > 0 ? 'destructive' : 'default'}>
+                        <AlertDescription className="space-y-2">
+                            <p className="text-sm font-medium text-foreground">
+                                {expiredDocuments.length > 0
+                                    ? `You have ${expiredDocuments.length} compliance document${expiredDocuments.length === 1 ? '' : 's'} that expired.`
+                                    : `You have ${expiringDocuments.length} compliance document${expiringDocuments.length === 1 ? '' : 's'} expiring soon.`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {expiredDocuments.length > 0
+                                    ? 'Upload replacement certificates to resume supplier directory visibility.'
+                                    : 'Provide renewed certificates to stay in good standing before access is paused.'}
+                            </p>
+                            <div className="space-y-1 text-xs text-muted-foreground">
+                                {documentAlertDocuments.slice(0, 3).map((document) => (
+                                    <div key={document.id} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+                                        <span className="font-medium capitalize text-foreground">
+                                            {document.type?.replace(/_/g, ' ') ?? 'Document'}
+                                        </span>
+                                        <span>
+                                            {document.status === 'expired' ? 'Expired' : 'Expires'} {formatDate(document.expires_at)}
+                                        </span>
+                                    </div>
+                                ))}
+                                {documentAlertDocuments.length > 3 ? (
+                                    <p>+{documentAlertDocuments.length - 3} more document{documentAlertDocuments.length - 3 === 1 ? '' : 's'} need attention</p>
+                                ) : null}
+                            </div>
+                            <Button type="button" size="sm" variant="outline" onClick={scrollToDocumentSection}>
+                                Review documents
+                            </Button>
+                        </AlertDescription>
+                    </Alert>
+                ) : null}
+
+                <div className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-medium">Directory visibility</p>
+                            <p className="text-xs text-muted-foreground">
+                                Control whether buyers browsing the Elements directory can discover your supplier profile.
+                            </p>
+                        </div>
+                        <Badge variant={directoryVisibility === 'public' ? 'default' : 'outline'} className="w-fit uppercase">
+                            {DIRECTORY_VISIBILITY_META[directoryVisibility].label}
+                        </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        {DIRECTORY_VISIBILITY_META[directoryVisibility].description}
+                    </p>
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                        <div className="space-y-3">
+                            <div className="space-y-2">
+                                <Label htmlFor="directory-visibility">Visibility setting</Label>
+                                <Select
+                                    value={visibilityDraft}
+                                    onValueChange={(value) => setVisibilityDraft(value as DirectoryVisibility)}
+                                    disabled={!canEditVisibility || isUpdatingVisibility}
+                                >
+                                    <SelectTrigger
+                                        id="directory-visibility"
+                                        aria-disabled={!canEditVisibility || isUpdatingVisibility}
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {DIRECTORY_VISIBILITY_OPTIONS.map((option) => (
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                                disabled={option.value === 'public' ? isPublicOptionDisabled : false}
+                                            >
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {!canEditVisibility && visibilityBlockedReason ? (
+                                    <p className="text-xs text-muted-foreground">{visibilityBlockedReason}</p>
+                                ) : null}
+                                {canEditVisibility && isPublicOptionDisabled && publicDisabledReason ? (
+                                    <p className="text-xs text-destructive">{publicDisabledReason}</p>
+                                ) : null}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button type="button" onClick={handleVisibilitySubmit} disabled={visibilitySubmitDisabled}>
+                                    {isUpdatingVisibility ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Save visibility
+                                </Button>
+                                {isVisibilityDirty ? (
+                                    <span className="text-xs text-muted-foreground">Unsaved changes</span>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className="rounded-lg border border-dashed border-border/80 bg-background/80 p-3 text-xs text-muted-foreground">
+                            <p className="text-sm font-medium text-foreground">{listingStatusCopy.title}</p>
+                            <p>{listingStatusCopy.description}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div ref={documentSectionRef} className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-medium">Compliance documents</p>
+                            <p className="text-xs text-muted-foreground">
+                                Upload certificates, NDAs, and insurance proofs once, then attach them to every supplier application.
+                                {` ${DOCUMENT_ACCEPT_LABEL}`}
+                            </p>
+                        </div>
+                        <Badge variant="outline" className="w-fit">
+                            {documentsLoading ? 'Loading…' : `${documents.length} file${documents.length === 1 ? '' : 's'}`}
+                        </Badge>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-3">
+                            <Label>Attach existing documents</Label>
+                            <div className="min-h-[120px] space-y-2 rounded-lg border border-dashed border-muted-foreground/40 p-3">
+                                {documentsLoading ? (
+                                    <div className="animate-pulse space-y-2 text-xs text-muted-foreground">
+                                        <div className="h-4 rounded bg-muted" />
+                                        <div className="h-4 w-2/3 rounded bg-muted" />
+                                        <div className="h-4 w-1/3 rounded bg-muted" />
+                                    </div>
+                                ) : documents.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        No supplier documents uploaded yet. Add a document using the form on the right.
+                                    </p>
+                                ) : (
+                                    documents.map((document) => (
+                                        <div
+                                            key={document.id}
+                                            className="flex items-start gap-3 rounded-lg border border-border/80 bg-background/80 p-3"
+                                        >
+                                            <Checkbox
+                                                id={`document-${document.id}`}
+                                                checked={selectedDocumentIds.includes(document.id)}
+                                                onCheckedChange={(checked) =>
+                                                    handleDocumentToggle(document.id, checked === true)
+                                                }
+                                                disabled={deletingDocumentId === document.id}
+                                            />
+                                            <div className="flex flex-1 flex-col gap-1">
+                                                <div className="flex items-center gap-2 text-sm font-medium capitalize">
+                                                    {document.type.replace('_', ' ')}
+                                                    <Badge variant={documentStatusVariant[document.status]} className="uppercase">
+                                                        {document.status}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Issued {formatDate(document.issued_at)} • Expires {formatDate(document.expires_at)}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {formatFileSize(document.size_bytes)} • {document.mime}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+                                                {document.download_url ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        aria-label="View document"
+                                                        asChild
+                                                    >
+                                                        <a href={document.download_url} target="_blank" rel="noreferrer">
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </Button>
+                                                ) : null}
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    aria-label="Remove document"
+                                                    onClick={() => handleDeleteDocument(document.id)}
+                                                    disabled={deletingDocumentId === document.id}
+                                                >
+                                                    {deletingDocumentId === document.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Selected documents will be included with your application for the reviewer.
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <Label htmlFor="document-type">Upload new document</Label>
+                            <div className="grid gap-3">
+                                <Select value={documentType} onValueChange={(value) => setDocumentType(value as SupplierDocumentType)}>
+                                    <SelectTrigger id="document-type">
+                                        <SelectValue placeholder="Choose a document type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {DOCUMENT_TYPE_OPTIONS.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-1">
+                                        <Label htmlFor="document-issued-at">Issued on</Label>
+                                        <Input
+                                            id="document-issued-at"
+                                            type="date"
+                                            value={documentIssuedAt}
+                                            onChange={(event) => setDocumentIssuedAt(event.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="document-expires-at">Expires on</Label>
+                                        <Input
+                                            id="document-expires-at"
+                                            type="date"
+                                            value={documentExpiresAt}
+                                            min={documentIssuedAt || undefined}
+                                            onChange={(event) => setDocumentExpiresAt(event.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <FileDropzone
+                                    accept={DOCUMENT_ACCEPT_EXTENSIONS}
+                                    acceptLabel={DOCUMENT_ACCEPT_LABEL}
+                                    onFilesSelected={handleFileSelection}
+                                    disabled={uploadSupplierDocumentMutation.isPending}
+                                    description={`Drag files or click to browse (max ${DOCUMENT_MAX_SIZE_MB} MB)`}
+                                />
+                                <div className="rounded-md border border-dashed border-muted-foreground/40 p-2 text-xs text-muted-foreground">
+                                    {pendingFile ? (
+                                        <span>
+                                            Selected: <strong>{pendingFile.name}</strong> ({formatFileSize(pendingFile.size)})
+                                        </span>
+                                    ) : (
+                                        <span>No file selected. Files up to {DOCUMENT_MAX_SIZE_MB} MB are supported.</span>
+                                    )}
+                                </div>
+                                {documentError ? <p className="text-xs text-destructive">{documentError}</p> : null}
+                                <Button
+                                    type="button"
+                                    onClick={handleDocumentUpload}
+                                    disabled={uploadSupplierDocumentMutation.isPending || !pendingFile}
+                                >
+                                    {uploadSupplierDocumentMutation.isPending ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : null}
+                                    Upload document
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {canViewApplications ? (
+                    <div className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm font-medium">Submission history</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Owners can withdraw pending requests before reviews begin.
+                                </p>
+                            </div>
+                            <Badge variant="outline" className="w-fit">
+                                {supplierApplications.length === 0
+                                    ? 'No submissions yet'
+                                    : `${supplierApplications.length} record${supplierApplications.length === 1 ? '' : 's'}`}
+                            </Badge>
+                        </div>
+
+                        {supplierApplicationsQuery.isLoading ? (
+                            <SubmissionHistorySkeleton />
+                        ) : supplierApplicationsQuery.isError ? (
+                            <Alert variant="destructive">
+                                <AlertDescription>Unable to load supplier applications right now.</AlertDescription>
+                            </Alert>
+                        ) : supplierApplications.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                Submit your first supplier profile to see the review timeline here.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {supplierApplications.map((application) => {
+                                    const metaEntry = APPLICATION_STATUS_META[application.status] ?? APPLICATION_STATUS_META.pending;
+                                    const documentCount = application.documents?.length ?? 0;
+                                    const showWithdraw = isOwner && application.status === 'pending';
+                                    const isWithdrawing = withdrawingId === application.id && withdrawApplicationMutation.isPending;
+
+                                    return (
+                                        <div
+                                            key={application.id}
+                                            className="space-y-2 rounded-lg border border-border/80 bg-background/80 p-3"
+                                        >
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <div>
+                                                    <p className="text-sm font-medium text-foreground">
+                                                        Submitted {formatDateTime(application.created_at)}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {application.status === 'pending'
+                                                            ? 'Awaiting review'
+                                                            : `${metaEntry.label} ${formatDateTime(application.reviewed_at)}`}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Badge variant={metaEntry.badge}>{metaEntry.label}</Badge>
+                                                    {showWithdraw ? (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => handleWithdrawApplication(application.id)}
+                                                            disabled={isWithdrawing}
+                                                        >
+                                                            {isWithdrawing ? (
+                                                                <span className="inline-flex items-center gap-1">
+                                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Withdrawing…
+                                                                </span>
+                                                            ) : (
+                                                                'Withdraw'
+                                                            )}
+                                                        </Button>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                            <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                                                <p>Documents attached: {documentCount}</p>
+                                                {application.notes ? <p>Notes: {application.notes}</p> : null}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 ) : null}
 
                 <Button onClick={() => (canApply ? setDialogOpen(true) : null)} disabled={!canApply}>
@@ -529,5 +1276,18 @@ export function SupplierApplicationPanel() {
                 </Dialog>
             </CardContent>
         </Card>
+    );
+}
+
+function SubmissionHistorySkeleton() {
+    return (
+        <div className="space-y-3">
+            {[0, 1].map((index) => (
+                <div key={index} className="space-y-2 rounded-lg border border-border/80 bg-background/80 p-3">
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-3 w-1/5" />
+                </div>
+            ))}
+        </div>
     );
 }

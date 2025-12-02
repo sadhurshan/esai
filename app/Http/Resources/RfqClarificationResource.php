@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\RfqClarificationType;
 use App\Models\Document;
 use App\Models\RfqClarification;
+use App\Support\CompanyContext;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin RfqClarification */
@@ -67,26 +68,61 @@ class RfqClarificationResource extends JsonResource
      */
     private function transformAttachments($request): array
     {
-        $ids = $this->attachmentIds();
+        $entries = $this->attachmentMetadata();
 
-        if ($ids === []) {
+        if ($entries === []) {
             return [];
         }
 
+        $documentIds = array_values(array_unique(array_map(
+            static fn (array $entry): int => (int) $entry['document_id'],
+            $entries
+        )));
+
+        $this->primeDocumentCache($documentIds);
+
         $attachments = [];
 
-        foreach ($ids as $id) {
-            if (! array_key_exists($id, self::$documentCache)) {
-                self::$documentCache[$id] = Document::query()->find($id);
+        foreach ($entries as $entry) {
+            $documentId = (int) $entry['document_id'];
+            $document = self::$documentCache[$documentId] ?? null;
+
+            if (! $document instanceof Document) {
+                continue;
             }
 
-            $document = self::$documentCache[$id];
-
-            if ($document instanceof Document) {
-                $attachments[] = (new DocumentResource($document))->toArray($request);
-            }
+            $attachments[] = [
+                'document_id' => (string) $document->id,
+                'filename' => $entry['filename'] ?? $document->filename,
+                'mime' => $entry['mime'] ?? $document->mime,
+                'size_bytes' => (int) ($entry['size_bytes'] ?? $document->size_bytes ?? 0),
+                'download_url' => $document->temporaryDownloadUrl(),
+                'uploaded_by' => $entry['uploaded_by'] ?? null,
+                'uploaded_at' => $entry['uploaded_at'] ?? $document->created_at?->toIso8601String(),
+            ];
         }
 
         return $attachments;
+    }
+
+    /**
+     * @param list<int> $documentIds
+     */
+    private function primeDocumentCache(array $documentIds): void
+    {
+        $missing = array_values(array_diff($documentIds, array_keys(self::$documentCache)));
+
+        if ($missing === []) {
+            return;
+        }
+
+        CompanyContext::bypass(static function () use ($missing): void {
+            Document::query()
+                ->whereIn('id', $missing)
+                ->get()
+                ->each(function (Document $document): void {
+                    self::$documentCache[$document->id] = $document;
+                });
+        });
     }
 }

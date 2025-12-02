@@ -14,32 +14,6 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
-function createCompanyWithPlan(array $overrides = []): Company
-{
-    $plan = Plan::firstOrCreate(
-        ['code' => 'starter'],
-        Plan::factory()->make(['code' => 'starter'])->getAttributes()
-    );
-
-    $company = Company::factory()->create(array_merge([
-        'status' => CompanyStatus::Active->value,
-        'plan_id' => $plan->id,
-        'plan_code' => $plan->code,
-    ], $overrides));
-
-    $customer = Customer::factory()->create([
-        'company_id' => $company->id,
-    ]);
-
-    Subscription::factory()->create([
-        'company_id' => $company->id,
-        'customer_id' => $customer->id,
-        'stripe_status' => 'active',
-    ]);
-
-    return $company;
-}
-
 it('lists RFQ lines for the owning company', function (): void {
     $company = createCompanyWithPlan();
 

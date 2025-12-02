@@ -20,6 +20,11 @@ test('profile information can be updated', function () {
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'job_title' => 'Procurement Lead',
+            'phone' => '+1-555-1000',
+            'locale' => 'en',
+            'timezone' => 'America/New_York',
+            'avatar_path' => 'avatars/test-user.png',
         ]);
 
     $response
@@ -31,6 +36,11 @@ test('profile information can be updated', function () {
     expect($user->name)->toBe('Test User');
     expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
+    expect($user->job_title)->toBe('Procurement Lead');
+    expect($user->phone)->toBe('+1-555-1000');
+    expect($user->locale)->toBe('en');
+    expect($user->timezone)->toBe('America/New_York');
+    expect($user->avatar_path)->toBe('avatars/test-user.png');
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {

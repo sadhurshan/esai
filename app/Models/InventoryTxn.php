@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class InventoryTxn extends Model
+class InventoryTxn extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\InventoryTxnFactory> */
     use HasFactory;

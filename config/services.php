@@ -59,4 +59,9 @@ return [
         'contact_url' => env('ENTERPRISE_CONTACT_URL'),
     ],
 
+    'ai_microservice' => [
+        'base_url' => env('AI_MICROSERVICE_URL'),
+        'timeout' => (int) env('AI_MICROSERVICE_TIMEOUT', 15),
+    ],
+
 ];

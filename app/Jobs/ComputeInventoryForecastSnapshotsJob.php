@@ -13,6 +13,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ComputeInventoryForecastSnapshotsJob implements ShouldQueue
 {
@@ -23,6 +25,7 @@ class ComputeInventoryForecastSnapshotsJob implements ShouldQueue
 
     private const DEMAND_LOOKBACK_DAYS = 90;
     private const FORECAST_HORIZON_DAYS = 30;
+    private const FORECAST_HISTORY_DAYS = 365;
 
     /**
      * @var list<InventoryTxnType>
@@ -73,8 +76,19 @@ class ComputeInventoryForecastSnapshotsJob implements ShouldQueue
         $inventorySetting = $part->relationLoaded('inventorySetting') ? $part->inventorySetting : null;
         $safetyStock = (float) ($inventorySetting?->safety_stock ?? 0.0);
 
-        $avgDailyDemand = $this->calculateAverageDailyDemand($companyId, $part->id);
-        $demandQty = round($avgDailyDemand * self::FORECAST_HORIZON_DAYS, 3);
+        $history = $this->buildHistorySeries($companyId, $part->id);
+        $forecast = empty($history) ? null : $this->requestForecast($part->id, $history);
+
+        if ($forecast !== null) {
+            $avgDailyDemand = max(0.0, round((float) ($forecast['avg_daily_demand'] ?? 0.0), 3));
+            $demandQty = max(0.0, round((float) ($forecast['demand_qty'] ?? ($avgDailyDemand * self::FORECAST_HORIZON_DAYS)), 3));
+            $safetyStock = isset($forecast['safety_stock'])
+                ? max(0.0, (float) $forecast['safety_stock'])
+                : $safetyStock;
+        } else {
+            $avgDailyDemand = $this->calculateAverageDailyDemand($companyId, $part->id);
+            $demandQty = round($avgDailyDemand * self::FORECAST_HORIZON_DAYS, 3);
+        }
 
         $runoutDays = null;
         if ($avgDailyDemand > 0) {
@@ -120,5 +134,80 @@ class ComputeInventoryForecastSnapshotsJob implements ShouldQueue
         }
 
         return round($totalDemand / self::DEMAND_LOOKBACK_DAYS, 3);
+    }
+
+    /**
+     * @return list<array{date:string,quantity:float}>
+     */
+    private function buildHistorySeries(int $companyId, int $partId): array
+    {
+        $lookbackDays = max(self::FORECAST_HISTORY_DAYS, self::DEMAND_LOOKBACK_DAYS);
+        $lookbackStart = now()->copy()->subDays($lookbackDays)->startOfDay();
+        $types = array_map(static fn (InventoryTxnType $type) => $type->value, self::DEMAND_SIGNAL_TYPES);
+
+        return InventoryTxn::query()
+            ->selectRaw('DATE(created_at) as txn_date, SUM(ABS(COALESCE(qty, 0))) as quantity')
+            ->where('company_id', $companyId)
+            ->where('part_id', $partId)
+            ->whereIn('type', $types)
+            ->where('created_at', '>=', $lookbackStart)
+            ->groupBy('txn_date')
+            ->orderBy('txn_date')
+            ->get()
+            ->map(static function ($row): array {
+                $dateValue = $row->txn_date;
+
+                if ($dateValue instanceof \DateTimeInterface) {
+                    $dateValue = $dateValue->format('Y-m-d');
+                }
+
+                return [
+                    'date' => (string) $dateValue,
+                    'quantity' => round((float) $row->quantity, 3),
+                ];
+            })
+            ->all();
+    }
+
+    private function requestForecast(int $partId, array $history): ?array
+    {
+        $baseUrl = rtrim((string) config('services.ai_microservice.base_url', ''), '/');
+
+        if ($baseUrl === '') {
+            return null;
+        }
+
+        $timeout = (int) config('services.ai_microservice.timeout', 10);
+
+        try {
+            $response = Http::timeout($timeout)
+                ->acceptJson()
+                ->post(sprintf('%s/forecast', $baseUrl), [
+                    'part_id' => $partId,
+                    'history' => $history,
+                    'horizon' => self::FORECAST_HORIZON_DAYS,
+                ]);
+        } catch (\Throwable $exception) {
+            Log::warning('AI forecast request failed', [
+                'part_id' => $partId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if ($response->failed()) {
+            Log::warning('AI forecast request returned error', [
+                'part_id' => $partId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        }
+
+        $payload = $response->json('data');
+
+        return is_array($payload) ? $payload : null;
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Requests\PurchaseOrder;
 
 use App\Http\Requests\ApiFormRequest;
-use Illuminate\Validation\Rule;
 
 class SendPurchaseOrderRequest extends ApiFormRequest
 {
@@ -13,12 +12,8 @@ class SendPurchaseOrderRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'channel' => ['required', 'string', Rule::in(['email', 'webhook'])],
-            'to' => ['nullable', 'array'],
-            'to.*' => ['required_with:to', 'email:rfc,dns'],
-            'cc' => ['nullable', 'array'],
-            'cc.*' => ['required_with:cc', 'email:rfc,dns'],
             'message' => ['nullable', 'string', 'max:2000'],
+            'override_email' => ['nullable', 'email:rfc'],
         ];
     }
 

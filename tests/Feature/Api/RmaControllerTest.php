@@ -1,13 +1,18 @@
 <?php
 
+use App\Enums\CreditNoteStatus;
 use App\Enums\RmaStatus;
 use App\Models\Company;
+use App\Models\CreditNote;
+use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\Notification;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Rma;
 use App\Models\Subscription;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -208,4 +213,78 @@ it('applies plan gating when RMAs are disabled or limit exceeded', function (): 
         'resolution_requested' => 'repair',
     ])->assertStatus(402)
         ->assertJsonPath('message', 'Upgrade required to file additional RMAs this month.');
+});
+
+it('creates a draft credit note when a credit RMA is approved', function (): void {
+    [$plan, $company, $submitter] = prepareRmaContext([
+        'credit_notes_enabled' => true,
+    ]);
+
+    $supplier = Supplier::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $company->id,
+        'supplier_id' => $supplier->id,
+        'status' => 'confirmed',
+    ]);
+
+    $poLine = PurchaseOrderLine::factory()->create([
+        'purchase_order_id' => $purchaseOrder->id,
+        'quantity' => 5,
+        'unit_price' => 120,
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'subtotal' => 600,
+        'tax_amount' => 0,
+        'total' => 600,
+        'currency' => 'USD',
+    ]);
+
+    InvoiceLine::factory()->create([
+        'invoice_id' => $invoice->id,
+        'po_line_id' => $poLine->id,
+        'quantity' => 5,
+        'unit_price' => 120,
+    ]);
+
+    actingAs($submitter);
+
+    $createResponse = postJson("/api/rmas/purchase-orders/{$purchaseOrder->id}", [
+        'reason' => 'Received units damaged',
+        'resolution_requested' => 'credit',
+        'purchase_order_line_id' => $poLine->id,
+        'defect_qty' => 2,
+    ])->assertCreated();
+
+    $rmaId = $createResponse->json('data.id');
+    $rma = Rma::findOrFail($rmaId);
+
+    $reviewer = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'finance',
+    ]);
+
+    actingAs($reviewer);
+
+    postJson("/api/rmas/{$rma->id}/review", [
+        'decision' => 'approve',
+        'comment' => 'Issuing credit',
+    ])->assertOk();
+
+    $rma->refresh();
+
+    expect($rma->credit_note_id)->not->toBeNull();
+
+    $creditNote = CreditNote::findOrFail($rma->credit_note_id);
+
+    expect($creditNote->status->value ?? $creditNote->status)->toBe(CreditNoteStatus::Draft->value)
+        ->and((float) $creditNote->amount)->toBe(240.0)
+        ->and($creditNote->invoice_id)->toBe($invoice->id)
+        ->and($creditNote->purchase_order_id)->toBe($purchaseOrder->id);
 });

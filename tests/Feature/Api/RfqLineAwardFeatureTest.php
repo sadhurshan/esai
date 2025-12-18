@@ -152,6 +152,7 @@ function buildRfqAwardScenario(int $rfqItemCount = 3, int $supplierCount = 3): a
         foreach ($rfqItems as $rfqItem) {
             $quoteItems[$rfqItem->id] = QuoteItem::create([
                 'quote_id' => $quote->id,
+                'company_id' => $buyerCompany->id,
                 'rfq_item_id' => $rfqItem->id,
                 'unit_price' => 120 + ($i * 3) + $rfqItem->line_no,
                 'lead_time_days' => 7 + $i,
@@ -376,6 +377,7 @@ it('rejects conversion when awards span multiple rfqs', function (): void {
 
     $quoteItem = QuoteItem::create([
         'quote_id' => $quote->id,
+        'company_id' => $rfq->company_id,
         'rfq_item_id' => $otherItem->id,
         'unit_price' => 120,
         'currency' => 'USD',
@@ -506,6 +508,83 @@ it('prevents deleting awards once converted to purchase orders', function (): vo
     $this->deleteJson("/api/awards/{$award->id}")
         ->assertStatus(422)
         ->assertJsonValidationErrors(['po_id']);
+});
+
+it('allows re-awarding after cancelling purchase orders', function (): void {
+    $scenario = buildRfqAwardScenario(rfqItemCount: 1, supplierCount: 2);
+
+    $rfq = $scenario['rfq'];
+    $rfqItem = $scenario['rfqItems'][0];
+    $suppliers = $scenario['suppliers'];
+    $buyerUser = $scenario['buyerUser'];
+
+    actingAs($buyerUser);
+
+    $this->postJson("/api/rfqs/{$rfq->id}/award-lines", [
+        'awards' => [
+            [
+                'rfq_item_id' => $rfqItem->id,
+                'quote_item_id' => $suppliers[0]['quote_items'][$rfqItem->id]->id,
+            ],
+        ],
+    ])->assertCreated();
+
+    $purchaseOrder = PurchaseOrder::firstOrFail();
+
+    expect($purchaseOrder->status)->toBe('draft');
+
+    $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/cancel")
+        ->assertOk();
+
+    $purchaseOrder->refresh();
+
+    expect($purchaseOrder->status)->toBe('cancelled');
+
+    expect(
+        RfqItemAward::query()
+            ->where('po_id', $purchaseOrder->id)
+            ->where('status', 'cancelled')
+            ->count()
+    )->toBe(1);
+
+    $quoteItemStatuses = QuoteItem::query()
+        ->where('rfq_item_id', $rfqItem->id)
+        ->pluck('status')
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+
+    expect($quoteItemStatuses)->toBe(['pending']);
+
+    $rfq->refresh();
+
+    expect($rfq->status)->toBe('open')
+        ->and($rfq->is_partially_awarded)->toBeFalse();
+
+    $quoteStatuses = Quote::query()
+        ->where('rfq_id', $rfq->id)
+        ->pluck('status')
+        ->unique()
+        ->values()
+        ->all();
+
+    expect($quoteStatuses)->toBe(['submitted']);
+
+    $this->postJson("/api/rfqs/{$rfq->id}/award-lines", [
+        'awards' => [
+            [
+                'rfq_item_id' => $rfqItem->id,
+                'quote_item_id' => $suppliers[1]['quote_items'][$rfqItem->id]->id,
+            ],
+        ],
+    ])->assertCreated();
+
+    $latestPo = PurchaseOrder::query()->orderByDesc('id')->first();
+
+    expect($latestPo)->not->toBeNull()
+        ->and($latestPo?->status)->toBe('draft')
+        ->and($latestPo?->quote_id)->toBe($suppliers[1]['quote']->id);
 });
 
 it('rejects invalid rfq to quote item mappings', function (): void {

@@ -63,6 +63,10 @@ export function PoListPage() {
     const [issuedTo, setIssuedTo] = useState('');
 
     const supplierId = useMemo(() => {
+        if (supplierFilter.trim() === '') {
+            return undefined;
+        }
+
         const parsed = Number(supplierFilter);
         return Number.isFinite(parsed) ? parsed : undefined;
     }, [supplierFilter]);
@@ -327,6 +331,8 @@ export function PoListPage() {
                 open={supplierPickerOpen}
                 onOpenChange={setSupplierPickerOpen}
                 onSelect={handleSupplierSelected}
+                allowAllSuppliersOption
+                onSelectAllSuppliers={handleClearSupplier}
             />
         </div>
     );

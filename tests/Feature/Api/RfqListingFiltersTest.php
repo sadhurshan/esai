@@ -6,6 +6,7 @@ use App\Models\RFQ;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Arr;
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
@@ -100,9 +101,26 @@ it('filters rfqs by the documented query parameters', function (): void {
         ->assertOk()
         ->assertJsonCount(1, 'data.items')
         ->assertJsonPath('data.items.0.id', (string) $matching->id)
-        ->assertJsonStructure(['meta' => ['pagination' => ['total', 'per_page', 'current_page', 'last_page']]])
-        ->assertJsonPath('data.meta.total', 1)
-        ->assertJsonPath('data.meta.per_page', 25);
+        ->assertJsonStructure([
+            'data' => [
+                'meta' => [
+                    'next_cursor',
+                    'prev_cursor',
+                    'per_page',
+                ],
+            ],
+            'meta' => [
+                'cursor' => [
+                    'next_cursor',
+                    'prev_cursor',
+                    'has_next',
+                    'has_prev',
+                ],
+            ],
+        ])
+        ->assertJsonPath('data.meta.per_page', 25)
+        ->assertJsonPath('meta.cursor.has_next', false)
+        ->assertJsonPath('meta.cursor.has_prev', false);
 
     Carbon::setTestNow();
 });
@@ -117,4 +135,45 @@ it('requires an active company context to list rfqs', function (): void {
         ->getJson('/api/rfqs')
         ->assertStatus(403)
         ->assertJsonPath('message', 'Company context required.');
+});
+
+it('paginates rfqs using cursors', function (): void {
+    $plan = Plan::factory()->create();
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+    ]);
+
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'buyer_admin',
+    ]);
+
+    $rfqs = RFQ::factory()->count(3)->sequence(
+        ['company_id' => $company->id, 'due_at' => now()->addDays(1)],
+        ['company_id' => $company->id, 'due_at' => now()->addDays(2)],
+        ['company_id' => $company->id, 'due_at' => now()->addDays(3)]
+    )->create();
+
+    $first = actingAs($user)
+        ->getJson('/api/rfqs?per_page=2&sort=due_at&sort_direction=asc')
+        ->assertOk()
+        ->assertJsonPath('data.items.0.id', (string) $rfqs[0]->id)
+        ->assertJsonPath('data.items.1.id', (string) $rfqs[1]->id)
+        ->assertJsonPath('meta.cursor.has_next', true)
+        ->assertJsonPath('meta.cursor.has_prev', false)
+        ->json();
+
+    $nextCursor = Arr::get($first, 'meta.cursor.next_cursor');
+
+    expect($nextCursor)->not->toBeNull();
+
+    actingAs($user)
+        ->getJson('/api/rfqs?per_page=2&sort=due_at&sort_direction=asc&cursor='.$nextCursor)
+        ->assertOk()
+        ->assertJsonCount(1, 'data.items')
+        ->assertJsonPath('data.items.0.id', (string) $rfqs[2]->id)
+        ->assertJsonPath('meta.cursor.has_next', false)
+        ->assertJsonPath('meta.cursor.has_prev', true);
 });

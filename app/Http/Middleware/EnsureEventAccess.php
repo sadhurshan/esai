@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -28,30 +29,18 @@ class EnsureEventAccess
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Authentication required.',
-                'data' => null,
-            ], Response::HTTP_UNAUTHORIZED);
+            return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
         $user->loadMissing('company');
         $company = $user->company;
 
         if (! $company instanceof Company) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Company context required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Company context required.', Response::HTTP_FORBIDDEN);
         }
 
         if (! $this->permissionRegistry->userHasAny($user, self::PERMISSIONS, (int) $company->id)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Events access requires integration permissions.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Events access requires integration permissions.', Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

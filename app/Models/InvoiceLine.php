@@ -22,6 +22,7 @@ class InvoiceLine extends Model
         'unit_price',
         'currency',
         'unit_price_minor',
+        'line_total_minor',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class InvoiceLine extends Model
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
         'unit_price_minor' => 'integer',
+        'line_total_minor' => 'integer',
     ];
 
     public function invoice(): BelongsTo

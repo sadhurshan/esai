@@ -6,7 +6,13 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\Supplier;
+use App\Models\SupplierContact;
 use App\Models\User;
+use App\Services\Auth\PersonaResolver;
+use App\Support\CompanyContext;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use function Pest\Laravel\actingAs;
 
@@ -213,4 +219,69 @@ function createSubscribedCompany(array $companyOverrides = [], array $planOverri
     ]);
 
     return $company;
+}
+
+/**
+ * @return array{user: User, persona: array<string, mixed>, supplier: \App\Models\Supplier, supplier_company: Company}
+ */
+function createSupplierPersonaForBuyer(Company $buyerCompany): array
+{
+    $supplierCompany = createSubscribedCompany([
+        'supplier_status' => CompanySupplierStatus::Approved->value,
+    ]);
+
+    /** @var User $supplierOwner */
+    $supplierOwner = User::factory()->owner()->create([
+        'company_id' => $supplierCompany->id,
+    ]);
+
+    $supplierCompany->owner()->associate($supplierOwner);
+    $supplierCompany->owner_user_id = $supplierOwner->id;
+    $supplierCompany->save();
+
+    $supplierOwner->companies()->attach($supplierCompany->id, [
+        'role' => 'owner',
+        'is_default' => true,
+        'last_used_at' => Carbon::now(),
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    $supplier = CompanyContext::forCompany($supplierCompany->id, static fn () => Supplier::factory()
+        ->for($supplierCompany)
+        ->create([
+            'status' => 'approved',
+        ]));
+
+    $supplierOwner->forceFill([
+        'supplier_capable' => true,
+        'default_supplier_id' => $supplier->id,
+    ])->save();
+
+    CompanyContext::forCompany($buyerCompany->id, static function () use ($buyerCompany, $supplier, $supplierOwner): void {
+        SupplierContact::query()->create([
+            'company_id' => $buyerCompany->id,
+            'supplier_id' => $supplier->id,
+            'user_id' => $supplierOwner->id,
+        ]);
+    });
+
+    $personas = app(PersonaResolver::class)->resolve($supplierOwner->fresh());
+
+    $supplierPersona = collect($personas)->first(static function (array $persona) use ($buyerCompany, $supplier): bool {
+        return $persona['type'] === 'supplier'
+            && (int) Arr::get($persona, 'company_id') === $buyerCompany->id
+            && (int) Arr::get($persona, 'supplier_id') === $supplier->id;
+    });
+
+    if ($supplierPersona === null) {
+        throw new \RuntimeException('Unable to resolve supplier persona for test.');
+    }
+
+    return [
+        'user' => $supplierOwner->fresh(),
+        'persona' => $supplierPersona,
+        'supplier' => $supplier,
+        'supplier_company' => $supplierCompany,
+    ];
 }

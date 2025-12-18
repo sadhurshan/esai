@@ -19,17 +19,13 @@ class DocumentController extends ApiController
 
     public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if (! $user instanceof User) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $companyId = $this->resolveUserCompanyId($user);
-
-        if ($companyId === null) {
-            return $this->fail('Company context required.', 403);
-        }
+        ['user' => $user, 'companyId' => $companyId] = $context;
 
         $documentable = $this->resolveDocumentable($request, $companyId);
 
@@ -76,17 +72,70 @@ class DocumentController extends ApiController
 
     public function show(Request $request, Document $document): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if (! $user instanceof User) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
+
+        ['user' => $user] = $context;
 
         if ($this->authorizeDenied($user, 'view', $document)) {
             return $this->fail('Forbidden.', 403);
         }
 
         return $this->ok((new DocumentResource($document))->toArray($request));
+    }
+
+    public function destroy(Request $request, Document $document): JsonResponse
+    {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user] = $context;
+
+        if ($this->authorizeDenied($user, 'delete', $document)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        $documentableType = $document->documentable_type;
+        $documentableId = is_numeric($document->documentable_id) ? (int) $document->documentable_id : null;
+
+        $document->delete();
+
+        $this->refreshAttachmentCount($documentableType, $documentableId);
+
+        return $this->ok(null, 'Document deleted.');
+    }
+
+    private function refreshAttachmentCount(?string $documentableType, ?int $documentableId): void
+    {
+        if ($documentableType === null || $documentableId === null) {
+            return;
+        }
+
+        if (! class_exists($documentableType) || ! is_subclass_of($documentableType, Model::class)) {
+            return;
+        }
+
+        /** @var Model $model */
+        $model = new $documentableType();
+
+        if (! Schema::hasColumn($model->getTable(), 'attachments_count')) {
+            return;
+        }
+
+        $count = Document::query()
+            ->where('documentable_type', $documentableType)
+            ->where('documentable_id', $documentableId)
+            ->count();
+
+        $documentableType::query()
+            ->whereKey($documentableId)
+            ->update(['attachments_count' => $count]);
     }
 
     private function resolveDocumentable(StoreDocumentRequest $request, int $companyId): ?Model

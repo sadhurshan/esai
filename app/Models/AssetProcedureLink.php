@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AssetProcedureLink extends Model
+class AssetProcedureLink extends CompanyScopedModel
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
+        'company_id',
         'asset_id',
         'maintenance_procedure_id',
         'frequency_value',

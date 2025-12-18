@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\ResolveCompanyContext;
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use function Pest\Laravel\actingAs;
@@ -123,4 +125,22 @@ it('blocks non-admin roles when onboarding incomplete', function (): void {
     getJson('/testing/company-onboarded-block')
         ->assertForbidden()
         ->assertJsonPath('message', 'Company onboarding incomplete.');
+});
+
+it('allows supplier personas to bypass the onboarding guard', function (): void {
+    Route::middleware([StartSession::class, ResolveCompanyContext::class, 'ensure.company.onboarded:strict'])->get('/testing/company-onboarded-supplier-persona', static fn () => response()->json(['status' => 'success']));
+
+    $buyerCompany = createSubscribedCompany([
+        'primary_contact_name' => null,
+    ]);
+
+    $supplierContext = createSupplierPersonaForBuyer($buyerCompany);
+
+    actingAs($supplierContext['user']);
+
+    $this->withHeaders([
+        'X-Active-Persona' => $supplierContext['persona']['key'],
+    ])->getJson('/testing/company-onboarded-supplier-persona')
+        ->assertOk()
+        ->assertJsonPath('status', 'success');
 });

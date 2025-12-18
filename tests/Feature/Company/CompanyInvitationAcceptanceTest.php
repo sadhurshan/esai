@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Company\InviteCompanyUsersAction;
+use App\Enums\CompanySupplierStatus;
 use App\Enums\UserStatus;
 use App\Models\Company;
 use App\Models\CompanyInvitation;
@@ -129,4 +130,31 @@ it('rejects invitation acceptance when the email does not match', function (): v
         'password' => 'SecurePass123!',
         'password_confirmation' => 'SecurePass123!',
     ])->assertStatus(422);
+});
+
+it('blocks supplier role invitations until the company is supplier-approved', function (): void {
+    Notification::fake();
+
+    $company = Company::factory()->create([
+        'supplier_status' => CompanySupplierStatus::None,
+    ]);
+
+    $inviter = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'buyer_admin',
+    ]);
+
+    attachUserToCompany($inviter, $company);
+
+    actingAs($inviter);
+
+    postJson('/api/company-invitations', [
+        'invitations' => [[
+            'email' => 'supplier-role@example.com',
+            'role' => 'supplier_admin',
+        ]],
+    ])->assertStatus(422)
+        ->assertJsonPath('errors.invitations.0', 'Supplier-role invitations require supplier approval.');
+
+    expect(CompanyInvitation::query()->count())->toBe(0);
 });

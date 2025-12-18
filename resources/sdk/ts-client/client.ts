@@ -10,6 +10,7 @@ export interface ClientOptions {
     baseUrl?: string;
     bearerToken?: TokenSource;
     apiKey?: TokenSource;
+    activePersona?: TokenSource;
     fetch?: FetchAPI;
     retry?: Partial<RetryOptions>;
     defaultHeaders?: Record<string, string>;
@@ -74,6 +75,13 @@ export function createAuthenticatedFetch(options: ClientOptions = {}): FetchAPI 
             const apiKey = await resolveToken(options.apiKey);
             if (apiKey) {
                 headers.set('X-API-Key', apiKey);
+            }
+        }
+
+        if (!headers.has('X-Active-Persona')) {
+            const personaKey = await resolveToken(options.activePersona);
+            if (personaKey) {
+                headers.set('X-Active-Persona', personaKey);
             }
         }
 

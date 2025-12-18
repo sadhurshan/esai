@@ -7,6 +7,8 @@ use App\Models\RFQ;
 use App\Models\RfqClarification;
 use App\Models\RfqInvitation;
 use App\Models\User;
+use App\Policies\RfqClarificationPolicy;
+use App\Support\CompanyContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,43 +17,93 @@ use Illuminate\Support\Str;
 
 class RfqTimelineController extends ApiController
 {
+    public function __construct(private readonly RfqClarificationPolicy $clarificationPolicy)
+    {
+    }
+
     public function __invoke(RFQ $rfq, Request $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $companyId = $this->resolveUserCompanyId($user);
-        if ($companyId === null || (int) $rfq->company_id !== $companyId) {
+        ['user' => $user] = $context;
+
+        if (! $this->clarificationPolicy->viewClarifications($user, $rfq)) {
             return $this->fail('Forbidden', 403);
         }
 
-        $rfq->loadMissing([
-            'creator:id,name,email',
-            'invitations' => static function ($query): void {
-                $query->with([
-                    'inviter:id,name,email',
-                    'supplier:id,name',
-                ])->orderBy('created_at');
-            },
-            'clarifications' => static function ($query): void {
-                $query->with(['user:id,name,email'])->orderBy('created_at');
-            },
-            'awards' => static function ($query): void {
-                $query->with(['awarder:id,name,email'])->orderBy('awarded_at');
-            },
-            'deadlineExtensions' => static function ($query): void {
-                $query->with(['extendedBy:id,name,email'])->orderBy('created_at');
-            },
-        ]);
+        $timeline = CompanyContext::forCompany((int) $rfq->company_id, function () use ($rfq): array {
+            $rfq->loadMissing([
+                'creator:id,name,email',
+                'invitations' => static function ($query): void {
+                    $query->with([
+                        'inviter:id,name,email',
+                        'supplier:id,name',
+                    ])->orderBy('created_at');
+                },
+                'clarifications' => static function ($query): void {
+                    $query->with(['user:id,name,email'])->orderBy('created_at');
+                },
+                'awards' => static function ($query): void {
+                    $query->with(['awarder:id,name,email'])->orderBy('awarded_at');
+                },
+                'deadlineExtensions' => static function ($query): void {
+                    $query->with(['extendedBy:id,name,email'])->orderBy('created_at');
+                },
+            ]);
 
-        $timeline = $this->buildTimeline($rfq);
+            return $this->buildTimeline($rfq);
+        });
+
+        if ($this->shouldRestrictTimelineForSupplier($user, $rfq)) {
+            $timeline = $this->filterTimelineForSupplier($timeline);
+        }
 
         return $this->ok([
             'items' => $timeline,
         ]);
+    }
+
+    private function shouldRestrictTimelineForSupplier(User $user, RFQ $rfq): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return false;
+        }
+
+        return ! ($user->company_id !== null && (int) $user->company_id === (int) $rfq->company_id);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $timeline
+     * @return array<int, array<string, mixed>>
+     */
+    private function filterTimelineForSupplier(array $timeline): array
+    {
+        $visibleEvents = [
+            'created',
+            'published',
+            'question_posted',
+            'answer_posted',
+            'amended',
+            'deadline_extended',
+            'awarded',
+            'closed',
+        ];
+
+        return (new Collection($timeline))
+            ->filter(static fn (array $entry) => in_array($entry['event'] ?? '', $visibleEvents, true))
+            ->map(static function (array $entry): array {
+                if (isset($entry['context']) && is_array($entry['context'])) {
+                    unset($entry['context']['supplier_name'], $entry['context']['supplier_email']);
+                }
+
+                return $entry;
+            })
+            ->values()
+            ->all();
     }
 
     /**

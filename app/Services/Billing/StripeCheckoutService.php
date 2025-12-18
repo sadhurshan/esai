@@ -111,12 +111,14 @@ class StripeCheckoutService
 
     private function defaultSuccessUrl(): string
     {
-        return rtrim(config('app.url', $this->url->to('/')), '/').'/billing/success?session_id={CHECKOUT_SESSION_ID}';
+        return rtrim(config('app.url', $this->url->to('/')), '/')
+            .'/billing/success?session_id={CHECKOUT_SESSION_ID}';
     }
 
     private function defaultCancelUrl(): string
     {
-        return rtrim(config('app.url', $this->url->to('/')), '/').'/billing/cancel';
+        return rtrim(config('app.url', $this->url->to('/')), '/')
+            .'/billing/cancel';
     }
 
     private function isComplimentary(Plan $plan): bool

@@ -5,10 +5,12 @@ namespace App\Policies;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Support\Permissions\PermissionRegistry;
+use App\Support\PurchaseOrders\PurchaseOrderSupplierResolver;
+use App\Support\ActivePersonaContext;
 
 class PurchaseOrderPolicy
 {
-    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator'];
+    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator', 'owner'];
     private const PLATFORM_ROLES = ['platform_super', 'platform_support'];
 
     public function __construct(private readonly PermissionRegistry $permissionRegistry)
@@ -55,7 +57,15 @@ class PurchaseOrderPolicy
 
     public function viewEvents(User $user, PurchaseOrder $purchaseOrder): bool
     {
-        return $this->hasBuyerPermission($user, $purchaseOrder, 'orders.read');
+        if ($this->hasBuyerPermission($user, $purchaseOrder, 'orders.read')) {
+            return true;
+        }
+
+        if ($this->belongsToSupplier($user, $purchaseOrder)) {
+            return in_array($user->role, self::SUPPLIER_ROLES, true);
+        }
+
+        return $user->isPlatformAdmin();
     }
 
     public function acknowledge(User $user, PurchaseOrder $purchaseOrder): bool
@@ -67,6 +77,15 @@ class PurchaseOrderPolicy
         return $user->isPlatformAdmin();
     }
 
+    public function createSupplierInvoice(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        if (! $this->belongsToSupplier($user, $purchaseOrder)) {
+            return false;
+        }
+
+        return in_array($user->role, self::SUPPLIER_ROLES, true);
+    }
+
     private function belongsToBuyer(User $user, PurchaseOrder $purchaseOrder): bool
     {
         return $user->company_id !== null && (int) $user->company_id === (int) $purchaseOrder->company_id;
@@ -74,10 +93,19 @@ class PurchaseOrderPolicy
 
     private function belongsToSupplier(User $user, PurchaseOrder $purchaseOrder): bool
     {
-        $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
+        $supplierCompanyId = PurchaseOrderSupplierResolver::resolveSupplierCompanyId($purchaseOrder);
 
-        return $user->company_id !== null && $supplierCompanyId !== null
-            && (int) $supplierCompanyId === (int) $user->company_id;
+        if ($supplierCompanyId === null) {
+            return false;
+        }
+
+        if ($user->company_id !== null && (int) $supplierCompanyId === (int) $user->company_id) {
+            return true;
+        }
+
+        $personaSupplierCompanyId = ActivePersonaContext::supplierCompanyId();
+
+        return $personaSupplierCompanyId !== null && (int) $personaSupplierCompanyId === (int) $supplierCompanyId;
     }
 
     private function hasPlatformRole(User $user): bool

@@ -3,6 +3,9 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Support\ActivePersona;
+use App\Support\ActivePersonaContext;
+use App\Support\RequestPersonaResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class RequestCompanyContextResolver
 {
     /**
-     * @return array{user:User, companyId:int}|null
+     * @return array{user:User, companyId:int, persona:?ActivePersona}|null
      */
     public static function resolve(Request $request): ?array
     {
@@ -20,7 +23,13 @@ class RequestCompanyContextResolver
             return null;
         }
 
-        $companyId = self::resolveUserCompanyId($user);
+        $persona = RequestPersonaResolver::resolve($request, $user);
+
+        if ($persona !== null) {
+            $companyId = $persona->companyId();
+        } else {
+            $companyId = self::resolveUserCompanyId($user);
+        }
 
         if ($companyId === null) {
             return null;
@@ -32,7 +41,7 @@ class RequestCompanyContextResolver
 
         $request->setUserResolver(static fn () => $user);
 
-        return ['user' => $user, 'companyId' => $companyId];
+        return ['user' => $user, 'companyId' => $companyId, 'persona' => $persona];
     }
 
     public static function resolveRequestUser(Request $request): ?User
@@ -86,6 +95,12 @@ class RequestCompanyContextResolver
 
     public static function resolveUserCompanyId(User $user): ?int
     {
+        $personaCompanyId = ActivePersonaContext::companyId();
+
+        if ($personaCompanyId !== null) {
+            return $personaCompanyId;
+        }
+
         if ($user->company_id !== null) {
             return (int) $user->company_id;
         }

@@ -54,6 +54,9 @@ const movementTypeOptions: Array<{ label: string; value: MovementFilterState['ty
     { label: 'Adjustments', value: 'ADJUST' },
 ];
 
+const ANY_ITEM_VALUE = '__any-item__';
+const ANY_LOCATION_VALUE = '__any-location__';
+
 export function MovementListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
@@ -79,8 +82,8 @@ export function MovementListPage() {
     const nextCursor = typeof cursorMeta?.next_cursor === 'string' ? cursorMeta.next_cursor : null;
     const prevCursor = typeof cursorMeta?.prev_cursor === 'string' ? cursorMeta.prev_cursor : null;
 
-    const itemsQuery = useItems({ perPage: 200, status: 'active' });
-    const locationsQuery = useLocations({ perPage: 200, type: 'bin' });
+    const itemsQuery = useItems({ perPage: 100, status: 'active' });
+    const locationsQuery = useLocations({ perPage: 100, type: 'bin' });
     const itemOptions = itemsQuery.data?.items ?? [];
     const locationOptions = locationsQuery.data?.items ?? [];
 
@@ -221,12 +224,15 @@ export function MovementListPage() {
                     </div>
                     <div className="space-y-2">
                         <Label>Item</Label>
-                        <Select value={filters.itemId} onValueChange={(value) => handleFilterChange('itemId', value)}>
+                        <Select
+                            value={filters.itemId || ANY_ITEM_VALUE}
+                            onValueChange={(value) => handleFilterChange('itemId', value === ANY_ITEM_VALUE ? '' : value)}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Any item" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Any item</SelectItem>
+                                <SelectItem value={ANY_ITEM_VALUE}>Any item</SelectItem>
                                 {itemsQuery.isLoading ? (
                                     <div className="px-3 py-2">
                                         <Skeleton className="h-4 w-32" />
@@ -246,12 +252,15 @@ export function MovementListPage() {
                     </div>
                     <div className="space-y-2">
                         <Label>Location</Label>
-                        <Select value={filters.locationId} onValueChange={(value) => handleFilterChange('locationId', value)}>
+                        <Select
+                            value={filters.locationId || ANY_LOCATION_VALUE}
+                            onValueChange={(value) => handleFilterChange('locationId', value === ANY_LOCATION_VALUE ? '' : value)}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Any location" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Any location</SelectItem>
+                                <SelectItem value={ANY_LOCATION_VALUE}>Any location</SelectItem>
                                 {locationsQuery.isLoading ? (
                                     <div className="px-3 py-2">
                                         <Skeleton className="h-4 w-28" />

@@ -1,3 +1,11 @@
+## 2025-12-14 14:10
+- Authored the supplier-invoicing enablement guide detailing feature flag overrides, API steps, QA validation, and customer messaging so rollout teams can gate the feature gradually ([docs/launch_ready_cleanup/supplier-invoicing-enablement.md](launch_ready_cleanup/supplier-invoicing-enablement.md)).
+- Started project-wide changelog tracking with an entry for the supplier-authored invoicing release to keep migration, QA, and enablement artifacts linked for audits ([CHANGELOG.md](../CHANGELOG.md)).
+
+## 2025-12-03 10:30
+- Finalized `docs/prompts/Owner operate both as buyer and supplier without breaking the tenant model.md`, detailing data model, auth, UX, safeguards, and testing strategy for dual buyer/supplier personas so future implementation follows the agreed plan.
+- Reviewed the open engineering tasks to ensure no remaining questions on supplier persona switching before marking the prompt complete.
+
 ## 2025-11-21 09:05
 - Shipped the Analytics MVP prompt by enriching snapshot metadata (quote counts, supplier spend) and exposing it through the `/api/analytics/overview` hook so KPI cards and charts share a consistent payload.
 - Built reusable KPI and mini-chart components plus the fully plan-gated `/app/analytics` page that renders RFQ/Quote trends, supplier spend bars, and on-time vs late receipt stacks with skeleton states.

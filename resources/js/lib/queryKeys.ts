@@ -1,9 +1,14 @@
 export const queryKeys = {
+    dashboard: {
+        metrics: () => ['dashboard', 'buyer', 'metrics'] as const,
+        supplierMetrics: () => ['dashboard', 'supplier', 'metrics'] as const,
+    },
     quotes: {
         root: () => ['quotes'] as const,
         rfq: (rfqId: string | number) => ['quotes', 'rfq', String(rfqId)] as const,
         list: (rfqId: string | number, filters?: Record<string, unknown>) =>
             ['quotes', 'rfq', String(rfqId), 'list', filters ?? {}] as const,
+        compare: (rfqId: string | number) => ['quotes', 'rfq', String(rfqId), 'compare'] as const,
         detail: (quoteId: string | number) => ['quotes', 'detail', String(quoteId)] as const,
         lines: (quoteId: string | number) => ['quotes', 'lines', String(quoteId)] as const,
         revisions: (rfqId: string | number, quoteId: string | number) =>
@@ -40,6 +45,7 @@ export const queryKeys = {
     },
     money: {
         settings: () => ['money', 'settings'] as const,
+        taxCodes: (params?: Record<string, unknown>) => ['money', 'tax-codes', params ?? {}] as const,
     },
     localization: {
         settings: () => ['localization', 'settings'] as const,
@@ -59,7 +65,7 @@ export const queryKeys = {
         list: (params?: Record<string, unknown>) => ['company-members', 'list', params ?? {}] as const,
     },
     companyRoleTemplates: {
-        list: () => ['company-role-templates', 'list'] as const,
+        list: (params?: Record<string, unknown>) => ['company-role-templates', 'list', params ?? {}] as const,
     },
     orders: {
         list: (params?: Record<string, unknown>) => ['orders', 'list', params ?? {}] as const,
@@ -85,6 +91,8 @@ export const queryKeys = {
     invoices: {
         list: (params?: Record<string, unknown>) => ['invoices', 'list', params ?? {}] as const,
         detail: (id: number | string) => ['invoices', 'detail', String(id)] as const,
+        supplierList: (params?: Record<string, unknown>) => ['invoices', 'supplier', 'list', params ?? {}] as const,
+        supplierDetail: (id: number | string) => ['invoices', 'supplier', 'detail', String(id)] as const,
     },
     companies: {
         detail: (id: number) => ['companies', 'detail', id] as const,
@@ -172,6 +180,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['quotes']['root']
     | (typeof queryKeys)['quotes']['rfq']
     | (typeof queryKeys)['quotes']['list']
+    | (typeof queryKeys)['quotes']['compare']
     | (typeof queryKeys)['quotes']['detail']
     | (typeof queryKeys)['quotes']['lines']
     | (typeof queryKeys)['quotes']['revisions']
@@ -199,6 +208,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['rfqs']['timeline']
     | (typeof queryKeys)['rfqs']['attachments']
     | (typeof queryKeys)['money']['settings']
+    | (typeof queryKeys)['money']['taxCodes']
     | (typeof queryKeys)['localization']['settings']
     | (typeof queryKeys)['localization']['convert']
     | (typeof queryKeys)['localization']['uoms']
@@ -216,6 +226,8 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['purchaseOrders']['events']
     | (typeof queryKeys)['invoices']['list']
     | (typeof queryKeys)['invoices']['detail']
+    | (typeof queryKeys)['invoices']['supplierList']
+    | (typeof queryKeys)['invoices']['supplierDetail']
     | (typeof queryKeys)['companies']['detail']
     | (typeof queryKeys)['companies']['documents']
     | (typeof queryKeys)['receiving']['root']

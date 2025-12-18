@@ -93,10 +93,9 @@ const registerSchema = z
             .url('Enter a valid URL, e.g. https://example.com')
             .max(191, 'Website URL is too long.'),
         phone: z
-            .string()
-            .max(60, 'Phone number is too long.')
-            .optional()
-            .or(z.literal('')),
+            .string({ required_error: 'Company phone is required.' })
+            .min(3, 'Company phone is required.')
+            .max(60, 'Phone number is too long.'),
         address: z
             .string()
             .max(500, 'Address is too long.')
@@ -257,7 +256,7 @@ export function RegisterPage() {
                 registrationNo: values.registrationNo,
                 taxId: values.taxId,
                 website: values.website,
-                phone: values.phone?.trim() ? values.phone : undefined,
+                phone: values.phone.trim(),
                 address: values.address?.trim() ? values.address : undefined,
                 country: values.country?.trim() ? values.country : undefined,
                 companyDocuments: documentPayload,
@@ -389,7 +388,7 @@ export function RegisterPage() {
                                 {errors.website ? <p className="text-xs text-destructive">{errors.website.message}</p> : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Company phone (optional)</Label>
+                                <Label htmlFor="phone">Company phone</Label>
                                 <Input id="phone" type="tel" autoComplete="tel" placeholder="+1 555-0100" {...register('phone', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
                                 })} />

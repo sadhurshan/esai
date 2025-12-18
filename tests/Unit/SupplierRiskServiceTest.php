@@ -1,10 +1,15 @@
 <?php
 
+use App\Enums\CreditNoteStatus;
+use App\Enums\RmaStatus;
 use App\Enums\RiskGrade;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\CreditNote;
 use App\Models\GoodsReceiptLine;
 use App\Models\GoodsReceiptNote;
+use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
@@ -12,6 +17,7 @@ use App\Models\Quote;
 use App\Models\RFQ;
 use App\Models\RfqInvitation;
 use App\Models\RfqItem;
+use App\Models\Rma;
 use App\Models\Subscription;
 use App\Models\Supplier;
 use App\Models\User;
@@ -147,6 +153,7 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
     ]);
 
     RfqInvitation::create([
+        'company_id' => $company->id,
         'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
         'invited_by' => $user->id,
@@ -159,6 +166,7 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
         ]);
 
         RfqInvitation::create([
+            'company_id' => $company->id,
             'rfq_id' => $additionalRfq->id,
             'supplier_id' => $supplier->id,
             'invited_by' => $user->id,
@@ -181,6 +189,166 @@ it('calculates supplier risk metrics and assigns grades', function (): void {
         ->and((float) $score->lead_time_volatility)->toBeGreaterThan(0.0)
         ->and($score->risk_grade?->value)->toBe(RiskGrade::Medium->value)
         ->and($company->fresh()->risk_scores_monthly_used)->toBe(1);
+
+    Carbon::setTestNow();
+});
+
+it('counts RMAs and credit notes in defect metrics', function (): void {
+    $periodStart = Carbon::create(2025, 5, 1, 0, 0, 0, 'UTC');
+    Carbon::setTestNow($periodStart->copy()->addDays(3));
+
+    $plan = Plan::factory()->create([
+        'risk_scores_enabled' => true,
+    ]);
+
+    $company = Company::factory()->create([
+        'plan_id' => $plan->id,
+        'plan_code' => $plan->code,
+    ]);
+
+    $supplier = Supplier::factory()->create([
+        'company_id' => $company->id,
+        'status' => 'approved',
+    ]);
+
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    $rfq = RFQ::factory()->create([
+        'company_id' => $company->id,
+        'status' => 'awarded',
+    ]);
+
+    $quote = Quote::create([
+        'company_id' => $company->id,
+        'rfq_id' => $rfq->id,
+        'supplier_id' => $supplier->id,
+        'submitted_by' => $user->id,
+        'currency' => 'USD',
+        'unit_price' => 50,
+        'min_order_qty' => 1,
+        'lead_time_days' => 10,
+        'status' => 'awarded',
+        'revision_no' => 1,
+        'subtotal' => 500,
+        'tax_amount' => 0,
+        'total_price' => 500,
+    ]);
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $company->id,
+        'supplier_id' => $supplier->id,
+        'status' => 'confirmed',
+        'rfq_id' => $rfq->id,
+        'quote_id' => $quote->id,
+    ]);
+
+    $poLine = PurchaseOrderLine::factory()->create([
+        'purchase_order_id' => $purchaseOrder->id,
+        'quantity' => 10,
+        'unit_price' => 50,
+    ]);
+
+    $grn = GoodsReceiptNote::create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'number' => 'GRN-'.Str::upper(Str::random(5)),
+        'inspected_by_id' => $user->id,
+        'inspected_at' => Carbon::now(),
+        'status' => 'complete',
+    ]);
+
+    GoodsReceiptLine::create([
+        'goods_receipt_note_id' => $grn->id,
+        'purchase_order_line_id' => $poLine->id,
+        'received_qty' => 10,
+        'accepted_qty' => 10,
+        'rejected_qty' => 0,
+    ]);
+
+    $rma = Rma::create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'purchase_order_line_id' => $poLine->id,
+        'submitted_by' => $user->id,
+        'reason' => 'After-delivery defect',
+        'description' => null,
+        'resolution_requested' => 'credit',
+        'defect_qty' => 3,
+        'status' => RmaStatus::Closed->value,
+        'review_outcome' => 'approved',
+        'reviewed_by' => $user->id,
+        'reviewed_at' => Carbon::now(),
+    ]);
+
+    $invoice = Invoice::factory()->create([
+        'company_id' => $company->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'currency' => 'USD',
+        'subtotal' => 500,
+        'tax_amount' => 0,
+        'total' => 500,
+    ]);
+
+    InvoiceLine::factory()->create([
+        'invoice_id' => $invoice->id,
+        'po_line_id' => $poLine->id,
+        'quantity' => 10,
+        'unit_price' => 50,
+    ]);
+
+    CreditNote::create([
+        'company_id' => $company->id,
+        'invoice_id' => $invoice->id,
+        'purchase_order_id' => $purchaseOrder->id,
+        'grn_id' => null,
+        'credit_number' => 'CN-'.Str::upper(Str::random(6)),
+        'currency' => 'USD',
+        'amount' => 50,
+        'amount_minor' => 5000,
+        'reason' => 'Return adjustment',
+        'status' => CreditNoteStatus::Draft->value,
+    ]);
+
+    $rangeStart = $periodStart->copy()->startOfDay();
+    $rangeEnd = $periodStart->copy()->endOfMonth()->endOfDay();
+
+    $rmaCount = Rma::query()
+        ->where('company_id', $company->id)
+        ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+        ->whereIn('status', ['approved', 'closed'])
+        ->whereHas('purchaseOrder', function ($query) use ($supplier): void {
+            $query->where('supplier_id', $supplier->id);
+        })
+        ->count();
+
+    $creditCount = CreditNote::query()
+        ->where('company_id', $company->id)
+        ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+        ->whereHas('purchaseOrder', function ($query) use ($supplier): void {
+            $query->where('supplier_id', $supplier->id);
+        })
+        ->count();
+
+    $defectUnits = Rma::query()
+        ->where('company_id', $company->id)
+        ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+        ->whereIn('status', ['approved', 'closed'])
+        ->sum('defect_qty');
+
+    expect($rmaCount)->toBe(1)
+        ->and($defectUnits)->toBe(3)
+        ->and($creditCount)->toBe(1);
+
+    $service = app(SupplierRiskService::class);
+
+    $score = $service->calculateForSupplier($supplier, $periodStart, $periodStart->copy()->endOfMonth());
+
+    expect((float) $score->defect_rate)->toBe(0.4)
+        ->and($score->badges_json)->toContain('1 RMA logged')
+        ->and($score->badges_json)->toContain('1 credit note issued');
 
     Carbon::setTestNow();
 });

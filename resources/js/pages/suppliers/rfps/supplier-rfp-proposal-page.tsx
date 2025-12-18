@@ -33,11 +33,14 @@ export function SupplierRfpProposalPage() {
     const navigate = useNavigate();
     const params = useParams<{ rfpId?: string }>();
     const { formatDate } = useFormatting();
-    const { hasFeature, state } = useAuth();
-    const supplierRole = state.user?.role === 'supplier' || state.user?.role?.startsWith('supplier_');
+    const { hasFeature, state, activePersona } = useAuth();
+    const isSupplierPersona = activePersona?.type === 'supplier';
+    const supplierRole =
+        state.user?.role === 'supplier' || state.user?.role?.startsWith('supplier_') || isSupplierPersona;
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole;
-    const rfpModuleEnabled = hasFeature('rfps_enabled') || hasFeature('projects_enabled') || supplierPortalEnabled;
+    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole || isSupplierPersona;
+    const rfpModuleEnabled =
+        isSupplierPersona || hasFeature('rfps_enabled') || hasFeature('projects_enabled') || supplierPortalEnabled;
     const canAccessRfps = !featureFlagsLoaded || (supplierPortalEnabled && rfpModuleEnabled);
 
     const rfpId = params.rfpId ?? '';

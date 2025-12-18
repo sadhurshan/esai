@@ -71,9 +71,10 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
     const locationsIndex = useMemo(() => new Map(locations.map((location) => [location.id, location])), [locations]);
 
     const isTransfer = type === 'TRANSFER';
+    const isAdjust = type === 'ADJUST';
     const requiresIssueSource = type === 'ISSUE' || isTransfer;
     const requiresReceiptDestination = type === 'RECEIPT' || isTransfer;
-    const showReason = type === 'ADJUST';
+    const showReason = isAdjust;
 
     const summary = useMemo(() => {
         const source = (watchedLines ?? fields) as MovementLineFormValue[];
@@ -264,9 +265,9 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    {requiresIssueSource ? (
+                                    {requiresIssueSource || isAdjust ? (
                                         <div className="space-y-2">
-                                            <Label>From location</Label>
+                                            <Label>{isAdjust ? 'Decrease location' : 'From location'}</Label>
                                             <LocationSelect
                                                 options={locations}
                                                 value={watched.fromLocationId ?? null}
@@ -280,6 +281,11 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
                                                 disabled={disabled}
                                                 placeholder="Select source"
                                             />
+                                            {isAdjust ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Optional. Set when removing stock from a specific bin or warehouse.
+                                                </p>
+                                            ) : null}
                                             {lineErrors?.fromLocationId?.message ? (
                                                 <p className="text-xs text-destructive">{lineErrors.fromLocationId.message}</p>
                                             ) : null}
@@ -287,9 +293,9 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
                                     ) : (
                                         <div />
                                     )}
-                                    {requiresReceiptDestination ? (
+                                    {requiresReceiptDestination || isAdjust ? (
                                         <div className="space-y-2">
-                                            <Label>To location</Label>
+                                            <Label>{isAdjust ? 'Increase location' : 'To location'}</Label>
                                             <LocationSelect
                                                 options={locations}
                                                 value={watched.toLocationId ?? null}
@@ -303,6 +309,11 @@ export function MovementLineEditor<FormValues extends MovementFormLike>({
                                                 disabled={disabled}
                                                 placeholder="Select destination"
                                             />
+                                            {isAdjust ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Optional. Set when adding stock into a location after the adjustment.
+                                                </p>
+                                            ) : null}
                                             {lineErrors?.toLocationId?.message ? (
                                                 <p className="text-xs text-destructive">{lineErrors.toLocationId.message}</p>
                                             ) : null}

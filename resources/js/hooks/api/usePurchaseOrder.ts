@@ -43,6 +43,7 @@ export interface PurchaseOrderResponse {
     supplier?: {
         id: number | null;
         name: string | null;
+        email?: string | null;
     } | null;
     rfq?: {
         id: number | null;
@@ -261,6 +262,7 @@ export const mapPurchaseOrderLine = (payload: PurchaseOrderLineLike): PurchaseOr
 
 export const mapPurchaseOrder = (payload: PurchaseOrderLike): PurchaseOrderSummary => {
     const supplier = isSdkPurchaseOrder(payload) ? payload.supplier : payload.supplier;
+    const supplierEmail = (supplier as { email?: string | null } | undefined)?.email;
     const rfq = isSdkPurchaseOrder(payload) ? payload.rfq : payload.rfq;
     const changeOrdersSource = (isSdkPurchaseOrder(payload)
         ? payload.changeOrders
@@ -313,6 +315,7 @@ export const mapPurchaseOrder = (payload: PurchaseOrderLike): PurchaseOrderSumma
         quoteId: isSdkPurchaseOrder(payload) ? payload.quoteId ?? null : payload.quote_id,
         supplierId: supplier?.id ?? undefined,
         supplierName: supplier?.name ?? undefined,
+        supplierEmail: supplierEmail ?? undefined,
         rfqNumber: rfq?.number ?? undefined,
         rfqTitle: rfq?.title ?? undefined,
         createdAt: toMaybeIsoString(isSdkPurchaseOrder(payload) ? payload.createdAt : payload.created_at),

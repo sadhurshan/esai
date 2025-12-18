@@ -10,12 +10,25 @@ import { useAuth } from '@/contexts/auth-context';
 import { useEffect } from 'react';
 import { isPlatformRole } from '@/constants/platform-roles';
 
+const SUPPLIER_ALLOWED_PREFIXES = [
+    '/app/rfqs',
+    '/app/quotes',
+    '/app/supplier',
+    '/app/purchase-orders',
+    '/app/pos',
+    '/app/downloads',
+];
+const SUPPLIER_ONLY_PREFIXES = ['/app/supplier/'];
+const SUPPLIER_REDIRECT_PATH = '/app/supplier';
+const BUYER_REDIRECT_PATH = '/app';
+
 export function AppLayout() {
-    const { state } = useAuth();
+    const { state, activePersona } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const role = state.user?.role ?? null;
     const isPlatformOperator = isPlatformRole(role);
+    const isSupplierPersona = activePersona?.type === 'supplier';
 
     useEffect(() => {
         if (!isPlatformOperator) {
@@ -26,6 +39,35 @@ export function AppLayout() {
             navigate('/app/admin', { replace: true });
         }
     }, [isPlatformOperator, location.pathname, navigate]);
+
+    useEffect(() => {
+        if (isPlatformOperator) {
+            return;
+        }
+
+        if (isSupplierPersona) {
+            if (location.pathname === '/app' || location.pathname === '/app/') {
+                navigate('/app/supplier', { replace: true, state: { from: location.pathname } });
+                return;
+            }
+
+            if (location.pathname === '/app/quotes' || location.pathname === '/app/quotes/') {
+                navigate('/app/supplier/quotes', { replace: true, state: { from: location.pathname } });
+                return;
+            }
+
+            const allowed = SUPPLIER_ALLOWED_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+            if (!allowed && location.pathname !== SUPPLIER_REDIRECT_PATH) {
+                navigate(SUPPLIER_REDIRECT_PATH, { replace: true, state: { from: location.pathname } });
+            }
+            return;
+        }
+
+        const isSupplierRoute = SUPPLIER_ONLY_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+        if (isSupplierRoute && location.pathname !== BUYER_REDIRECT_PATH) {
+            navigate(BUYER_REDIRECT_PATH, { replace: true, state: { from: location.pathname } });
+        }
+    }, [isPlatformOperator, isSupplierPersona, location.pathname, navigate]);
 
     return (
         <FormattingProvider>

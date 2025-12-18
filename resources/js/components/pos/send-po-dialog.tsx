@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -12,60 +12,24 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { PurchaseOrderDelivery } from '@/types/sourcing';
 import { formatDate } from '@/lib/format';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
-const sendPoFormSchema = z
-    .object({
-        channel: z.enum(['email', 'webhook']),
-        toRaw: z.string().optional(),
-        ccRaw: z.string().optional(),
-        message: z.string().max(2000, 'Message is too long.').optional(),
-    })
-    .superRefine((values, ctx) => {
-        if (values.channel === 'email') {
-            const recipients = parseRecipients(values.toRaw);
-            if (recipients.length === 0) {
-                ctx.addIssue({
-                    path: ['toRaw'],
-                    code: z.ZodIssueCode.custom,
-                    message: 'Provide at least one recipient.',
-                });
-            }
-
-            const invalid = recipients.filter((recipient) => !EMAIL_PATTERN.test(recipient));
-            if (invalid.length > 0) {
-                ctx.addIssue({
-                    path: ['toRaw'],
-                    code: z.ZodIssueCode.custom,
-                    message: `Invalid email(s): ${invalid.join(', ')}`,
-                });
-            }
-
-            const ccRecipients = parseRecipients(values.ccRaw);
-            const invalidCc = ccRecipients.filter((recipient) => !EMAIL_PATTERN.test(recipient));
-            if (invalidCc.length > 0) {
-                ctx.addIssue({
-                    path: ['ccRaw'],
-                    code: z.ZodIssueCode.custom,
-                    message: `Invalid email(s): ${invalidCc.join(', ')}`,
-                });
-            }
-        }
-    });
+const sendPoFormSchema = z.object({
+    message: z.string().max(2000, 'Message is too long.').optional(),
+    fallbackEmail: z.string().optional(),
+});
 
 type SendPoFormValues = z.infer<typeof sendPoFormSchema>;
 
 export interface SendPoDialogPayload {
-    channel: 'email' | 'webhook';
-    to?: string[];
-    cc?: string[];
     message?: string;
+    overrideEmail?: string;
 }
 
 export interface SendPoDialogProps {
@@ -73,20 +37,9 @@ export interface SendPoDialogProps {
     onOpenChange: (open: boolean) => void;
     onSubmit: (payload: SendPoDialogPayload) => void;
     isSubmitting?: boolean;
-    defaultChannel?: 'email' | 'webhook';
     supplierName?: string | null;
+    supplierEmail?: string | null;
     latestDelivery?: PurchaseOrderDelivery | null;
-}
-
-function parseRecipients(raw?: string | null): string[] {
-    if (!raw) {
-        return [];
-    }
-
-    return raw
-        .split(/[\n,;]+/)
-        .map((entry) => entry.trim())
-        .filter((entry) => entry.length > 0);
 }
 
 export function SendPoDialog({
@@ -94,40 +47,55 @@ export function SendPoDialog({
     onOpenChange,
     onSubmit,
     isSubmitting = false,
-    defaultChannel = 'email',
     supplierName,
+    supplierEmail,
     latestDelivery,
 }: SendPoDialogProps) {
     const form = useForm<SendPoFormValues>({
         resolver: zodResolver(sendPoFormSchema),
         defaultValues: {
-            channel: defaultChannel,
-            toRaw: '',
-            ccRaw: '',
             message: '',
+            fallbackEmail: '',
         },
     });
 
     useEffect(() => {
         if (open) {
             form.reset({
-                channel: defaultChannel,
-                toRaw: '',
-                ccRaw: '',
                 message: '',
+                fallbackEmail: '',
             });
         }
-    }, [open, defaultChannel, form]);
-
-    const channel = useWatch({ control: form.control, name: 'channel' });
+    }, [open, form]);
 
     const handleSubmit = form.handleSubmit((values) => {
+        if (!supplierEmail) {
+            const fallback = values.fallbackEmail?.trim() ?? '';
+
+            if (!fallback) {
+                form.setError('fallbackEmail', {
+                    type: 'manual',
+                    message: 'Provide an email address for this supplier.',
+                });
+                return;
+            }
+
+            if (!EMAIL_PATTERN.test(fallback)) {
+                form.setError('fallbackEmail', {
+                    type: 'manual',
+                    message: 'Enter a valid email address.',
+                });
+                return;
+            }
+        }
+
         const payload: SendPoDialogPayload = {
-            channel: values.channel,
-            to: values.channel === 'email' ? parseRecipients(values.toRaw) : undefined,
-            cc: values.channel === 'email' ? parseRecipients(values.ccRaw) : undefined,
             message: values.message?.trim() ? values.message.trim() : undefined,
         };
+
+        if (!supplierEmail) {
+            payload.overrideEmail = values.fallbackEmail?.trim();
+        }
 
         onSubmit(payload);
     });
@@ -143,49 +111,41 @@ export function SendPoDialog({
                 </DialogHeader>
 
                 <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div className="grid gap-2">
-                        <Label htmlFor="channel">Delivery channel</Label>
-                        <Select value={channel} onValueChange={(next) => form.setValue('channel', next as 'email' | 'webhook')}>
-                            <SelectTrigger id="channel">
-                                <SelectValue placeholder="Select channel" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="webhook">Webhook</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div
+                        className="rounded-md border border-dashed border-muted-foreground/60 bg-muted/30 p-3 text-sm text-muted-foreground"
+                        role="status"
+                    >
+                        <div className="font-semibold text-foreground">Automatic delivery</div>
+                        {supplierEmail ? (
+                            <p>
+                                We will email {supplierName ?? 'the supplier'} at <span className="font-medium">{supplierEmail}</span> and
+                                simultaneously post this PO to their webhook endpoint.
+                            </p>
+                        ) : (
+                            <p className="text-foreground">
+                                This supplier is missing a saved email. Enter a one-time address below to send this PO now, or update the supplier profile later to avoid this step.
+                            </p>
+                        )}
                     </div>
 
-                    {channel === 'email' ? (
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div className="grid gap-2">
-                                <Label htmlFor="po-send-to">To</Label>
-                                <Textarea
-                                    id="po-send-to"
-                                    placeholder="supplier@example.com, ops@example.com"
-                                    rows={3}
-                                    {...form.register('toRaw')}
-                                />
-                                {form.formState.errors.toRaw ? (
-                                    <p className="text-sm text-destructive">{form.formState.errors.toRaw.message}</p>
-                                ) : null}
-                                <p className="text-xs text-muted-foreground">Separate addresses with commas or new lines.</p>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="po-send-cc">CC</Label>
-                                <Textarea id="po-send-cc" rows={3} {...form.register('ccRaw')} />
-                                {form.formState.errors.ccRaw ? (
-                                    <p className="text-sm text-destructive">{form.formState.errors.ccRaw.message}</p>
-                                ) : null}
-                                <p className="text-xs text-muted-foreground">Optional recipients who should be copied.</p>
-                            </div>
+                    {!supplierEmail ? (
+                        <div className="grid gap-2">
+                            <Label htmlFor="po-send-fallback">Supplier email</Label>
+                            <Input
+                                id="po-send-fallback"
+                                type="email"
+                                placeholder="supplier@example.com"
+                                {...form.register('fallbackEmail')}
+                            />
+                            {form.formState.errors.fallbackEmail ? (
+                                <p className="text-sm text-destructive">{form.formState.errors.fallbackEmail.message}</p>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">
+                                    This address is used for this send only; update the supplier profile to save it permanently.
+                                </p>
+                            )}
                         </div>
-                    ) : (
-                        <div className="rounded-md border border-dashed border-muted-foreground/60 bg-muted/30 p-3 text-sm text-muted-foreground">
-                            The webhook channel will notify the configured endpoint in your supplier integration. No email
-                            addresses are required.
-                        </div>
-                    )}
+                    ) : null}
 
                     <div className="grid gap-2">
                         <Label htmlFor="po-send-message">Message</Label>
@@ -197,7 +157,9 @@ export function SendPoDialog({
                         />
                         {form.formState.errors.message ? (
                             <p className="text-sm text-destructive">{form.formState.errors.message.message}</p>
-                        ) : null}
+                        ) : (
+                            <p className="text-xs text-muted-foreground">Optional note that will accompany the email notification.</p>
+                        )}
                     </div>
 
                     {latestDelivery ? (

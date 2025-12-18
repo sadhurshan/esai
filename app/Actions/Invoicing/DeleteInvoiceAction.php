@@ -2,6 +2,7 @@
 
 namespace App\Actions\Invoicing;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceMatch;
@@ -25,9 +26,11 @@ class DeleteInvoiceAction
             ]);
         }
 
-        if ($invoice->status !== 'pending') {
+        $deletableStatuses = ['pending', InvoiceStatus::Draft->value];
+
+        if (! in_array($invoice->status, $deletableStatuses, true)) {
             throw ValidationException::withMessages([
-                'status' => ['Only pending invoices can be deleted.'],
+                'status' => ['Only draft invoices can be deleted.'],
             ]);
         }
 

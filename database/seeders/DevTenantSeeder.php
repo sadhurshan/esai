@@ -2,6 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Enums\InvoiceStatus;
+use App\Models\Invoice;
+use App\Models\InvoiceLine;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderLine;
+use App\Models\Supplier;
+use App\Models\SupplierContact;
+use App\Support\CompanyContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +35,7 @@ class DevTenantSeeder extends Seeder
         $buyerId = $this->seedBuyerUser($buyerCompanyId, $buyerEmail, $now);
         $this->ensureBuyerSubscription($buyerCompanyId, $buyerId, $buyerEmail, $now);
 
-        [$supplierCompanyId, $supplierId] = $this->seedSupplierTenant(
+        [$supplierCompanyId, $supplierUserId] = $this->seedSupplierTenant(
             $now,
             (int) $planIds['starter'],
             $supplierEmail
@@ -35,8 +43,10 @@ class DevTenantSeeder extends Seeder
 
         $this->seedSupplierProfile($supplierCompanyId, $supplierEmail, $now);
 
+        $this->seedSupplierInvoiceFixtures($buyerCompanyId, $buyerId, $supplierCompanyId, $supplierUserId);
+
         $this->syncCompanyUser($buyerCompanyId, $buyerId, 'buyer_admin');
-        $this->syncCompanyUser($supplierCompanyId, $supplierId, 'supplier_estimator');
+        $this->syncCompanyUser($supplierCompanyId, $supplierUserId, 'supplier_estimator');
     }
 
     private function syncCompanyUser(int $companyId, int $userId, string $role): void
@@ -329,5 +339,280 @@ class DevTenantSeeder extends Seeder
             'verified_at' => $profile->verified_at ?: $now,
             'updated_at' => $now,
         ]);
+    }
+
+    private function seedSupplierInvoiceFixtures(int $buyerCompanyId, int $buyerUserId, int $supplierCompanyId, int $supplierUserId): void
+    {
+        $supplier = CompanyContext::bypass(function () use ($supplierCompanyId) {
+            return Supplier::query()->where('company_id', $supplierCompanyId)->first();
+        });
+
+        if ($supplier === null) {
+            return;
+        }
+
+        $now = Carbon::now();
+
+        CompanyContext::forCompany($buyerCompanyId, function () use ($now, $buyerCompanyId, $buyerUserId, $supplierCompanyId, $supplierUserId, $supplier): void {
+            SupplierContact::query()->firstOrCreate([
+                'company_id' => $buyerCompanyId,
+                'supplier_id' => $supplier->id,
+                'user_id' => $supplierUserId,
+            ]);
+
+            $poBlueprints = [
+                [
+                    'po_number' => 'PO-DEV-1001',
+                    'status' => 'sent',
+                    'sent_days_ago' => 18,
+                    'lines' => [
+                        ['line_no' => 10, 'description' => 'Precision brackets', 'quantity' => 25, 'unit_price_minor' => 12500, 'uom' => 'EA'],
+                        ['line_no' => 20, 'description' => 'Machined risers', 'quantity' => 40, 'unit_price_minor' => 9800, 'uom' => 'EA'],
+                    ],
+                ],
+                [
+                    'po_number' => 'PO-DEV-2001',
+                    'status' => 'confirmed',
+                    'sent_days_ago' => 24,
+                    'lines' => [
+                        ['line_no' => 10, 'description' => 'Control housings', 'quantity' => 15, 'unit_price_minor' => 18750, 'uom' => 'EA'],
+                        ['line_no' => 30, 'description' => 'Sensor brackets', 'quantity' => 60, 'unit_price_minor' => 5200, 'uom' => 'EA'],
+                    ],
+                ],
+            ];
+
+            $purchaseOrders = [];
+
+            foreach ($poBlueprints as $blueprint) {
+                $po = PurchaseOrder::query()->firstOrNew(['po_number' => $blueprint['po_number']]);
+                $sentAt = $now->copy()->subDays($blueprint['sent_days_ago'] ?? 14);
+                $po->fill([
+                    'company_id' => $buyerCompanyId,
+                    'supplier_id' => $supplier->id,
+                    'currency' => 'USD',
+                    'status' => $blueprint['status'],
+                    'revision_no' => 0,
+                    'sent_at' => $sentAt,
+                    'expected_at' => $sentAt->copy()->addDays(21),
+                ]);
+                $po->save();
+
+                $subtotalMinor = 0;
+
+                foreach ($blueprint['lines'] as $line) {
+                    $unitPriceMinor = $line['unit_price_minor'];
+                    $lineTotal = $unitPriceMinor * $line['quantity'];
+                    $subtotalMinor += $lineTotal;
+
+                    PurchaseOrderLine::query()->updateOrCreate(
+                        [
+                            'purchase_order_id' => $po->id,
+                            'line_no' => $line['line_no'],
+                        ],
+                        [
+                            'description' => $line['description'],
+                            'quantity' => $line['quantity'],
+                            'uom' => $line['uom'] ?? 'EA',
+                            'unit_price' => $unitPriceMinor / 100,
+                            'currency' => 'USD',
+                            'unit_price_minor' => $unitPriceMinor,
+                        ]
+                    );
+                }
+
+                $taxMinor = (int) round($subtotalMinor * 0.0825);
+                $totalMinor = $subtotalMinor + $taxMinor;
+
+                $po->forceFill([
+                    'subtotal' => $subtotalMinor / 100,
+                    'tax_amount' => $taxMinor / 100,
+                    'total' => $totalMinor / 100,
+                    'subtotal_minor' => $subtotalMinor,
+                    'tax_amount_minor' => $taxMinor,
+                    'total_minor' => $totalMinor,
+                ])->save();
+
+                $purchaseOrders[$po->po_number] = $po->fresh('lines');
+            }
+
+            $invoiceBlueprints = [
+                [
+                    'invoice_number' => 'SUP-INV-1001',
+                    'po_number' => 'PO-DEV-1001',
+                    'status' => InvoiceStatus::Draft->value,
+                    'days_ago' => 12,
+                    'lines' => [
+                        ['line_no' => 10, 'quantity' => 5],
+                    ],
+                ],
+                [
+                    'invoice_number' => 'SUP-INV-1002',
+                    'po_number' => 'PO-DEV-1001',
+                    'status' => InvoiceStatus::Submitted->value,
+                    'days_ago' => 9,
+                    'submitted_days_ago' => 8,
+                    'lines' => [
+                        ['line_no' => 10, 'quantity' => 10],
+                    ],
+                ],
+                [
+                    'invoice_number' => 'SUP-INV-1003',
+                    'po_number' => 'PO-DEV-1001',
+                    'status' => InvoiceStatus::BuyerReview->value,
+                    'days_ago' => 7,
+                    'submitted_days_ago' => 6,
+                    'review_days_ago' => 5,
+                    'review_note' => 'Please attach the updated packing list so we can continue approvals.',
+                    'lines' => [
+                        ['line_no' => 20, 'quantity' => 12],
+                    ],
+                ],
+                [
+                    'invoice_number' => 'SUP-INV-2001',
+                    'po_number' => 'PO-DEV-2001',
+                    'status' => InvoiceStatus::Approved->value,
+                    'days_ago' => 11,
+                    'submitted_days_ago' => 9,
+                    'review_days_ago' => 4,
+                    'review_note' => 'Approved for net-30 payment.',
+                    'matched_status' => 'matched',
+                    'lines' => [
+                        ['line_no' => 10, 'quantity' => 8],
+                    ],
+                ],
+                [
+                    'invoice_number' => 'SUP-INV-2002',
+                    'po_number' => 'PO-DEV-2001',
+                    'status' => InvoiceStatus::Rejected->value,
+                    'days_ago' => 14,
+                    'submitted_days_ago' => 12,
+                    'review_days_ago' => 10,
+                    'review_note' => 'Quantity exceeds the remaining open amount on PO-DEV-2001.',
+                    'lines' => [
+                        ['line_no' => 30, 'quantity' => 55],
+                    ],
+                ],
+                [
+                    'invoice_number' => 'SUP-INV-2003',
+                    'po_number' => 'PO-DEV-2001',
+                    'status' => InvoiceStatus::Paid->value,
+                    'days_ago' => 20,
+                    'submitted_days_ago' => 18,
+                    'review_days_ago' => 15,
+                    'matched_status' => 'matched',
+                    'payment_reference' => 'PAY-DEV-0001',
+                    'lines' => [
+                        ['line_no' => 10, 'quantity' => 6],
+                        ['line_no' => 30, 'quantity' => 18],
+                    ],
+                ],
+            ];
+
+            foreach ($invoiceBlueprints as $invoiceBlueprint) {
+                $po = $purchaseOrders[$invoiceBlueprint['po_number']] ?? null;
+                if ($po === null) {
+                    continue;
+                }
+
+                $invoiceDate = $now->copy()->subDays($invoiceBlueprint['days_ago'] ?? 5);
+                $dueDate = $invoiceDate->copy()->addDays(30);
+
+                $invoice = Invoice::query()->firstOrNew([
+                    'company_id' => $buyerCompanyId,
+                    'invoice_number' => $invoiceBlueprint['invoice_number'],
+                ]);
+
+                $linePayloads = [];
+                $subtotalMinor = 0;
+
+                foreach ($invoiceBlueprint['lines'] as $line) {
+                    $poLine = $po->lines->firstWhere('line_no', $line['line_no']);
+                    if ($poLine === null) {
+                        continue;
+                    }
+
+                    $unitPriceMinor = $line['unit_price_minor'] ?? ($poLine->unit_price_minor ?? (int) round($poLine->unit_price * 100));
+                    $quantity = $line['quantity'];
+                    $lineTotal = $unitPriceMinor * $quantity;
+                    $subtotalMinor += $lineTotal;
+
+                    $linePayloads[] = [
+                        'po_line_id' => $poLine->id,
+                        'description' => $line['description'] ?? $poLine->description,
+                        'uom' => $line['uom'] ?? $poLine->uom,
+                        'quantity' => $quantity,
+                        'unit_price_minor' => $unitPriceMinor,
+                    ];
+                }
+
+                if ($linePayloads === []) {
+                    continue;
+                }
+
+                $taxMinor = (int) round($subtotalMinor * 0.0825);
+                $totalMinor = $subtotalMinor + $taxMinor;
+
+                $submittedAt = null;
+                if ($invoiceBlueprint['status'] !== InvoiceStatus::Draft->value) {
+                    $submittedAt = $now->copy()->subDays($invoiceBlueprint['submitted_days_ago'] ?? 4);
+                }
+
+                $reviewedAt = null;
+                $reviewedById = null;
+                if (in_array($invoiceBlueprint['status'], [
+                    InvoiceStatus::BuyerReview->value,
+                    InvoiceStatus::Approved->value,
+                    InvoiceStatus::Rejected->value,
+                    InvoiceStatus::Paid->value,
+                ], true)) {
+                    $reviewedAt = $now->copy()->subDays($invoiceBlueprint['review_days_ago'] ?? 2);
+                    $reviewedById = $buyerUserId;
+                }
+
+                $invoice->fill([
+                    'purchase_order_id' => $po->id,
+                    'supplier_id' => $supplier->id,
+                    'supplier_company_id' => $supplierCompanyId,
+                    'currency' => 'USD',
+                    'invoice_date' => $invoiceDate->toDateString(),
+                    'due_date' => $dueDate->toDateString(),
+                    'subtotal' => $subtotalMinor / 100,
+                    'tax_amount' => $taxMinor / 100,
+                    'total' => $totalMinor / 100,
+                    'subtotal_minor' => $subtotalMinor,
+                    'tax_minor' => $taxMinor,
+                    'total_minor' => $totalMinor,
+                    'status' => $invoiceBlueprint['status'],
+                    'created_by_type' => 'supplier',
+                    'created_by_id' => $supplierUserId,
+                    'matched_status' => $invoiceBlueprint['matched_status'] ?? (($invoiceBlueprint['status'] === InvoiceStatus::Approved->value || $invoiceBlueprint['status'] === InvoiceStatus::Paid->value) ? 'matched' : 'pending'),
+                    'submitted_at' => $submittedAt,
+                    'reviewed_at' => $reviewedAt,
+                    'reviewed_by_id' => $reviewedById,
+                    'review_note' => $invoiceBlueprint['review_note'] ?? null,
+                    'payment_reference' => $invoiceBlueprint['payment_reference'] ?? ($invoiceBlueprint['status'] === InvoiceStatus::Paid->value ? 'PAY-'.$invoiceBlueprint['invoice_number'] : null),
+                ]);
+
+                $invoice->save();
+
+                foreach ($linePayloads as $payload) {
+                    InvoiceLine::query()->updateOrCreate(
+                        [
+                            'invoice_id' => $invoice->id,
+                            'po_line_id' => $payload['po_line_id'],
+                        ],
+                        [
+                            'description' => $payload['description'],
+                            'quantity' => $payload['quantity'],
+                            'uom' => $payload['uom'],
+                            'currency' => 'USD',
+                            'unit_price' => $payload['unit_price_minor'] / 100,
+                            'unit_price_minor' => $payload['unit_price_minor'],
+                            'line_total_minor' => $payload['unit_price_minor'] * $payload['quantity'],
+                        ]
+                    );
+                }
+            }
+        });
     }
 }

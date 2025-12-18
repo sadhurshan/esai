@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CompanyInvitationController extends ApiController
 {
@@ -71,7 +72,11 @@ class CompanyInvitationController extends ApiController
 
         $company = Company::query()->findOrFail($companyId);
 
-        $invitations = $this->inviteCompanyUsersAction->execute($company, $user, $request->input('invitations', []));
+        try {
+            $invitations = $this->inviteCompanyUsersAction->execute($company, $user, $request->input('invitations', []));
+        } catch (ValidationException $exception) {
+            return $this->fail('Validation failed', 422, $exception->errors());
+        }
 
         return $this->ok([
             'items' => CompanyInvitationResource::collection($invitations),

@@ -24,10 +24,11 @@ export function SupplierPoDetailPage() {
     const params = useParams<{ purchaseOrderId?: string }>();
     const navigate = useNavigate();
     const poId = Number(params.purchaseOrderId);
-    const { state, hasFeature } = useAuth();
+    const { state, hasFeature, activePersona } = useAuth();
     const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier';
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const supplierPortalEnabled = supplierRole || hasFeature('supplier_portal_enabled');
+    const supplierPortalEnabled = supplierRole || hasFeature('supplier_portal_enabled') || isSupplierPersona;
 
     const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
     const [declineReason, setDeclineReason] = useState('');

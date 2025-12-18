@@ -33,6 +33,8 @@ class SubmitQuoteAction
      *     supplier_id: int,
      *     submitted_by: int|null,
      *     currency: string,
+    *     incoterm?: string|null,
+    *     payment_terms?: string|null,
      *     unit_price?: string|float|null,
      *     min_order_qty?: int|null,
      *     lead_time_days: int,
@@ -58,6 +60,9 @@ class SubmitQuoteAction
         $currency = strtoupper((string) $data['currency']);
 
         $itemsPayload = collect($data['items'] ?? []);
+
+        $incoterm = $this->normalizeIncoterm($data['incoterm'] ?? null);
+        $paymentTerms = $this->normalizePaymentTerms($data['payment_terms'] ?? null);
 
         if ($itemsPayload->isEmpty()) {
             throw ValidationException::withMessages([
@@ -105,9 +110,12 @@ class SubmitQuoteAction
             $averageUnitMoney,
             $itemsPayload,
             $companyId,
-            $calculation
+            $calculation,
+            $incoterm,
+            $paymentTerms
         ): Quote {
             $status = $data['status'] ?? 'submitted';
+            $revisionNo = $this->determineRevisionNumber($data);
 
             $quote = Quote::create([
                 'company_id' => (int) $data['company_id'],
@@ -120,8 +128,10 @@ class SubmitQuoteAction
                 'min_order_qty' => $data['min_order_qty'] ?? null,
                 'lead_time_days' => (int) $data['lead_time_days'],
                 'notes' => $data['notes'] ?? $data['note'] ?? null,
+                'incoterm' => $incoterm,
+                'payment_terms' => $paymentTerms,
                 'status' => $status,
-                'revision_no' => $data['revision_no'] ?? 1,
+                'revision_no' => $revisionNo,
                 'subtotal' => Money::fromMinor($subtotalMinor, $currency)->toDecimal($minorUnit),
                 'tax_amount' => Money::fromMinor($taxMinor, $currency)->toDecimal($minorUnit),
                 'total_price' => Money::fromMinor($totalMinor, $currency)->toDecimal($minorUnit),
@@ -183,6 +193,32 @@ class SubmitQuoteAction
     }
 
     /**
+     * @param array<string, mixed> $data
+     */
+    private function determineRevisionNumber(array $data): int
+    {
+        if (array_key_exists('revision_no', $data) && $data['revision_no'] !== null) {
+            return (int) $data['revision_no'];
+        }
+
+        $companyId = (int) $data['company_id'];
+        $rfqId = (int) $data['rfq_id'];
+        $supplierId = (int) $data['supplier_id'];
+
+        $latestRevision = CompanyContext::bypass(static function () use ($companyId, $rfqId, $supplierId): ?int {
+            return Quote::withTrashed()
+                ->where('company_id', $companyId)
+                ->where('rfq_id', $rfqId)
+                ->where('supplier_id', $supplierId)
+                ->orderByDesc('revision_no')
+                ->lockForUpdate()
+                ->value('revision_no');
+        });
+
+        return (int) (($latestRevision ?? 0) + 1);
+    }
+
+    /**
      * @param Collection<int, array<string, mixed>> $itemsPayload
      * @param Collection<int, RfqItem> $rfqItems
      * @return array{0: array<int, array<string, mixed>>, 1: float}
@@ -241,5 +277,35 @@ class SubmitQuoteAction
         }
 
         return [$lineInputs, $totalQuantity];
+    }
+
+    private function normalizeIncoterm(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = strtoupper(trim((string) $value));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return substr($normalized, 0, 8);
+    }
+
+    private function normalizePaymentTerms(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return mb_substr($normalized, 0, 120);
     }
 }

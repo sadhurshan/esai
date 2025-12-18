@@ -153,11 +153,11 @@ describe('purchase order mutation hooks', () => {
         const { Wrapper, invalidateSpy } = createWrapper();
         const { result } = renderHook(() => useSendPo(), { wrapper: Wrapper });
 
-        await result.current.mutateAsync({ poId: 777, channel: 'email', to: ['ops@example.com'] });
+        await result.current.mutateAsync({ poId: 777, message: 'Please confirm receipt', overrideEmail: 'ops@example.com' });
 
         expect(apiPostMock).toHaveBeenCalledWith(
             '/purchase-orders/777/send',
-            expect.objectContaining({ channel: 'email', to: ['ops@example.com'] }),
+            expect.objectContaining({ message: 'Please confirm receipt', override_email: 'ops@example.com' }),
         );
         expect(publishToastMock).toHaveBeenCalledWith(
             expect.objectContaining({ title: 'Purchase order sent', variant: 'success' }),
@@ -215,16 +215,28 @@ describe('purchase order mutation hooks', () => {
         const { Wrapper, invalidateSpy } = createWrapper();
         const { result } = renderHook(() => useCancelPo(), { wrapper: Wrapper });
 
-        await result.current.mutateAsync({ poId: 889 });
+        await result.current.mutateAsync({ poId: 889, rfqId: 44 });
 
         expect(cancelPurchaseOrder).toHaveBeenCalledWith({ purchaseOrderId: 889 });
         expect(publishToastMock).toHaveBeenCalledWith(
             expect.objectContaining({ title: 'Purchase order cancelled', variant: 'success' }),
         );
-        expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.purchaseOrders.detail(889) }),
-        );
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.root() }));
+
+        const expectedKeys = [
+            queryKeys.purchaseOrders.detail(889),
+            queryKeys.purchaseOrders.root(),
+            queryKeys.awards.candidates(44),
+            queryKeys.awards.summary(44),
+            queryKeys.rfqs.detail(44),
+            queryKeys.rfqs.lines(44),
+            queryKeys.rfqs.quotes(44),
+            queryKeys.quotes.rfq(44),
+            queryKeys.quotes.root(),
+        ];
+
+        for (const key of expectedKeys) {
+            expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: key }));
+        }
     });
 
     it('exports purchase orders to PDF and returns download metadata', async () => {

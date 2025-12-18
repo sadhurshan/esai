@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\QuoteResource;
 use App\Services\QuoteInboxService;
+use App\Support\ActivePersonaContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,12 @@ class SupplierQuoteController extends ApiController
             return $this->fail('Missing company assignment.', 403);
         }
 
+        $supplierId = ActivePersonaContext::supplierId();
+
+        if ($supplierId === null) {
+            return $this->fail('Supplier persona required.', 403);
+        }
+
         $direction = $this->sortDirection($request);
         $sortColumn = (string) $request->query('sort', 'created_at');
 
@@ -39,7 +46,7 @@ class SupplierQuoteController extends ApiController
         }
 
         $paginator = $this->inbox
-            ->supplierQuery($request, $companyId)
+            ->supplierQuery($request, $companyId, $supplierId)
             ->orderBy("quotes.{$sortColumn}", $direction)
             ->orderBy('quotes.id', $direction)
             ->cursorPaginate($this->perPage($request));

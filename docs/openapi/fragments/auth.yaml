@@ -209,6 +209,92 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /api/auth/persona:
+    post:
+      tags:
+        - Auth
+      summary: Switch the active persona for the session
+      description: Updates the active buyer or supplier persona for the authenticated session and returns the full persona list so the client can re-render navigation.
+      operationId: authSwitchPersona
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthSwitchPersonaRequest'
+      responses:
+        '200':
+          description: Persona updated and the session payload refreshed.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - personas
+                          - active_persona
+                        properties:
+                          personas:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AuthPersona'
+                          active_persona:
+                            $ref: '#/components/schemas/AuthPersona'
+              examples:
+                switched:
+                  summary: Supplier persona selection response
+                  value:
+                    status: success
+                    message: Persona updated.
+                    data:
+                      personas:
+                        - key: buyer:12
+                          type: buyer
+                          company_id: 12
+                          company_name: Jim Enterprise
+                          company_status: active
+                          company_supplier_status: approved
+                          role: owner
+                          is_default: true
+                        - key: supplier:45:77
+                          type: supplier
+                          company_id: 45
+                          company_name: Acme Manufacturing
+                          company_status: active
+                          supplier_id: 77
+                          supplier_name: Jim Enterprise Machining
+                          supplier_company_id: 12
+                          supplier_company_name: Jim Enterprise
+                          is_default: false
+                      active_persona:
+                        key: supplier:45:77
+                        type: supplier
+                        company_id: 45
+                        company_name: Acme Manufacturing
+                        company_status: active
+                        supplier_id: 77
+                        supplier_name: Jim Enterprise Machining
+                        supplier_company_id: 12
+                        supplier_company_name: Jim Enterprise
+                        is_default: false
+        '401':
+          description: The request is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: The provided persona key was invalid or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/auth/logout:
     post:
       tags:
@@ -333,6 +419,15 @@ components:
           type: string
           format: password
           description: Must match `password`.
+      additionalProperties: false
+    AuthSwitchPersonaRequest:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+          description: Persona key returned by the session payload (e.g. `buyer:12` or `supplier:45:77`).
       additionalProperties: false
     SelfRegistrationRequest:
       type: object
@@ -480,6 +575,52 @@ components:
           type: string
           nullable: true
           description: Plan code applied to the company.
+      additionalProperties: false
+    AuthPersona:
+      type: object
+      required:
+        - key
+        - type
+        - company_id
+        - company_name
+        - company_status
+        - is_default
+      properties:
+        key:
+          type: string
+          description: Stable persona identifier combining the persona type and scoped identifiers.
+        type:
+          type: string
+          enum: [buyer, supplier]
+        company_id:
+          type: integer
+          description: Identifier of the buyer company context for this persona. For supplier personas this is the buyer that issued the invite.
+        company_name:
+          type: string
+        company_status:
+          type: string
+        company_supplier_status:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+          description: Buyer role associated with the persona, when applicable.
+        supplier_id:
+          type: integer
+          nullable: true
+        supplier_name:
+          type: string
+          nullable: true
+        supplier_company_id:
+          type: integer
+          nullable: true
+        supplier_company_name:
+          type: string
+          nullable: true
+        is_default:
+          type: boolean
+          description: Indicates whether this persona should be pre-selected after login.
       additionalProperties: false
     AuthToken:
       type: object

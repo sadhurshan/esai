@@ -4,10 +4,13 @@ namespace App\Http\Requests\Supplier;
 
 use App\Enums\EsgCategory;
 use App\Http\Requests\ApiFormRequest;
+use App\Http\Requests\Concerns\InteractsWithDocumentRules;
 use Illuminate\Validation\Rule;
 
 class StoreEsgRecordRequest extends ApiFormRequest
 {
+    use InteractsWithDocumentRules;
+
     protected function prepareForValidation(): void
     {
         $dataJson = $this->input('data_json');
@@ -26,11 +29,14 @@ class StoreEsgRecordRequest extends ApiFormRequest
      */
     public function rules(): array
     {
+        $extensions = $this->documentAllowedExtensions();
+        $maxKilobytes = $this->documentMaxKilobytes();
+
         return [
             'category' => ['required', Rule::in(EsgCategory::values())],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'file' => ['required_unless:category,emission', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,csv,png,jpg,jpeg'],
+            'file' => ['required_unless:category,emission', 'file', 'max:'.$maxKilobytes, 'mimes:'.implode(',', $extensions)],
             'data_json' => [Rule::requiredIf(fn () => $this->input('category') === EsgCategory::Emission->value), 'array'],
             'expires_at' => ['nullable', 'date', 'after:today'],
             'approved_at' => ['nullable', 'date'],

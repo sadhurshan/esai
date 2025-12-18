@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -21,10 +22,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read \App\Models\RFQ $rfq
  * @property-read \App\Models\Supplier $supplier
  */
-class RFQQuote extends Model
+class RFQQuote extends CompanyScopedModel
 {
     /** @use HasFactory<\Database\Factories\RFQQuoteFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     /**
      * @var string
@@ -35,6 +37,7 @@ class RFQQuote extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'company_id',
         'rfq_id',
         'supplier_id',
         'unit_price_usd',
@@ -62,5 +65,15 @@ class RFQQuote extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -14,8 +14,8 @@ use App\Models\Subscription;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\TaxCode;
-use App\Notifications\InvoiceMatchResultNotification;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Notification as DatabaseNotification;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 function provisionInvoiceContext(int $invoiceCap = 5): array
@@ -114,7 +114,7 @@ test('finance user can create invoice and receives match summary', function (): 
         'taxCode' => $taxCode,
     ] = provisionInvoiceContext();
 
-    Notification::fake();
+    Mail::fake();
 
     $this->actingAs($financeUser);
 
@@ -220,7 +220,7 @@ test('finance user can create invoice via from-po endpoint', function (): void {
         'taxCode' => $taxCode,
     ] = provisionInvoiceContext();
 
-    Notification::fake();
+    Mail::fake();
 
     $this->actingAs($financeUser);
 
@@ -252,6 +252,72 @@ test('finance user can create invoice via from-po endpoint', function (): void {
     expect($company->invoices_monthly_used)->toBe(1);
 });
 
+test('finance user can create invoice when supplier belongs to another company', function (): void {
+    [
+        'company' => $company,
+        'finance' => $financeUser,
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'taxCode' => $taxCode,
+    ] = provisionInvoiceContext();
+
+    $supplierCompany = Company::factory()->create();
+    $externalSupplier = Supplier::factory()->create([
+        'company_id' => $supplierCompany->id,
+        'status' => 'approved',
+    ]);
+
+    $purchaseOrder->update(['supplier_id' => $externalSupplier->id]);
+
+    $this->actingAs($financeUser);
+
+    $payload = [
+        'po_id' => $purchaseOrder->id,
+        'supplier_id' => $externalSupplier->id,
+        'invoice_number' => 'INV-EXT-SUP',
+        'lines' => [
+            [
+                'po_line_id' => $poLines[0]->id,
+                'qty_invoiced' => 1,
+                'unit_price_minor' => 12000,
+                'tax_code_ids' => [$taxCode->id],
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/invoices/from-po', $payload);
+
+    $response->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.purchase_order_id', $purchaseOrder->id)
+        ->assertJsonPath('data.invoice_number', 'INV-EXT-SUP');
+});
+
+test('unauthenticated users cannot call from-po endpoint', function (): void {
+    [
+        'purchaseOrder' => $purchaseOrder,
+        'poLines' => $poLines,
+        'supplier' => $supplier,
+    ] = provisionInvoiceContext();
+
+    $payload = [
+        'po_id' => $purchaseOrder->id,
+        'supplier_id' => $supplier->id,
+        'invoice_number' => 'INV-UNAUTH',
+        'lines' => [
+            [
+                'po_line_id' => $poLines[0]->id,
+                'qty_invoiced' => 1,
+                'unit_price_minor' => 12000,
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/invoices/from-po', $payload);
+
+    $response->assertUnauthorized();
+});
+
 test('invoice creation is blocked when plan invoice cap is exhausted', function (): void {
     [
         'plan' => $plan,
@@ -263,7 +329,7 @@ test('invoice creation is blocked when plan invoice cap is exhausted', function 
         'taxCode' => $taxCode,
     ] = provisionInvoiceContext(1);
 
-    Notification::fake();
+    Mail::fake();
 
     $company->update([ 'invoices_monthly_used' => $plan->invoices_per_month ]);
 
@@ -403,7 +469,7 @@ test('price mismatch recalculates invoice match results and notifies finance tea
         'taxCode' => $taxCode,
     ] = provisionInvoiceContext();
 
-    Notification::fake();
+    Mail::fake();
 
     $this->actingAs($financeUser);
 
@@ -477,14 +543,13 @@ test('price mismatch recalculates invoice match results and notifies finance tea
     expect($match->result)->toBe('price_mismatch')
         ->and($match->details['reason'])->toBe('price_difference');
 
-    Notification::assertSentTo(
-        $financeUser,
-        InvoiceMatchResultNotification::class,
-        function (InvoiceMatchResultNotification $notification, array $channels) use ($financeUser, $invoiceId): bool {
-            $payload = $notification->toArray($financeUser);
+    $notification = DatabaseNotification::query()
+        ->where('user_id', $financeUser->id)
+        ->where('event_type', 'invoice_match.review')
+        ->latest('id')
+        ->first();
 
-            return $payload['invoice_id'] === $invoiceId
-                && $payload['summary']['price_mismatch'] === 1;
-        }
-    );
+    expect($notification)->not->toBeNull();
+    expect($notification?->entity_id)->toBe($invoiceId);
+    expect($notification?->meta['summary']['price_mismatch'] ?? null)->toBe(1);
 });

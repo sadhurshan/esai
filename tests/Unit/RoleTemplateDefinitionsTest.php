@@ -19,7 +19,7 @@ it('prevents supplier estimators from mutating rfqs', function (): void {
         ->not->toContain('rfqs.write');
 });
 
-it('limits supplier application submissions to owners', function (): void {
+it('allows owners and buyer admins to submit supplier applications', function (): void {
     $ownerPermissions = RoleTemplateDefinitions::permissionsForRole('owner');
     $buyerAdminPermissions = RoleTemplateDefinitions::permissionsForRole('buyer_admin');
 
@@ -27,5 +27,5 @@ it('limits supplier application submissions to owners', function (): void {
         ->toContain('suppliers.apply');
 
     expect($buyerAdminPermissions)
-        ->not->toContain('suppliers.apply');
+        ->toContain('suppliers.apply');
 });

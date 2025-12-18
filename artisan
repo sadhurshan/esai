@@ -9,6 +9,17 @@ define('LARAVEL_START', microtime(true));
 // Register the Composer autoloader...
 require __DIR__.'/vendor/autoload.php';
 
+$input = new ArgvInput;
+
+$isTestCommand = in_array($input->getFirstArgument(), ['test', 'pest'], true);
+$explicitEnvProvided = $input->hasParameterOption('--env');
+
+if ($isTestCommand && ! $explicitEnvProvided) {
+	putenv('APP_ENV=testing');
+	$_ENV['APP_ENV'] = 'testing';
+	$_SERVER['APP_ENV'] = 'testing';
+}
+
 // Bootstrap Laravel and handle the command...
 /** @var Application $app */
 $app = require_once __DIR__.'/bootstrap/app.php';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Billing;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Models\Company;
 use App\Services\Billing\StripeInvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,10 +17,17 @@ class BillingInvoiceController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user?->company;
+        $context = $this->requireCompanyContext($request);
 
-        if ($company === null) {
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
+        $company = Company::query()->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('Active company context required.', Response::HTTP_UNPROCESSABLE_ENTITY, [
                 'code' => 'company_context_missing',
             ]);

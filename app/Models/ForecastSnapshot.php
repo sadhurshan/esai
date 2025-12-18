@@ -18,16 +18,28 @@ class ForecastSnapshot extends CompanyScopedModel
         'period_start',
         'period_end',
         'demand_qty',
+        'avg_daily_demand',
         'method',
         'alpha',
+        'on_hand_qty',
+        'on_order_qty',
+        'safety_stock_qty',
+        'projected_runout_days',
+        'horizon_days',
     ];
 
     protected $casts = [
         'period_start' => 'date',
         'period_end' => 'date',
         'demand_qty' => 'decimal:3',
+        'avg_daily_demand' => 'decimal:3',
         'method' => 'string',
         'alpha' => 'decimal:3',
+        'on_hand_qty' => 'decimal:3',
+        'on_order_qty' => 'decimal:3',
+        'safety_stock_qty' => 'decimal:3',
+        'projected_runout_days' => 'decimal:2',
+        'horizon_days' => 'integer',
     ];
 
     public function company(): BelongsTo

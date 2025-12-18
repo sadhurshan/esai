@@ -3,6 +3,7 @@
 namespace App\Actions\Invoicing;
 
 use App\Actions\PurchaseOrder\RecordPurchaseOrderEventAction;
+use App\Enums\InvoiceStatus;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
@@ -11,8 +12,10 @@ use App\Models\PurchaseOrderLine;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\CompanyContext;
 use App\Support\Documents\DocumentStorer;
 use App\Support\Money\Money;
+use App\Support\PurchaseOrders\PurchaseOrderSupplierResolver;
 use App\Services\TotalsCalculator;
 use App\Services\LineTaxSyncService;
 use Illuminate\Database\DatabaseManager;
@@ -33,11 +36,14 @@ class CreateInvoiceAction
     ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
+     * @param  array{company_id?:int,supplier_company_id?:int|null,status?:string,created_by_type?:string,created_by_id?:int|null}|null  $context
      */
-    public function execute(User $user, PurchaseOrder $purchaseOrder, array $payload): Invoice
+    public function execute(User $user, PurchaseOrder $purchaseOrder, array $payload, ?array $context = null): Invoice
     {
-        $companyId = $user->company_id;
+        $context ??= [];
+
+        $companyId = $context['company_id'] ?? $user->company_id;
 
         if ($companyId === null) {
             throw ValidationException::withMessages([
@@ -59,6 +65,27 @@ class CreateInvoiceAction
             ]);
         }
 
+        $supplierCompanyId = $context['supplier_company_id'] ?? $this->resolveSupplierCompanyId($purchaseOrder);
+
+        $statusValue = $context['status'] ?? InvoiceStatus::Draft->value;
+        $status = InvoiceStatus::tryFrom($statusValue);
+
+        if ($status === null) {
+            throw ValidationException::withMessages([
+                'status' => ['Invalid invoice status provided.'],
+            ]);
+        }
+
+        $createdByType = $context['created_by_type'] ?? 'buyer';
+
+        if (! in_array($createdByType, ['buyer', 'supplier'], true)) {
+            throw ValidationException::withMessages([
+                'created_by_type' => ['Created by type must be buyer or supplier.'],
+            ]);
+        }
+
+        $createdById = $context['created_by_id'] ?? $user->id;
+
         $purchaseOrder->loadMissing(['lines.invoiceLines']);
 
         /** @var Collection<int, array<string, mixed>> $linesPayload */
@@ -72,6 +99,7 @@ class CreateInvoiceAction
 
         $invoiceNumber = $payload['invoice_number'] ?? $this->generateInvoiceNumber($companyId);
         $invoiceDate = $payload['invoice_date'] ?? now()->toDateString();
+        $dueDate = $payload['due_date'] ?? null;
         $currency = $payload['currency'] ?? $purchaseOrder->currency ?? 'USD';
 
         /** @var UploadedFile|null $document */
@@ -82,11 +110,16 @@ class CreateInvoiceAction
             $user,
             $purchaseOrder,
             $supplierId,
+            $supplierCompanyId,
             $invoiceNumber,
             $invoiceDate,
+            $dueDate,
             $currency,
             $linesPayload,
             $document,
+            $status,
+            $createdByType,
+            $createdById,
         ): Invoice {
             $resolvedLines = $this->resolveLines($purchaseOrder, $linesPayload);
 
@@ -102,17 +135,28 @@ class CreateInvoiceAction
 
             $minorUnit = $calculation['minor_unit'];
 
+            $subtotalMinor = $calculation['totals']['subtotal_minor'];
+            $taxMinor = $calculation['totals']['tax_total_minor'];
+            $totalMinor = $calculation['totals']['grand_total_minor'];
+
             $invoice = Invoice::create([
                 'company_id' => $companyId,
                 'purchase_order_id' => $purchaseOrder->id,
                 'supplier_id' => $supplierId,
+                'supplier_company_id' => $supplierCompanyId,
                 'invoice_number' => $invoiceNumber,
                 'currency' => strtoupper($currency),
                 'invoice_date' => $invoiceDate,
-                'subtotal' => $this->formatMinor($calculation['totals']['subtotal_minor'], $currency, $minorUnit),
-                'tax_amount' => $this->formatMinor($calculation['totals']['tax_total_minor'], $currency, $minorUnit),
-                'total' => $this->formatMinor($calculation['totals']['grand_total_minor'], $currency, $minorUnit),
-                'status' => 'pending',
+                'due_date' => $dueDate,
+                'subtotal' => $this->formatMinor($subtotalMinor, $currency, $minorUnit),
+                'tax_amount' => $this->formatMinor($taxMinor, $currency, $minorUnit),
+                'total' => $this->formatMinor($totalMinor, $currency, $minorUnit),
+                'subtotal_minor' => $subtotalMinor,
+                'tax_minor' => $taxMinor,
+                'total_minor' => $totalMinor,
+                'status' => $status->value,
+                'created_by_type' => $createdByType,
+                'created_by_id' => $createdById,
             ]);
 
             $lineResults = collect($calculation['lines'])->keyBy('index');
@@ -137,6 +181,7 @@ class CreateInvoiceAction
                     'currency' => strtoupper($currency),
                     'unit_price' => $unitPrice,
                     'unit_price_minor' => $result['unit_price_minor'],
+                    'line_total_minor' => $result['grand_total_minor'],
                 ]);
 
                 $this->lineTaxSync->sync($invoiceLine, $companyId, $result['taxes']);
@@ -197,7 +242,25 @@ class CreateInvoiceAction
         if (isset($payload['supplier_id'])) {
             $supplierId = (int) $payload['supplier_id'];
 
-            return Supplier::query()->whereKey($supplierId)->exists() ? $supplierId : null;
+            $exists = CompanyContext::bypass(static function () use ($supplierId): bool {
+                return Supplier::query()
+                    ->whereKey($supplierId)
+                    ->exists();
+            });
+
+            return $exists ? $supplierId : null;
+        }
+
+        if ($purchaseOrder->supplier_id !== null) {
+            $supplierExists = CompanyContext::bypass(function () use ($purchaseOrder): bool {
+                return Supplier::query()
+                    ->whereKey($purchaseOrder->supplier_id)
+                    ->exists();
+            });
+
+            if ($supplierExists) {
+                return (int) $purchaseOrder->supplier_id;
+            }
         }
 
         $purchaseOrder->loadMissing('quote');
@@ -207,6 +270,11 @@ class CreateInvoiceAction
         }
 
         return null;
+    }
+
+    private function resolveSupplierCompanyId(PurchaseOrder $purchaseOrder): ?int
+    {
+        return PurchaseOrderSupplierResolver::resolveSupplierCompanyId($purchaseOrder);
     }
 
     private function generateInvoiceNumber(int $companyId): string

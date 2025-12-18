@@ -28,7 +28,8 @@ it('includes plan feature toggles in auth payloads', function (): void {
         ->toHaveKey('maintenance_enabled', true)
         ->toHaveKey('inventory_enabled', true)
         ->toHaveKey('analytics_enabled', true)
-        ->toHaveKey('quotes_enabled', true);
+        ->toHaveKey('quotes_enabled', true)
+        ->toHaveKey('supplier_invoicing_enabled', true);
 });
 
 it('allows company specific feature flags to override plan defaults', function (): void {
@@ -139,6 +140,32 @@ it('enables invoices for growth plans and above', function (): void {
     $starterPayload = app(AuthResponseFactory::class)->make($starterUser);
 
     expect($starterPayload['feature_flags'] ?? [])->toHaveKey('invoices_enabled', false);
+});
+
+it('enables supplier invoicing for growth plans and above', function (): void {
+    $growthPlan = Plan::factory()->create([
+        'code' => 'growth',
+        'supplier_invoicing_enabled' => false,
+    ]);
+
+    $growthCompany = Company::factory()->for($growthPlan, 'plan')->create();
+    $growthUser = User::factory()->for($growthCompany)->create();
+
+    $growthPayload = app(AuthResponseFactory::class)->make($growthUser);
+
+    expect($growthPayload['feature_flags'] ?? [])->toHaveKey('supplier_invoicing_enabled', true);
+
+    $starterPlan = Plan::factory()->create([
+        'code' => 'starter',
+        'supplier_invoicing_enabled' => false,
+    ]);
+
+    $starterCompany = Company::factory()->for($starterPlan, 'plan')->create();
+    $starterUser = User::factory()->for($starterCompany)->create();
+
+    $starterPayload = app(AuthResponseFactory::class)->make($starterUser);
+
+    expect($starterPayload['feature_flags'] ?? [])->toHaveKey('supplier_invoicing_enabled', false);
 });
 
 it('enables digital twins for growth plans and above', function (): void {

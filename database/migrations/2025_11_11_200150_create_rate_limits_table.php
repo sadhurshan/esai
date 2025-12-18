@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('rate_limits')) {
+            return;
+        }
+
         Schema::create('rate_limits', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('company_id')->nullable()->constrained()->nullOnDelete();
@@ -24,6 +28,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('rate_limits');
+        Schema::enableForeignKeyConstraints();
     }
 };

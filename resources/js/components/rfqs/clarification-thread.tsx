@@ -64,8 +64,14 @@ type ClarificationAttachment = NonNullable<RfqClarification['attachments']>[numb
 interface NormalizedClarificationAttachment {
     id: string;
     filename: string;
-    url?: string;
+    previewUrl?: string;
+    downloadUrl?: string;
     sizeLabel?: string;
+}
+
+interface AttachmentContext {
+    rfqId?: string | number;
+    clarificationId?: string | number;
 }
 
 function resolveClarificationBody(item: RfqClarification): string {
@@ -78,11 +84,16 @@ function resolveClarificationBody(item: RfqClarification): string {
     return typeof fallback === 'string' ? fallback : '';
 }
 
-function normalizeClarificationAttachment(attachment: ClarificationAttachment, index: number): NormalizedClarificationAttachment {
+function normalizeClarificationAttachment(
+    attachment: ClarificationAttachment,
+    index: number,
+    context?: AttachmentContext
+): NormalizedClarificationAttachment {
     const record = attachment as Record<string, unknown>;
     const idCandidate = record.documentId ?? record.document_id ?? record.id ?? `attachment-${index}`;
     const filenameCandidate = record.filename;
-    const urlCandidate = record.downloadUrl ?? record.download_url ?? record.url;
+    const downloadCandidate = resolveAttachmentDownloadUrl(record, context);
+    const previewCandidate = resolveAttachmentPreviewUrl(record) ?? downloadCandidate;
     const sizeCandidate = record.sizeBytes ?? record.size_bytes;
 
     return {
@@ -91,9 +102,46 @@ function normalizeClarificationAttachment(attachment: ClarificationAttachment, i
             typeof filenameCandidate === 'string' && filenameCandidate.length > 0
                 ? filenameCandidate
                 : `Attachment ${index + 1}`,
-        url: typeof urlCandidate === 'string' ? urlCandidate : undefined,
+        previewUrl: typeof previewCandidate === 'string' ? previewCandidate : undefined,
+        downloadUrl: typeof downloadCandidate === 'string' ? downloadCandidate : undefined,
         sizeLabel: typeof sizeCandidate === 'number' ? formatFileSize(sizeCandidate) : undefined,
     };
+}
+
+function resolveAttachmentPreviewUrl(record: Record<string, unknown>): string | undefined {
+    const directPreview = record.url ?? record.previewUrl ?? record.preview_url;
+
+    if (typeof directPreview === 'string' && directPreview.length > 0) {
+        return directPreview;
+    }
+
+    const downloadFallback = record.downloadUrl ?? record.download_url;
+
+    return typeof downloadFallback === 'string' && downloadFallback.length > 0 ? downloadFallback : undefined;
+}
+
+function resolveAttachmentDownloadUrl(record: Record<string, unknown>, context?: AttachmentContext): string | undefined {
+    const directUrl = record.downloadUrl ?? record.download_url;
+
+    if (typeof directUrl === 'string' && directUrl.length > 0) {
+        return directUrl;
+    }
+
+    const documentId = record.documentId ?? record.document_id ?? record.id;
+    const rfqId = context?.rfqId;
+    const clarificationId = context?.clarificationId;
+
+    if (
+        (typeof documentId === 'string' || typeof documentId === 'number') &&
+        (typeof rfqId === 'string' || typeof rfqId === 'number') &&
+        (typeof clarificationId === 'string' || typeof clarificationId === 'number')
+    ) {
+        return `/api/rfqs/${rfqId}/clarifications/${clarificationId}/attachments/${documentId}`;
+    }
+
+    const previewUrl = resolveAttachmentPreviewUrl(record);
+
+    return typeof previewUrl === 'string' ? previewUrl : undefined;
 }
 
 function formatFileSize(size: number): string {
@@ -113,36 +161,91 @@ function formatFileSize(size: number): string {
     return `${nextSize.toFixed(nextSize >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-function renderClarificationAttachments(attachments?: RfqClarification['attachments']) {
+function toFileArray(fileList?: FileList | null): File[] {
+    if (!fileList || fileList.length === 0) {
+        return [];
+    }
+
+    const files: File[] = [];
+
+    for (let index = 0; index < fileList.length; index += 1) {
+        const item = fileList.item(index);
+        if (item) {
+            files.push(item);
+        }
+    }
+
+    return files;
+}
+
+function triggerAttachmentDownload(attachment: NormalizedClarificationAttachment) {
+    if (typeof window === 'undefined' || typeof document === 'undefined' || !attachment.downloadUrl) {
+        return;
+    }
+
+    const anchor = document.createElement('a');
+    anchor.href = attachment.downloadUrl;
+    anchor.setAttribute('download', attachment.filename);
+    anchor.rel = 'noopener noreferrer';
+    anchor.target = '_self';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+}
+
+function renderClarificationAttachments(clarification: RfqClarification) {
+    const extendedClarification = clarification as RfqClarification & { rfq_id?: string | number; rfqId?: string | number };
+    const attachments = extendedClarification.attachments;
+
     if (!attachments || attachments.length === 0) {
         return null;
     }
 
+    const rfqId = extendedClarification.rfqId ?? extendedClarification.rfq_id;
+    const clarificationId = extendedClarification.id;
+
     return (
         <ul className="mt-3 space-y-2">
             {attachments.map((attachment, index) => {
-                const normalized = normalizeClarificationAttachment(attachment, index);
+                const normalized = normalizeClarificationAttachment(attachment, index, {
+                    rfqId,
+                    clarificationId,
+                });
+                const disabled = !normalized.downloadUrl;
+                const anchorHref = normalized.previewUrl ?? normalized.downloadUrl;
 
                 return (
-                    <li key={normalized.id} className="flex items-center justify-between gap-3 rounded-md border border-dashed p-2 text-sm">
-                        <div className="flex items-center gap-2">
-                            <Paperclip className="h-4 w-4 text-muted-foreground" />
-                            {normalized.url ? (
-                                <a
-                                    href={normalized.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                >
-                                    {normalized.filename}
-                                </a>
-                            ) : (
-                                <span>{normalized.filename}</span>
-                            )}
+                    <li key={normalized.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed p-3 text-sm">
+                        <div className="flex flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                            <div className="flex items-center gap-2">
+                                <Paperclip className="h-4 w-4 text-muted-foreground" />
+                                {anchorHref ? (
+                                    <a
+                                        href={anchorHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline"
+                                    >
+                                        {normalized.filename}
+                                    </a>
+                                ) : (
+                                    <span>{normalized.filename}</span>
+                                )}
+                            </div>
+                            {normalized.sizeLabel ? (
+                                <span className="text-xs text-muted-foreground">{normalized.sizeLabel}</span>
+                            ) : null}
                         </div>
-                        {normalized.sizeLabel ? (
-                            <span className="text-xs text-muted-foreground">{normalized.sizeLabel}</span>
-                        ) : null}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={disabled}
+                            className="shrink-0"
+                            type="button"
+                            onClick={() => triggerAttachmentDownload(normalized)}
+                        >
+                            Download
+                        </Button>
                     </li>
                 );
             })}
@@ -162,6 +265,10 @@ export interface ClarificationThreadProps {
     isSubmittingAnswer?: boolean;
     canAskQuestion?: boolean;
     canAnswerQuestion?: boolean;
+    askTitle?: string;
+    askDescription?: string;
+    answerTitle?: string;
+    answerDescription?: string;
 }
 
 export function ClarificationThread({
@@ -172,6 +279,10 @@ export function ClarificationThread({
     isSubmittingAnswer = false,
     canAskQuestion = true,
     canAnswerQuestion = true,
+    askTitle,
+    askDescription,
+    answerTitle,
+    answerDescription,
 }: ClarificationThreadProps) {
     const groupedClarifications = useMemo(() => {
         const sorted = [...clarifications].sort((a, b) => {
@@ -226,24 +337,26 @@ export function ClarificationThread({
     const [answerAttachments, setAnswerAttachments] = useState<File[]>([]);
 
     const handleQuestionFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
+        const files = toFileArray(event.target.files);
 
-        if (!files) {
+        if (files.length === 0) {
+            event.target.value = '';
             return;
         }
 
-        setQuestionAttachments((current) => [...current, ...Array.from(files)]);
+        setQuestionAttachments((current) => [...current, ...files]);
         event.target.value = '';
     };
 
     const handleAnswerFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
+        const files = toFileArray(event.target.files);
 
-        if (!files) {
+        if (files.length === 0) {
+            event.target.value = '';
             return;
         }
 
-        setAnswerAttachments((current) => [...current, ...Array.from(files)]);
+        setAnswerAttachments((current) => [...current, ...files]);
         event.target.value = '';
     };
 
@@ -325,7 +438,7 @@ export function ClarificationThread({
                                                             </span>
                                                         </div>
                                                         <p className="mt-2 whitespace-pre-line text-sm">{resolveClarificationBody(item)}</p>
-                                                        {renderClarificationAttachments(item.attachments)}
+                                                        {renderClarificationAttachments(item)}
                                                         {item.author && typeof item.author === 'object' ? (
                                                             <p className="mt-2 text-xs text-muted-foreground">
                                                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -346,7 +459,8 @@ export function ClarificationThread({
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Ask a supplier question</CardTitle>
+                    <CardTitle>{askTitle ?? 'Ask a clarification question'}</CardTitle>
+                    {askDescription ? <p className="text-sm text-muted-foreground">{askDescription}</p> : null}
                 </CardHeader>
                 <CardContent>
                     <form className="grid gap-3" onSubmit={handleQuestionSubmit}>
@@ -370,6 +484,11 @@ export function ClarificationThread({
                             />
                             <p className="text-xs text-muted-foreground">
                                 Upload PDF or image files up to 10 MB. Attachments are virus-scanned before suppliers can access them.
+                            </p>
+                            <p className="text-xs text-muted-foreground" aria-live="polite">
+                                {questionAttachments.length === 0
+                                    ? 'No files selected yet.'
+                                    : `${questionAttachments.length} file${questionAttachments.length === 1 ? '' : 's'} ready to upload.`}
                             </p>
                             {questionAttachments.length > 0 ? (
                                 <ul className="space-y-1 text-sm">
@@ -408,7 +527,8 @@ export function ClarificationThread({
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Respond to a supplier</CardTitle>
+                    <CardTitle>{answerTitle ?? 'Respond to a clarification'}</CardTitle>
+                    {answerDescription ? <p className="text-sm text-muted-foreground">{answerDescription}</p> : null}
                 </CardHeader>
                 <CardContent>
                     <form className="grid gap-3" onSubmit={handleAnswerSubmit}>
@@ -432,6 +552,11 @@ export function ClarificationThread({
                             />
                             <p className="text-xs text-muted-foreground">
                                 Attach amended drawings or documents. Files are scanned automatically before recipients are notified.
+                            </p>
+                            <p className="text-xs text-muted-foreground" aria-live="polite">
+                                {answerAttachments.length === 0
+                                    ? 'No files selected yet.'
+                                    : `${answerAttachments.length} file${answerAttachments.length === 1 ? '' : 's'} ready to upload.`}
                             </p>
                             {answerAttachments.length > 0 ? (
                                 <ul className="space-y-1 text-sm">

@@ -38,6 +38,7 @@ use App\Models\RateLimit;
 use App\Models\WebhookSubscription;
 use App\Models\WebhookDelivery;
 use App\Models\DigitalTwin;
+use App\Models\UsageSnapshot;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -329,6 +330,11 @@ class Company extends Model
     public function forecastSnapshots(): HasMany
     {
         return $this->hasMany(ForecastSnapshot::class);
+    }
+
+    public function usageSnapshots(): HasMany
+    {
+        return $this->hasMany(UsageSnapshot::class);
     }
 
     public function moneySetting(): HasOne

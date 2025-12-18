@@ -147,7 +147,7 @@ export function ShipmentCreateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="!max-w-5xl">
                 <DialogHeader>
                     <DialogTitle>Create shipment</DialogTitle>
                     <DialogDescription>Select the lines and quantities you are ready to ship.</DialogDescription>

@@ -1,7 +1,7 @@
 import { publishToast } from '@/components/ui/use-toast';
 import { AuthApi, type LoginRequest, type RegisterDocumentPayload } from '@/sdk/auth-client';
 import { HttpError, createConfiguration } from '@/sdk';
-import { useCallback, useEffect, useMemo, useReducer, createContext, useContext, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, createContext, useContext, type ReactNode } from 'react';
 
 const STORAGE_KEY = 'esai.auth.state';
 const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
@@ -43,6 +43,21 @@ interface PlanLimitNotice {
     featureKey?: string | null;
 }
 
+interface Persona {
+    key: string;
+    type: 'buyer' | 'supplier';
+    company_id: number;
+    company_name?: string | null;
+    company_status?: string | null;
+    company_supplier_status?: string | null;
+    role?: string | null;
+    is_default?: boolean;
+    supplier_id?: number | null;
+    supplier_name?: string | null;
+    supplier_company_id?: number | null;
+    supplier_company_name?: string | null;
+}
+
 interface StoredAuthState {
     token: string;
     user: AuthenticatedUser;
@@ -51,6 +66,8 @@ interface StoredAuthState {
     plan?: string | null;
     requiresPlanSelection?: boolean;
     requiresEmailVerification?: boolean;
+    personas?: Persona[];
+    activePersonaKey?: string | null;
 }
 
 interface AuthState {
@@ -64,6 +81,8 @@ interface AuthState {
     planLimit: PlanLimitNotice | null;
     requiresPlanSelection: boolean;
     requiresEmailVerification: boolean;
+    personas: Persona[];
+    activePersonaKey: string | null;
 }
 
 interface LoginPayload {
@@ -95,6 +114,8 @@ interface AuthContextValue {
     isAdmin: boolean;
     canAccessAdminConsole: boolean;
     requiresEmailVerification: boolean;
+    personas: Persona[];
+    activePersona: Persona | null;
     login: (payload: LoginPayload) => Promise<AuthFlowResult>;
     register: (payload: RegisterPayload) => Promise<AuthFlowResult>;
     logout: () => void;
@@ -104,6 +125,7 @@ interface AuthContextValue {
     notifyPlanLimit: (notice: PlanLimitNotice) => void;
     clearPlanLimit: () => void;
     resendVerificationEmail: () => Promise<void>;
+    switchPersona: (key: string) => Promise<void>;
 }
 
 interface AuthFlowResult {
@@ -124,6 +146,8 @@ type AuthAction =
               plan?: string | null;
               requiresPlanSelection?: boolean;
               requiresEmailVerification?: boolean;
+              personas?: Persona[];
+              activePersonaKey?: string | null;
           };
       }
     | { type: 'LOGIN_FAILURE'; payload: { error: string } }
@@ -137,9 +161,12 @@ type AuthAction =
               plan?: string | null;
               requiresPlanSelection?: boolean;
               requiresEmailVerification?: boolean;
+              personas?: Persona[];
+              activePersonaKey?: string | null;
           };
       }
-    | { type: 'SET_PLAN_LIMIT'; payload: PlanLimitNotice | null };
+    | { type: 'SET_PLAN_LIMIT'; payload: PlanLimitNotice | null }
+    | { type: 'SET_ACTIVE_PERSONA'; payload: string | null };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -154,6 +181,8 @@ const initialState: AuthState = {
     planLimit: null,
     requiresPlanSelection: false,
     requiresEmailVerification: false,
+    personas: [],
+    activePersonaKey: null,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -166,6 +195,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
             };
         case 'LOGIN_SUCCESS': {
             const featureFlags = action.payload.featureFlags ?? {};
+            const personas = action.payload.personas ?? [];
             return {
                 ...state,
                 status: 'authenticated',
@@ -177,6 +207,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 error: null,
                 requiresPlanSelection: action.payload.requiresPlanSelection ?? false,
                 requiresEmailVerification: action.payload.requiresEmailVerification ?? false,
+                personas,
+                activePersonaKey: alignActivePersonaKey(
+                    personas,
+                    action.payload.activePersonaKey ?? state.activePersonaKey,
+                ),
             };
         }
         case 'LOGIN_FAILURE':
@@ -191,13 +226,19 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 error: action.payload.error,
                 requiresPlanSelection: false,
                 requiresEmailVerification: false,
+                personas: [],
+                activePersonaKey: null,
             };
         case 'LOGOUT':
             return {
                 ...initialState,
                 status: 'unauthenticated',
             };
-        case 'SET_IDENTITIES':
+        case 'SET_IDENTITIES': {
+            const personas = action.payload.personas ?? state.personas;
+            const preferredPersonaKey =
+                action.payload.activePersonaKey ?? (action.payload.personas ? null : state.activePersonaKey);
+
             return {
                 ...state,
                 user: action.payload.user ?? state.user,
@@ -208,11 +249,19 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                     action.payload.requiresPlanSelection ?? state.requiresPlanSelection,
                 requiresEmailVerification:
                     action.payload.requiresEmailVerification ?? state.requiresEmailVerification,
+                personas,
+                activePersonaKey: alignActivePersonaKey(personas, preferredPersonaKey),
             };
+        }
         case 'SET_PLAN_LIMIT':
             return {
                 ...state,
                 planLimit: action.payload,
+            };
+        case 'SET_ACTIVE_PERSONA':
+            return {
+                ...state,
+                activePersonaKey: alignActivePersonaKey(state.personas, action.payload),
             };
         default:
             return state;
@@ -246,6 +295,8 @@ function readStoredState(): AuthState {
             planLimit: null,
             requiresPlanSelection: parsed.requiresPlanSelection ?? false,
             requiresEmailVerification: parsed.requiresEmailVerification ?? false,
+            personas: parsed.personas ?? [],
+            activePersonaKey: parsed.activePersonaKey ?? null,
         };
     } catch (error) {
         console.error('Failed to parse stored auth state', error);
@@ -267,6 +318,8 @@ function writeStateToStorage(state: AuthState) {
             plan: state.plan ?? undefined,
             requiresPlanSelection: state.requiresPlanSelection,
             requiresEmailVerification: state.requiresEmailVerification,
+            personas: state.personas,
+            activePersonaKey: state.activePersonaKey ?? undefined,
         };
 
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -324,6 +377,97 @@ function normalizeToken(payload: Record<string, unknown>): string | null {
     return null;
 }
 
+function toNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    return null;
+}
+
+function normalizePersonas(payload: unknown): Persona[] {
+    if (!Array.isArray(payload)) {
+        return [];
+    }
+
+    const personas: Persona[] = [];
+
+    payload.forEach((entry) => {
+        if (!entry || typeof entry !== 'object') {
+            return;
+        }
+
+        const record = entry as Record<string, unknown>;
+        const key = typeof record.key === 'string' ? record.key : null;
+        const type = record.type === 'buyer' || record.type === 'supplier' ? (record.type as 'buyer' | 'supplier') : null;
+        const companyId = toNumber(record.company_id);
+
+        if (!key || !type || companyId === null) {
+            return;
+        }
+
+        const supplierId = toNumber(record.supplier_id);
+
+        personas.push({
+            key,
+            type,
+            company_id: companyId,
+            company_name: typeof record.company_name === 'string' ? record.company_name : null,
+            company_status: typeof record.company_status === 'string' ? record.company_status : null,
+            company_supplier_status:
+                typeof record.company_supplier_status === 'string' ? record.company_supplier_status : null,
+            role: typeof record.role === 'string' ? record.role : null,
+            is_default: record.is_default === true || record.is_default === 1 || record.is_default === '1',
+            supplier_id: supplierId,
+            supplier_name: typeof record.supplier_name === 'string' ? record.supplier_name : null,
+            supplier_company_id: toNumber(record.supplier_company_id),
+            supplier_company_name:
+                typeof record.supplier_company_name === 'string' ? record.supplier_company_name : null,
+        });
+    });
+
+    return personas;
+}
+
+function extractPersonaKey(payload: unknown): string | null {
+    if (!payload || typeof payload !== 'object') {
+        return null;
+    }
+
+    const candidate = (payload as { key?: unknown }).key;
+    return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
+}
+
+function alignActivePersonaKey(personas: Persona[], preferredKey?: string | null): string | null {
+    if (personas.length === 0) {
+        return null;
+    }
+
+    if (preferredKey) {
+        const match = personas.find((persona) => persona.key === preferredKey);
+        if (match) {
+            return match.key;
+        }
+    }
+
+    const defaultBuyer = personas.find((persona) => persona.type === 'buyer' && persona.is_default);
+    if (defaultBuyer) {
+        return defaultBuyer.key;
+    }
+
+    const anyBuyer = personas.find((persona) => persona.type === 'buyer');
+    if (anyBuyer) {
+        return anyBuyer.key;
+    }
+
+    return personas[0]?.key ?? null;
+}
+
 function normalizeAuthResponse(data: Record<string, unknown>) {
     const token = normalizeToken(data);
     const user = (data.user ?? data.account ?? null) as AuthenticatedUser | null;
@@ -335,8 +479,23 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
         (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
     );
     const requiresEmailVerification = computeRequiresEmailVerification(data, user);
+    const personas = normalizePersonas((data as { personas?: unknown }).personas);
+    const activePersonaKey = alignActivePersonaKey(
+        personas,
+        extractPersonaKey((data as { active_persona?: unknown }).active_persona),
+    );
 
-    return { token, user, company, featureFlags, plan, requiresPlanSelection, requiresEmailVerification };
+    return {
+        token,
+        user,
+        company,
+        featureFlags,
+        plan,
+        requiresPlanSelection,
+        requiresEmailVerification,
+        personas,
+        activePersonaKey,
+    };
 }
 
 function computeRequiresEmailVerification(payload: Record<string, unknown>, user: AuthenticatedUser | null): boolean {
@@ -381,9 +540,12 @@ function extractFirstValidationMessage(errors: unknown): string | null {
     return null;
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children, onPersonaChange }: { children: ReactNode; onPersonaChange?: () => void }) {
     const [state, dispatch] = useReducer(authReducer, initialState, readStoredState);
     const baseUrl = useMemo(() => (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, ''), []);
+    const bootstrappedFromStorageRef = useRef(state.status === 'authenticated' && state.token !== null);
+
+    const activePersonaKey = state.activePersonaKey ?? null;
 
     const authClient = useMemo(() => {
         return new AuthApi(
@@ -393,9 +555,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 defaultHeaders: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
+                activePersona: activePersonaKey ? () => activePersonaKey : undefined,
             }),
         );
-    }, [baseUrl, state.token]);
+    }, [activePersonaKey, baseUrl, state.token]);
 
     useEffect(() => {
         writeStateToStorage(state);
@@ -439,6 +602,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     }, [authClient]);
 
+    useEffect(() => {
+        if (!state.token || !bootstrappedFromStorageRef.current) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const hydrateSession = async (): Promise<void> => {
+            try {
+                const data = (await authClient.current()) as Record<string, unknown>;
+                if (isCancelled) {
+                    return;
+                }
+
+                const {
+                    user,
+                    company,
+                    featureFlags,
+                    plan,
+                    requiresPlanSelection,
+                    requiresEmailVerification,
+                    personas,
+                    activePersonaKey,
+                } = normalizeAuthResponse(data);
+
+                dispatch({
+                    type: 'SET_IDENTITIES',
+                    payload: {
+                        user: user ?? undefined,
+                        company: company ?? undefined,
+                        featureFlags,
+                        plan,
+                        requiresPlanSelection,
+                        requiresEmailVerification,
+                        personas,
+                        activePersonaKey,
+                    },
+                });
+            } catch (error) {
+                if (isCancelled) {
+                    return;
+                }
+
+                if (error instanceof HttpError && error.response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                console.error('Failed to refresh authentication session', error);
+            } finally {
+                bootstrappedFromStorageRef.current = false;
+            }
+        };
+
+        void hydrateSession();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [authClient, logout, state.token]);
+
     const login = useCallback(
         async ({ email, password, remember }: LoginPayload) => {
             dispatch({ type: 'LOGIN_REQUEST' });
@@ -459,6 +683,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    personas,
+                    activePersonaKey,
                 } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
@@ -484,6 +710,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         plan: plan ?? null,
                         requiresPlanSelection,
                         requiresEmailVerification,
+                        personas,
+                        activePersonaKey,
                     },
                 });
 
@@ -584,6 +812,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    personas,
+                    activePersonaKey,
                 } = normalizeAuthResponse(envelope);
 
                 if (!token || !user) {
@@ -609,6 +839,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         plan: plan ?? null,
                         requiresPlanSelection,
                         requiresEmailVerification,
+                        personas,
+                        activePersonaKey,
                     },
                 });
 
@@ -670,14 +902,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         try {
             const data = (await authClient.current()) as Record<string, unknown>;
-            const user = (data.user ?? data.account ?? null) as AuthenticatedUser | null;
-            const company = (data.company ?? data.tenant ?? null) as CompanySummary | null;
-            const featureFlags = normalizeFeatureFlags(data.feature_flags ?? data.features);
-            const plan = (data.plan ?? company?.plan ?? null) as string | null;
-            const requiresPlanSelection = Boolean(
-                (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
-            );
-            const requiresEmailVerification = computeRequiresEmailVerification(data, user);
+            const {
+                user,
+                company,
+                featureFlags,
+                plan,
+                requiresPlanSelection,
+                requiresEmailVerification,
+                personas,
+                activePersonaKey,
+            } = normalizeAuthResponse(data);
 
             dispatch({
                 type: 'SET_IDENTITIES',
@@ -688,6 +922,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    personas,
+                    activePersonaKey,
                 },
             });
 
@@ -708,7 +944,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Failed to refresh auth state', error);
             return snapshot;
         }
-    }, [authClient, logout, state.requiresEmailVerification, state.requiresPlanSelection, state.token]);
+    }, [authClient, logout, state.requiresEmailVerification, state.requiresPlanSelection, state.token, state.user?.role]);
 
     const userRole = state.user?.role ?? null;
 
@@ -733,6 +969,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return isAdmin && state.featureFlags[ADMIN_CONSOLE_FEATURE_KEY] === true;
     }, [isAdmin, state.featureFlags, userRole]);
 
+    const personas = state.personas;
+
+    const activePersona = useMemo(() => {
+        if (state.activePersonaKey) {
+            return personas.find((persona) => persona.key === state.activePersonaKey) ?? null;
+        }
+
+        if (personas.length > 0) {
+            return personas[0];
+        }
+
+        return null;
+    }, [personas, state.activePersonaKey]);
+
+    const notifyPersonaChange = useCallback(() => {
+        if (typeof onPersonaChange === 'function') {
+            onPersonaChange();
+        }
+    }, [onPersonaChange]);
+
+    const switchPersona = useCallback(
+        async (key: string) => {
+            if (!key) {
+                return;
+            }
+
+            try {
+                const payload = (await authClient.switchPersona({ key })) as Record<string, unknown>;
+                const personas = normalizePersonas((payload as { personas?: unknown }).personas);
+                const nextActiveKey = alignActivePersonaKey(
+                    personas,
+                    extractPersonaKey((payload as { active_persona?: unknown }).active_persona) ?? key,
+                );
+
+                dispatch({
+                    type: 'SET_IDENTITIES',
+                    payload: {
+                        personas,
+                        activePersonaKey: nextActiveKey,
+                    },
+                });
+                notifyPersonaChange();
+            } catch (error) {
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Unable to switch persona',
+                    description: 'Please try again in a moment.',
+                });
+
+                if (error instanceof Error) {
+                    throw error;
+                }
+
+                throw new Error('Unable to switch persona.');
+            }
+        },
+        [authClient, notifyPersonaChange],
+    );
+
     const value = useMemo<AuthContextValue>(
         () => ({
             state,
@@ -741,6 +1036,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAdmin,
             canAccessAdminConsole,
             requiresEmailVerification: state.requiresEmailVerification,
+            personas,
+            activePersona,
             login,
             register,
             logout,
@@ -750,11 +1047,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             notifyPlanLimit,
             clearPlanLimit,
             resendVerificationEmail,
+            switchPersona,
         }),
         [
             state,
             isAdmin,
             canAccessAdminConsole,
+            personas,
+            activePersona,
             login,
             register,
             logout,
@@ -764,6 +1064,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             notifyPlanLimit,
             clearPlanLimit,
             resendVerificationEmail,
+            switchPersona,
         ],
     );
 

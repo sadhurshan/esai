@@ -337,15 +337,18 @@ class SchemaAlign extends Command
             'rfq_invitations' => [
                 'columns' => [
                     'id',
+                    'company_id',
                     'rfq_id',
                     'supplier_id',
                     'invited_by',
                     'status',
                     'created_at',
                     'updated_at',
+                    'deleted_at',
                 ],
                 'indexes' => [
-                    ['columns' => ['rfq_id', 'supplier_id'], 'type' => 'unique'],
+                    ['columns' => ['company_id']],
+                    ['columns' => ['rfq_id', 'supplier_id', 'deleted_at'], 'type' => 'unique'],
                 ],
             ],
             'rfq_clarifications' => [

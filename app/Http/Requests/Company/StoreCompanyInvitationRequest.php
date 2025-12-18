@@ -4,6 +4,7 @@ namespace App\Http\Requests\Company;
 
 use App\Http\Requests\ApiFormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreCompanyInvitationRequest extends ApiFormRequest
 {
@@ -37,5 +38,45 @@ class StoreCompanyInvitationRequest extends ApiFormRequest
         }
 
         return in_array($user->role, ['owner', 'buyer_admin'], true);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->includesSupplierRoles()) {
+                return;
+            }
+
+            $user = $this->user();
+
+            if ($user !== null) {
+                $user->loadMissing('company');
+            }
+
+            $company = $user?->company;
+
+            if (! $company || ! $company->isSupplierApproved()) {
+                $validator->errors()->add('invitations', 'Supplier-role invitations require supplier approval.');
+            }
+        });
+    }
+
+    private function includesSupplierRoles(): bool
+    {
+        $invitations = $this->input('invitations', []);
+
+        if (! is_array($invitations)) {
+            return false;
+        }
+
+        foreach ($invitations as $invitation) {
+            $role = $invitation['role'] ?? null;
+
+            if (is_string($role) && in_array($role, ['supplier_admin', 'supplier_estimator'], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

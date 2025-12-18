@@ -2,9 +2,9 @@
 
 namespace App\Actions\Invoicing;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
-use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\Money\Money;
@@ -16,8 +16,6 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateInvoiceAction
 {
-    private const ALLOWED_STATUSES = ['pending', 'paid', 'overdue', 'disputed'];
-
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly DatabaseManager $db,
@@ -26,11 +24,21 @@ class UpdateInvoiceAction
     ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
+     * @param  array{
+     *     company_id?:int,
+     *     editable_statuses?:array<int, string>,
+     *     allowed_status_transitions?:array<int, string>,
+     *     prevent_revert_status?:string|null
+     * }|null  $context
      */
-    public function execute(User $user, Invoice $invoice, array $payload): Invoice
+    public function execute(User $user, Invoice $invoice, array $payload, ?array $context = null): Invoice
     {
-        if ($user->company_id === null || (int) $invoice->company_id !== (int) $user->company_id) {
+        $context ??= [];
+
+        $companyId = $context['company_id'] ?? $user->company_id;
+
+        if ($companyId === null || (int) $invoice->company_id !== (int) $companyId) {
             throw ValidationException::withMessages([
                 'invoice_id' => ['Invoice not found for this company.'],
             ]);
@@ -57,15 +65,22 @@ class UpdateInvoiceAction
                 (int) ($line['id'] ?? 0) => true,
             ]);
 
-        if ($linesPayload->isNotEmpty() && $invoice->status !== 'pending') {
+        $editableStatuses = $context['editable_statuses'] ?? ['pending', InvoiceStatus::Draft->value];
+
+        if ($linesPayload->isNotEmpty() && ! in_array($invoice->status, $editableStatuses, true)) {
             throw ValidationException::withMessages([
-                'status' => ['Only pending invoices can be edited.'],
+                'status' => ['Invoice lines can only be edited while the invoice is in an editable state.'],
             ]);
         }
 
         $targetStatus = $payload['status'] ?? null;
 
-        if ($targetStatus !== null && ! in_array($targetStatus, self::ALLOWED_STATUSES, true)) {
+        $allowedStatusTransitions = $context['allowed_status_transitions'] ?? array_merge(
+            ['pending', 'paid', 'overdue', 'disputed'],
+            InvoiceStatus::values(),
+        );
+
+        if ($targetStatus !== null && ! in_array($targetStatus, $allowedStatusTransitions, true)) {
             throw ValidationException::withMessages([
                 'status' => ['Invalid invoice status provided.'],
             ]);
@@ -73,7 +88,18 @@ class UpdateInvoiceAction
 
         $beforeSnapshot = $invoice->toArray();
 
-    return $this->db->transaction(function () use ($invoice, $linesPayload, $taxOverrides, $unitPriceOverrides, $targetStatus, $user, $beforeSnapshot): Invoice {
+        $preventRevertStatus = $context['prevent_revert_status'] ?? 'pending';
+
+        return $this->db->transaction(function () use (
+            $invoice,
+            $linesPayload,
+            $taxOverrides,
+            $unitPriceOverrides,
+            $targetStatus,
+            $user,
+            $beforeSnapshot,
+            $preventRevertStatus,
+        ): Invoice {
             $before = $beforeSnapshot;
 
             if ($linesPayload->isNotEmpty()) {
@@ -81,9 +107,13 @@ class UpdateInvoiceAction
             }
 
             if ($targetStatus !== null && $targetStatus !== $invoice->status) {
-                if ($invoice->status !== 'pending' && $targetStatus === 'pending') {
+                if (
+                    $preventRevertStatus !== null
+                    && $invoice->status !== $preventRevertStatus
+                    && $targetStatus === $preventRevertStatus
+                ) {
                     throw ValidationException::withMessages([
-                        'status' => ['Cannot revert invoice to pending.'],
+                        'status' => [sprintf('Cannot revert invoice to %s.', $preventRevertStatus)],
                     ]);
                 }
 

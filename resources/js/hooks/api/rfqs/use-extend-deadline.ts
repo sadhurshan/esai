@@ -48,7 +48,7 @@ export function useExtendRfqDeadline() {
                 },
             );
 
-            return response;
+            return response.data;
         },
         onSuccess: (_data, variables) => {
             const { rfqId } = variables;

@@ -27,6 +27,8 @@ class Quote extends CompanyScopedModel
         'unit_price',
         'min_order_qty',
         'lead_time_days',
+        'incoterm',
+        'payment_terms',
         'notes',
         'status',
         'revision_no',
@@ -40,6 +42,8 @@ class Quote extends CompanyScopedModel
         'total_price_minor',
         'submitted_at',
         'attachments_count',
+        'shortlisted_at',
+        'shortlisted_by',
     ];
 
     protected $casts = [
@@ -56,6 +60,7 @@ class Quote extends CompanyScopedModel
         'total_price_minor' => 'integer',
         'submitted_at' => 'datetime',
         'attachments_count' => 'integer',
+        'shortlisted_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -69,7 +74,9 @@ class Quote extends CompanyScopedModel
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Supplier::class)
+            ->withoutGlobalScope('company_scope')
+            ->withTrashed();
     }
 
     public function submitter(): BelongsTo
@@ -90,6 +97,11 @@ class Quote extends CompanyScopedModel
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function shortlister(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'shortlisted_by');
     }
 
     public function revisions(): HasMany

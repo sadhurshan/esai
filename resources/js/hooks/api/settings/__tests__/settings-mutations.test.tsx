@@ -10,17 +10,27 @@ import { buildNumberingSettingsPayload, useUpdateNumberingSettings } from '../us
 import { mapCompanySettings } from '../use-company';
 import { mapLocalizationSettings } from '../use-localization';
 import { mapNumberingSettings } from '../use-numbering';
-import type { CompanySettings, LocalizationSettings, NumberingSettings } from '@/types/settings';
+import type { LocalizationSettings, NumberingSettings } from '@/types/settings';
+import type { UpdateCompanySettingsInput } from '../use-update-company';
 import { queryKeys } from '@/lib/queryKeys';
 import { useSdkClient } from '@/contexts/api-client-context';
+import { api } from '@/lib/api';
+import { CompanySettingsFromJSON } from '@/sdk';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
 }));
 
-const useSdkClientMock = vi.mocked(useSdkClient);
+vi.mock('@/lib/api', () => ({
+    api: {
+        patch: vi.fn(),
+    },
+}));
 
-const companyInput: CompanySettings = {
+const useSdkClientMock = vi.mocked(useSdkClient);
+const apiPatchMock = vi.mocked(api.patch);
+
+const companyInput: UpdateCompanySettingsInput = {
     legalName: 'Acme Corporation',
     displayName: 'Acme',
     taxId: '99-1111111',
@@ -151,6 +161,7 @@ describe('settings mutation hooks', () => {
     const updateNumberingSettings = vi.fn();
 
     beforeEach(() => {
+        apiPatchMock.mockReset();
         updateCompanySettings.mockReset();
         updateLocalizationSettings.mockReset();
         updateNumberingSettings.mockReset();
@@ -166,37 +177,45 @@ describe('settings mutation hooks', () => {
         vi.clearAllMocks();
     });
 
-    it('useUpdateCompanySettings pushes payloads and caches results', async () => {
+    it('useUpdateCompanySettings uploads multipart payloads and caches results', async () => {
         const apiResponse = {
-            legalName: 'Acme Corporation',
-            displayName: 'Acme',
-            taxId: '99-1111111',
-            registrationNumber: 'ACME-001',
+            legal_name: 'Acme Corporation',
+            display_name: 'Acme',
+            tax_id: '99-1111111',
+            registration_number: 'ACME-001',
             emails: ['ops@acme.example'],
             phones: ['+1 555 0100'],
-            billTo: {
+            bill_to: {
                 line1: '1 Market St',
                 country: 'US',
             },
-            shipFrom: {
+            ship_from: {
                 line1: '800 Warehouse Rd',
                 country: 'US',
             },
         } satisfies Record<string, unknown>;
 
-        updateCompanySettings.mockResolvedValue({ data: apiResponse });
+        apiPatchMock.mockResolvedValue(apiResponse);
 
         const { Wrapper, queryClient } = createWrapper();
         const { result } = renderHook(() => useUpdateCompanySettings(), { wrapper: Wrapper });
 
         await result.current.mutateAsync(companyInput);
 
-        expect(updateCompanySettings).toHaveBeenCalledWith({
-            companySettings: buildCompanySettingsPayload(companyInput),
-        });
+        expect(apiPatchMock).toHaveBeenCalledTimes(1);
+        const [url, formData] = apiPatchMock.mock.calls[0];
+
+        expect(url).toBe('/settings/company');
+        expect(formData).toBeInstanceOf(FormData);
+        const data = formData as FormData;
+        expect(data.get('legal_name')).toBe('Acme Corporation');
+        expect(data.getAll('emails[]')).toEqual(['ops@acme.example']);
+        expect(data.get('bill_to[line1]')).toBe('1 Market St');
 
         await waitFor(() => {
-            expect(queryClient.getQueryData(queryKeys.settings.company())).toEqual(mapCompanySettings(apiResponse as never));
+            expect(queryClient.getQueryData(queryKeys.settings.company())).toEqual(
+                mapCompanySettings(CompanySettingsFromJSON(apiResponse as never)),
+            );
         });
     });
 

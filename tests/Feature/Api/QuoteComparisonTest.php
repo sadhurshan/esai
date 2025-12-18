@@ -11,6 +11,7 @@ use App\Models\RFQ;
 use App\Models\RfqItem;
 use App\Models\Subscription;
 use App\Models\Supplier;
+use App\Models\SupplierDocument;
 use App\Models\SupplierRiskScore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +89,11 @@ function buildQuoteComparisonScenario(): array
         'is_open_bidding' => true,
         'open_bidding' => true,
         'rfq_version' => 1,
+        'method' => 'cnc',
+        'material' => 'Aluminum 6061',
+        'finish' => 'Anodizing',
+        'tolerance' => '+/- 0.005"',
+        'delivery_location' => 'Austin, US',
     ]);
 
     $rfqItem = RfqItem::factory()->create([
@@ -106,12 +112,38 @@ function buildQuoteComparisonScenario(): array
             'lead_time_days' => 5,
             'risk_score' => 0.9,
             'attachments_count' => 2,
+            'incoterm' => 'FOB',
+            'payment_terms' => 'Net 30',
+            'capabilities' => [
+                'methods' => ['cnc milling', 'sheet metal'],
+                'materials' => ['aluminum 6061'],
+                'finishes' => ['anodizing'],
+                'tolerances' => ['+/- 0.005"'],
+                'price_band' => 'budget',
+            ],
+            'document' => [
+                'status' => 'valid',
+                'expires_at' => now()->addMonths(2),
+            ],
         ],
         [
             'total_minor' => 250_000,
             'lead_time_days' => 12,
             'risk_score' => 0.4,
             'attachments_count' => 0,
+            'incoterm' => 'CIF',
+            'payment_terms' => 'Net 45',
+            'capabilities' => [
+                'methods' => ['casting'],
+                'materials' => ['stainless steel 316'],
+                'finishes' => ['powder coat'],
+                'tolerances' => ['iso 2768-m'],
+                'price_band' => 'premium',
+            ],
+            'document' => [
+                'status' => 'expired',
+                'expires_at' => now()->subMonths(1),
+            ],
         ],
     ];
 
@@ -129,6 +161,7 @@ function buildQuoteComparisonScenario(): array
             ->for($supplierCompany)
             ->create([
                 'status' => 'approved',
+                'capabilities' => $blueprint['capabilities'],
             ]);
 
         SupplierRiskScore::create([
@@ -136,6 +169,15 @@ function buildQuoteComparisonScenario(): array
             'supplier_id' => $supplier->id,
             'overall_score' => $blueprint['risk_score'],
         ]);
+
+        SupplierDocument::factory()
+            ->for($supplier, 'supplier')
+            ->for($supplierCompany, 'company')
+            ->create([
+                'status' => $blueprint['document']['status'],
+                'expires_at' => $blueprint['document']['expires_at'],
+                'type' => 'iso9001',
+            ]);
 
         $quote = Quote::create([
             'company_id' => $buyerCompany->id,
@@ -152,6 +194,8 @@ function buildQuoteComparisonScenario(): array
             'min_order_qty' => null,
             'lead_time_days' => $blueprint['lead_time_days'],
             'notes' => 'Fixture set '.($index + 1),
+            'incoterm' => $blueprint['incoterm'],
+            'payment_terms' => $blueprint['payment_terms'],
             'status' => 'submitted',
             'revision_no' => 1,
             'attachments_count' => $blueprint['attachments_count'],
@@ -198,6 +242,20 @@ it('returns a normalized scoring matrix for buyer sourcing users', function (): 
         ->and($items[0]['scores']['price'])->toBe(1)
         ->and($items[1]['scores']['rank'])->toBe(2)
         ->and($items[1]['scores']['price'])->toBe(0.4);
+
+    expect($items[0]['scores']['fit'])->toBeGreaterThan($items[1]['scores']['fit']);
+    expect($items[0]['scores']['risk'])->toBe(0.9);
+
+    expect($items[0]['quote']['incoterm'])->toBe('FOB')
+        ->and($items[0]['quote']['payment_terms'])->toBe('Net 30');
+
+    $supplierDetails = $items[0]['quote']['supplier'];
+    expect($supplierDetails['status'])->toBe('approved')
+        ->and($supplierDetails['company']['supplier_status'])->toBe(CompanySupplierStatus::Approved->value)
+        ->and($supplierDetails['compliance']['certificates']['valid'])->toBeGreaterThan(0)
+        ->and($supplierDetails['compliance']['documents'])->not()->toBeEmpty();
+
+    expect($items[1]['quote']['supplier']['compliance']['certificates']['expired'])->toBeGreaterThan(0);
 
     expect(collect($items)->pluck('quote.id')->all())
         ->toContain((string) $scenario['quotes'][0]->id)

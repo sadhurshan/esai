@@ -34,6 +34,7 @@ class RFQResource extends JsonResource
             'quantity_total' => $this->quantity_total,
             'quantity' => $this->quantity_total,
             'delivery_location' => $this->delivery_location,
+            'deliveryLocation' => $this->delivery_location,
             'client_company' => $this->delivery_location,
             'incoterm' => $this->incoterm,
             'currency' => $this->currency,

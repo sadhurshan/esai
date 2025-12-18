@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { AwardLinePicker } from '@/components/awards/award-line-picker';
 import { AwardSummaryCard } from '@/components/awards/award-summary-card';
@@ -20,9 +20,43 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 
+interface AwardLaunchState {
+    quoteIds?: Array<string | number>;
+    source?: string;
+}
+
+type ApiErrorBody = {
+    message?: string;
+    errors?: Record<string, string | string[]>;
+};
+
+function resolveApiErrorMessage(error: unknown): string | undefined {
+    if (error instanceof HttpError) {
+        const body = error.body as ApiErrorBody | undefined;
+        if (body?.message) {
+            return body.message;
+        }
+        if (body?.errors) {
+            for (const value of Object.values(body.errors)) {
+                if (Array.isArray(value)) {
+                    const first = value.find((entry) => Boolean(entry));
+                    if (first) {
+                        return first;
+                    }
+                } else if (value) {
+                    return value;
+                }
+            }
+        }
+    }
+    return undefined;
+}
+
 export function AwardReviewPage() {
     const params = useParams<{ rfqId: string }>();
     const rfqId = Number(params.rfqId);
+    const location = useLocation();
+    const awardLaunchState = (location.state as AwardLaunchState | undefined) ?? undefined;
     const navigate = useNavigate();
     const { data, isLoading, isFetching, refetch } = useRfqAwardCandidates(rfqId);
     const createAwardsMutation = useCreateAwards();
@@ -44,16 +78,50 @@ export function AwardReviewPage() {
     const lines = useMemo(() => data?.lines ?? [], [data?.lines]);
     const awards = useMemo(() => data?.awards ?? [], [data?.awards]);
 
+    const preferredQuoteIdSet = useMemo(() => {
+        if (!Array.isArray(awardLaunchState?.quoteIds)) {
+            return undefined;
+        }
+        const normalized = awardLaunchState.quoteIds
+            .map((value) => {
+                if (value === null || value === undefined) {
+                    return undefined;
+                }
+                const text = String(value).trim();
+                return text.length > 0 ? text : undefined;
+            })
+            .filter((value): value is string => Boolean(value));
+        if (normalized.length === 0) {
+            return undefined;
+        }
+        return new Set(normalized);
+    }, [awardLaunchState]);
+
+    const preferredQuoteItemByLine = useMemo(() => {
+        if (!preferredQuoteIdSet || preferredQuoteIdSet.size === 0) {
+            return undefined;
+        }
+        const map = new Map<number, number>();
+        lines.forEach((line) => {
+            const matchingCandidate = line.candidates.find((candidate) => preferredQuoteIdSet.has(String(candidate.quoteId)));
+            if (matchingCandidate) {
+                map.set(line.id, matchingCandidate.quoteItemId);
+            }
+        });
+        return map;
+    }, [lines, preferredQuoteIdSet]);
+
     const defaultLineValues = useMemo(() => {
-        return lines.map((line) => {
+        const values = lines.map((line) => {
             const persistedAward = awards.find((award) => award.rfqItemId === line.id && !award.poId);
             return {
                 rfqItemId: line.id,
-                quoteItemId: persistedAward?.quoteItemId,
+                quoteItemId: persistedAward?.quoteItemId ?? preferredQuoteItemByLine?.get(line.id),
                 awardedQty: persistedAward?.awardedQty ?? line.quantity,
             };
         });
-    }, [awards, lines]);
+        return values;
+    }, [awards, lines, preferredQuoteItemByLine]);
 
     const defaultHash = useMemo(() => JSON.stringify(defaultLineValues), [defaultLineValues]);
 
@@ -61,7 +129,7 @@ export function AwardReviewPage() {
         form.reset({ lines: defaultLineValues });
     }, [defaultHash, defaultLineValues, form]);
 
-    const watchedSelections = form.watch('lines');
+    const watchedSelections = useWatch({ control: form.control, name: 'lines' }) ?? [];
 
     const handlePersistAwards = form.handleSubmit(async (values) => {
         const items = values.lines
@@ -85,10 +153,12 @@ export function AwardReviewPage() {
             await createAwardsMutation.mutateAsync({ rfqId, items });
             await refetch();
         } catch (error) {
+            const description =
+                resolveApiErrorMessage(error) ?? (error instanceof Error ? error.message : 'Unexpected error occurred while saving.');
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to save awards',
-                description: error instanceof Error ? error.message : 'Unexpected error occurred while saving.',
+                description,
             });
         }
     });
@@ -127,10 +197,13 @@ export function AwardReviewPage() {
                     message: planMessage ?? 'Upgrade plan to create purchase orders.',
                 });
             } else {
+                const description =
+                    resolveApiErrorMessage(error) ??
+                    (error instanceof Error ? error.message : 'Unable to convert awards to purchase orders.');
                 publishToast({
                     variant: 'destructive',
                     title: 'Conversion failed',
-                    description: error instanceof Error ? error.message : 'Unable to convert awards to purchase orders.',
+                    description,
                 });
             }
         }

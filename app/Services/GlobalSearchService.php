@@ -6,9 +6,9 @@ use App\Enums\SearchEntityType;
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\Invoice;
+use App\Models\Part;
 use App\Models\PurchaseOrder;
 use App\Models\RFQ;
-use App\Models\RfqItem;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Contracts\Database\Query\Expression;
@@ -211,54 +211,58 @@ class GlobalSearchService
     {
         $booleanQuery = $this->booleanQuery($tokens);
 
-        $builder = RfqItem::query()
+        $builder = Part::query()
             ->select([
-                'rfq_items.id',
-                'rfq_items.rfq_id',
-                'rfq_items.part_number',
-                'rfq_items.part_name',
-                'rfq_items.description',
-                'rfq_items.spec',
-                'rfqs.title as rfq_title',
-                'rfqs.company_id',
-                'rfqs.publish_at',
-                'rfqs.created_at as rfq_created_at',
+                'parts.id',
+                'parts.part_number',
+                'parts.name',
+                'parts.spec',
+                'parts.created_at',
             ])
-            ->join('rfqs', 'rfqs.id', '=', 'rfq_items.rfq_id')
-            ->where('rfqs.company_id', $company->id)
+            ->where('parts.company_id', $company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
-        $relevanceColumn = $this->applySearchCondition($builder, ['rfq_items.part_number', 'rfq_items.part_name', 'rfq_items.description', 'rfq_items.spec'], $booleanQuery, $tokens);
+        $relevanceColumn = $this->applySearchCondition($builder, ['parts.part_number', 'parts.name', 'parts.spec'], $booleanQuery, $tokens);
 
-        $this->applyDateFilter($builder, $filters, 'rfqs.publish_at');
+        $this->applyDateFilter($builder, $filters, 'parts.created_at');
 
         $tags = $this->extractArrayFilter($filters, 'tags');
         if ($tags !== []) {
-            // TODO: clarify with spec - parts tags not persisted yet, using spec text fallback match.
-            $builder->where(function ($query) use ($tags): void {
-                foreach ($tags as $tag) {
-                    $query->where('rfq_items.spec', 'like', '%'.$tag.'%');
-                }
+            $normalizedTags = array_values(array_unique(array_map(static fn (string $tag): string => Str::lower($tag), $tags)));
+
+            $builder->whereExists(function ($query) use ($normalizedTags, $company): void {
+                $query->selectRaw('1')
+                    ->from('part_tags')
+                    ->whereColumn('part_tags.part_id', 'parts.id')
+                    ->where('part_tags.company_id', $company->id)
+                    ->whereNull('part_tags.deleted_at')
+                    ->whereIn('part_tags.normalized_tag', $normalizedTags)
+                    ->groupBy('part_tags.part_id')
+                    ->havingRaw('COUNT(DISTINCT part_tags.normalized_tag) >= ?', [count($normalizedTags)]);
             });
         }
 
-        /** @var EloquentCollection<int, RfqItem> $items */
-        $items = $builder->get();
+        /** @var EloquentCollection<int, Part> $items */
+        $items = $builder->with('tags')->get();
 
-        return $items->map(function (RfqItem $item) use ($relevanceColumn): array {
+        return $items->map(function (Part $part) use ($relevanceColumn): array {
+            $tags = $part->tags->pluck('tag')->filter()->values()->all();
+            $title = $part->part_number ?: $part->name;
+            $identifier = $part->part_number ?: $part->name;
+
             return [
                 'type' => SearchEntityType::Part->value,
-                'id' => $item->id,
-                'title' => $item->part_number ?? $item->part_name,
-                'identifier' => 'RFQ #'.$item->rfq_id,
+                'id' => $part->id,
+                'title' => $title,
+                'identifier' => $identifier,
                 'status' => null,
-                'created_at' => optional($item->publish_at ?? $item->rfq_created_at)->toAtomString(),
-                'snippet' => Str::limit((string) ($item->description ?? $item->spec ?? ''), 160),
+                'created_at' => optional($part->created_at)->toAtomString(),
+                'snippet' => Str::limit((string) ($part->spec ?? ''), 160),
                 'additional' => array_filter([
-                    'rfq_id' => $item->rfq_id,
-                    'rfq_title' => $item->rfq_title,
+                    'part_number' => $part->part_number,
+                    'tags' => $tags,
                 ]),
-                'score' => $this->resolveScore($item, $relevanceColumn),
+                'score' => $this->resolveScore($part, $relevanceColumn),
             ];
         });
     }

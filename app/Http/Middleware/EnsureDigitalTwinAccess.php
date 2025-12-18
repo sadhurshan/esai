@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use App\Models\Plan;
+use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -116,10 +117,6 @@ class EnsureDigitalTwinAccess
 
     private function errorResponse(string $message, int $status): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ], $status);
+        return ApiResponse::error($message, $status);
     }
 }

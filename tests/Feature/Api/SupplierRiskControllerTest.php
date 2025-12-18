@@ -173,6 +173,7 @@ it('generates risk scores and updates supplier grade', function (): void {
     ]);
 
     RfqInvitation::create([
+        'company_id' => $company->id,
         'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
         'invited_by' => $user->id,
@@ -187,6 +188,7 @@ it('generates risk scores and updates supplier grade', function (): void {
         ]);
 
         RfqInvitation::create([
+            'company_id' => $company->id,
             'rfq_id' => $additionalRfq->id,
             'supplier_id' => $supplier->id,
             'invited_by' => $user->id,

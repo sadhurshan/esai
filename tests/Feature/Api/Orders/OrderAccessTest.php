@@ -49,7 +49,7 @@ function provisionSupplierUser(string $role): array
 }
 
 test('users without orders permission cannot access buyer order listings', function (): void {
-    [$company, $user] = provisionCompanyUser('supplier_estimator');
+    [$company, $user] = provisionCompanyUser('buyer_requester');
 
     PurchaseOrder::factory()->create([
         'company_id' => $company->id,
@@ -76,14 +76,14 @@ test('buyer admin can access buyer order listings', function (): void {
         ->assertJsonPath('status', 'success');
 });
 
-test('supplier estimator cannot list supplier orders', function (): void {
+test('supplier estimator can list supplier orders', function (): void {
     [$supplierCompany, $user] = provisionSupplierUser('supplier_estimator');
 
     actingAs($user);
 
     getJson('/api/supplier/orders')
-        ->assertForbidden()
-        ->assertJsonPath('message', 'Orders access required.');
+        ->assertOk()
+        ->assertJsonPath('status', 'success');
 });
 
 test('supplier admin can list supplier orders', function (): void {
@@ -103,6 +103,23 @@ test('supplier admin can list supplier orders', function (): void {
     actingAs($user);
 
     getJson('/api/supplier/orders')
+        ->assertOk()
+        ->assertJsonPath('status', 'success');
+});
+
+test('supplier persona owner can list supplier orders', function (): void {
+    $buyerCompany = Company::factory()->create();
+    $supplierContext = createSupplierPersonaForBuyer($buyerCompany);
+
+    PurchaseOrder::factory()->for($buyerCompany, 'company')->create([
+        'supplier_id' => $supplierContext['supplier']->id,
+    ]);
+
+    actingAs($supplierContext['user']);
+
+    getJson('/api/supplier/orders', [
+        'X-Active-Persona' => $supplierContext['persona']['key'],
+    ])
         ->assertOk()
         ->assertJsonPath('status', 'success');
 });

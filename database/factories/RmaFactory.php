@@ -24,6 +24,7 @@ class RmaFactory extends Factory
             'reason' => $this->faker->sentence(6),
             'description' => $this->faker->paragraph(),
             'resolution_requested' => $this->faker->randomElement(['repair', 'replacement', 'credit', 'refund', 'other']),
+            'defect_qty' => $this->faker->numberBetween(1, 5),
             'status' => RmaStatus::Raised,
         ];
     }

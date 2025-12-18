@@ -5,7 +5,7 @@ import { RequireDigitalTwinAccess } from '@/components/require-digital-twin-acce
 import { RequireActivePlan } from '@/components/require-active-plan';
 import { RequireAdminConsole } from '@/components/require-admin-console';
 import { AppLayout } from '@/layouts/app-layout';
-import { DashboardPage } from '@/pages/dashboard';
+import { DashboardPage, SupplierDashboardPage } from '@/pages/dashboard';
 import { RfqCreateWizard, RfqDetailPage, RfqListPage } from '@/pages/rfqs';
 import { RfpProposalReviewPage } from '@/pages/rfps';
 import { AwardReviewPage } from '@/pages/awards/award-review-page';
@@ -14,11 +14,17 @@ import {
     QuoteListPage,
     SupplierQuoteCreatePage,
     SupplierQuoteEditPage,
+    SupplierQuoteListPage,
 } from '@/pages/quotes';
 import { PoDetailPage, PoListPage } from '@/pages/pos';
 import { InvoiceDetailPage, InvoiceListPage } from '@/pages/invoices';
 import {
+    SupplierCompanyProfilePage,
     SupplierDirectoryPage,
+    SupplierInvoiceCreatePage,
+    SupplierInvoiceEditPage,
+    SupplierInvoiceDetailPage,
+    SupplierInvoiceListPage,
     SupplierPoDetailPage,
     SupplierProfilePage,
     SupplierRfpProposalPage,
@@ -128,9 +134,17 @@ export function AppRoutes(): ReactElement {
                         <Route path="suppliers" element={<SupplierDirectoryPage />} />
                         <Route path="suppliers/:supplierId" element={<SupplierProfilePage />} />
                         <Route element={<RequireSupplierAccess />}>
+                            <Route path="supplier" element={<SupplierDashboardPage />} />
+                            <Route path="supplier/rfqs" element={<RfqListPage />} />
+                            <Route path="supplier/quotes" element={<SupplierQuoteListPage />} />
+                            <Route path="supplier/company-profile" element={<SupplierCompanyProfilePage />} />
                             <Route path="suppliers/rfps/:rfpId/proposals/new" element={<SupplierRfpProposalPage />} />
-                            <Route path="suppliers/rfqs/:rfqId/quotes/new" element={<SupplierQuoteCreatePage />} />
-                            <Route path="suppliers/quotes/:quoteId" element={<SupplierQuoteEditPage />} />
+                            <Route path="supplier/rfqs/:rfqId/quotes/new" element={<SupplierQuoteCreatePage />} />
+                            <Route path="supplier/quotes/:quoteId" element={<SupplierQuoteEditPage />} />
+                            <Route path="supplier/invoices" element={<SupplierInvoiceListPage />} />
+                            <Route path="supplier/invoices/create" element={<SupplierInvoiceCreatePage />} />
+                            <Route path="supplier/invoices/:invoiceId/edit" element={<SupplierInvoiceEditPage />} />
+                            <Route path="supplier/invoices/:invoiceId" element={<SupplierInvoiceDetailPage />} />
                             <Route path="suppliers/pos/:purchaseOrderId" element={<SupplierPoDetailPage />} />
                             <Route path="supplier/orders" element={<SupplierOrderListPage />} />
                             <Route path="supplier/orders/:soId" element={<SupplierOrderDetailPage />} />
@@ -154,7 +168,8 @@ export function AppRoutes(): ReactElement {
                         <Route path="inventory/movements" element={<MovementListPage />} />
                         <Route path="inventory/movements/new" element={<MovementCreatePage />} />
                         <Route path="inventory/movements/:movementId" element={<MovementDetailPage />} />
-                        <Route path="inventory/alerts" element={<LowStockAlertPage />} />
+                        <Route path="inventory/alerts" element={<Navigate to="/app/inventory/alerts/low-stock" replace />} />
+                        <Route path="inventory/alerts/low-stock" element={<LowStockAlertPage />} />
                         <Route element={<RequireDigitalTwinAccess />}>
                             <Route path="library/digital-twins" element={<DigitalTwinLibraryPage />} />
                             <Route path="library/digital-twins/:id" element={<DigitalTwinDetailPage />} />

@@ -38,7 +38,8 @@ export function PoDetailPage() {
     const cancelMutation = useCancelPo();
     const eventsQuery = usePoEvents(poId);
     const createInvoiceMutation = useCreateInvoice();
-    const { hasFeature, notifyPlanLimit } = useAuth();
+    const { hasFeature, notifyPlanLimit, activePersona } = useAuth();
+    const isSupplierPersona = activePersona?.type === 'supplier';
     const invoicesEnabled = hasFeature('invoices_enabled');
 
     if (!Number.isFinite(poId) || poId <= 0) {
@@ -138,7 +139,7 @@ export function PoDetailPage() {
             return;
         }
 
-        cancelMutation.mutate({ poId });
+        cancelMutation.mutate({ poId, rfqId: po.rfqId ?? undefined });
     };
 
     const handleCreateInvoice = () => {
@@ -161,8 +162,8 @@ export function PoDetailPage() {
         });
     };
 
-    const canSend = po.status === 'draft' || po.status === 'recalculated';
-    const canCancel = po.status === 'draft' || po.status === 'sent';
+    const canSend = !isSupplierPersona && (po.status === 'draft' || po.status === 'recalculated');
+    const canCancel = !isSupplierPersona && (po.status === 'draft' || po.status === 'sent');
     const hasInvoiceableLines = (po.lines ?? []).some((line) => {
         if (typeof line.remainingQuantity === 'number') {
             return line.remainingQuantity > 0;
@@ -172,7 +173,7 @@ export function PoDetailPage() {
         const invoiced = typeof line.invoicedQuantity === 'number' ? line.invoicedQuantity : 0;
         return total - invoiced > 0;
     });
-    const showInvoiceDialog = invoicesEnabled && (po.lines?.length ?? 0) > 0;
+    const showInvoiceDialog = !isSupplierPersona && invoicesEnabled && (po.lines?.length ?? 0) > 0;
     const timelineError = eventsQuery.isError
         ? eventsQuery.error instanceof Error
             ? eventsQuery.error.message
@@ -188,14 +189,17 @@ export function PoDetailPage() {
             <WorkspaceBreadcrumbs />
             <PlanUpgradeBanner />
 
-            <SendPoDialog
-                open={isSendDialogOpen}
-                onOpenChange={setSendDialogOpen}
-                onSubmit={handleSendSubmit}
-                isSubmitting={sendMutation.isPending}
-                supplierName={po.supplierName ?? null}
-                latestDelivery={po.latestDelivery ?? null}
-            />
+            {!isSupplierPersona ? (
+                <SendPoDialog
+                    open={isSendDialogOpen}
+                    onOpenChange={setSendDialogOpen}
+                    onSubmit={handleSendSubmit}
+                    isSubmitting={sendMutation.isPending}
+                    supplierName={po.supplierName ?? null}
+                    supplierEmail={po.supplierEmail ?? null}
+                    latestDelivery={po.latestDelivery ?? null}
+                />
+            ) : null}
 
             {showInvoiceDialog ? (
                 <CreateInvoiceDialog
@@ -209,11 +213,11 @@ export function PoDetailPage() {
 
             <PoHeaderCard
                 po={po}
-                onRecalculate={handleRecalculate}
+                onRecalculate={!isSupplierPersona ? handleRecalculate : undefined}
                 onSend={canSend ? handleSend : undefined}
                 onCancel={canCancel ? handleCancel : undefined}
-                onCreateInvoice={invoicesEnabled ? handleCreateInvoice : undefined}
-                canCreateInvoice={hasInvoiceableLines}
+                onCreateInvoice={!isSupplierPersona && invoicesEnabled ? handleCreateInvoice : undefined}
+                canCreateInvoice={!isSupplierPersona && hasInvoiceableLines}
                 isCreatingInvoice={createInvoiceMutation.isPending}
                 isRecalculating={recalcMutation.isPending}
                 isCancelling={cancelMutation.isPending}

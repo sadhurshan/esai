@@ -13,6 +13,9 @@ class AuditLog extends CompanyScopedModel
     protected $fillable = [
         'company_id',
         'user_id',
+        'persona_type',
+        'persona_company_id',
+        'acting_supplier_id',
         'entity_type',
         'entity_id',
         'action',
@@ -25,6 +28,8 @@ class AuditLog extends CompanyScopedModel
     protected $casts = [
         'before' => 'array',
         'after' => 'array',
+        'persona_company_id' => 'integer',
+        'acting_supplier_id' => 'integer',
     ];
 
     public function company(): BelongsTo

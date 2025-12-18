@@ -88,7 +88,8 @@ export type NotificationEventType =
     | 'approvals.pending'
     | 'rma.raised'
     | 'rma.reviewed'
-    | 'rma.closed';
+    | 'rma.closed'
+    | 'persona.supplier.invited';
 
 export interface NotificationPreferenceSetting {
     channel: NotificationChannel;

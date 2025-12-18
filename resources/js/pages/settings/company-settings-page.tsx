@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm, useFieldArray, useWatch, type Control, type FieldArray, type FieldPath, type UseFieldArrayReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,10 +13,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
 import { AddressEditor } from '@/components/settings/address-editor';
 import { useAuth } from '@/contexts/auth-context';
-import { useCompanySettings, useUpdateCompanySettings } from '@/hooks/api/settings';
-import type { CompanyAddress, CompanySettings } from '@/types/settings';
+import { useCompanySettings, useUpdateCompanySettings, type UpdateCompanySettingsInput } from '@/hooks/api/settings';
+import type { CompanyAddress } from '@/types/settings';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
+const MAX_BRAND_ASSET_SIZE = 4 * 1024 * 1024; // 4 MB
+const ACCEPTED_BRAND_FILE_TYPES = 'image/png,image/jpeg,image/webp,image/svg+xml';
+
+const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File;
+
+const brandFileSchema = z
+    .custom<File>((value) => (value === undefined || value === null ? true : isFile(value)), {
+        message: 'Upload must be an image file.',
+    })
+    .refine((value) => !value || value.size <= MAX_BRAND_ASSET_SIZE, 'Brand asset must be 4 MB or smaller.');
 
 const addressSchema = z.object({
     attention: z.string().optional().nullable(),
@@ -43,6 +54,8 @@ const companySchema = z.object({
     shipFrom: addressSchema,
     logoUrl: z.string().url('Enter a valid URL.').optional().or(z.literal('')).nullable(),
     markUrl: z.string().url('Enter a valid URL.').optional().or(z.literal('')).nullable(),
+    logoFile: brandFileSchema.optional().nullable(),
+    markFile: brandFileSchema.optional().nullable(),
 });
 
 const emptyAddress: CompanyAddress = {
@@ -69,6 +82,8 @@ function toFormValues(settings?: CompanySettings): CompanyFormValues {
         shipFrom: { ...emptyAddress, ...settings?.shipFrom },
         logoUrl: settings?.logoUrl ?? '',
         markUrl: settings?.markUrl ?? '',
+        logoFile: null,
+        markFile: null,
     } satisfies CompanyFormValues;
 }
 
@@ -90,7 +105,10 @@ function sanitizeAddress(address: CompanyAddress): CompanyAddress {
     };
 }
 
-function buildCompanyPayload(values: CompanyFormValues) {
+function buildCompanyPayload(values: CompanyFormValues): UpdateCompanySettingsInput {
+    const trimmedLogo = values.logoUrl?.trim() ?? '';
+    const trimmedMark = values.markUrl?.trim() ?? '';
+
     return {
         legalName: values.legalName.trim(),
         displayName: values.displayName.trim(),
@@ -100,9 +118,11 @@ function buildCompanyPayload(values: CompanyFormValues) {
         phones: sanitizeContacts(values.phones),
         billTo: sanitizeAddress(values.billTo),
         shipFrom: sanitizeAddress(values.shipFrom),
-        logoUrl: values.logoUrl?.trim() || null,
-        markUrl: values.markUrl?.trim() || null,
-    } satisfies CompanySettings;
+        logoUrl: values.logoFile ? null : trimmedLogo || null,
+        markUrl: values.markFile ? null : trimmedMark || null,
+        logoFile: values.logoFile ?? null,
+        markFile: values.markFile ?? null,
+    } satisfies UpdateCompanySettingsInput;
 }
 
 export function CompanySettingsPage() {
@@ -125,6 +145,40 @@ export function CompanySettingsPage() {
         }
     }, [companyQuery.data, form]);
 
+    const logoUrl = useWatch({ control: form.control, name: 'logoUrl' }) ?? '';
+    const markUrl = useWatch({ control: form.control, name: 'markUrl' }) ?? '';
+    const logoFile = useWatch({ control: form.control, name: 'logoFile' });
+    const markFile = useWatch({ control: form.control, name: 'markFile' });
+
+    const [logoFilePreview, setLogoFilePreview] = useState<string | null>(null);
+    const [markFilePreview, setMarkFilePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!logoFile || !isFile(logoFile)) {
+            setLogoFilePreview(null);
+
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(logoFile);
+        setLogoFilePreview(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [logoFile]);
+
+    useEffect(() => {
+        if (!markFile || !isFile(markFile)) {
+            setMarkFilePreview(null);
+
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(markFile);
+        setMarkFilePreview(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [markFile]);
+
     const handleSubmit = form.handleSubmit(async (values) => {
         try {
             await updateCompany.mutateAsync(buildCompanyPayload(values));
@@ -142,6 +196,21 @@ export function CompanySettingsPage() {
             });
         }
     });
+
+    const handleRemoveLogo = (): void => {
+        form.setValue('logoFile', null, { shouldDirty: true });
+        form.setValue('logoUrl', '', { shouldDirty: true });
+    };
+
+    const handleRemoveMark = (): void => {
+        form.setValue('markFile', null, { shouldDirty: true });
+        form.setValue('markUrl', '', { shouldDirty: true });
+    };
+
+    const logoPreview = logoFilePreview ?? (logoUrl?.length ? logoUrl : '');
+    const markPreview = markFilePreview ?? (markUrl?.length ? markUrl : '');
+    const canRemoveLogo = Boolean(logoFile || logoUrl);
+    const canRemoveMark = Boolean(markFile || markUrl);
 
     const watchedValues = (useWatch<CompanyFormValues>({ control: form.control }) ?? form.getValues()) as CompanyFormValues;
 
@@ -257,46 +326,94 @@ export function CompanySettingsPage() {
                                         />
                                     </div>
                                     <div className="grid gap-4 md:grid-cols-2">
-                                        <FormField
-                                            control={form.control}
-                                            name="logoUrl"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Primary logo URL</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="https://cdn.example.com/logo.svg"
-                                                            name={field.name}
-                                                            ref={field.ref}
-                                                            onBlur={field.onBlur}
-                                                            onChange={field.onChange}
-                                                            value={field.value ?? ''}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="markUrl"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Symbol / mark URL</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="https://cdn.example.com/logo-mark.svg"
-                                                            name={field.name}
-                                                            ref={field.ref}
-                                                            onBlur={field.onBlur}
-                                                            onChange={field.onChange}
-                                                            value={field.value ?? ''}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <div className="space-y-4 rounded-lg border p-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="logoUrl"
+                                                render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="logoFile"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Primary logo</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="file"
+                                                                name={field.name}
+                                                                accept={ACCEPTED_BRAND_FILE_TYPES}
+                                                                onChange={(event) => {
+                                                                    const file = event.target.files?.[0] ?? null;
+                                                                    field.onChange(file);
+                                                                    event.target.value = '';
+                                                                }}
+                                                                onBlur={field.onBlur}
+                                                                ref={field.ref}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription>SVG, PNG, JPG, or WebP up to 4 MB.</FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex h-24 w-full items-center justify-center rounded-lg border bg-muted/30">
+                                                    {logoPreview ? (
+                                                        <img src={logoPreview} alt="Primary logo preview" className="max-h-20" />
+                                                    ) : (
+                                                        <p className="text-xs text-muted-foreground">No logo uploaded</p>
+                                                    )}
+                                                </div>
+                                                <Button type="button" variant="ghost" size="sm" disabled={!canRemoveLogo} onClick={handleRemoveLogo}>
+                                                    Remove logo
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4 rounded-lg border p-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="markUrl"
+                                                render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="markFile"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Symbol / mark</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="file"
+                                                                name={field.name}
+                                                                accept={ACCEPTED_BRAND_FILE_TYPES}
+                                                                onChange={(event) => {
+                                                                    const file = event.target.files?.[0] ?? null;
+                                                                    field.onChange(file);
+                                                                    event.target.value = '';
+                                                                }}
+                                                                onBlur={field.onBlur}
+                                                                ref={field.ref}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription>Square version for compact placements (max 4 MB).</FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex h-24 w-full items-center justify-center rounded-lg border bg-muted/30">
+                                                    {markPreview ? (
+                                                        <img src={markPreview} alt="Mark preview" className="max-h-20" />
+                                                    ) : (
+                                                        <p className="text-xs text-muted-foreground">No symbol uploaded</p>
+                                                    )}
+                                                </div>
+                                                <Button type="button" variant="ghost" size="sm" disabled={!canRemoveMark} onClick={handleRemoveMark}>
+                                                    Remove symbol
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>

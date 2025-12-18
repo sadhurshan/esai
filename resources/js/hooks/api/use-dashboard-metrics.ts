@@ -1,6 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { DashboardApi, type DashboardMetricsResponse } from '@/sdk';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface DashboardMetrics {
     openRfqCount: number;
@@ -34,7 +35,7 @@ export function useDashboardMetrics(enabled: boolean): UseQueryResult<DashboardM
     const dashboardApi = useSdkClient(DashboardApi);
 
     return useQuery<DashboardMetrics>({
-        queryKey: ['dashboard', 'metrics'],
+        queryKey: queryKeys.dashboard.metrics(),
         enabled,
         queryFn: async () => {
             const response = await dashboardApi.getMetrics();

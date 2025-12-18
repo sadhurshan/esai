@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
 
 export class ApiError extends Error {
     status?: number;
@@ -22,6 +22,13 @@ interface Envelope<T> {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const AUTH_STORAGE_KEY = 'esai.auth.state';
+const ACTIVE_PERSONA_HEADER = 'X-Active-Persona';
+
+interface StoredAuthSnapshot {
+    activePersonaKey?: unknown;
+}
 
 const mergeMeta = (
     payloadMeta: unknown,
@@ -73,6 +80,139 @@ export const api = axios.create({
     },
     withCredentials: true,
 });
+
+const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
+const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';
+let csrfCookiePromise: Promise<void> | null = null;
+
+const escapeCookieName = (name: string): string => name.replace(/([.$?*|{}()\[\]\/+^])/g, '\\$1');
+
+const readCookie = (name: string): string | undefined => {
+    if (typeof document === 'undefined' || typeof document.cookie !== 'string') {
+        return undefined;
+    }
+
+    const pattern = new RegExp(`(?:^|; )${escapeCookieName(name)}=([^;]*)`);
+    const match = document.cookie.match(pattern);
+
+    if (!match) {
+        return undefined;
+    }
+
+    try {
+        return decodeURIComponent(match[1]);
+    } catch (error) {
+        console.warn('Failed to decode cookie', error);
+        return undefined;
+    }
+};
+
+const ensureCsrfCookie = async (): Promise<void> => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    if (readCookie(CSRF_COOKIE_NAME)) {
+        return;
+    }
+
+    if (!csrfCookiePromise) {
+        csrfCookiePromise = axios
+            .get('/sanctum/csrf-cookie', {
+                withCredentials: true,
+            })
+            .then(() => {
+                csrfCookiePromise = null;
+            })
+            .catch((error) => {
+                csrfCookiePromise = null;
+                throw error;
+            });
+    }
+
+    await csrfCookiePromise;
+};
+
+const attachCsrfHeader = <TConfig extends AxiosRequestConfig>(config: TConfig): TConfig => {
+    const token = readCookie(CSRF_COOKIE_NAME);
+
+    if (!token) {
+        return config;
+    }
+
+    if (!config.headers) {
+        config.headers = {};
+    }
+
+    const headers = config.headers as Record<string, unknown>;
+
+    if (!headers[CSRF_HEADER_NAME]) {
+        headers[CSRF_HEADER_NAME] = token;
+    }
+
+    return config;
+};
+
+const attachActivePersonaHeader = <TConfig extends AxiosRequestConfig>(config: TConfig): TConfig => {
+    const personaKey = readStoredActivePersonaKey();
+
+    if (!personaKey) {
+        return config;
+    }
+
+    if (!config.headers) {
+        config.headers = {};
+    }
+
+    const headers = config.headers as Record<string, unknown>;
+    headers[ACTIVE_PERSONA_HEADER] = personaKey;
+
+    return config;
+};
+
+function readStoredActivePersonaKey(): string | null {
+    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+        return null;
+    }
+
+    try {
+        const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw) as StoredAuthSnapshot | null;
+        const key = parsed?.activePersonaKey;
+
+        return typeof key === 'string' && key.length > 0 ? key : null;
+    } catch {
+        return null;
+    }
+}
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+const methodRequiresCsrf = (config: AxiosRequestConfig): boolean => {
+    const method = (config.method ?? 'get').toUpperCase();
+    return !SAFE_METHODS.has(method);
+};
+
+api.interceptors.request.use(
+    async (config: InternalAxiosRequestConfig) => {
+        let nextConfig = config;
+
+        if (typeof document !== 'undefined') {
+            if (methodRequiresCsrf(nextConfig)) {
+                await ensureCsrfCookie();
+            }
+
+            nextConfig = attachCsrfHeader(nextConfig);
+        }
+
+        return attachActivePersonaHeader(nextConfig);
+    },
+    (error) => Promise.reject(error),
+);
 
 api.interceptors.response.use(
     (response) => {

@@ -102,6 +102,35 @@ it('allows company owners to upload and list KYC documents', function (): void {
         ]);
 });
 
+it('allows platform super admins to view company documents without an active company scope', function (): void {
+    config(['documents.disk' => 's3']);
+    config(['filesystems.disks.s3.url' => 'https://files.test/storage']);
+    Storage::fake('s3');
+
+    [$company, $owner] = createCompanyOwnerContext();
+
+    actingAs($owner);
+
+    $this->postJson("/api/companies/{$company->id}/documents", [
+        'type' => 'registration',
+        'document' => UploadedFile::fake()->create('super-admin.pdf', 128, 'application/pdf'),
+    ])->assertCreated();
+
+    $superAdmin = User::factory()->create([
+        'role' => 'platform_super',
+        'company_id' => null,
+    ]);
+
+    actingAs($superAdmin);
+
+    $response = $this->getJson("/api/companies/{$company->id}/documents");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonCount(1, 'data.items');
+});
+
 it('deletes binaries and linked documents when removing company KYC docs', function (): void {
     config(['documents.disk' => 's3']);
     config(['filesystems.disks.s3.url' => 'https://files.test/storage']);

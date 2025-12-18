@@ -3,6 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Models\Supplier;
+use App\Support\ActivePersonaContext;
+use App\Support\CompanyContext;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +19,22 @@ class EnsureSupplierApproved
 
         if ($user === null) {
             return $this->deny($request, 'Authentication required.', 401);
+        }
+
+        if (ActivePersonaContext::isSupplier()) {
+            $supplierId = ActivePersonaContext::supplierId();
+
+            if ($supplierId === null) {
+                return $this->deny($request, 'Supplier persona required.', 403);
+            }
+
+            $supplier = CompanyContext::bypass(static fn () => Supplier::query()->find($supplierId));
+
+            if ($supplier === null || in_array($supplier->status, ['rejected', 'suspended'], true)) {
+                return $this->deny($request, 'Supplier approval required.', 403);
+            }
+
+            return $next($request);
         }
 
         /** @var Company|null $company */

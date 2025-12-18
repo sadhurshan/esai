@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 
 class RoleTemplateDefinitions
 {
-    private const OWNER_ONLY_PERMISSIONS = ['suppliers.apply'];
+    private const OWNER_ONLY_PERMISSIONS = [];
 
     /**
      * Cached role template definitions derived from the RBAC config.
@@ -45,6 +45,7 @@ class RoleTemplateDefinitions
         $sourcingReadPermissions = $readPermissionsByDomain->get('sourcing', []);
         $suppliersPermissions = $permissionsByDomain->get('suppliers', []);
         $ordersPermissions = $permissionsByDomain->get('orders', []);
+        $ordersReadPermissions = $readPermissionsByDomain->get('orders', []);
         $inventoryPermissions = $permissionsByDomain->get('inventory', []);
         $billingPermissions = $permissionsByDomain->get('billing', []);
         $analyticsPermissions = $permissionsByDomain->get('analytics', []);
@@ -112,7 +113,7 @@ class RoleTemplateDefinitions
                 'slug' => 'supplier_estimator',
                 'name' => 'Supplier estimator',
                 'description' => 'Prepare and submit quotes without administrative privileges.',
-                'permissions' => array_values(array_unique(array_merge($sourcingReadPermissions, $supplierWorkspacePermissions))),
+                'permissions' => array_values(array_unique(array_merge($sourcingReadPermissions, $supplierWorkspacePermissions, $ordersReadPermissions))),
                 'is_system' => true,
             ],
             [

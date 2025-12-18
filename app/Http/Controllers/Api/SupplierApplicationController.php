@@ -73,7 +73,7 @@ class SupplierApplicationController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        if (! in_array($company->status, [CompanyStatus::Active, CompanyStatus::Trial], true)) {
+        if (! in_array($company->status, [CompanyStatus::Active, CompanyStatus::Trial, CompanyStatus::PendingVerification], true)) {
             return $this->fail('Company approval pending. Please wait for platform verification before applying.', 403);
         }
 

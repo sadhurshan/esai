@@ -5,7 +5,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { type CreateRfq201Response, CreateRfq201ResponseFromJSON } from '@/sdk';
 import type { RfqMethod } from '@/constants/rfq';
 
-interface CreateRfqLineInput {
+export interface CreateRfqLineInput {
     partNumber: string;
     description?: string;
     method?: string;

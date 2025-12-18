@@ -44,9 +44,6 @@ class GoodsReceiptNoteController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $perPage = (int) $request->integer('per_page', 25);
-        $perPage = max(1, min(100, $perPage));
-
         $query = GoodsReceiptNote::query()
             ->where('company_id', $companyId)
             ->with([
@@ -95,7 +92,13 @@ class GoodsReceiptNoteController extends ApiController
         $query->orderByDesc('inspected_at')->orderByDesc('id');
 
         $paginator = $query
-            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'));
+            ->cursorPaginate(
+                $this->perPage($request, 25, 100),
+                ['*'],
+                'cursor',
+                $request->query('cursor')
+            )
+            ->withQueryString();
 
         $paginated = $this->paginate($paginator, $request, GoodsReceiptNoteResource::class);
 
@@ -261,7 +264,12 @@ class GoodsReceiptNoteController extends ApiController
         $query->orderByDesc('inspected_at')->orderByDesc('created_at')->orderByDesc('id');
 
         $paginator = $query
-            ->paginate($this->perPage($request))
+            ->cursorPaginate(
+                $this->perPage($request),
+                ['*'],
+                'cursor',
+                $request->query('cursor')
+            )
             ->withQueryString();
 
         $paginated = $this->paginate($paginator, $request, GoodsReceiptNoteResource::class);

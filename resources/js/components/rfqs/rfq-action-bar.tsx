@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { Rfq } from '@/sdk';
-import { CalendarClock, ChevronDown, FileDown, FileText, PenLine, UploadCloud } from 'lucide-react';
+import { CalendarClock, ChevronDown, FileDown, FileText, PenLine, Trash2, UploadCloud } from 'lucide-react';
 import { Fragment } from 'react';
 import { RfqStatusBadge } from './rfq-status-badge';
 
@@ -15,6 +15,7 @@ export interface RfqActionBarProps {
     onAmend?: () => void;
     onExtendDeadline?: () => void;
     onClose?: () => void;
+    onDelete?: () => void;
     className?: string;
 }
 
@@ -26,14 +27,17 @@ export function RfqActionBar({
     onAmend,
     onExtendDeadline,
     onClose,
+    onDelete,
     className,
 }: RfqActionBarProps) {
-    const isDraft = rfq.status === 'awaiting' || rfq.status === 'draft';
-    const isOpen = rfq.status === 'open';
-    const isClosed = rfq.status === 'closed' || rfq.status === 'cancelled';
-    const isAwarded = rfq.status === 'awarded';
+    const status = String(rfq.status);
+    const isDraft = status === 'awaiting' || status === 'draft';
+    const isOpen = status === 'open';
+    const isClosed = status === 'closed' || status === 'cancelled';
+    const isAwarded = status === 'awarded';
     const canInviteSuppliersCta = isDraft || isOpen;
     const canEditDetails = isDraft;
+    const showDeleteAction = isDraft && Boolean(onDelete);
 
     return (
         <div className={cn('flex flex-col gap-4 rounded-lg border bg-card px-4 py-3 shadow-sm', className)}>
@@ -93,6 +97,17 @@ export function RfqActionBar({
                                 {/* TODO: wire up award flow once quote comparison lands. */}
                                 <FileText className="mr-2 h-4 w-4" /> Award from RFQ
                             </DropdownMenuItem>
+                            {showDeleteAction ? (
+                                <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onSelect={(event) => {
+                                        event.preventDefault();
+                                        onDelete?.();
+                                    }}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete RFQ
+                                </DropdownMenuItem>
+                            ) : null}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

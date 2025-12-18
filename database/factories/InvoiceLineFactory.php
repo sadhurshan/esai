@@ -24,6 +24,7 @@ class InvoiceLineFactory extends Factory
             'unit_price' => $unitPrice,
             'currency' => 'USD',
             'unit_price_minor' => (int) round($unitPrice * 100),
+            'line_total_minor' => (int) round($unitPrice * 100) * $quantity,
         ];
     }
 }

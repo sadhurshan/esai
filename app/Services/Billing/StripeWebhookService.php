@@ -100,6 +100,7 @@ class StripeWebhookService
             'trial_ends_at' => $this->timestampOrNull($subscription['trial_end'] ?? null),
             'ends_at' => $this->timestampOrNull($subscription['ended_at'] ?? $subscription['cancel_at'] ?? null),
             'name' => $subscription['metadata']['name'] ?? 'primary',
+            'plan_code' => $planCode,
         ]);
 
         if ($plan) {
@@ -139,6 +140,7 @@ class StripeWebhookService
             'trial_ends_at' => $this->timestampOrNull($invoice['trial_end'] ?? null),
             'ends_at' => $endsAt,
             'name' => 'primary',
+            'plan_code' => $this->planCodeFromPrice($invoice['lines']['data'][0]['price']['id'] ?? null),
         ]);
 
         if (($invoice['lines']['data'][0]['price']['id'] ?? null) !== null) {
@@ -159,11 +161,29 @@ class StripeWebhookService
 
     private function upsertSubscription(Company $company, Customer $customer, array $attributes): ?Subscription
     {
+        $planCode = $attributes['plan_code'] ?? null;
+        unset($attributes['plan_code']);
+
         if (blank($attributes['stripe_id'] ?? null)) {
             return null;
         }
 
-        $subscription = Subscription::firstOrNew(['stripe_id' => $attributes['stripe_id']]);
+        $subscription = Subscription::query()
+            ->where('stripe_id', $attributes['stripe_id'])
+            ->first();
+
+        if ($subscription === null) {
+            $subscription = $this->reusePendingSubscription($company, $planCode);
+        }
+
+        if ($subscription === null) {
+            $subscription = new Subscription();
+        }
+
+        if ($subscription->stripe_id !== $attributes['stripe_id']) {
+            $subscription->stripe_id = $attributes['stripe_id'];
+        }
+
         $before = $subscription->exists ? $subscription->getOriginal() : [];
 
         $subscription->company_id = $company->id;
@@ -192,6 +212,13 @@ class StripeWebhookService
             $subscription->ends_at = $attributes['ends_at'];
         }
 
+        if (($attributes['stripe_status'] ?? null) !== 'checkout_pending') {
+            $subscription->checkout_session_id = null;
+            $subscription->checkout_status = null;
+            $subscription->checkout_url = null;
+            $subscription->checkout_started_at = null;
+        }
+
         $dirty = $subscription->getDirty();
 
         $subscription->save();
@@ -204,6 +231,20 @@ class StripeWebhookService
         }
 
         return $subscription;
+    }
+
+    private function reusePendingSubscription(Company $company, ?string $planCode): ?Subscription
+    {
+        if ($planCode === null) {
+            return null;
+        }
+
+        return Subscription::query()
+            ->where('company_id', $company->id)
+            ->where('stripe_status', 'checkout_pending')
+            ->where('stripe_plan', $planCode)
+            ->orderByDesc('checkout_started_at')
+            ->first();
     }
 
     private function ensureCustomer(Company $company, ?string $stripeCustomerId, ?string $email = null, array $metadata = []): Customer

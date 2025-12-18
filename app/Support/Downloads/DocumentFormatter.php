@@ -6,7 +6,7 @@ use App\Models\CompanyLocaleSetting;
 use App\Models\CompanyMoneySetting;
 use Carbon\CarbonInterface;
 use IntlDateFormatter;
-use IntlNumberFormatter;
+use NumberFormatter;
 
 class DocumentFormatter
 {
@@ -34,7 +34,7 @@ class DocumentFormatter
     {
         $minor = $amountMinor ?? 0;
         $value = $minor / 100;
-        $formatter = new IntlNumberFormatter($this->locale, IntlNumberFormatter::CURRENCY);
+        $formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
 
         return $formatter->formatCurrency($value, $currency ?: $this->currency) ?: sprintf('%s %.2f', $currency ?: $this->currency, $value);
     }
@@ -45,9 +45,9 @@ class DocumentFormatter
             return '—';
         }
 
-        $formatter = new IntlNumberFormatter($this->numberLocale, IntlNumberFormatter::DECIMAL);
-        $formatter->setAttribute(IntlNumberFormatter::MAX_FRACTION_DIGITS, $precision);
-        $formatter->setAttribute(IntlNumberFormatter::MIN_FRACTION_DIGITS, $precision);
+        $formatter = new NumberFormatter($this->numberLocale, NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, $precision);
+        $formatter->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $precision);
 
         return $formatter->format($value) ?: number_format($value, $precision);
     }
@@ -58,8 +58,8 @@ class DocumentFormatter
             return '—';
         }
 
-        $formatter = new IntlNumberFormatter($this->numberLocale, IntlNumberFormatter::DECIMAL);
-        $formatter->setAttribute(IntlNumberFormatter::MAX_FRACTION_DIGITS, 3);
+        $formatter = new NumberFormatter($this->numberLocale, NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, 3);
 
         return $formatter->format($value) ?: number_format($value, 3);
     }

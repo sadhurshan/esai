@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
 use App\Enums\RfqClarificationType;
+use App\Models\Company;
 use App\Models\RFQ;
 use App\Models\RfqClarification;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\CompanyContext;
+use App\Support\ActivePersonaContext;
 use App\Support\Documents\DocumentStorer;
 use App\Support\Notifications\NotificationService;
 use Illuminate\Http\UploadedFile;
@@ -28,7 +30,7 @@ class RfqClarificationService
     /**
      * @var list<string>
      */
-    private array $supplierRoles = ['supplier_admin', 'supplier_estimator'];
+    private array $supplierRoles = ['supplier_admin', 'supplier_estimator', 'owner'];
 
     public function __construct(
         private readonly AuditLogger $auditLogger,
@@ -72,7 +74,7 @@ class RfqClarificationService
      */
     public function postAnswer(RFQ $rfq, User $user, string $message, array $attachments = []): RfqClarification
     {
-        $this->assertBuyerAccess($rfq, $user);
+        $this->assertAnswerAccess($rfq, $user);
 
         $clarification = $this->storeClarification(
             $rfq,
@@ -270,9 +272,22 @@ class RfqClarificationService
     private function resolveSupplierParticipants(RFQ $rfq): Collection
     {
         $companyIds = $this->invitedSupplierCompanyIds($rfq);
+        $isOpenBidding = (bool) ($rfq->open_bidding ?? $rfq->is_open_bidding ?? false);
+
+        if ($isOpenBidding) {
+            $listedSupplierCompanyIds = Company::query()
+                ->listedSuppliers()
+                ->pluck('id')
+                ->map(static fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            if ($listedSupplierCompanyIds !== []) {
+                $companyIds = array_values(array_unique(array_merge($companyIds, $listedSupplierCompanyIds)));
+            }
+        }
 
         if ($companyIds === []) {
-            // TODO: clarify how open bidding broadcasts supplier notifications to avoid spamming the entire network.
             return collect();
         }
 
@@ -292,7 +307,7 @@ class RfqClarificationService
             return;
         }
 
-        if ($this->isSupplierRole($user) && $this->supplierHasInvitationAccess($rfq, $user)) {
+        if ($this->isSupplierActor($user) && $this->supplierHasInvitationAccess($rfq, $user)) {
             return;
         }
 
@@ -316,6 +331,25 @@ class RfqClarificationService
         ]);
     }
 
+    private function assertAnswerAccess(RFQ $rfq, User $user): void
+    {
+        if ($this->isPlatformRole($user)) {
+            return;
+        }
+
+        if ($this->belongsToBuyerCompany($rfq, $user) && $this->isBuyerRole($user)) {
+            return;
+        }
+
+        if ($this->isSupplierActor($user) && $this->supplierHasInvitationAccess($rfq, $user)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'user' => ['Only buyer or invited supplier roles can perform this action.'],
+        ]);
+    }
+
     private function belongsToBuyerCompany(RFQ $rfq, User $user): bool
     {
         return $user->company_id !== null && (int) $rfq->company_id === (int) $user->company_id;
@@ -323,7 +357,7 @@ class RfqClarificationService
 
     private function supplierHasInvitationAccess(RFQ $rfq, User $user): bool
     {
-        if (! $this->isSupplierRole($user)) {
+        if (! $this->isSupplierActor($user)) {
             return false;
         }
 
@@ -331,11 +365,7 @@ class RfqClarificationService
             return true;
         }
 
-        if ($user->company_id === null) {
-            return false;
-        }
-
-        $supplierIds = $this->supplierIdsForCompany((int) $user->company_id);
+        $supplierIds = $this->resolveActorSupplierIds($user);
 
         if ($supplierIds === []) {
             return false;
@@ -344,6 +374,24 @@ class RfqClarificationService
         $invitedSupplierIds = $this->invitedSupplierIds($rfq);
 
         return array_intersect($supplierIds, $invitedSupplierIds) !== [];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function resolveActorSupplierIds(User $user): array
+    {
+        $personaSupplierId = ActivePersonaContext::supplierId();
+
+        if ($personaSupplierId !== null) {
+            return [$personaSupplierId];
+        }
+
+        if ($user->company_id === null) {
+            return [];
+        }
+
+        return $this->supplierIdsForCompany((int) $user->company_id);
     }
 
     /**
@@ -408,6 +456,15 @@ class RfqClarificationService
     private function isSupplierRole(User $user): bool
     {
         return in_array($user->role, $this->supplierRoles, true);
+    }
+
+    private function isSupplierActor(User $user): bool
+    {
+        if (ActivePersonaContext::isSupplier()) {
+            return true;
+        }
+
+        return $this->isSupplierRole($user);
     }
 
     private function isPlatformRole(User $user): bool

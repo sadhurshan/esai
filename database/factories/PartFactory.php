@@ -25,4 +25,20 @@ class PartFactory extends Factory
             'meta' => [],
         ];
     }
+
+    public function withTags(?array $tags = null): self
+    {
+        return $this->afterCreating(function (Part $part) use ($tags): void {
+            $resolvedTags = $tags ?? $this->faker->randomElements([
+                'cnc',
+                'aerospace',
+                'sheet-metal',
+                'machining',
+                'prototype',
+                'production',
+            ], $this->faker->numberBetween(1, 3));
+
+            $part->syncTags($resolvedTags);
+        });
+    }
 }

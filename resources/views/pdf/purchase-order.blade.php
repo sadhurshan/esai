@@ -62,6 +62,14 @@
             color: #6b7280;
             font-size: 11px;
         }
+        .brand-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+        .brand-logo {
+            height: 36px;
+        }
     </style>
 </head>
 <body>
@@ -74,7 +82,12 @@
         $value = $amountMinor / 100;
         return $currency.' '.number_format($value, 2, '.', ',');
     };
+    $platformLogo = asset('logo-colored-dark-text-transparent-bg.png');
 @endphp
+
+    <div class="brand-bar">
+        <img src="{{ $platformLogo }}" alt="{{ config('app.name', 'Elements Supply AI') }}" class="brand-logo">
+    </div>
 
     <div class="header">
         <div>

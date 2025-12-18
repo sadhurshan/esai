@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
@@ -17,16 +18,36 @@ class InvoiceFactory extends Factory
 
     public function definition(): array
     {
+        $buyerCompany = Company::factory();
+        $supplierCompany = Company::factory();
+        $subtotalMinor = $this->faker->numberBetween(10_000, 250_000);
+        $taxMinor = (int) round($subtotalMinor * 0.1);
+        $totalMinor = $subtotalMinor + $taxMinor;
+
         return [
-            'company_id' => Company::factory(),
-            'purchase_order_id' => PurchaseOrder::factory(),
-            'supplier_id' => Supplier::factory(),
+            'company_id' => $buyerCompany,
+            'purchase_order_id' => PurchaseOrder::factory()->for($buyerCompany),
+            'supplier_id' => Supplier::factory()->for($buyerCompany),
+            'supplier_company_id' => $supplierCompany,
             'invoice_number' => 'INV-'.$this->faker->unique()->numerify('####'),
+            'invoice_date' => $this->faker->dateTimeBetween('-10 days', 'now'),
+            'due_date' => $this->faker->dateTimeBetween('+10 days', '+45 days'),
             'currency' => 'USD',
-            'subtotal' => $this->faker->randomFloat(2, 100, 5000),
-            'tax_amount' => $this->faker->randomFloat(2, 0, 500),
-            'total' => $this->faker->randomFloat(2, 100, 5500),
-            'status' => 'pending',
+            'subtotal' => $subtotalMinor / 100,
+            'tax_amount' => $taxMinor / 100,
+            'total' => $totalMinor / 100,
+            'subtotal_minor' => $subtotalMinor,
+            'tax_minor' => $taxMinor,
+            'total_minor' => $totalMinor,
+            'status' => InvoiceStatus::Draft->value,
+            'matched_status' => 'pending',
+            'created_by_type' => 'buyer',
+            'created_by_id' => null,
+            'submitted_at' => null,
+            'reviewed_at' => null,
+            'reviewed_by_id' => null,
+            'review_note' => null,
+            'payment_reference' => null,
             'document_id' => null,
         ];
     }

@@ -9,6 +9,7 @@ use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Models\QuoteRevision;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
 use App\Support\Audit\AuditLogger;
 use App\Support\CompanyContext;
 use App\Support\Documents\DocumentStorer;
@@ -28,7 +29,7 @@ class QuoteRevisionService
     /**
      * @var list<string>
      */
-    private array $supplierRoles = ['supplier_admin', 'supplier_estimator'];
+    private array $supplierRoles = ['supplier_admin', 'supplier_estimator', 'owner'];
 
     public function __construct(
         private readonly AuditLogger $auditLogger,
@@ -167,14 +168,39 @@ class QuoteRevisionService
     private function assertSupplierOwnsQuote(Quote $quote, User $supplier): void
     {
         $supplierCompanyId = $quote->supplier?->company_id;
+        $userCompanyId = $supplier->company_id;
+        $matchesUserCompany = $supplierCompanyId !== null
+            && $userCompanyId !== null
+            && (int) $supplierCompanyId === (int) $userCompanyId;
 
-        if ($supplierCompanyId === null || (int) $supplierCompanyId !== (int) $supplier->company_id) {
+        if (! $matchesUserCompany && ! $this->personaOwnsQuoteSupplier($quote, $supplierCompanyId)) {
             throw new QuoteActionException('You cannot modify this quote.', 403);
         }
 
         if (! in_array($supplier->role, [...$this->supplierRoles, 'platform_super', 'platform_support'], true)) {
             throw new QuoteActionException('You are not permitted to modify this quote.', 403);
         }
+    }
+
+    private function personaOwnsQuoteSupplier(Quote $quote, ?int $supplierCompanyId): bool
+    {
+        if (! ActivePersonaContext::isSupplier()) {
+            return false;
+        }
+
+        $personaSupplierId = ActivePersonaContext::supplierId();
+
+        if ($personaSupplierId !== null && (int) $personaSupplierId === (int) $quote->supplier_id) {
+            return true;
+        }
+
+        $personaSupplierCompanyId = ActivePersonaContext::get()?->supplierCompanyId();
+
+        if ($personaSupplierCompanyId === null || $supplierCompanyId === null) {
+            return false;
+        }
+
+        return (int) $personaSupplierCompanyId === (int) $supplierCompanyId;
     }
 
     private function assertQuoteActive(Quote $quote): void

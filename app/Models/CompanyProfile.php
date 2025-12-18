@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyProfile extends CompanyScopedModel
 {
@@ -36,5 +37,28 @@ class CompanyProfile extends CompanyScopedModel
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function getLogoUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveMediaUrl($value);
+    }
+
+    public function getMarkUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveMediaUrl($value);
+    }
+
+    private function resolveMediaUrl(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        return Storage::disk('public')->url($value);
     }
 }

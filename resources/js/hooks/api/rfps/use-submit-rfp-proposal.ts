@@ -70,7 +70,7 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
                 },
             });
 
-            return response;
+            return response.data;
         },
         onSuccess: () => {
             publishToast({

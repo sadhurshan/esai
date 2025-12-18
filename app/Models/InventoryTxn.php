@@ -13,6 +13,7 @@ class InventoryTxn extends CompanyScopedModel
     use HasFactory;
 
     protected $fillable = [
+        'movement_id',
         'company_id',
         'part_id',
         'warehouse_id',
@@ -54,5 +55,10 @@ class InventoryTxn extends CompanyScopedModel
     public function performer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function movement(): BelongsTo
+    {
+        return $this->belongsTo(InventoryMovement::class);
     }
 }

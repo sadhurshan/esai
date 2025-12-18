@@ -315,7 +315,7 @@ it('rejects supplier applications referencing expired documents', function (): v
     expect(SupplierApplication::query()->count())->toBe(0);
 });
 
-it('blocks non-owner users from submitting supplier applications', function (): void {
+it('allows buyer admins to submit supplier applications', function (): void {
     $owner = User::factory()->create([
         'role' => 'owner',
     ]);
@@ -341,8 +341,54 @@ it('blocks non-owner users from submitting supplier applications', function (): 
     actingAs($buyerAdmin);
 
     $response = $this->postJson('/api/me/apply-supplier', [
-        'capabilities' => ['methods' => ['cnc_machining']],
+        'capabilities' => [
+            'methods' => ['cnc_machining'],
+        ],
         'address' => '456 Industrial Ave',
+        'country' => 'US',
+        'city' => 'Austin',
+        'moq' => 10,
+        'lead_time_days' => 5,
+        'contact' => [
+            'email' => 'buyer-admin@example.com',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('message', 'Supplier application submitted.');
+
+    expect(SupplierApplication::query()->count())->toBe(1)
+        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::Pending);
+});
+
+it('blocks other roles from submitting supplier applications', function (): void {
+    $owner = User::factory()->create([
+        'role' => 'owner',
+    ]);
+
+    $company = Company::factory()->create([
+        'status' => CompanyStatus::Active,
+        'supplier_status' => CompanySupplierStatus::None,
+        'owner_user_id' => $owner->id,
+    ]);
+
+    $owner->forceFill(['company_id' => $company->id])->save();
+
+    $buyerMember = User::factory()->create([
+        'role' => 'buyer_member',
+        'company_id' => $company->id,
+    ]);
+
+    DB::table('company_user')->insert([
+        ['company_id' => $company->id, 'user_id' => $owner->id, 'role' => $owner->role, 'created_at' => now(), 'updated_at' => now()],
+        ['company_id' => $company->id, 'user_id' => $buyerMember->id, 'role' => $buyerMember->role, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    actingAs($buyerMember);
+
+    $response = $this->postJson('/api/me/apply-supplier', [
+        'capabilities' => ['methods' => ['cnc_machining']],
+        'address' => '789 Restricted Ave',
     ]);
 
     $response->assertForbidden();
@@ -351,7 +397,7 @@ it('blocks non-owner users from submitting supplier applications', function (): 
         ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::None);
 });
 
-it('blocks supplier application if the company is still pending approval', function (): void {
+it('allows supplier application submission while buyer approval is pending', function (): void {
     $owner = User::factory()->create([
         'role' => 'owner',
     ]);
@@ -389,10 +435,11 @@ it('blocks supplier application if the company is still pending approval', funct
         ],
     ]);
 
-    $response->assertStatus(403)->assertJsonPath('errors.company.0', 'Company approval pending. A platform admin must verify your documents first.');
+    $response->assertOk()
+        ->assertJsonPath('message', 'Supplier application submitted.');
 
-    expect(SupplierApplication::query()->count())->toBe(0)
-        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::None);
+    expect(SupplierApplication::query()->count())->toBe(1)
+        ->and($company->fresh()->supplier_status)->toBe(CompanySupplierStatus::Pending);
 });
 
 it('requires authentication to list supplier applications', function (): void {

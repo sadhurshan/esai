@@ -40,14 +40,21 @@ class UomConversionController extends ApiController
             $query->whereHas('from', fn ($builder) => $builder->where('dimension', $dimension));
         }
 
-        $conversions = $query->orderBy('from_uom_id')->orderBy('to_uom_id')->get();
+        $paginator = $query
+            ->orderBy('from_uom_id')
+            ->orderBy('to_uom_id')
+            ->cursorPaginate(
+                $this->perPage($request, 25, 100),
+                ['*'],
+                'cursor',
+                $request->query('cursor')
+            );
 
-        $data = $conversions->map(fn (UomConversion $conversion) => (new UomConversionResource($conversion))->toArray($request))->all();
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, UomConversionResource::class);
 
         return $this->ok([
-            'items' => $data,
-            'meta' => ['total' => $conversions->count()],
-        ]);
+            'items' => $items,
+        ], 'Conversions retrieved.', $meta);
     }
 
     public function upsert(UpsertUomConversionRequest $request): JsonResponse
@@ -121,6 +128,14 @@ class UomConversionController extends ApiController
 
     public function convertForPart(Request $request, Part $part): JsonResponse
     {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
         $qty = (float) $request->query('qty', 0);
 
         $fromCode = $request->query('from');
@@ -137,7 +152,7 @@ class UomConversionController extends ApiController
             return $this->fail('Unknown units.', 422);
         }
 
-        if ($part->company_id !== $request->user()?->company_id) {
+        if ((int) $part->company_id !== (int) $companyId) {
             return $this->fail('Part not found for this company.', 404);
         }
 

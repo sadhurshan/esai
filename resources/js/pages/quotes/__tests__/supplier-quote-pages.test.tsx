@@ -234,6 +234,11 @@ describe('Supplier quote pages', () => {
         const user = userEvent.setup();
         renderWithHelmet(<SupplierQuoteCreatePage />);
 
+        const incotermInput = await screen.findByLabelText('Incoterm (optional)');
+        await user.type(incotermInput, 'fob ');
+        const paymentTermsInput = screen.getByLabelText('Payment terms (optional)');
+        await user.type(paymentTermsInput, ' Net 30');
+
         const unitPriceInput = await screen.findByLabelText('Unit price (USD)');
         await user.type(unitPriceInput, '12.5');
         const leadTimeInput = screen.getByLabelText('Lead time (days)');
@@ -247,11 +252,11 @@ describe('Supplier quote pages', () => {
         });
 
         const payload = createQuoteMutate.mock.calls[0]?.[0];
-        expect(payload).toMatchObject({ rfqId: 'rfq-123', currency: 'USD' });
+        expect(payload).toMatchObject({ rfqId: 'rfq-123', currency: 'USD', incoterm: 'FOB', paymentTerms: 'Net 30' });
         expect(payload.items[0]).toMatchObject({ rfqItemId: 'line-1', unitPriceMinor: 1250, leadTimeDays: 10 });
 
         expect(submitQuoteMutate).toHaveBeenCalledWith({ quoteId: 'quote-result', rfqId: 321 });
-        expect(mockNavigate).toHaveBeenCalledWith('/app/quotes/quote-result');
+        expect(mockNavigate).toHaveBeenCalledWith('/app/supplier/quotes/quote-result');
     });
 
     it('collects a withdraw reason on the edit page before calling the mutation', async () => {

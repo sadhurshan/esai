@@ -3,6 +3,8 @@
 namespace App\Console;
 
 use App\Jobs\AuditSupplierDocumentExpiryJob;
+use App\Jobs\ComputeInventoryForecastSnapshotsJob;
+use App\Jobs\ComputeTenantUsageJob;
 use App\Jobs\PurgeExpiredExportsJob;
 use App\Jobs\RetryFailedWebhooksJob;
 use Illuminate\Console\Scheduling\Schedule;
@@ -22,12 +24,20 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->onOneServer();
 
+        $schedule->job(new ComputeTenantUsageJob())
+            ->dailyAt('02:30')
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        $schedule->job(new ComputeInventoryForecastSnapshotsJob())
+            ->dailyAt('03:00')
+            ->withoutOverlapping()
+            ->onOneServer();
+
         $schedule->job(new RetryFailedWebhooksJob())
             ->everyTenMinutes()
             ->withoutOverlapping()
             ->onOneServer();
-
-        // TODO: clarify with spec whether an inventory forecast snapshot job should run on a schedule once implemented.
     }
 
     protected function commands(): void

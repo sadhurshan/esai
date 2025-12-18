@@ -1,13 +1,15 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
-import { useSdkClient } from '@/contexts/api-client-context';
-import { SettingsApi, type CompanySettings as ApiCompanySettings } from '@/sdk';
-import type { ApiError } from '@/lib/api';
+import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { CompanySettings } from '@/types/settings';
 import { mapCompanySettings } from './use-company';
+import { CompanySettingsFromJSON, CompanySettingsToJSON, type CompanySettings as ApiCompanySettings } from '@/sdk';
 
-export type UpdateCompanySettingsInput = CompanySettings;
+export interface UpdateCompanySettingsInput extends CompanySettings {
+    logoFile?: File | null;
+    markFile?: File | null;
+}
 
 export function buildCompanySettingsPayload(input: UpdateCompanySettingsInput): ApiCompanySettings {
     const payload = {
@@ -35,27 +37,75 @@ export function buildCompanySettingsPayload(input: UpdateCompanySettingsInput): 
             postalCode: input.shipFrom?.postalCode ?? null,
             country: input.shipFrom?.country ?? '',
         },
-        logoUrl: input.logoUrl ?? null,
-        markUrl: input.markUrl ?? null,
+        logoUrl: input.logoFile ? null : input.logoUrl ?? null,
+        markUrl: input.markFile ? null : input.markUrl ?? null,
     } satisfies Record<string, unknown>;
 
     return payload as ApiCompanySettings;
 }
 
+export function buildCompanySettingsFormData(input: UpdateCompanySettingsInput): FormData {
+    const jsonPayload = CompanySettingsToJSON(buildCompanySettingsPayload(input));
+    const formData = new FormData();
+
+    appendFormData(formData, jsonPayload);
+    formData.append('_method', 'PATCH');
+
+    if (input.logoFile instanceof File) {
+        formData.append('logo', input.logoFile);
+    }
+
+    if (input.markFile instanceof File) {
+        formData.append('mark', input.markFile);
+    }
+
+    return formData;
+}
+
 export function useUpdateCompanySettings(): UseMutationResult<CompanySettings, ApiError, UpdateCompanySettingsInput> {
     const queryClient = useQueryClient();
-    const settingsApi = useSdkClient(SettingsApi);
 
     return useMutation<CompanySettings, ApiError, UpdateCompanySettingsInput>({
         mutationFn: async (input) => {
-            const response = await settingsApi.updateCompanySettings({
-                companySettings: buildCompanySettingsPayload(input),
-            });
+            const data = (await api.post('/settings/company', buildCompanySettingsFormData(input))) as unknown;
+            const payload = CompanySettingsFromJSON(data);
 
-            return mapCompanySettings(response.data);
+            return mapCompanySettings(payload);
         },
         onSuccess: (settings) => {
             queryClient.setQueryData(queryKeys.settings.company(), settings);
         },
     });
 }
+
+const appendFormData = (formData: FormData, value: unknown, parentKey?: string): void => {
+    if (value === undefined) {
+        return;
+    }
+
+    if (value === null) {
+        if (parentKey) {
+            formData.append(parentKey, '');
+        }
+
+        return;
+    }
+
+    if (Array.isArray(value)) {
+        value.forEach((entry) => appendFormData(formData, entry, `${parentKey}[]`));
+        return;
+    }
+
+    if (typeof value === 'object') {
+        Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
+            const nextKey = parentKey ? `${parentKey}[${key}]` : key;
+            appendFormData(formData, entry, nextKey);
+        });
+
+        return;
+    }
+
+    if (parentKey) {
+        formData.append(parentKey, String(value));
+    }
+};

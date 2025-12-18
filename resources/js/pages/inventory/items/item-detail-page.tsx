@@ -56,7 +56,7 @@ export function ItemDetailPage() {
 
     const itemQuery = useItem(itemId ?? '', { enabled: Boolean(itemId) });
     const updateItemMutation = useUpdateItem();
-    const locationsQuery = useLocations({ perPage: 200, enabled: inventoryEnabled });
+    const locationsQuery = useLocations({ perPage: 100, enabled: inventoryEnabled });
     const movementQuery = useMovements({ perPage: 10, itemId: itemId ?? undefined });
     const uploadDocumentMutation = useUploadDocument();
 
@@ -93,7 +93,7 @@ export function ItemDetailPage() {
             minStock: detail.reorderRule.minStock,
             reorderQty: detail.reorderRule.reorderQty,
             leadTimeDays: detail.reorderRule.leadTimeDays,
-            defaultLocationId: detail.stockByLocation[0]?.id ?? null,
+            defaultLocationId: detail.defaultLocationId ?? detail.stockByLocation[0]?.id ?? null,
             active: detail.active,
         });
     }, [form, itemQuery.data]);

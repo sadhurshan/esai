@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\ApiKey;
 use Closure;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -152,10 +153,6 @@ class ApiKeyAuth
 
     private function deny(int $status, string $message): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ], $status);
+        return ApiResponse::error($message, $status);
     }
 }

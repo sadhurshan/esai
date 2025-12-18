@@ -55,6 +55,8 @@ const REFERENCES = [
     { value: 'MANUAL', label: 'Manual' },
 ];
 
+const NO_REFERENCE_VALUE = '__none__';
+
 function defaultDateTimeLocal(): string {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -91,7 +93,7 @@ export function MovementCreatePage() {
     const movementType = useWatch({ control: form.control, name: 'type' });
 
     const itemsQuery = useItems({ perPage: 100, status: 'active' });
-    const locationsQuery = useLocations({ perPage: 200 });
+    const locationsQuery = useLocations({ perPage: 100 });
     const createMovement = useCreateMovement();
 
     const itemOptions: MovementItemOption[] = useMemo(() => {
@@ -145,6 +147,25 @@ export function MovementCreatePage() {
 
     const handleSubmit = form.handleSubmit(async (values) => {
         form.clearErrors('lines');
+
+        if (movementType === 'ADJUST') {
+            const missingLocationIndex = values.lines.findIndex(
+                (line) => !line.fromLocationId && !line.toLocationId,
+            );
+            if (missingLocationIndex >= 0) {
+                const errorPath = `lines.${missingLocationIndex}.fromLocationId` as const;
+                form.setError(errorPath, {
+                    type: 'manual',
+                    message: 'Select at least one location for an adjustment.',
+                });
+                publishToast({
+                    variant: 'destructive',
+                    title: 'Location required',
+                    description: 'Adjustments must reference the location being increased or decreased.',
+                });
+                return;
+            }
+        }
 
         const stockViolations = validateMovementStock({
             lines: values.lines,
@@ -268,14 +289,14 @@ export function MovementCreatePage() {
                                 control={form.control}
                                 render={({ field }) => (
                                     <Select
-                                        value={field.value ?? ''}
-                                        onValueChange={(next) => field.onChange(next === '' ? null : next)}
+                                        value={field.value ?? NO_REFERENCE_VALUE}
+                                        onValueChange={(next) => field.onChange(next === NO_REFERENCE_VALUE ? null : next)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Optional" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">None</SelectItem>
+                                            <SelectItem value={NO_REFERENCE_VALUE}>None</SelectItem>
                                             {REFERENCES.map((option) => (
                                                 <SelectItem key={option.value} value={option.value}>
                                                     {option.label}

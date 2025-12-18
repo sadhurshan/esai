@@ -1,7 +1,8 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
-import { api, type ApiError } from '@/lib/api';
+import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import { toCursorMeta, type CursorPaginationMeta } from '@/lib/pagination';
 import type {
     PermissionDefinition,
     PermissionGroup,
@@ -34,8 +35,19 @@ interface ApiPermissionGroup {
 }
 
 interface RoleTemplateResponse {
+    items?: ApiRoleTemplate[] | null;
     roles?: ApiRoleTemplate[] | null;
     permission_groups?: ApiPermissionGroup[] | null;
+    meta?: Record<string, unknown> | null;
+}
+
+interface RoleTemplateQueryResult extends RoleTemplateCollection {
+    meta?: CursorPaginationMeta;
+}
+
+export interface UseCompanyRoleTemplatesParams {
+    cursor?: string | null;
+    perPage?: number;
 }
 
 function mapRoleTemplate(payload: ApiRoleTemplate): RoleTemplate {
@@ -70,21 +82,33 @@ function mapPermissionGroup(payload: ApiPermissionGroup): PermissionGroup {
     };
 }
 
-function normalizeResponse(response: RoleTemplateResponse): RoleTemplateCollection {
-    const roles = Array.isArray(response.roles) ? response.roles.map(mapRoleTemplate) : [];
+function normalizeResponse(response: RoleTemplateResponse): RoleTemplateQueryResult {
+    const source = Array.isArray(response.items) ? response.items : response.roles;
+
+    const roles = Array.isArray(source) ? source.map(mapRoleTemplate) : [];
     const permissionGroups = Array.isArray(response.permission_groups)
         ? response.permission_groups.map(mapPermissionGroup)
         : [];
 
-    return { roles, permissionGroups };
+    return { roles, permissionGroups, meta: toCursorMeta(response.meta) };
 }
 
-export function useCompanyRoleTemplates(): UseQueryResult<RoleTemplateCollection, ApiError> {
-    return useQuery<RoleTemplateCollection, ApiError>({
-        queryKey: queryKeys.companyRoleTemplates.list(),
+export function useCompanyRoleTemplates(
+    params: UseCompanyRoleTemplatesParams = {}
+): UseQueryResult<RoleTemplateQueryResult, ApiError> {
+    const query = buildQuery({
+        cursor: params.cursor ?? undefined,
+        per_page: params.perPage,
+    });
+
+    return useQuery<RoleTemplateQueryResult, ApiError>({
+        queryKey: queryKeys.companyRoleTemplates.list({
+            cursor: params.cursor ?? null,
+            perPage: params.perPage ?? null,
+        }),
         queryFn: async () => {
-            const response = (await api.get<RoleTemplateResponse>('/company-role-templates')) as unknown as RoleTemplateResponse;
-            return normalizeResponse(response);
+            const response = await api.get<RoleTemplateResponse>(`/company-role-templates${query}`);
+            return normalizeResponse(response as RoleTemplateResponse);
         },
         staleTime: 30_000,
     });

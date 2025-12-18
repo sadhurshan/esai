@@ -33,6 +33,7 @@ class PlanFactory extends Factory
             'rma_enabled' => true,
             'rma_monthly_limit' => 20,
             'credit_notes_enabled' => true,
+            'supplier_invoicing_enabled' => true,
             'global_search_enabled' => true,
             'quotes_enabled' => true,
             'quote_revisions_enabled' => true,

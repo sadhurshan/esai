@@ -8,6 +8,7 @@ import { useCreateItem } from '../use-create-item';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
+import { HttpError } from '@/sdk';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -117,6 +118,44 @@ describe('useCreateItem', () => {
         expect(publishToastMock.mock.calls[0]?.[0]).toMatchObject({
             variant: 'destructive',
             title: 'Unable to create item',
+        });
+    });
+
+    it('surfaces server validation errors in the toast', async () => {
+        const apiBody = {
+            status: 'error',
+            message: '',
+            errors: {
+                sku: ['SKU already exists'],
+            },
+        } satisfies Record<string, unknown>;
+
+        const httpError = new HttpError(
+            new Response(JSON.stringify(apiBody), {
+                status: 422,
+                headers: { 'Content-Type': 'application/json' },
+            }),
+            apiBody,
+        );
+
+        createItem.mockRejectedValue(httpError);
+
+        const { Wrapper } = createWrapper();
+        const { result } = renderHook(() => useCreateItem(), { wrapper: Wrapper });
+
+        await expect(
+            result.current.mutateAsync({
+                sku: 'SKU-55',
+                name: 'Widget',
+                uom: 'EA',
+            }),
+        ).rejects.toBeInstanceOf(HttpError);
+
+        await waitFor(() => expect(publishToastMock).toHaveBeenCalled());
+        expect(publishToastMock.mock.calls[0]?.[0]).toMatchObject({
+            variant: 'destructive',
+            title: 'Unable to create item',
+            description: 'SKU already exists',
         });
     });
 });

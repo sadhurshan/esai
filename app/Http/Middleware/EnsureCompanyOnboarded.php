@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
@@ -26,6 +28,10 @@ class EnsureCompanyOnboarded
         $user = $request->user();
 
         if ($user === null) {
+            return $next($request);
+        }
+
+        if (ActivePersonaContext::isSupplier()) {
             return $next($request);
         }
 
@@ -54,14 +60,13 @@ class EnsureCompanyOnboarded
         }
 
         if ($company === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No active company membership.',
-                'data' => null,
-                'errors' => [
+            return ApiResponse::error(
+                'No active company membership.',
+                Response::HTTP_FORBIDDEN,
+                [
                     'company' => ['You are not assigned to any company. Request a new invitation or contact your administrator.'],
-                ],
-            ], Response::HTTP_FORBIDDEN);
+                ]
+            );
         }
 
         if (! $company instanceof Company) {
@@ -78,15 +83,14 @@ class EnsureCompanyOnboarded
             return $next($request);
         }
 
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Company onboarding incomplete.',
-            'data' => null,
-            'errors' => [
+        return ApiResponse::error(
+            'Company onboarding incomplete.',
+            Response::HTTP_FORBIDDEN,
+            [
                 'company' => ['Company onboarding incomplete.'],
                 'missing_fields' => $company->buyerOnboardingMissingFields(),
-            ],
-        ], Response::HTTP_FORBIDDEN);
+            ]
+        );
     }
 
     private function userHasOnboardingPermission(User $user, Company $company): bool

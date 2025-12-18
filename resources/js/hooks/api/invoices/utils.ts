@@ -75,6 +75,12 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
     const purchaseOrderSource = source.purchaseOrder as Record<string, unknown> | undefined;
     const purchaseOrderFallback = source.purchase_order as Record<string, unknown> | undefined;
     const purchaseOrderCombined = purchaseOrderSource ?? purchaseOrderFallback;
+    const supplierCompanySource = source.supplierCompany as Record<string, unknown> | undefined;
+    const supplierCompanyFallback = source.supplier_company as Record<string, unknown> | undefined;
+    const supplierCompanyCombined = supplierCompanySource ?? supplierCompanyFallback;
+    const reviewedBySource = source.reviewedBy as Record<string, unknown> | undefined;
+    const reviewedByFallback = source.reviewed_by as Record<string, unknown> | undefined;
+    const reviewedByCombined = reviewedBySource ?? reviewedByFallback;
     const document = mapInvoiceDocument((source.document as Record<string, unknown> | undefined) ?? null);
     const attachments = Array.isArray(source.attachments)
         ? (source.attachments as Record<string, unknown>[])
@@ -89,18 +95,30 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
         supplierId: readNumber(source, 'supplierId', 'supplier_id') ?? 0,
         invoiceNumber: readString(source, 'invoiceNumber', 'invoice_number') ?? '—',
         invoiceDate: readString(source, 'invoiceDate', 'invoice_date') ?? null,
+        dueDate: readString(source, 'dueDate', 'due_date') ?? null,
         currency: readString(source, 'currency') ?? 'USD',
         status: readString(source, 'status') ?? 'draft',
+        matchedStatus: readString(source, 'matchedStatus', 'matched_status') ?? null,
+        createdByType: readString(source, 'createdByType', 'created_by_type') ?? null,
+        createdById: readNumber(source, 'createdById', 'created_by_id') ?? null,
         subtotal: subtotalMajor ?? 0,
         taxAmount: taxMajor ?? 0,
         total: totalMajor ?? 0,
         subtotalMinor: readNumber(source, 'subtotalMinor', 'subtotal_minor') ?? toMinorUnits(subtotalMajor),
-        taxAmountMinor: readNumber(source, 'taxAmountMinor', 'tax_amount_minor') ?? toMinorUnits(taxMajor),
+        taxAmountMinor:
+            readNumber(source, 'taxAmountMinor', 'tax_amount_minor', 'tax_minor') ?? toMinorUnits(taxMajor),
         totalMinor: readNumber(source, 'totalMinor', 'total_minor') ?? toMinorUnits(totalMajor),
+        supplierCompanyId: readNumber(source, 'supplierCompanyId', 'supplier_company_id') ?? null,
         supplier: supplierSource
             ? {
                   id: readNumber(supplierSource, 'id') ?? 0,
                   name: readString(supplierSource, 'name') ?? null,
+              }
+            : null,
+        supplierCompany: supplierCompanyCombined
+            ? {
+                  id: readNumber(supplierCompanyCombined, 'id') ?? 0,
+                  name: readString(supplierCompanyCombined, 'name') ?? null,
               }
             : null,
         purchaseOrder: purchaseOrderCombined
@@ -113,6 +131,17 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
         attachments,
         matchSummary: (source.matchSummary as Record<string, number> | undefined) ??
             (source.match_summary as Record<string, number> | undefined),
+        submittedAt: readString(source, 'submittedAt', 'submitted_at') ?? null,
+        reviewedAt: readString(source, 'reviewedAt', 'reviewed_at') ?? null,
+        reviewedById: readNumber(source, 'reviewedById', 'reviewed_by_id') ?? null,
+        reviewedBy: reviewedByCombined
+            ? {
+                  id: readNumber(reviewedByCombined, 'id') ?? 0,
+                  name: readString(reviewedByCombined, 'name') ?? null,
+              }
+            : null,
+        reviewNote: readString(source, 'reviewNote', 'review_note') ?? null,
+        paymentReference: readString(source, 'paymentReference', 'payment_reference') ?? null,
         createdAt: readString(source, 'createdAt', 'created_at') ?? null,
         updatedAt: readString(source, 'updatedAt', 'updated_at') ?? null,
     };

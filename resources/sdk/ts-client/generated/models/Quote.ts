@@ -138,6 +138,18 @@ export interface Quote {
      * @memberof Quote
      */
     note?: string;
+        /**
+         * 
+         * @type {string}
+         * @memberof Quote
+         */
+        incoterm?: string;
+        /**
+         * 
+         * @type {string}
+         * @memberof Quote
+         */
+        paymentTerms?: string;
     /**
      * 
      * @type {number}
@@ -168,6 +180,24 @@ export interface Quote {
      * @memberof Quote
      */
     withdrawReason?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Quote
+     */
+    isShortlisted?: boolean;
+    /**
+     * 
+     * @type {Date}
+     * @memberof Quote
+     */
+    shortlistedAt?: Date;
+    /**
+     * 
+     * @type {number}
+     * @memberof Quote
+     */
+    shortlistedBy?: number | null;
     /**
      * 
      * @type {GoodsReceiptNoteInspector}
@@ -247,11 +277,16 @@ export function QuoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): Quo
         'minOrderQty': json['min_order_qty'] == null ? undefined : json['min_order_qty'],
         'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
         'note': json['note'] == null ? undefined : json['note'],
+            'incoterm': json['incoterm'] == null ? undefined : json['incoterm'],
+            'paymentTerms': json['payment_terms'] == null ? undefined : json['payment_terms'],
         'revisionNo': json['revision_no'] == null ? undefined : json['revision_no'],
         'submittedBy': json['submitted_by'] == null ? undefined : json['submitted_by'],
         'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
         'withdrawnAt': json['withdrawn_at'] == null ? undefined : (new Date(json['withdrawn_at'])),
         'withdrawReason': json['withdraw_reason'] == null ? undefined : json['withdraw_reason'],
+        'isShortlisted': json['is_shortlisted'] == null ? undefined : json['is_shortlisted'],
+        'shortlistedAt': json['shortlisted_at'] == null ? undefined : (new Date(json['shortlisted_at'])),
+        'shortlistedBy': json['shortlisted_by'] == null ? undefined : json['shortlisted_by'],
         'supplier': json['supplier'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['supplier']),
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(QuoteItemFromJSON)),
         'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(QuoteAttachmentsInnerFromJSON)),
@@ -285,11 +320,16 @@ export function QuoteToJSONTyped(value?: Quote | null, ignoreDiscriminator: bool
         'min_order_qty': value['minOrderQty'],
         'lead_time_days': value['leadTimeDays'],
         'note': value['note'],
+            'incoterm': value['incoterm'],
+            'payment_terms': value['paymentTerms'],
         'revision_no': value['revisionNo'],
         'submitted_by': value['submittedBy'],
         'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
         'withdrawn_at': value['withdrawnAt'] == null ? value['withdrawnAt'] : value['withdrawnAt'].toISOString(),
         'withdraw_reason': value['withdrawReason'],
+        'is_shortlisted': value['isShortlisted'],
+        'shortlisted_at': value['shortlistedAt'] == null ? value['shortlistedAt'] : value['shortlistedAt'].toISOString(),
+        'shortlisted_by': value['shortlistedBy'],
         'supplier': GoodsReceiptNoteInspectorToJSON(value['supplier']),
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(QuoteItemToJSON)),
         'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(QuoteAttachmentsInnerToJSON)),

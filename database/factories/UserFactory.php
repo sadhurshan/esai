@@ -36,6 +36,8 @@ class UserFactory extends Factory
             'role' => 'buyer_admin',
             'status' => UserStatus::Active->value,
             'company_id' => null,
+            'supplier_capable' => false,
+            'default_supplier_id' => null,
             'job_title' => fake()->jobTitle(),
             'phone' => fake()->phoneNumber(),
             'locale' => 'en',

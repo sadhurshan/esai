@@ -3,10 +3,10 @@
 use App\Models\Company;
 use App\Models\Document;
 use App\Models\Invoice;
+use App\Models\Part;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\RFQ;
-use App\Models\RfqItem;
 use App\Models\SavedSearch;
 use App\Models\Supplier;
 use App\Models\User;
@@ -64,11 +64,13 @@ it('returns search results across suppliers, parts, rfqs, purchase orders, invoi
         'publish_at' => now()->subDay(),
     ]);
 
-    RfqItem::factory()->create([
-        'rfq_id' => $rfq->id,
-        'part_name' => 'Omega Gear Shaft',
+    $part = Part::factory()->create([
+        'company_id' => $company->id,
+        'part_number' => 'PN-OMEGA-42',
+        'name' => 'Omega Gear Shaft',
         'spec' => 'Omega hardened 4140 steel',
     ]);
+    $part->syncTags(['CNC Milling', 'omega']);
 
     /** @var PurchaseOrder $purchaseOrder */
     $purchaseOrder = PurchaseOrder::factory()->create([
@@ -122,6 +124,38 @@ it('returns search results across suppliers, parts, rfqs, purchase orders, invoi
         ->toContain('document');
 
     expect($response->json('data.meta.total'))->toBeGreaterThanOrEqual(6);
+});
+
+it('filters parts by tags', function (): void {
+    [, $company, $user] = prepareSearchContext();
+
+    $matching = Part::factory()->create([
+        'company_id' => $company->id,
+        'part_number' => 'PN-CNC-01',
+        'name' => 'CNC Block',
+        'spec' => 'Precision milled block',
+    ]);
+    $matching->syncTags(['CNC', 'aerospace']);
+
+    $nonMatching = Part::factory()->create([
+        'company_id' => $company->id,
+        'part_number' => 'PN-LASER-99',
+        'name' => 'Laser Cap',
+        'spec' => 'Laser cut component',
+    ]);
+    $nonMatching->syncTags(['laser']);
+
+    actingAs($user);
+
+    $response = getJson('/api/search?q=PN&types=part&tags=CNC,aerospace');
+
+    $response->assertOk();
+
+    $items = collect($response->json('data.items'));
+
+    expect($items)->toHaveCount(1);
+    expect($items->first()['id'])->toBe($matching->id);
+    expect($items->first()['additional']['tags'])->toContain('CNC');
 });
 
 it('filters search results by status and date range', function (): void {

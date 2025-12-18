@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { publishToast } from '@/components/ui/use-toast';
 import { useDeleteAttachment, useUploadAttachment } from '@/hooks/api/rfqs';
 import type { RfqAttachment } from '@/sdk';
-import { Paperclip, Trash2, UploadCloud } from 'lucide-react';
+import { Download, Paperclip, Trash2, UploadCloud } from 'lucide-react';
 
 export interface AttachmentUploaderProps {
     rfqId?: string | number;
@@ -121,21 +121,27 @@ export function AttachmentUploader({
                 <CardTitle>RFQ documents</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    <UploadCloud className="h-6 w-6" />
-                    <span>Drag & drop or click to upload supporting documents.</span>
-                    <input
-                        type="file"
-                        className="hidden"
-                        multiple
-                        onChange={handleFileSelection}
-                        disabled={!canManage || uploadMutation.isPending}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                        {/* TODO: enforce file type/size constraints once documents module is wired. */}
-                        CAD, PDF, and image attachments are supported.
-                    </span>
-                </label>
+                {canManage ? (
+                    <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                        <UploadCloud className="h-6 w-6" />
+                        <span>Drag & drop or click to upload supporting documents.</span>
+                        <input
+                            type="file"
+                            className="hidden"
+                            multiple
+                            onChange={handleFileSelection}
+                            disabled={!canManage || uploadMutation.isPending}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                            {/* TODO: enforce file type/size constraints once documents module is wired. */}
+                            CAD, PDF, and image attachments are supported.
+                        </span>
+                    </label>
+                ) : (
+                    <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                        Documents shared by the buyer appear below.
+                    </div>
+                )}
 
                 <Separator />
 
@@ -159,6 +165,8 @@ export function AttachmentUploader({
                                     ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                       (attachment.uploadedBy as any)?.name ?? null
                                     : null;
+                            const downloadHref = typeof attachment.url === 'string' ? attachment.url : '';
+                            const canDownload = downloadHref.length > 0;
 
                             return (
                                 <li key={attachment.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
@@ -172,17 +180,37 @@ export function AttachmentUploader({
                                             </p>
                                         </div>
                                     </div>
-                                    {canManage ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleConfirmDelete(attachment)}
-                                            disabled={deleteMutation.isPending || uploadMutation.isPending}
-                                            aria-label={`Remove ${attachment.filename}`}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    ) : null}
+                                    <div className="flex items-center gap-2">
+                                        {canDownload ? (
+                                            <Button variant="ghost" size="icon" asChild>
+                                                <a
+                                                    href={downloadHref}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    download
+                                                    aria-label={`Download ${attachment.filename}`}
+                                                    title="Download"
+                                                >
+                                                    <Download className="h-4 w-4" />
+                                                </a>
+                                            </Button>
+                                        ) : (
+                                            <Button variant="ghost" size="icon" disabled aria-label="Download unavailable">
+                                                <Download className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                        {canManage ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleConfirmDelete(attachment)}
+                                                disabled={deleteMutation.isPending || uploadMutation.isPending}
+                                                aria-label={`Remove ${attachment.filename}`}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        ) : null}
+                                    </div>
                                 </li>
                             );
                         })}

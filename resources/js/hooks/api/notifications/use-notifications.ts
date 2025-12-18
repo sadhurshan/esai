@@ -23,20 +23,47 @@ interface NotificationResponseItem {
     updated_at?: string | null;
 }
 
-interface NotificationIndexResponse {
-    data: NotificationResponseItem[];
-    meta?: {
-        total?: number;
-        per_page?: number;
-        perPage?: number;
-        current_page?: number;
-        currentPage?: number;
-        last_page?: number;
-        lastPage?: number;
-        unread_count?: number;
-        unreadCount?: number;
-    } | null;
+type MetaRecord = Record<string, unknown>;
+
+interface NotificationIndexMeta extends MetaRecord {
+    total?: number;
+    per_page?: number;
+    perPage?: number;
+    current_page?: number;
+    currentPage?: number;
+    last_page?: number;
+    lastPage?: number;
+    unread_count?: number;
+    unreadCount?: number;
+    data?: MetaRecord | null;
+    envelope?: MetaRecord | null;
 }
+
+interface NotificationIndexResponse {
+    items?: NotificationResponseItem[];
+    data?: NotificationResponseItem[];
+    meta?: NotificationIndexMeta | null;
+}
+
+const toRecord = (value: unknown): MetaRecord | undefined =>
+    typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as MetaRecord) : undefined;
+
+const pickNumber = (sources: Array<MetaRecord | undefined>, keys: string[]): number | undefined => {
+    for (const source of sources) {
+        if (!source) {
+            continue;
+        }
+
+        for (const key of keys) {
+            const candidate = source[key];
+            if (typeof candidate === 'number') {
+                return candidate;
+            }
+        }
+    }
+
+    return undefined;
+};
 
 const mapNotification = (payload: NotificationResponseItem): NotificationListItem => ({
     id: payload.id,
@@ -52,13 +79,36 @@ const mapNotification = (payload: NotificationResponseItem): NotificationListIte
     updatedAt: payload.updated_at,
 });
 
-const mapMeta = (meta?: NotificationIndexResponse['meta']): NotificationListMeta => ({
-    total: meta?.total,
-    perPage: meta?.per_page ?? meta?.perPage,
-    currentPage: meta?.current_page ?? meta?.currentPage,
-    lastPage: meta?.last_page ?? meta?.lastPage,
-    unreadCount: meta?.unread_count ?? meta?.unreadCount,
-});
+const mapMeta = (meta?: NotificationIndexResponse['meta']): NotificationListMeta => {
+    const root = toRecord(meta);
+    const data = toRecord(root?.data);
+    const envelope = toRecord(root?.envelope);
+    const pagination = toRecord(envelope?.pagination) ?? toRecord(root?.pagination);
+
+    return {
+        total: pickNumber([root, data, pagination], ['total']),
+        perPage: pickNumber([root, data, pagination], ['per_page', 'perPage']),
+        currentPage: pickNumber([root, data, pagination], ['current_page', 'currentPage']),
+        lastPage: pickNumber([root, data, pagination], ['last_page', 'lastPage']),
+        unreadCount: pickNumber([root, envelope], ['unread_count', 'unreadCount']),
+    };
+};
+
+const resolveItems = (payload: NotificationIndexResponse | NotificationResponseItem[]): NotificationResponseItem[] => {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (Array.isArray(payload.items)) {
+        return payload.items;
+    }
+
+    if (Array.isArray(payload.data)) {
+        return payload.data;
+    }
+
+    return [];
+};
 
 export type UseNotificationsParams = NotificationListFilters;
 
@@ -67,17 +117,17 @@ export function useNotifications(
 ): UseQueryResult<NotificationListResult, ApiError> {
     const queryParams: Record<string, unknown> = { ...params };
 
-    return useQuery<NotificationIndexResponse, ApiError, NotificationListResult>({
+    return useQuery<NotificationIndexResponse | NotificationResponseItem[], ApiError, NotificationListResult>({
         queryKey: queryKeys.notifications.list(queryParams),
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            return (await api.get<NotificationIndexResponse>(
-                `/notifications${query}`,
-            )) as unknown as NotificationIndexResponse;
+            const payload = await api.get<NotificationIndexResponse | NotificationResponseItem[]>(`/notifications${query}`);
+
+            return payload as unknown as NotificationIndexResponse | NotificationResponseItem[];
         },
         select: (response) => ({
-            items: response.data.map(mapNotification),
-            meta: mapMeta(response.meta),
+            items: resolveItems(response).map(mapNotification),
+            meta: mapMeta(Array.isArray(response) ? undefined : response.meta),
         }),
         placeholderData: keepPreviousData,
         staleTime: 15_000,

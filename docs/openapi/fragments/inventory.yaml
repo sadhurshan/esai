@@ -263,6 +263,9 @@ paths:
         - Inventory
       summary: List goods receipt notes for purchase order
       operationId: listGrns
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
       responses:
         '200':
           description: Collection of goods receipt notes.
@@ -283,7 +286,7 @@ paths:
                             items:
                               $ref: '#/components/schemas/GoodsReceiptNote'
                           meta:
-                            $ref: '#/components/schemas/PageMeta'
+                              $ref: '#/components/schemas/CursorMeta'
     post:
       tags:
         - Inventory

@@ -123,7 +123,7 @@ class AwardLineItemsAction
                     $quoteItem = $row['quote_item'];
                     $awardedQty = (int) ($row['awarded_qty'] ?? ($quoteItem->rfqItem->quantity ?? 1));
 
-                    $award = RfqItemAward::create([
+                    $awardAttributes = [
                         'company_id' => $rfq->company_id,
                         'rfq_id' => $rfq->id,
                         'rfq_item_id' => $row['rfq_item_id'],
@@ -135,7 +135,49 @@ class AwardLineItemsAction
                         'awarded_by' => $user->id,
                         'awarded_at' => $awardedAt,
                         'status' => RfqItemAwardStatus::Awarded,
-                    ]);
+                    ];
+
+                    $existingAward = RfqItemAward::query()
+                        ->where('rfq_item_id', $row['rfq_item_id'])
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($existingAward !== null && $existingAward->status !== RfqItemAwardStatus::Cancelled) {
+                        throw new RfqAwardException('RFQ item already awarded.', 409);
+                    }
+
+                    if ($existingAward instanceof RfqItemAward && $existingAward->status === RfqItemAwardStatus::Cancelled) {
+                        $beforeAward = Arr::only($existingAward->getOriginal(), [
+                            'supplier_id',
+                            'quote_id',
+                            'quote_item_id',
+                            'awarded_qty',
+                            'po_id',
+                            'status',
+                        ]);
+
+                        if ($existingAward->trashed()) {
+                            $existingAward->restore();
+                        }
+
+                        $existingAward->fill($awardAttributes);
+                        $existingAward->save();
+
+                        $award = $existingAward;
+
+                        $this->auditLogger->updated($award, $beforeAward, [
+                            'rfq_item_id' => $row['rfq_item_id'],
+                            'po_id' => $po?->id,
+                            'status' => $award->status->value,
+                        ]);
+                    } else {
+                        $award = RfqItemAward::create($awardAttributes);
+
+                        $this->auditLogger->created($award, [
+                            'rfq_item_id' => $row['rfq_item_id'],
+                            'po_id' => $po?->id,
+                        ]);
+                    }
 
                     if ($po instanceof PurchaseOrder) {
                         $poLine = $lines[$row['rfq_item_id']] ?? $po->lines()
@@ -149,11 +191,6 @@ class AwardLineItemsAction
                             $poLine->save();
                         }
                     }
-
-                    $this->auditLogger->created($award, [
-                        'rfq_item_id' => $row['rfq_item_id'],
-                        'po_id' => $po?->id,
-                    ]);
 
                     $this->updateQuoteItemStatus($quoteItem, 'awarded');
 

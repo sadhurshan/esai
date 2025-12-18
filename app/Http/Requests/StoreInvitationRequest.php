@@ -63,13 +63,12 @@ class StoreInvitationRequest extends ApiFormRequest
 
     protected function failedAuthorization(): void
     {
-        throw new HttpResponseException(response()->json([
-            'status' => 'error',
-            'message' => 'RFQ invitations require sourcing write access.',
-            'data' => null,
-            'errors' => [
-                'code' => 'rfqs_write_required',
-            ],
-        ], 403));
+        throw new HttpResponseException(
+            $this->fail(
+                'RFQ invitations require sourcing write access.',
+                403,
+                ['code' => 'rfqs_write_required']
+            )
+        );
     }
 }

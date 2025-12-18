@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\Auth\AuthResponseFactory;
+use App\Support\RequestPersonaResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,8 @@ class AuthSessionController extends ApiController
 
         $payload = $this->responseFactory->make($user, $request->session()->getId());
 
+        RequestPersonaResolver::remember($request, $payload['active_persona'] ?? null);
+
         return $this->ok($payload, 'Authenticated successfully.');
     }
 
@@ -56,6 +59,8 @@ class AuthSessionController extends ApiController
 
         $payload = $this->responseFactory->make($user, $request->session()->getId());
 
+        RequestPersonaResolver::remember($request, $payload['active_persona'] ?? null);
+
         return $this->ok($payload, 'Authentication details retrieved.');
     }
 
@@ -65,6 +70,7 @@ class AuthSessionController extends ApiController
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        RequestPersonaResolver::remember($request, null);
 
         return $this->ok(null, 'Signed out successfully.');
     }

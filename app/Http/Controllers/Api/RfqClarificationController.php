@@ -7,13 +7,18 @@ use App\Http\Requests\Rfq\StoreRfqAmendmentRequest;
 use App\Http\Requests\Rfq\StoreRfqAnswerRequest;
 use App\Http\Requests\Rfq\StoreRfqQuestionRequest;
 use App\Http\Resources\RfqClarificationResource;
+use App\Models\Document;
+use App\Models\RfqClarification;
 use App\Models\RFQ;
 use App\Policies\RfqClarificationPolicy;
 use App\Services\RfqClarificationService;
+use App\Support\CompanyContext;
 use App\Support\RfqResponseWindowGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RfqClarificationController extends ApiController
 {
@@ -149,6 +154,39 @@ class RfqClarificationController extends ApiController
         )->setStatusCode(201);
     }
 
+    public function downloadAttachment(Request $request, RFQ $rfq, RfqClarification $clarification, int $attachment): JsonResponse|StreamedResponse
+    {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['user' => $user] = $context;
+
+        if ((int) $clarification->rfq_id !== (int) $rfq->id) {
+            return $this->fail('Clarification not found.', 404);
+        }
+
+        if (! $this->clarificationPolicy->viewClarifications($user, $rfq)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        $document = $this->resolveAttachmentDocument($clarification, $attachment);
+
+        if (! $document instanceof Document) {
+            return $this->fail('Attachment not found.', 404);
+        }
+
+        $response = $this->streamDocument($document);
+
+        if (! $response instanceof StreamedResponse) {
+            return $this->fail('Attachment unavailable.', 404);
+        }
+
+        return $response;
+    }
+
     /**
      * @return list<UploadedFile|null>
      */
@@ -176,5 +214,46 @@ class RfqClarificationController extends ApiController
         }
 
         return null;
+    }
+
+    private function resolveAttachmentDocument(RfqClarification $clarification, int $documentId): ?Document
+    {
+        $attachmentIds = $clarification->attachmentIds();
+
+        if (! in_array($documentId, $attachmentIds, true)) {
+            return null;
+        }
+
+        return CompanyContext::forCompany((int) $clarification->company_id, static function () use ($documentId): ?Document {
+            return Document::query()->find($documentId);
+        });
+    }
+
+    private function streamDocument(Document $document): ?StreamedResponse
+    {
+        $disk = config('documents.disk', config('filesystems.default', 'public'));
+        $path = (string) ($document->path ?? '');
+
+        if ($path === '') {
+            return null;
+        }
+
+        try {
+            $storage = Storage::disk($disk);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (! $storage->exists($path)) {
+            return null;
+        }
+
+        try {
+            return $storage->download($path, $document->filename ?? basename($path), [
+                'Content-Type' => $document->mime ?? 'application/octet-stream',
+            ]);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

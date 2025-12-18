@@ -8,7 +8,7 @@ use App\Models\Quote;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @extends JsonResource<array{quote: Quote, scores: array{price: float, lead_time: float, rating: float, composite: float, rank: int}} */
+/** @extends JsonResource<array{quote: Quote, scores: array{price: float, lead_time: float, risk: float, fit: float, composite: float, rank: int}}> */
 class QuoteComparisonResource extends JsonResource
 {
     public function toArray(Request $request): array

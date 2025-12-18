@@ -3,26 +3,24 @@
 namespace App\Policies;
 
 use App\Models\RFQ;
-use App\Models\Supplier;
 use App\Models\User;
+use App\Models\Supplier;
+use App\Support\ActivePersonaContext;
+use App\Support\CompanyContext;
 
 class RfqClarificationPolicy
 {
     private const BUYER_ROLES = ['owner', 'buyer_admin', 'buyer_requester'];
-    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator'];
+    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator', 'owner'];
     private const PLATFORM_ROLES = ['platform_super', 'platform_support'];
 
     public function viewClarifications(User $user, RFQ $rfq): bool
     {
-        if ($this->belongsToCompany($user, $rfq) && $this->isBuyerRole($user)) {
+        if ($this->isBuyerContext($user, $rfq)) {
             return true;
         }
 
-        if ($this->belongsToCompany($user, $rfq) && $this->isSupplierRole($user)) {
-            return true;
-        }
-
-        if ($this->isSupplierRole($user) && $this->supplierHasAccess($user, $rfq)) {
+        if ($this->isSupplierContext($user) && $this->supplierHasAccess($user, $rfq)) {
             return true;
         }
 
@@ -35,8 +33,8 @@ class RfqClarificationPolicy
             return false;
         }
 
-        return $this->isBuyerRole($user)
-            || $this->isSupplierRole($user)
+        return $this->isBuyerContext($user, $rfq)
+            || $this->isSupplierContext($user)
             || $user->isPlatformAdmin();
     }
 
@@ -46,7 +44,11 @@ class RfqClarificationPolicy
             return false;
         }
 
-        return $this->isBuyerRole($user) || $user->isPlatformAdmin();
+        if ($this->isBuyerContext($user, $rfq) || $user->isPlatformAdmin()) {
+            return true;
+        }
+
+        return $this->isSupplierContext($user) && $this->supplierHasAccess($user, $rfq);
     }
 
     public function postAmendment(User $user, RFQ $rfq): bool
@@ -55,7 +57,7 @@ class RfqClarificationPolicy
             return false;
         }
 
-        return $this->isBuyerRole($user) || $user->isPlatformAdmin();
+        return $this->isBuyerContext($user, $rfq) || $user->isPlatformAdmin();
     }
 
     public function awardLines(User $user, RFQ $rfq): bool
@@ -78,7 +80,7 @@ class RfqClarificationPolicy
 
     private function supplierHasAccess(User $user, RFQ $rfq): bool
     {
-        if (! $this->isSupplierRole($user)) {
+        if (! $this->isSupplierContext($user)) {
             return false;
         }
 
@@ -86,26 +88,65 @@ class RfqClarificationPolicy
             return true;
         }
 
-        if ($user->company_id === null) {
-            return false;
-        }
-
-        $supplierIds = Supplier::query()
-            ->where('company_id', $user->company_id)
-            ->pluck('id')
-            ->map(static fn ($id) => (int) $id)
-            ->all();
+        $supplierIds = $this->resolveSupplierIds($user);
 
         if ($supplierIds === []) {
             return false;
         }
 
-        $rfq->loadMissing('invitations');
+        CompanyContext::forCompany($rfq->company_id, static function () use ($rfq): void {
+            $rfq->loadMissing('invitations');
+        });
 
-        return $rfq->invitations
+        $invitedIds = $rfq->invitations
             ->pluck('supplier_id')
             ->map(static fn ($id) => (int) $id)
-            ->contains(fn (int $invitedSupplierId): bool => in_array($invitedSupplierId, $supplierIds, true));
+            ->all();
+
+        return (bool) array_intersect($supplierIds, $invitedIds);
+    }
+
+    private function resolveSupplierIds(User $user): array
+    {
+        $personaSupplierId = ActivePersonaContext::supplierId();
+
+        if ($personaSupplierId !== null) {
+            return [$personaSupplierId];
+        }
+
+        if ($user->company_id === null) {
+            return [];
+        }
+
+        return CompanyContext::forCompany($user->company_id, function () use ($user) {
+            return Supplier::query()
+                ->where('company_id', $user->company_id)
+                ->pluck('id')
+                ->map(static fn ($id) => (int) $id)
+                ->all();
+        });
+    }
+
+    private function isBuyerContext(User $user, RFQ $rfq): bool
+    {
+        if (! $this->belongsToCompany($user, $rfq)) {
+            return false;
+        }
+
+        if (ActivePersonaContext::isSupplier()) {
+            return false;
+        }
+
+        return $this->isBuyerRole($user);
+    }
+
+    private function isSupplierContext(User $user): bool
+    {
+        if (ActivePersonaContext::isSupplier()) {
+            return true;
+        }
+
+        return $this->isSupplierRole($user);
     }
 
     private function isBuyerRole(User $user): bool

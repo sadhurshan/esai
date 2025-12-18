@@ -12,6 +12,8 @@ import {
 
 export type RfqStatusFilter = 'all' | 'draft' | 'open' | 'closed' | 'awarded' | 'cancelled';
 
+export type RfqAudience = 'buyer' | 'supplier';
+
 export interface UseRfqsParams {
     perPage?: number;
     cursor?: string;
@@ -21,6 +23,7 @@ export interface UseRfqsParams {
     dueTo?: string;
     openBidding?: boolean;
     method?: string;
+    audience?: RfqAudience;
 }
 
 export interface CursorState {
@@ -125,13 +128,15 @@ export function useRfqs(params: UseRfqsParams = {}): UseRfqsResult {
         cursor,
         openBidding,
         method,
+        audience = 'buyer',
     } = params;
 
     const sanitizedSearch = search?.trim() || undefined;
     const statusFilters = normalizeStatusFilters(status);
+    const endpoint = audience === 'supplier' ? '/api/supplier/rfqs' : '/api/rfqs';
 
     const query = useQuery<ListRfqs200Response>({
-        queryKey: ['rfqs', { perPage, status, sanitizedSearch, dueFrom, dueTo, cursor, openBidding, method }],
+        queryKey: ['rfqs', { perPage, status, sanitizedSearch, dueFrom, dueTo, cursor, openBidding, method, audience }],
         queryFn: async () => {
             const fetchApi = configuration.fetchApi ?? fetch;
             const queryString = buildQueryString({
@@ -144,7 +149,7 @@ export function useRfqs(params: UseRfqsParams = {}): UseRfqsResult {
                 openBidding,
                 method,
             });
-            const url = `${configuration.basePath.replace(/\/$/, '')}/api/rfqs${queryString}`;
+            const url = `${configuration.basePath.replace(/\/$/, '')}${endpoint}${queryString}`;
             const response = await fetchApi(url);
             const data = await response.json();
             return ListRfqs200ResponseFromJSON(data);

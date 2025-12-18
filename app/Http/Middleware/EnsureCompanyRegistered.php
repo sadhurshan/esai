@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,15 +34,14 @@ class EnsureCompanyRegistered
             }
 
             if ($request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Complete company onboarding before proceeding.',
-                    'data' => null,
-                    'errors' => [
+                return ApiResponse::error(
+                    'Complete company onboarding before proceeding.',
+                    Response::HTTP_FORBIDDEN,
+                    [
                         'company' => ['Company onboarding incomplete.'],
                         'missing_fields' => $company?->buyerOnboardingMissingFields() ?? Company::BUYER_ONBOARDING_REQUIRED_FIELDS,
-                    ],
-                ], Response::HTTP_FORBIDDEN);
+                    ]
+                );
             }
 
             return redirect()->route('company.registration');

@@ -1,13 +1,10 @@
-import { ModulePlaceholder } from '@/pages/shared/module-placeholder';
-import { PackageSearch } from 'lucide-react';
+import { BuyerOrderListPage } from './buyer-order-list-page';
 
+/**
+ * Backwards-compatible entry point used by older imports that expected `OrdersPage`.
+ * We now render the full buyer orders experience so navigation links and tests
+ * referencing `OrdersPage` pick up the real module instead of a placeholder.
+ */
 export function OrdersPage() {
-    return (
-        <ModulePlaceholder
-            moduleKey="orders"
-            title="Orders"
-            description="Fulfilment, shipments, and milestone tracking will render here when the downstream logistics module is wired."
-            hero={<PackageSearch className="h-12 w-12" />}
-        />
-    );
+    return <BuyerOrderListPage />;
 }

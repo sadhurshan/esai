@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\ActivePersonaController;
 use App\Http\Controllers\Api\Auth\AuthSessionController;
 use App\Http\Controllers\Api\Auth\PasswordResetController;
 use App\Http\Controllers\Api\Auth\SelfRegistrationController;
@@ -17,6 +18,7 @@ Route::prefix('api/auth')->group(function (): void {
     Route::middleware('auth')->group(function (): void {
         Route::get('me', [AuthSessionController::class, 'show']);
         Route::post('logout', [AuthSessionController::class, 'destroy']);
+        Route::post('persona', [ActivePersonaController::class, 'store']);
     });
 
     Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('guest');
@@ -37,6 +39,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
 });
+
+Route::view('/app/setup/plan', 'app')->name('app.setup.plan');
 
 Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(function () {
     Route::view('/app', 'app')->name('dashboard');

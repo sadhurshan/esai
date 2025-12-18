@@ -127,8 +127,12 @@ Client: Elements Technik Limited (trading as “Elements Supply AI")
 
    6. **FR-6 Invoicing & Payments (Tracking only)**
 
-1. Invoice generation from PO (auto) with manual edits supported; supplier branding.  
-2. Payment status tracking (Paid/Pending/Overdue), records per part/order. No online payment processing.
+1. Supplier-authored invoices: invited suppliers can draft invoices directly from a PO, attach docs, and submit for buyer review; multiple invoices per PO remain supported for partials/milestones.  
+2. Lifecycle statuses (buyer-visible and supplier-visible): draft → submitted → buyer_review → approved → rejected → paid; transitions log actor, timestamp, and notes.  
+3. Buyer review queue grants Finance roles Approve, Reject, or Request changes actions; rejections bounce the invoice back to the supplier with feedback and reopen editing.  
+4. Payment status tracking (Paid/Pending/Overdue) still mirrors finance systems; no online payment capture, but invoices surface payment references, remittance notes, and match indicators.  
+5. Notifications fire on supplier submission, buyer decision, and payment updates for both parties per notification settings.  
+6. **TODO:** Confirm max attachment count/size suppliers may upload with an invoice submission so document validation can be enforced at API/UI layers.
 
    7. **FR-7 Orders & Logistics**
 

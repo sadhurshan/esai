@@ -7,13 +7,17 @@ use App\Http\Requests\Settings\UpdateCompanySettingsRequest;
 use App\Http\Resources\Settings\CompanySettingsResource;
 use App\Models\Company;
 use App\Models\CompanyProfile;
+use App\Services\CompanyBrandingService;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CompanySettingsController extends ApiController
 {
-    public function __construct(private readonly AuditLogger $auditLogger)
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly CompanyBrandingService $brandingService,
+    )
     {
     }
 
@@ -50,8 +54,23 @@ class CompanySettingsController extends ApiController
 
         $profile = CompanyProfile::query()->firstOrNew(['company_id' => $company->id]);
         $before = $profile->exists ? $profile->getOriginal() : [];
+        $payload = $request->payload();
+        $logoFile = $request->file('logo');
+        $markFile = $request->file('mark');
 
-        $profile->fill($request->payload());
+        if ($logoFile) {
+            $payload['logo_url'] = $this->brandingService->storeLogo($profile, $logoFile);
+        } elseif ($request->exists('logo_url') && ($payload['logo_url'] ?? null) === null) {
+            $this->brandingService->deleteLogo($profile);
+        }
+
+        if ($markFile) {
+            $payload['mark_url'] = $this->brandingService->storeMark($profile, $markFile);
+        } elseif ($request->exists('mark_url') && ($payload['mark_url'] ?? null) === null) {
+            $this->brandingService->deleteMark($profile);
+        }
+
+        $profile->fill($payload);
         $dirty = ! $profile->exists || $profile->isDirty();
         $profile->save();
 

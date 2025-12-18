@@ -40,6 +40,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'status',
+        'supplier_capable',
+        'default_supplier_id',
         'job_title',
         'phone',
         'locale',
@@ -81,6 +83,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
             'status' => UserStatus::class,
+            'supplier_capable' => 'boolean',
+            'default_supplier_id' => 'integer',
         ];
     }
 
@@ -114,6 +118,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function purchaseRequisitions(): HasMany
     {
         return $this->hasMany(PurchaseRequisition::class, 'requested_by');
+    }
+
+    public function supplierContacts(): HasMany
+    {
+        return $this->hasMany(SupplierContact::class);
+    }
+
+    public function defaultSupplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'default_supplier_id');
     }
 
     public function copilotPrompts(): HasMany
@@ -160,6 +174,11 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $resolvedRole === $role;
+    }
+
+    public function isPlatformSuper(): bool
+    {
+        return $this->isPlatformAdmin(PlatformAdminRole::Super);
     }
 
     private function derivePlatformRoleFromAttributes(): ?PlatformAdminRole

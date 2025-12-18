@@ -31,7 +31,6 @@ export function useRfqTimeline(rfqId: RfqIdentifier): UseRfqTimelineResult {
         queryKey: queryKeys.rfqs.timeline(rfqId ?? 'undefined'),
         enabled,
         queryFn: () => fetchRfqTimeline({ rfqsApi, rfqId: rfqId as string | number }),
-        initialData: [],
     });
 
     return {

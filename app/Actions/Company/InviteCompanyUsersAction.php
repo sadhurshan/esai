@@ -12,9 +12,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class InviteCompanyUsersAction
 {
+    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator'];
+
     public function __construct(private readonly AuditLogger $auditLogger)
     {
     }
@@ -24,6 +27,8 @@ class InviteCompanyUsersAction
      */
     public function execute(Company $company, User $inviter, array $invitations): Collection
     {
+        $this->assertSupplierRoleEligibility($company, $invitations);
+
         return DB::transaction(function () use ($company, $inviter, $invitations): Collection {
             $created = collect();
 
@@ -62,6 +67,28 @@ class InviteCompanyUsersAction
 
             return $created;
         });
+    }
+
+    private function assertSupplierRoleEligibility(Company $company, array $invitations): void
+    {
+        if ($company->isSupplierApproved()) {
+            return;
+        }
+
+        foreach ($invitations as $invitation) {
+            $role = $invitation['role'] ?? null;
+
+            if ($this->isSupplierRole($role)) {
+                throw ValidationException::withMessages([
+                    'invitations' => ['Supplier-role invitations require supplier approval.'],
+                ]);
+            }
+        }
+    }
+
+    private function isSupplierRole(mixed $role): bool
+    {
+        return is_string($role) && in_array($role, self::SUPPLIER_ROLES, true);
     }
 
     private function generateToken(): string

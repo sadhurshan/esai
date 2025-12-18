@@ -2,6 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\RFQ;
+use App\Support\ActivePersonaContext;
+use App\Support\ApiResponse;
+use App\Support\CompanyContext;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -26,8 +30,20 @@ class EnsureSourcingAccess
             return $next($request);
         }
 
+        if (ActivePersonaContext::isSupplier()) {
+            if ($this->supplierCanAccessRfq($request)) {
+                return $next($request);
+            }
+
+            return $this->errorResponse('Sourcing access required.', Response::HTTP_FORBIDDEN);
+        }
+
         $permission = $level === 'write' ? 'rfqs.write' : 'rfqs.read';
-        $companyId = $user->company_id !== null ? (int) $user->company_id : null;
+        $companyId = CompanyContext::get();
+
+        if ($companyId === null && $user->company_id !== null) {
+            $companyId = (int) $user->company_id;
+        }
 
         if (! $this->permissionRegistry->userHasAny($user, [$permission], $companyId)) {
             $message = $level === 'write'
@@ -42,10 +58,37 @@ class EnsureSourcingAccess
 
     private function errorResponse(string $message, int $status): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ], $status);
+        return ApiResponse::error($message, $status);
+    }
+
+    private function supplierCanAccessRfq(Request $request): bool
+    {
+        $rfqParam = $request->route('rfq');
+
+        if ($rfqParam === null) {
+            return false;
+        }
+
+        $rfq = $rfqParam instanceof RFQ
+            ? $rfqParam
+            : RFQ::query()->with('invitations')->find((int) $rfqParam);
+
+        if (! $rfq instanceof RFQ) {
+            return false;
+        }
+
+        if ($rfq->is_open_bidding) {
+            return true;
+        }
+
+        $supplierId = ActivePersonaContext::supplierId();
+
+        if ($supplierId === null) {
+            return false;
+        }
+
+        return $rfq->invitations()
+            ->where('supplier_id', $supplierId)
+            ->exists();
     }
 }

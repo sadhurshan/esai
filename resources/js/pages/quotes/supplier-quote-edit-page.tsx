@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,26 +9,35 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/empty-state';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { QuoteLineEditor } from '@/components/quotes/quote-line-editor';
+import { QuoteAttachmentsInput } from '@/components/quotes/quote-attachments-input';
 import { WithdrawConfirmDialog } from '@/components/quotes/withdraw-confirm-dialog';
 import { MoneyCell } from '@/components/quotes/money-cell';
 import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { useQuote } from '@/hooks/api/quotes/use-quote';
+import { useUpdateQuoteDraft } from '@/hooks/api/quotes/use-update-quote-draft';
 import { useSubmitQuote } from '@/hooks/api/quotes/use-submit-quote';
 import { useReviseQuote } from '@/hooks/api/quotes/use-revise-quote';
 import { useWithdrawQuote } from '@/hooks/api/quotes/use-withdraw-quote';
 import { useQuoteLines } from '@/hooks/api/quotes/use-quote-lines';
 import { useRfqLines } from '@/hooks/api/rfqs/use-rfq-lines';
+import { useRfq } from '@/hooks/api/rfqs/use-rfq';
 import { useMoneySettings } from '@/hooks/api/use-money-settings';
 import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-schema';
 import { supplierQuoteFormSchema } from '@/pages/quotes/supplier-quote-schema';
 import type { Quote, QuoteItem, QuoteStatusEnum, SubmitQuoteRevisionRequest, RfqItem } from '@/sdk';
 import { HttpError, type QuoteLineUpdateRequest } from '@/sdk';
+import { useFormatting } from '@/contexts/formatting-context';
+import { getRfqDeadlineDate, isResponseWindowClosed } from '@/lib/rfq-response-window';
+import { haveSameTaxCodeIds, normalizeTaxCodeIds } from '@/lib/tax-code-helpers';
+import type { DocumentAttachment } from '@/types/sourcing';
 
 const READ_ONLY_STATUSES: QuoteStatusEnum[] = ['withdrawn', 'expired', 'awarded', 'lost'];
 const MIN_MINOR_UNIT = 2;
@@ -36,25 +45,33 @@ const MIN_MINOR_UNIT = 2;
 export function SupplierQuoteEditPage() {
     const { quoteId } = useParams<{ quoteId: string }>();
     const navigate = useNavigate();
-    const { hasFeature, state, notifyPlanLimit } = useAuth();
+    const { hasFeature, state, notifyPlanLimit, activePersona } = useAuth();
+    const { formatDate } = useFormatting();
     const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier';
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const quotesEnabled = hasFeature('quotes_enabled');
-    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole;
+    const quotesEnabled = hasFeature('quotes_enabled') || isSupplierPersona;
+    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole || isSupplierPersona;
     const canAccess = !featureFlagsLoaded || (quotesEnabled && supplierPortalEnabled);
 
     const quoteQuery = useQuote(quoteId, { enabled: Boolean(quoteId) && canAccess });
     const quote = quoteQuery.data?.quote;
+    const rfqDetailQuery = useRfq(quote?.rfqId ?? null, { enabled: Boolean(quote?.rfqId) && canAccess });
     const rfqLinesQuery = useRfqLines({ rfqId: quote?.rfqId ?? null });
     const moneySettingsQuery = useMoneySettings();
     const { updateLine } = useQuoteLines();
     const submitQuote = useSubmitQuote();
     const reviseQuote = useReviseQuote();
     const withdrawQuote = useWithdrawQuote();
+    const updateQuoteDraft = useUpdateQuoteDraft();
 
     const rfqLines = useMemo(() => rfqLinesQuery.items ?? [], [rfqLinesQuery.items]);
     const quantityMap = useMemo(() => mapLineQuantity(rfqLines, quote?.items ?? []), [quote?.items, rfqLines]);
     const minorUnit = inferMinorUnit(moneySettingsQuery.data) ?? MIN_MINOR_UNIT;
+    const currencyOptions = useMemo(
+        () => inferCurrencyOptions(moneySettingsQuery.data, quote?.currency),
+        [moneySettingsQuery.data, quote?.currency],
+    );
 
     const form = useForm<SupplierQuoteFormValues>({
         resolver: zodResolver(supplierQuoteFormSchema),
@@ -62,6 +79,7 @@ export function SupplierQuoteEditPage() {
     });
     const watchedLines = useWatch({ control: form.control, name: 'lines' });
     const watchedCurrency = useWatch({ control: form.control, name: 'currency' });
+    const watchedMinOrderQty = useWatch({ control: form.control, name: 'minOrderQty' });
     const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
     const resetSignatureRef = useRef<string | null>(null);
 
@@ -69,8 +87,28 @@ export function SupplierQuoteEditPage() {
         if (!quote) {
             return null;
         }
-        return `${quote.id}-${rfqLines.length}-${minorUnit}`;
-    }, [minorUnit, quote, rfqLines.length]);
+
+        const summaryFingerprint = JSON.stringify({
+            currency: quote.currency ?? '',
+            minOrderQty: quote.minOrderQty ?? '',
+            leadTimeDays: quote.leadTimeDays ?? '',
+            incoterm: quote.incoterm ?? '',
+            paymentTerms: quote.paymentTerms ?? '',
+            note: quote.note ?? '',
+        });
+
+        return `${quote.id}-${rfqLines.length}-${minorUnit}-${summaryFingerprint}`;
+    }, [
+        minorUnit,
+        quote?.currency,
+        quote?.id,
+        quote?.incoterm,
+        quote?.leadTimeDays,
+        quote?.minOrderQty,
+        quote?.note,
+        quote?.paymentTerms,
+        rfqLines.length,
+    ]);
 
     useEffect(() => {
         if (!quote || !resetSignature) {
@@ -86,6 +124,11 @@ export function SupplierQuoteEditPage() {
     const reviewTotals = useMemo(() => {
         return calculateReviewTotals(watchedLines, quantityMap, minorUnit);
     }, [minorUnit, quantityMap, watchedLines]);
+
+    const rfqDetail = rfqDetailQuery.data ?? null;
+    const rfqDeadlineDate = getRfqDeadlineDate(rfqDetail);
+    const responseWindowClosed = isResponseWindowClosed(rfqDetail);
+    const deadlineLabel = rfqDeadlineDate ? formatDate(rfqDeadlineDate) : null;
 
     if (featureFlagsLoaded && !supplierPortalEnabled) {
         return (
@@ -150,10 +193,20 @@ export function SupplierQuoteEditPage() {
         );
     }
 
-    const isReadOnly = READ_ONLY_STATUSES.includes(quote.status as QuoteStatusEnum);
+    const statusLocked = READ_ONLY_STATUSES.includes(quote.status as QuoteStatusEnum);
+    const isReadOnly = statusLocked || responseWindowClosed;
     const rfqNumber = String(quote.rfqId);
 
     const handlePersistLines = async (values: SupplierQuoteFormValues) => {
+        if (quote.status === 'draft') {
+            const payload = buildDraftUpdatePayload(values);
+            await updateQuoteDraft.mutateAsync({
+                rfqId: quote.rfqId,
+                quoteId: quote.id,
+                payload,
+            });
+        }
+
         if (!quote.items?.length) {
             return;
         }
@@ -192,7 +245,7 @@ export function SupplierQuoteEditPage() {
             await handlePersistLines(values);
             await submitQuote.mutateAsync({ quoteId: quote.id, rfqId: quote.rfqId });
             publishToast({ variant: 'success', title: 'Quote submitted', description: 'Buyer notified of your submission.' });
-            navigate(`/app/quotes/${quote.id}`);
+            navigate(`/app/supplier/quotes/${quote.id}`);
         } catch (error) {
             handleQuoteError(error, notifyPlanLimit);
         }
@@ -237,7 +290,13 @@ export function SupplierQuoteEditPage() {
         onSubmit: form.handleSubmit(handleSubmitDraftAndSend),
         onRevise: form.handleSubmit(handleSubmitRevision),
         onWithdraw: () => setWithdrawDialogOpen(true),
-        processing: updateLine.isPending || submitQuote.isPending || reviseQuote.isPending || withdrawQuote.isPending,
+        processing:
+            updateLine.isPending ||
+            submitQuote.isPending ||
+            reviseQuote.isPending ||
+            withdrawQuote.isPending ||
+            updateQuoteDraft.isPending,
+        locked: isReadOnly,
     });
 
     return (
@@ -248,37 +307,152 @@ export function SupplierQuoteEditPage() {
 
             <PlanUpgradeBanner />
 
+            {rfqDetailQuery.isFetched && responseWindowClosed ? (
+                <Alert variant="warning">
+                    <AlertTitle>RFQ closed for responses</AlertTitle>
+                    <AlertDescription>
+                        {deadlineLabel
+                            ? `The buyer deadline passed on ${deadlineLabel}. Reach out to request an extension before editing.`
+                            : 'This RFQ is no longer open, so quote edits and submissions are locked.'}
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
             <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="flex-1 space-y-6">
                     <Card className="border-sidebar-border/60">
                         <CardHeader>
-                            <CardTitle>Quote summary</CardTitle>
+                            <CardTitle>1. Company & contact</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div>
-                                <p className="text-xs uppercase text-muted-foreground">Status</p>
+                        <CardContent className="space-y-4 text-sm">
+                            <DetailRow label="Company">{state.company?.name ?? 'Supplier company'}</DetailRow>
+                            <DetailRow label="Contact">{state.user?.name ?? state.user?.email ?? '—'}</DetailRow>
+                            <DetailRow label="Email">{state.user?.email ?? '—'}</DetailRow>
+                            <DetailRow label="Status">
                                 <QuoteStatusBadge status={quote.status} />
+                            </DetailRow>
+                            <DetailRow label="Revision">Rev {quote.revisionNo ?? 1}</DetailRow>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-sidebar-border/60">
+                        <CardHeader>
+                            <CardTitle>2. Quote currency & summary</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-quote-currency">Currency</Label>
+                                <Select
+                                    disabled={isReadOnly}
+                                    value={watchedCurrency ?? quote.currency ?? currencyOptions[0]?.value ?? 'USD'}
+                                    onValueChange={(value) => form.setValue('currency', value, { shouldDirty: true })}
+                                >
+                                    <SelectTrigger id="edit-quote-currency">
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencyOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <div>
-                                <p className="text-xs uppercase text-muted-foreground">Total</p>
-                                <MoneyCell amountMinor={quote.totalMinor} currency={quote.currency} />
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-lead-time">Overall lead time (days)</Label>
+                                <Input
+                                    id="edit-lead-time"
+                                    type="number"
+                                    min={0}
+                                    step="1"
+                                    placeholder="Optional"
+                                    disabled={isReadOnly}
+                                    {...form.register('leadTimeDays')}
+                                />
+                                {form.formState.errors.leadTimeDays ? (
+                                    <p className="text-xs text-destructive">{form.formState.errors.leadTimeDays.message}</p>
+                                ) : null}
                             </div>
-                            <div>
-                                <p className="text-xs uppercase text-muted-foreground">Revision</p>
-                                <p className="text-sm font-medium">Rev {quote.revisionNo ?? 1}</p>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-incoterm">Incoterm (optional)</Label>
+                                <Input
+                                    id="edit-incoterm"
+                                    placeholder="FOB Shenzhen"
+                                    disabled={isReadOnly}
+                                    {...form.register('incoterm')}
+                                />
+                                {form.formState.errors.incoterm ? (
+                                    <p className="text-xs text-destructive">{form.formState.errors.incoterm.message}</p>
+                                ) : null}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-payment-terms">Payment terms (optional)</Label>
+                                <Input
+                                    id="edit-payment-terms"
+                                    placeholder="Net 30"
+                                    disabled={isReadOnly}
+                                    {...form.register('paymentTerms')}
+                                />
+                                {form.formState.errors.paymentTerms ? (
+                                    <p className="text-xs text-destructive">{form.formState.errors.paymentTerms.message}</p>
+                                ) : null}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-min-order">Minimum order quantity</Label>
+                                <Input
+                                    id="edit-min-order"
+                                    type="number"
+                                    min={1}
+                                    step="1"
+                                    placeholder="Optional"
+                                    disabled={isReadOnly}
+                                    {...form.register('minOrderQty')}
+                                />
+                                {form.formState.errors.minOrderQty ? (
+                                    <p className="text-xs text-destructive">{form.formState.errors.minOrderQty.message}</p>
+                                ) : null}
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="edit-quote-note">Buyer-facing note (optional)</Label>
+                                <Textarea
+                                    id="edit-quote-note"
+                                    rows={3}
+                                    placeholder="Share payment terms, included tooling, or other assumptions."
+                                    disabled={isReadOnly}
+                                    {...form.register('note')}
+                                />
+                                {form.formState.errors.note ? (
+                                    <p className="text-xs text-destructive">{form.formState.errors.note.message}</p>
+                                ) : null}
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="border-sidebar-border/60">
                         <CardHeader>
-                            <CardTitle>Line pricing</CardTitle>
+                            <CardTitle>3. Line pricing</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <QuoteLineEditor
                                 form={form}
                                 rfqLines={rfqLines}
-                                currency={watchedCurrency ?? quote.currency}
+                                currency={watchedCurrency ?? quote.currency ?? 'USD'}
+                                disabled={isReadOnly}
+                                enableTaxCodes={!isSupplierPersona}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-sidebar-border/60">
+                        <CardHeader>
+                            <CardTitle>4. Attachments</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <QuoteAttachmentsInput
+                                form={form}
+                                entity="quote"
+                                entityId={quote.id}
                                 disabled={isReadOnly}
                             />
                         </CardContent>
@@ -295,7 +469,7 @@ export function SupplierQuoteEditPage() {
                                     id="revision-note"
                                     rows={3}
                                     placeholder="Example: Updated unit prices based on clarified tolerances."
-                                    disabled={reviseQuote.isPending}
+                                    disabled={reviseQuote.isPending || isReadOnly}
                                     {...form.register('revisionNote')}
                                 />
                             </CardContent>
@@ -318,31 +492,17 @@ export function SupplierQuoteEditPage() {
                                 <MoneyCell amountMinor={reviewTotals.totalMinor} currency={watchedCurrency ?? quote.currency} />
                             </div>
                             <div>
+                                <p className="text-xs uppercase text-muted-foreground">Minimum order qty</p>
+                                <p className="text-sm font-medium">
+                                    {watchedMinOrderQty && String(watchedMinOrderQty).length ? watchedMinOrderQty : '—'}
+                                </p>
+                            </div>
+                            <div>
                                 <p className="text-xs uppercase text-muted-foreground">Line progress</p>
                                 <p className="text-sm">
                                     {reviewTotals.completedLines}/{watchedLines?.length ?? 0} complete
                                 </p>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-sidebar-border/60">
-                        <CardHeader>
-                            <CardTitle>Attachments</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {quote.attachments && quote.attachments.length > 0 ? (
-                                <ul className="space-y-2">
-                                    {quote.attachments.map((attachment) => (
-                                        <li key={attachment.id ?? attachment.filename} className="rounded-md border px-3 py-2 text-sm">
-                                            <p className="font-medium">{attachment.filename ?? 'Attachment'}</p>
-                                            <p className="text-xs text-muted-foreground">{attachment.mime ?? 'File'}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">No attachments uploaded.</p>
-                            )}
                         </CardContent>
                     </Card>
 
@@ -369,10 +529,13 @@ function buildFormValuesFromQuote(quote: Quote, rfqLines: RfqItem[], minorUnit: 
     const rfqQuantities = mapLineQuantity(rfqLines, quote.items ?? []);
     return {
         currency: quote.currency,
+        minOrderQty: quote.minOrderQty != null ? String(quote.minOrderQty) : '',
         note: quote.note ?? '',
+        incoterm: quote.incoterm ?? '',
+        paymentTerms: quote.paymentTerms ?? '',
         leadTimeDays: quote.leadTimeDays != null ? String(quote.leadTimeDays) : '',
         revisionNote: '',
-        attachments: quote.attachments?.map((attachment) => attachment.id ?? attachment.path ?? '') ?? [],
+        attachments: mapQuoteAttachments(quote.attachments),
         lines:
             quote.items?.map((item) => ({
                 rfqItemId: String(item.rfqItemId),
@@ -380,8 +543,38 @@ function buildFormValuesFromQuote(quote: Quote, rfqLines: RfqItem[], minorUnit: 
                 unitPrice: formatMinorToMajor(item.unitPriceMinor, minorUnit),
                 leadTimeDays: item.leadTimeDays != null ? String(item.leadTimeDays) : '',
                 note: item.note ?? '',
+                taxCodeIds:
+                    item.taxes
+                        ?.map((tax) => (typeof tax.taxCodeId === 'number' ? String(tax.taxCodeId) : ''))
+                        .filter((value) => value.length > 0) ?? [],
             })) ?? [],
     };
+}
+
+function mapQuoteAttachments(attachments?: Quote['attachments'] | null): DocumentAttachment[] {
+    if (!attachments || attachments.length === 0) {
+        return [];
+    }
+
+    return attachments.reduce<DocumentAttachment[]>((acc, attachment) => {
+        const idCandidate = Number((attachment as { id?: string | number }).id ?? 0);
+
+        if (!Number.isFinite(idCandidate) || idCandidate <= 0) {
+            return acc;
+        }
+
+        const rawSize = (attachment as { size_bytes?: number; sizeBytes?: number }).size_bytes ??
+            (attachment as { sizeBytes?: number }).sizeBytes ?? 0;
+
+        acc.push({
+            id: idCandidate,
+            filename: (attachment as { filename?: string }).filename ?? 'Attachment',
+            mime: (attachment as { mime?: string }).mime ?? 'application/octet-stream',
+            sizeBytes: Number(rawSize) || 0,
+        });
+
+        return acc;
+    }, []);
 }
 
 function mapLineQuantity(lines: RfqItem[], fallbackItems: QuoteItem[]): Record<string, number> {
@@ -398,6 +591,34 @@ function mapLineQuantity(lines: RfqItem[], fallbackItems: QuoteItem[]): Record<s
 
 function inferMinorUnit(settings?: { pricingCurrency?: { minorUnit?: number }; baseCurrency?: { minorUnit?: number } }) {
     return settings?.pricingCurrency?.minorUnit ?? settings?.baseCurrency?.minorUnit ?? null;
+}
+
+function inferCurrencyOptions(
+    settings?: { baseCurrency?: { code?: string; name?: string }; pricingCurrency?: { code?: string; name?: string } },
+    fallbackCode?: string | null,
+) {
+    const options = new Map<string, string>();
+
+    if (settings?.pricingCurrency?.code) {
+        options.set(
+            settings.pricingCurrency.code,
+            `${settings.pricingCurrency.code} · ${settings.pricingCurrency.name ?? 'Pricing currency'}`,
+        );
+    }
+
+    if (settings?.baseCurrency?.code) {
+        options.set(settings.baseCurrency.code, `${settings.baseCurrency.code} · ${settings.baseCurrency.name ?? 'Base currency'}`);
+    }
+
+    if (fallbackCode && !options.has(fallbackCode)) {
+        options.set(fallbackCode, `${fallbackCode} · Selected currency`);
+    }
+
+    if (options.size === 0) {
+        options.set('USD', 'USD · United States Dollar');
+    }
+
+    return Array.from(options.entries()).map(([value, label]) => ({ value, label }));
 }
 
 function calculateReviewTotals(
@@ -444,6 +665,22 @@ function formatMinorToMajor(value: number | undefined, minorUnit: number): strin
     return (value / factor).toString();
 }
 
+function buildDraftUpdatePayload(values: SupplierQuoteFormValues) {
+    const attachments = (values.attachments ?? [])
+        .map((attachment) => Number(attachment.id))
+        .filter((id) => Number.isFinite(id) && id > 0);
+
+    return {
+        currency: values.currency,
+        min_order_qty: values.minOrderQty && values.minOrderQty.length ? Number(values.minOrderQty) : null,
+        lead_time_days: values.leadTimeDays && values.leadTimeDays.length ? Number(values.leadTimeDays) : null,
+        incoterm: values.incoterm && values.incoterm.length ? values.incoterm : null,
+        payment_terms: values.paymentTerms && values.paymentTerms.length ? values.paymentTerms : null,
+        note: values.note && values.note.length ? values.note : null,
+        attachments: attachments.length ? attachments : undefined,
+    } satisfies Record<string, unknown>;
+}
+
 function buildLineUpdatePayload(
     existing: QuoteItem,
     line: SupplierQuoteFormValues['lines'][number],
@@ -466,6 +703,11 @@ function buildLineUpdatePayload(
     const desiredNote = line.note?.trim() ?? '';
     if ((desiredNote || undefined) !== (existing.note ?? undefined)) {
         updates.note = desiredNote.length ? desiredNote : undefined;
+    }
+
+    const existingTaxIds = existing.taxes?.map((tax) => (typeof tax.taxCodeId === 'number' ? tax.taxCodeId : null));
+    if (!haveSameTaxCodeIds(line.taxCodeIds, existingTaxIds)) {
+        updates.taxCodeIds = normalizeTaxCodeIds(line.taxCodeIds);
     }
 
     if (Object.keys(updates).length === 0) {
@@ -500,29 +742,31 @@ function buildActionButtons(
         onRevise: () => void;
         onWithdraw: () => void;
         processing: boolean;
+        locked?: boolean;
     },
 ) {
     const buttons: ReactElement[] = [];
+    const disabled = handlers.processing || handlers.locked;
 
     if (status === 'draft') {
         buttons.push(
-            <Button key="save" variant="outline" className="w-full" onClick={handlers.onSaveDraft} disabled={handlers.processing}>
+            <Button key="save" variant="outline" className="w-full" onClick={handlers.onSaveDraft} disabled={disabled}>
                 Save draft
             </Button>,
         );
         buttons.push(
-            <Button key="submit" className="w-full" onClick={handlers.onSubmit} disabled={handlers.processing}>
+            <Button key="submit" className="w-full" onClick={handlers.onSubmit} disabled={disabled}>
                 Submit quote
             </Button>,
         );
     } else if (status === 'submitted') {
         buttons.push(
-            <Button key="revise" className="w-full" onClick={handlers.onRevise} disabled={handlers.processing}>
+            <Button key="revise" className="w-full" onClick={handlers.onRevise} disabled={disabled}>
                 Submit revision
             </Button>,
         );
         buttons.push(
-            <Button key="withdraw" variant="destructive" className="w-full" onClick={handlers.onWithdraw} disabled={handlers.processing}>
+            <Button key="withdraw" variant="destructive" className="w-full" onClick={handlers.onWithdraw} disabled={disabled}>
                 Withdraw quote
             </Button>,
         );
@@ -535,4 +779,13 @@ function buildActionButtons(
     }
 
     return buttons;
+}
+
+function DetailRow({ label, children }: { label: string; children: ReactNode }) {
+    return (
+        <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-sm font-medium text-foreground">{children}</p>
+        </div>
+    );
 }

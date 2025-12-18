@@ -5,13 +5,18 @@ namespace App\Http\Requests\Documents;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
 use App\Http\Requests\ApiFormRequest;
+use App\Models\CreditNote;
+use App\Models\GoodsReceiptNote;
 use App\Models\Invoice;
+use App\Models\Ncr;
+use App\Models\Order;
 use App\Models\Part;
 use App\Models\PurchaseOrder;
 use App\Models\Quote;
 use App\Models\RFQ;
 use App\Models\Rfp;
 use App\Models\RfpProposal;
+use App\Models\Rma;
 use App\Models\Supplier;
 use Illuminate\Validation\Rule;
 
@@ -26,10 +31,15 @@ class StoreDocumentRequest extends ApiFormRequest
         'rfp' => Rfp::class,
         'rfp_proposal' => RfpProposal::class,
         'po' => PurchaseOrder::class,
+        'order' => Order::class,
         'invoice' => Invoice::class,
         'supplier' => Supplier::class,
         'part' => Part::class,
-        // TODO: clarify with spec for additional documentable entities (orders, etc.).
+        'grn' => GoodsReceiptNote::class,
+        'goods_receipt_note' => GoodsReceiptNote::class,
+        'ncr' => Ncr::class,
+        'rma' => Rma::class,
+        'credit_note' => CreditNote::class,
     ];
 
     /**

@@ -59,6 +59,11 @@ class Supplier extends CompanyScopedModel
         return $this->hasMany(SupplierDocument::class);
     }
 
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(SupplierContact::class);
+    }
+
     public function quotes(): HasMany
     {
         return $this->hasMany(Quote::class);

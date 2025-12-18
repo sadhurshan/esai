@@ -3,13 +3,17 @@
 namespace App\Services;
 
 use App\Enums\RiskGrade;
+use App\Enums\RmaStatus;
 use App\Models\Company;
+use App\Models\CreditNote;
 use App\Models\GoodsReceiptLine;
 use App\Models\Quote;
 use App\Models\RfqInvitation;
+use App\Models\Rma;
 use App\Models\Supplier;
 use App\Models\SupplierRiskScore;
 use App\Support\Audit\AuditLogger;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -93,6 +97,15 @@ class SupplierRiskService
             $totalRejectedQty += (int) $line->rejected_qty;
         }
 
+        $rmaSummary = $this->summarizeRmaDefects($supplier, $periodStart, $periodEnd);
+        $totalRejectedQty += $rmaSummary['defect_units'];
+
+        $creditSummary = $this->summarizeCreditNoteImpact($supplier, $periodStart, $periodEnd);
+        $creditPenaltyUnits = $creditSummary['amount_minor'] > 0
+            ? max($creditSummary['count'], (int) ceil($creditSummary['amount_minor'] / 10000))
+            : $creditSummary['count'];
+        $totalRejectedQty += $creditPenaltyUnits;
+
         $onTimeRate = $deliveredLines > 0 ? $this->roundToScale($onTimeLines / $deliveredLines) : null;
         $defectRate = $totalReceivedQty > 0 ? $this->roundToScale($totalRejectedQty / $totalReceivedQty) : null;
         $leadTimeVolatility = $this->roundToVolatility($this->coefficientOfVariation($leadTimeDeltas));
@@ -170,6 +183,8 @@ class SupplierRiskService
             $priceVolatility,
             $leadTimeVolatility,
             $responsivenessRate,
+            $rmaSummary['count'],
+            $creditSummary['count'],
         );
 
         return DB::transaction(function () use (
@@ -259,6 +274,51 @@ class SupplierRiskService
         return $scores;
     }
 
+    /**
+     * @return array{count:int, defect_units:int}
+     */
+    private function summarizeRmaDefects(Supplier $supplier, Carbon $periodStart, Carbon $periodEnd): array
+    {
+        $query = Rma::query()
+            ->where('company_id', $supplier->company_id)
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->whereIn('status', [RmaStatus::Approved->value, RmaStatus::Closed->value])
+            ->whereHas('purchaseOrder', function (Builder $builder) use ($supplier): void {
+                $builder->where('supplier_id', $supplier->id);
+            });
+
+        $records = $query->get(['defect_qty']);
+
+        $defectUnits = $records->sum(static function (Rma $rma): int {
+            $quantity = $rma->defect_qty ?? 1;
+
+            return max(1, (int) $quantity);
+        });
+
+        return [
+            'count' => $records->count(),
+            'defect_units' => max(0, $defectUnits),
+        ];
+    }
+
+    /**
+     * @return array{count:int, amount_minor:int}
+     */
+    private function summarizeCreditNoteImpact(Supplier $supplier, Carbon $periodStart, Carbon $periodEnd): array
+    {
+        $query = CreditNote::query()
+            ->where('company_id', $supplier->company_id)
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->whereHas('purchaseOrder', function (Builder $builder) use ($supplier): void {
+                $builder->where('supplier_id', $supplier->id);
+            });
+
+        return [
+            'count' => $query->count(),
+            'amount_minor' => (int) $query->sum(DB::raw('COALESCE(amount_minor, 0)')),
+        ];
+    }
+
     private function coefficientOfVariation(array $values): float
     {
         $values = array_values(array_filter($values, static fn ($value) => $value !== null));
@@ -301,7 +361,16 @@ class SupplierRiskService
         return round(max(0.0, min(1.0, $value)), 4);
     }
 
-    private function buildBadges(?float $onTimeRate, int $lateLines, ?float $defectRate, float $priceVolatility, float $leadTimeVolatility, ?float $responsivenessRate): array
+    private function buildBadges(
+        ?float $onTimeRate,
+        int $lateLines,
+        ?float $defectRate,
+        float $priceVolatility,
+        float $leadTimeVolatility,
+        ?float $responsivenessRate,
+        int $rmaCount,
+        int $creditNoteCount
+    ): array
     {
         $badges = [];
 
@@ -311,6 +380,14 @@ class SupplierRiskService
 
         if ($defectRate !== null && $defectRate > 0.1) {
             $badges[] = 'Elevated defect rate';
+        }
+
+        if ($rmaCount > 0) {
+            $badges[] = sprintf('%d RMA%s logged', $rmaCount, $rmaCount === 1 ? '' : 's');
+        }
+
+        if ($creditNoteCount > 0) {
+            $badges[] = sprintf('%d credit note%s issued', $creditNoteCount, $creditNoteCount === 1 ? '' : 's');
         }
 
         if ($priceVolatility > 0.2) {

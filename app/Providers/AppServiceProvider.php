@@ -19,6 +19,7 @@ use App\Models\Notification;
 use App\Models\NotificationPreference;
 use App\Models\Ncr;
 use App\Models\Order;
+use App\Models\Part;
 use App\Models\Plan;
 use App\Models\PlatformAdmin;
 use App\Models\PurchaseOrder;
@@ -60,6 +61,7 @@ use App\Policies\NotificationPolicy;
 use App\Policies\NotificationPreferencePolicy;
 use App\Policies\NcrPolicy;
 use App\Policies\OrderPolicy;
+use App\Policies\PartPolicy;
 use App\Policies\PurchaseOrderPolicy;
 use App\Policies\QuotePolicy;
 use App\Policies\RfqPolicy;
@@ -74,6 +76,7 @@ use App\Observers\PurchaseOrderObserver;
 use App\Observers\PurchaseOrderShipmentLineObserver;
 use App\Observers\PurchaseOrderShipmentObserver;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -91,6 +94,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::addNamespace('mail', [
+            resource_path('views/vendor/mail'),
+            base_path('vendor/laravel/framework/src/Illuminate/Mail/resources/views'),
+        ]);
+
         Gate::policy(Plan::class, AdminPlanPolicy::class);
         Gate::policy(PlatformAdmin::class, AdminAnalyticsPolicy::class);
         Gate::policy(Company::class, AdminCompanyPolicy::class);
@@ -106,6 +114,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AuditLog::class, AdminAuditLogPolicy::class);
 
         Gate::policy(Quote::class, QuotePolicy::class);
+        Gate::policy(Part::class, PartPolicy::class);
         Gate::policy(SupplierApplication::class, SupplierApplicationPolicy::class);
         Gate::policy(SupplierDocument::class, SupplierDocumentPolicy::class);
         Gate::policy(GoodsReceiptNote::class, GoodsReceiptNotePolicy::class);

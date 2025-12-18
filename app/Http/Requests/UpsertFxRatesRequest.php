@@ -3,11 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Support\Permissions\PermissionRegistry;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-class UpsertFxRatesRequest extends FormRequest
+class UpsertFxRatesRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -27,7 +26,9 @@ class UpsertFxRatesRequest extends FormRequest
 
     protected function failedAuthorization(): void
     {
-        throw new AuthorizationException('Billing permissions required.');
+        throw new HttpResponseException(
+            $this->fail('Billing permissions required.', 403)
+        );
     }
 
     public function rules(): array

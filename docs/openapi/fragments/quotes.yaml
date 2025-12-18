@@ -185,6 +185,109 @@ components:
         note:
           type: string
           nullable: true
+    RfqQuote:
+      type: object
+      required:
+        - id
+        - rfq_id
+        - supplier_id
+        - unit_price_usd
+        - lead_time_days
+        - via
+        - status
+        - submitted_at
+      properties:
+        id:
+          type: integer
+        rfq_id:
+          type: integer
+        supplier_id:
+          type: integer
+        supplier_name:
+          type: string
+          nullable: true
+        unit_price_usd:
+          type: number
+          format: float
+        total_price_usd:
+          type: number
+          format: float
+          nullable: true
+        revision:
+          type: integer
+        lead_time_days:
+          type: integer
+        note:
+          type: string
+          nullable: true
+        attachment_path:
+          type: string
+          nullable: true
+        via:
+          type: string
+          enum: [direct, bidding]
+        status:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    RfqQuoteCollection:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RfqQuote'
+        meta:
+          type: object
+          required:
+            - per_page
+          properties:
+            next_cursor:
+              type: string
+              nullable: true
+            prev_cursor:
+              type: string
+              nullable: true
+            per_page:
+              type: integer
+    RfqQuoteRequest:
+      type: object
+      required:
+        - supplier_id
+        - unit_price_usd
+        - lead_time_days
+        - via
+      properties:
+        supplier_id:
+          type: integer
+        unit_price_usd:
+          type: number
+          format: float
+        lead_time_days:
+          type: integer
+          minimum: 0
+        note:
+          type: string
+          nullable: true
+        via:
+          type: string
+          enum: [direct, bidding]
+        attachment:
+          type: string
+          format: binary
+          nullable: true
     QuoteLineRequest:
       type: object
       required:
@@ -366,7 +469,7 @@ paths:
     get:
       tags:
         - Quotes
-      summary: List quotes for RFQ
+      summary: List quotes for an RFQ
       operationId: listQuotesForRfq
       responses:
         '200':
@@ -387,6 +490,8 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/Quote'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       tags:
         - Quotes
@@ -412,6 +517,86 @@ paths:
                         $ref: '#/components/schemas/Quote'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/rfq-quotes/{rfqId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Quotes
+      summary: List RFQ quotes for buyer or invited supplier personas
+      operationId: listStandaloneRfqQuotes
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+      responses:
+        '200':
+          description: Cursor-paginated collection of RFQ quotes.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqQuoteCollection'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: RFQ access denied for the active persona.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      tags:
+        - Quotes
+      summary: Submit a supplier RFQ quote via standalone endpoint
+      operationId: submitStandaloneRfqQuote
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RfqQuoteRequest'
+      responses:
+        '201':
+          description: RFQ quote created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqQuote'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Supplier access denied or RFQ invitation missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /api/rfqs/{rfqId}/quotes/compare:

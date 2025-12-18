@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Invoice;
 
+use App\Enums\InvoiceStatus;
 use App\Http\Requests\ApiFormRequest;
+use Illuminate\Validation\Rule;
 
 class ListInvoicesRequest extends ApiFormRequest
 {
@@ -24,8 +26,10 @@ class ListInvoicesRequest extends ApiFormRequest
      */
     public function rules(): array
     {
+        $statuses = array_values(array_unique(array_merge(InvoiceStatus::values(), ['pending', 'overdue', 'disputed'])));
+
         return [
-            'status' => ['nullable', 'string', 'in:pending,paid,overdue,disputed'],
+            'status' => ['nullable', 'string', Rule::in($statuses)],
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],

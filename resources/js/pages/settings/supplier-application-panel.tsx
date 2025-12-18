@@ -233,8 +233,9 @@ function buildCapabilities(values: SupplierApplicationFormValues) {
 }
 
 export function SupplierApplicationPanel() {
-    const { state, refresh } = useAuth();
+    const { state, refresh, activePersona } = useAuth();
     const role = state.user?.role ?? null;
+    const isSupplierPersona = activePersona?.type === 'supplier';
     const initialStatus: SupplierSelfStatus | undefined = state.company
         ? {
               supplier_status: (state.company.supplier_status ?? 'none') as string,
@@ -258,7 +259,7 @@ export function SupplierApplicationPanel() {
     const applyMutation = useApplyForSupplier();
     const updateVisibilityMutation = useUpdateSupplierVisibility();
     const isOwner = role === 'owner';
-    const canViewApplications = isOwner || role === 'buyer_admin';
+    const canViewApplications = !isSupplierPersona && (isOwner || role === 'buyer_admin');
     const supplierApplicationsQuery = useSupplierApplications({ enabled: canViewApplications });
     const supplierApplications = supplierApplicationsQuery.data?.items ?? [];
     const withdrawApplicationMutation = useWithdrawSupplierApplication();
@@ -331,7 +332,7 @@ export function SupplierApplicationPanel() {
     const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [documentError, setDocumentError] = useState<string | null>(null);
     const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
-    const canApply = isOwner && isCompanyApproved && (status === 'none' || status === 'rejected');
+    const canApply = !isSupplierPersona && isOwner && isCompanyApproved && (status === 'none' || status === 'rejected');
     const actionLabel = useMemo(() => {
         if (!isCompanyApproved) {
             return 'Awaiting company approval';

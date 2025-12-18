@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
-import { Filter, RotateCcw, Wallet, X } from 'lucide-react';
+import { Factory, Filter, RotateCcw, Wallet, X } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
@@ -19,29 +19,33 @@ import { useAuth } from '@/contexts/auth-context';
 import { useInvoices } from '@/hooks/api/invoices/use-invoices';
 import type { InvoiceSummary, Supplier } from '@/types/sourcing';
 import { formatDate } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 const STATUS_FILTERS = [
     { value: 'all', label: 'All statuses' },
-    { value: 'draft', label: 'Draft' },
     { value: 'submitted', label: 'Submitted' },
-    { value: 'posted', label: 'Posted' },
+    { value: 'buyer_review', label: 'Buyer review' },
     { value: 'approved', label: 'Approved' },
-    { value: 'paid', label: 'Paid' },
-    { value: 'overdue', label: 'Overdue' },
-    { value: 'disputed', label: 'Disputed' },
     { value: 'rejected', label: 'Rejected' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'draft', label: 'Draft' },
 ];
 
-const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-    draft: 'secondary',
-    submitted: 'outline',
-    posted: 'outline',
-    approved: 'default',
-    paid: 'default',
-    overdue: 'destructive',
-    disputed: 'destructive',
-    rejected: 'destructive',
+type BadgeVariant = 'default' | 'secondary' | 'outline' | 'destructive';
+
+const STATUS_BADGES: Record<string, { variant: BadgeVariant; className?: string }> = {
+    draft: { variant: 'secondary' },
+    submitted: { variant: 'outline', className: 'border-amber-200 bg-amber-50 text-amber-800' },
+    buyer_review: { variant: 'outline', className: 'border-amber-200 bg-amber-50 text-amber-800' },
+    approved: { variant: 'default' },
+    rejected: { variant: 'destructive' },
+    paid: { variant: 'default' },
 };
+
+const REVIEW_STATUSES = new Set(['submitted', 'buyer_review']);
+
+const formatStatus = (status?: string | null) =>
+    status ? status.replace(/_/g, ' ') : 'unknown';
 
 const PER_PAGE = 20;
 
@@ -80,21 +84,54 @@ export function InvoiceListPage() {
             {
                 key: 'invoiceNumber',
                 title: 'Invoice #',
-                render: (invoice) => (
-                    <Link className="font-semibold text-primary" to={`/app/invoices/${invoice.id}`}>
-                        {invoice.invoiceNumber}
-                    </Link>
-                ),
+                render: (invoice) => {
+                    const supplierSubmitted = invoice.createdByType === 'supplier' || Boolean(invoice.supplierCompanyId);
+                    const needsReview = REVIEW_STATUSES.has(invoice.status);
+
+                    return (
+                        <div className="flex flex-col gap-1">
+                            <Link className="font-semibold text-primary" to={`/app/invoices/${invoice.id}`}>
+                                {invoice.invoiceNumber}
+                            </Link>
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                                {supplierSubmitted ? (
+                                    <span className="flex items-center gap-1 text-amber-700">
+                                        <Factory className="h-3 w-3" /> Supplier submitted
+                                    </span>
+                                ) : (
+                                    <span className="text-muted-foreground">Buyer created</span>
+                                )}
+                                {needsReview ? (
+                                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                                        Review pending
+                                    </Badge>
+                                ) : null}
+                            </div>
+                        </div>
+                    );
+                },
             },
             {
                 key: 'supplierName',
                 title: 'Supplier',
-                render: (invoice) => invoice.supplier?.name ?? '—',
+                render: (invoice) => (
+                    <div className="flex flex-col text-sm">
+                        <span className="font-medium text-foreground">{invoice.supplier?.name ?? '—'}</span>
+                        {invoice.supplierCompany?.name ? (
+                            <span className="text-xs text-muted-foreground">{invoice.supplierCompany.name}</span>
+                        ) : null}
+                    </div>
+                ),
             },
             {
                 key: 'invoiceDate',
                 title: 'Invoice date',
                 render: (invoice) => formatDate(invoice.invoiceDate),
+            },
+            {
+                key: 'submittedAt',
+                title: 'Submitted',
+                render: (invoice) => formatDate(invoice.submittedAt ?? invoice.createdAt),
             },
             {
                 key: 'poNumber',
@@ -128,11 +165,19 @@ export function InvoiceListPage() {
             {
                 key: 'status',
                 title: 'Status',
-                render: (invoice) => (
-                    <Badge variant={STATUS_VARIANTS[invoice.status] ?? 'outline'} className="uppercase tracking-wide">
-                        {invoice.status}
-                    </Badge>
-                ),
+                render: (invoice) => {
+                    const style = STATUS_BADGES[invoice.status] ?? { variant: 'outline' };
+                    return (
+                        <div className="flex flex-col gap-1">
+                            <Badge
+                                variant={style.variant}
+                                className={cn('uppercase tracking-wide', style.className)}
+                            >
+                                {formatStatus(invoice.status)}
+                            </Badge>
+                        </div>
+                    );
+                },
             },
             {
                 key: 'actions',

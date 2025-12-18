@@ -45,17 +45,24 @@ use App\Http\Controllers\Api\CompanyRoleTemplateController;
 use App\Http\Controllers\Api\CompanyInvitationController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Api\GoodsReceiptNoteController;
+use App\Http\Controllers\Api\Inventory\InventoryItemController;
+use App\Http\Controllers\Api\Inventory\InventoryLocationController;
+use App\Http\Controllers\Api\Inventory\InventoryLowStockController;
+use App\Http\Controllers\Api\Inventory\InventoryMovementController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\TaxCodeController;
 use App\Http\Controllers\Api\Orders\BuyerOrderController;
 use App\Http\Controllers\Api\Orders\SupplierOrderController;
 use App\Http\Controllers\Api\Orders\SupplierShipmentController;
+use App\Http\Controllers\Api\Supplier\SupplierInvoiceController;
 use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Api\RFQController;
+use App\Http\Controllers\Api\RFQQuoteController;
 use App\Http\Controllers\Api\PoChangeOrderController;
 use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\QuoteInboxController;
 use App\Http\Controllers\Api\QuoteLineController;
+use App\Http\Controllers\Api\QuoteShortlistController;
 use App\Http\Controllers\Api\RfqClarificationController;
 use App\Http\Controllers\Api\RfqAwardCandidateController;
 use App\Http\Controllers\Api\QuoteRevisionController;
@@ -68,6 +75,8 @@ use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseOrderShipmentController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierQuoteController;
+use App\Http\Controllers\Api\SupplierRfqInboxController;
+use App\Http\Controllers\Api\SupplierDashboardController;
 use App\Http\Controllers\Api\SupplierApplicationController;
 use App\Http\Controllers\Api\SupplierDocumentController;
 use App\Http\Controllers\Api\SupplierSelfServiceController;
@@ -122,10 +131,6 @@ Route::middleware(['auth'])->group(function (): void {
         ->middleware(['ensure.company.onboarded', 'billing_access:read']);
 });
 
-Route::middleware(['auth', 'ensure.company.approved'])->group(function (): void {
-    Route::post('me/apply-supplier', [SupplierApplicationController::class, 'selfApply']);
-});
-
 Route::middleware(['auth', 'ensure.company.approved'])->prefix('me/supplier-documents')->group(function (): void {
     Route::get('/', [SupplierDocumentController::class, 'index']);
     Route::post('/', [SupplierDocumentController::class, 'store']);
@@ -142,6 +147,7 @@ Route::prefix('me')->group(function (): void {
 Route::middleware(['auth'])->prefix('me')->group(function (): void {
     Route::get('supplier-application/status', [SupplierSelfServiceController::class, 'status']);
     Route::put('supplier/visibility', [SupplierSelfServiceController::class, 'updateVisibility']);
+    Route::post('apply-supplier', [SupplierApplicationController::class, 'selfApply']);
 });
 
 Route::middleware(['auth', 'admin.guard', \App\Http\Middleware\BypassCompanyContext::class])->prefix('admin')->group(function (): void {
@@ -316,12 +322,20 @@ Route::prefix('rfqs')->group(function (): void {
         ->middleware(['ensure.company.onboarded:strict', 'ensure.company.approved', 'ensure.subscribed', 'sourcing_access:read'])
         ->group(function (): void {
             Route::get('/', [RfqClarificationController::class, 'index']);
+            Route::get('/{clarification}/attachments/{attachment}', [RfqClarificationController::class, 'downloadAttachment'])
+                ->name('rfqs.clarifications.attachments.download');
             Route::post('/question', [RfqClarificationController::class, 'storeQuestion']);
             Route::post('/answer', [RfqClarificationController::class, 'storeAnswer'])
                 ->middleware('sourcing_access:write');
             Route::post('/amendment', [RfqClarificationController::class, 'storeAmendment'])
                 ->middleware('sourcing_access:write');
         });
+});
+
+Route::prefix('rfq-quotes')->middleware(['auth'])->group(function (): void {
+    Route::get('{rfq}', [RFQQuoteController::class, 'index']);
+    Route::post('{rfq}', [RFQQuoteController::class, 'store'])
+        ->middleware('ensure.supplier.approved');
 });
 
 Route::prefix('awards')
@@ -334,11 +348,28 @@ Route::prefix('awards')
 Route::post('quotes', [QuoteController::class, 'storeStandalone'])
     ->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
 
+Route::post('quotes/{quote}/submit', [QuoteController::class, 'submitStandalone'])
+    ->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
+
+Route::middleware([
+    'auth',
+    'ensure.company.onboarded:strict',
+    'ensure.company.approved',
+    'ensure.subscribed',
+    'sourcing_access:write',
+])->prefix('quotes')->group(function (): void {
+    Route::post('{quote}/shortlist', [QuoteShortlistController::class, 'store']);
+    Route::delete('{quote}/shortlist', [QuoteShortlistController::class, 'destroy']);
+});
+
 Route::prefix('rfqs/{rfq}/quotes')->group(function (): void {
     Route::post('/', [QuoteController::class, 'store'])
         ->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
 
     Route::put('{quote}', [QuoteController::class, 'submit'])
+        ->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
+
+    Route::patch('{quote}/draft', [QuoteController::class, 'updateDraft'])
         ->middleware(['ensure.subscribed', 'ensure.supplier.approved']);
 
     Route::patch('{quote}', [QuoteController::class, 'withdraw'])
@@ -361,6 +392,12 @@ Route::middleware(['auth', 'ensure.company.onboarded', 'ensure.subscribed', 'ord
         Route::get('{order}', [BuyerOrderController::class, 'show']);
     });
 
+Route::middleware(['auth', 'ensure.supplier.approved'])
+    ->prefix('supplier/dashboard')
+    ->group(function (): void {
+        Route::get('metrics', [SupplierDashboardController::class, 'metrics']);
+    });
+
 Route::middleware(['auth', 'ensure.supplier.approved', 'orders_access:read'])
     ->prefix('supplier/orders')
     ->group(function (): void {
@@ -370,6 +407,20 @@ Route::middleware(['auth', 'ensure.supplier.approved', 'orders_access:read'])
             ->middleware('orders_access:write');
         Route::post('{order}/shipments', [SupplierShipmentController::class, 'store'])
             ->middleware('orders_access:write');
+    });
+
+Route::middleware(['auth', 'ensure.supplier.approved', 'orders_access:read', 'supplier_invoicing_access'])
+    ->prefix('supplier')
+    ->group(function (): void {
+        Route::get('invoices', [SupplierInvoiceController::class, 'index']);
+        Route::get('invoices/{invoice}', [SupplierInvoiceController::class, 'show']);
+        Route::put('invoices/{invoice}', [SupplierInvoiceController::class, 'update'])
+            ->middleware('supplier_invoicing_access:write');
+        Route::post('invoices/{invoice}/submit', [SupplierInvoiceController::class, 'submit'])
+            ->middleware('supplier_invoicing_access:write');
+
+        Route::post('purchase-orders/{purchaseOrder}/invoices', [SupplierInvoiceController::class, 'store'])
+            ->middleware(['orders_access:write', 'supplier_invoicing_access:write']);
     });
 
 Route::middleware(['auth', 'ensure.supplier.approved', 'orders_access:write'])
@@ -388,6 +439,7 @@ Route::prefix('quotes/{quote}')
         Route::delete('lines/{quoteItem}', [QuoteLineController::class, 'destroy']);
     });
 Route::get('supplier/quotes', [SupplierQuoteController::class, 'index'])->middleware(['ensure.supplier.approved']);
+Route::get('supplier/rfqs', [SupplierRfqInboxController::class, 'index'])->middleware(['auth', 'ensure.supplier.approved']);
 
 Route::middleware('web')->group(function (): void {
     Route::prefix('purchase-orders')->middleware('auth')->group(function (): void {
@@ -442,15 +494,6 @@ Route::middleware('web')->group(function (): void {
     Route::patch('receiving/ncrs/{ncr}', [NcrController::class, 'update'])
         ->middleware(['ensure.company.onboarded', 'ensure.inventory.access', 'ensure.subscribed']);
 
-    Route::prefix('invoices')->group(function (): void {
-        Route::get('/', [InvoiceController::class, 'list'])->middleware(['ensure.company.onboarded', 'billing_access:read']);
-        Route::get('{invoice}', [InvoiceController::class, 'show'])->middleware(['ensure.company.onboarded', 'billing_access:read']);
-        Route::put('{invoice}', [InvoiceController::class, 'update'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
-        Route::delete('{invoice}', [InvoiceController::class, 'destroy'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
-        Route::post('from-po', [InvoiceController::class, 'storeFromPo'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
-        Route::post('{invoice}/attachments', [InvoiceController::class, 'attachFile'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
-    });
-
     Route::put('change-orders/{changeOrder}/approve', [PoChangeOrderController::class, 'approve'])
         ->middleware('ensure.company.onboarded');
     Route::put('change-orders/{changeOrder}/reject', [PoChangeOrderController::class, 'reject'])
@@ -468,9 +511,37 @@ Route::middleware('web')->group(function (): void {
 
 });
 
+Route::middleware(['auth'])->prefix('invoices')->group(function (): void {
+    Route::get('/', [InvoiceController::class, 'list'])->middleware(['ensure.company.onboarded', 'billing_access:read']);
+    Route::get('{invoice}', [InvoiceController::class, 'show'])->middleware(['ensure.company.onboarded', 'billing_access:read']);
+    Route::put('{invoice}', [InvoiceController::class, 'update'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::delete('{invoice}', [InvoiceController::class, 'destroy'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('from-po', [InvoiceController::class, 'storeFromPo'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('{invoice}/attachments', [InvoiceController::class, 'attachFile'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('{invoice}/review/approve', [InvoiceController::class, 'approve'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('{invoice}/review/reject', [InvoiceController::class, 'reject'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('{invoice}/review/request-changes', [InvoiceController::class, 'requestChanges'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+    Route::post('{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->middleware(['ensure.company.onboarded', 'ensure.subscribed', 'billing_access:write']);
+});
+
+Route::prefix('inventory')
+    ->middleware(['auth', 'ensure.company.onboarded', 'ensure.inventory.access'])
+    ->group(function (): void {
+        Route::get('items', [InventoryItemController::class, 'index']);
+        Route::post('items', [InventoryItemController::class, 'store']);
+        Route::get('items/{item}', [InventoryItemController::class, 'show'])->whereNumber('item');
+        Route::patch('items/{item}', [InventoryItemController::class, 'update'])->whereNumber('item');
+        Route::get('low-stock', [InventoryLowStockController::class, 'index']);
+        Route::get('movements', [InventoryMovementController::class, 'index']);
+        Route::post('movements', [InventoryMovementController::class, 'store']);
+        Route::get('locations', [InventoryLocationController::class, 'index']);
+    });
+
 Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 Route::get('documents/{document}', [DocumentController::class, 'show'])
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+Route::delete('documents/{document}', [DocumentController::class, 'destroy'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 
 Route::middleware(['ensure.company.onboarded'])->group(function (): void {

@@ -10,6 +10,11 @@ import { mapInventoryItemDetail } from './mappers';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
+type ApiErrorBody = {
+    message?: string | null;
+    errors?: Record<string, unknown> | null;
+};
+
 export interface CreateItemInput {
     sku: string;
     name: string;
@@ -69,15 +74,66 @@ export function useCreateItem(): UseMutationResult<InventoryItemDetail, HttpErro
             }
         },
         onError: (error) => {
-            if (error instanceof HttpError) {
-                return;
-            }
-
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to create item',
-                description: error.message ?? 'Please try again later.',
+                description: resolveCreateItemErrorMessage(error),
             });
         },
     });
 }
+
+const resolveCreateItemErrorMessage = (error: unknown): string => {
+    const fallback = 'Please review the form and try again.';
+
+    if (error instanceof HttpError) {
+        const body = error.body as ApiErrorBody | undefined;
+        const envelopeMessage = typeof body?.message === 'string' ? body.message.trim() : undefined;
+        const errorBag = isRecord(body?.errors) ? (body?.errors as Record<string, unknown>) : undefined;
+        const bagMessage = pickFirstErrorMessage(errorBag);
+        const rawBodyText = typeof error.body === 'string' ? error.body.trim() : undefined;
+        const normalizedEnvelope = envelopeMessage && envelopeMessage.length > 0 ? envelopeMessage : undefined;
+        const normalizedBody = rawBodyText && rawBodyText.length > 0 ? rawBodyText : undefined;
+
+        return normalizedEnvelope ?? bagMessage ?? normalizedBody ?? error.message ?? fallback;
+    }
+
+    if (error instanceof Error) {
+        return error.message || fallback;
+    }
+
+    return fallback;
+};
+
+const pickFirstErrorMessage = (errors?: Record<string, unknown>): string | undefined => {
+    if (!errors) {
+        return undefined;
+    }
+
+    for (const value of Object.values(errors)) {
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.length > 0) {
+                return trimmed;
+            }
+            continue;
+        }
+
+        if (Array.isArray(value)) {
+            const first = value.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+            if (first) {
+                return first.trim();
+            }
+            continue;
+        }
+
+        if (isRecord(value)) {
+            const nested = pickFirstErrorMessage(value);
+            if (nested) {
+                return nested;
+            }
+        }
+    }
+
+    return undefined;
+};

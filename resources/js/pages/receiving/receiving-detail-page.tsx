@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Download, PackageOpen, PackageSearch } from 'lucide-react';
@@ -30,18 +30,39 @@ export function ReceivingDetailPage() {
     const { formatDate } = useFormatting();
     const { grnId: grnIdParam } = useParams<{ grnId?: string }>();
     const navigate = useNavigate();
-    const { hasFeature, state } = useAuth();
+    const { hasFeature, state, activePersona } = useAuth();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const receivingEnabled = hasFeature('inventory_enabled');
+    const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier' || supplierRole;
 
     const grnId = Number(grnIdParam);
-    const grnQuery = useGrn(Number.isFinite(grnId) ? grnId : 0);
+    const safeGrnId = !isSupplierPersona && Number.isFinite(grnId) ? grnId : 0;
+    const grnQuery = useGrn(safeGrnId);
     const attachMutation = useAttachGrnFile();
     const createNcrMutation = useCreateNcr();
     const closeNcrMutation = useCloseNcr();
     const [isNcrDialogOpen, setIsNcrDialogOpen] = useState(false);
     const [selectedLine, setSelectedLine] = useState<GrnLine | null>(null);
     const [closingNcrId, setClosingNcrId] = useState<number | null>(null);
+
+    if (featureFlagsLoaded && isSupplierPersona) {
+        return (
+            <div className="flex flex-1 flex-col gap-6">
+                <Helmet>
+                    <title>Receiving</title>
+                </Helmet>
+                <WorkspaceBreadcrumbs />
+                <EmptyState
+                    title="Receiving is buyer-only"
+                    description="Suppliers can view PO updates, but receiving and quality reviews stay with buyer teams."
+                    icon={<PackageOpen className="h-12 w-12 text-muted-foreground" />}
+                    ctaLabel="Back to dashboard"
+                    ctaProps={{ onClick: () => navigate('/app') }}
+                />
+            </div>
+        );
+    }
 
     if (featureFlagsLoaded && !receivingEnabled) {
         return (
@@ -373,6 +394,7 @@ export function ReceivingDetailPage() {
                     </Card>
 
                     <RaiseNcrDialog
+                        key={`${isNcrDialogOpen ? 'open' : 'closed'}-${selectedLine?.poLineId ?? 'none'}`}
                         open={isNcrDialogOpen}
                         line={selectedLine}
                         onOpenChange={handleNcrDialogChange}
@@ -507,13 +529,6 @@ function RaiseNcrDialog({
 }) {
     const [reason, setReason] = useState('');
     const [disposition, setDisposition] = useState<NcrDisposition | undefined>();
-
-    useEffect(() => {
-        if (open) {
-            setReason('');
-            setDisposition(undefined);
-        }
-    }, [open, line?.poLineId]);
 
     const disableSubmit = !reason.trim() || !line;
 

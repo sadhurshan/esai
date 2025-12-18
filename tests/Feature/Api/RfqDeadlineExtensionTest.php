@@ -74,6 +74,7 @@ it('allows buyer admins to extend deadlines and notifies suppliers', function ()
     ]);
 
     RfqInvitation::create([
+        'company_id' => $buyerCompany->id,
         'rfq_id' => $rfq->id,
         'supplier_id' => $supplier->id,
         'invited_by' => $buyerUser->id,

@@ -417,6 +417,70 @@
                 },
                 "additionalProperties": false
             },
+            "AuthPersona": {
+                "type": "object",
+                "required": [
+                    "key",
+                    "type",
+                    "company_id",
+                    "company_name",
+                    "company_status",
+                    "is_default"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "description": "Stable persona identifier combining the persona type and scoped identifiers."
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "buyer",
+                            "supplier"
+                        ]
+                    },
+                    "company_id": {
+                        "type": "integer",
+                        "description": "Identifier of the buyer company context for this persona. For supplier personas this is the buyer that issued the invite."
+                    },
+                    "company_name": {
+                        "type": "string"
+                    },
+                    "company_status": {
+                        "type": "string"
+                    },
+                    "company_supplier_status": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "role": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Buyer role associated with the persona, when applicable."
+                    },
+                    "supplier_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "supplier_company_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "supplier_company_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_default": {
+                        "type": "boolean",
+                        "description": "Indicates whether this persona should be pre-selected after login."
+                    }
+                },
+                "additionalProperties": false
+            },
             "AuthResetPasswordRequest": {
                 "type": "object",
                 "required": [
@@ -540,6 +604,19 @@
                         "type": "integer",
                         "format": "int64",
                         "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AuthSwitchPersonaRequest": {
+                "type": "object",
+                "required": [
+                    "key"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "description": "Persona key returned by the session payload (e.g. `buyer:12` or `supplier:45:77`)."
                     }
                 },
                 "additionalProperties": false
@@ -5401,6 +5478,40 @@
                     }
                 }
             },
+            "RfqCursorCollection": {
+                "type": "object",
+                "required": [
+                    "items",
+                    "meta"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Rfq"
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "required": [
+                            "per_page"
+                        ],
+                        "properties": {
+                            "next_cursor": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "prev_cursor": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "per_page": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            },
             "RfqDeadlineExtension": {
                 "type": "object",
                 "required": [
@@ -5689,6 +5800,153 @@
                         "type": "object",
                         "nullable": true,
                         "additionalProperties": true
+                    }
+                }
+            },
+            "RfqQuote": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "rfq_id",
+                    "supplier_id",
+                    "unit_price_usd",
+                    "lead_time_days",
+                    "via",
+                    "status",
+                    "submitted_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "rfq_id": {
+                        "type": "integer"
+                    },
+                    "supplier_id": {
+                        "type": "integer"
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "unit_price_usd": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "total_price_usd": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "revision": {
+                        "type": "integer"
+                    },
+                    "lead_time_days": {
+                        "type": "integer"
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attachment_path": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "via": {
+                        "type": "string",
+                        "enum": [
+                            "direct",
+                            "bidding"
+                        ]
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                }
+            },
+            "RfqQuoteCollection": {
+                "type": "object",
+                "required": [
+                    "items",
+                    "meta"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RfqQuote"
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "required": [
+                            "per_page"
+                        ],
+                        "properties": {
+                            "next_cursor": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "prev_cursor": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "per_page": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            },
+            "RfqQuoteRequest": {
+                "type": "object",
+                "required": [
+                    "supplier_id",
+                    "unit_price_usd",
+                    "lead_time_days",
+                    "via"
+                ],
+                "properties": {
+                    "supplier_id": {
+                        "type": "integer"
+                    },
+                    "unit_price_usd": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "lead_time_days": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "via": {
+                        "type": "string",
+                        "enum": [
+                            "direct",
+                            "bidding"
+                        ]
+                    },
+                    "attachment": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
                     }
                 }
             },
@@ -9325,6 +9583,137 @@
                 }
             }
         },
+        "/api/auth/persona": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Switch the active persona for the session",
+                "description": "Updates the active buyer or supplier persona for the authenticated session and returns the full persona list so the client can re-render navigation.",
+                "operationId": "authSwitchPersona",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthSwitchPersonaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Persona updated and the session payload refreshed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "personas",
+                                                        "active_persona"
+                                                    ],
+                                                    "properties": {
+                                                        "personas": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/AuthPersona"
+                                                            }
+                                                        },
+                                                        "active_persona": {
+                                                            "$ref": "#/components/schemas/AuthPersona"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "examples": {
+                                    "switched": {
+                                        "summary": "Supplier persona selection response",
+                                        "value": {
+                                            "status": "success",
+                                            "message": "Persona updated.",
+                                            "data": {
+                                                "personas": [
+                                                    {
+                                                        "key": "buyer:12",
+                                                        "type": "buyer",
+                                                        "company_id": 12,
+                                                        "company_name": "Jim Enterprise",
+                                                        "company_status": "active",
+                                                        "company_supplier_status": "approved",
+                                                        "role": "owner",
+                                                        "is_default": true
+                                                    },
+                                                    {
+                                                        "key": "supplier:45:77",
+                                                        "type": "supplier",
+                                                        "company_id": 45,
+                                                        "company_name": "Acme Manufacturing",
+                                                        "company_status": "active",
+                                                        "supplier_id": 77,
+                                                        "supplier_name": "Jim Enterprise Machining",
+                                                        "supplier_company_id": 12,
+                                                        "supplier_company_name": "Jim Enterprise",
+                                                        "is_default": false
+                                                    }
+                                                ],
+                                                "active_persona": {
+                                                    "key": "supplier:45:77",
+                                                    "type": "supplier",
+                                                    "company_id": 45,
+                                                    "company_name": "Acme Manufacturing",
+                                                    "company_status": "active",
+                                                    "supplier_id": 77,
+                                                    "supplier_name": "Jim Enterprise Machining",
+                                                    "supplier_company_id": 12,
+                                                    "supplier_company_name": "Jim Enterprise",
+                                                    "is_default": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "The request is not authenticated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "The provided persona key was invalid or expired.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/register": {
             "post": {
                 "tags": [
@@ -12403,6 +12792,45 @@
             }
         },
         "/api/documents/{document}": {
+            "delete": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Delete a document",
+                "operationId": "deleteDocument",
+                "responses": {
+                    "200": {
+                        "description": "Document deleted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Caller is not authorized to delete the requested document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found within the tenant scope.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "get": {
                 "tags": [
                     "Documents"
@@ -16333,6 +16761,14 @@
                 ],
                 "summary": "List goods receipt notes for purchase order",
                 "operationId": "listGrns",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Collection of goods receipt notes.",
@@ -16359,7 +16795,7 @@
                                                             }
                                                         },
                                                         "meta": {
-                                                            "$ref": "#/components/schemas/PageMeta"
+                                                            "$ref": "#/components/schemas/CursorMeta"
                                                         }
                                                     }
                                                 }
@@ -18331,6 +18767,147 @@
                 }
             }
         },
+        "/api/rfq-quotes/{rfqId}": {
+            "get": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "List RFQ quotes for buyer or invited supplier personas",
+                "operationId": "listStandaloneRfqQuotes",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor-paginated collection of RFQ quotes.",
+                        "headers": {
+                            "X-Request-Id": {
+                                "$ref": "#/components/headers/XRequestId"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqQuoteCollection"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "RFQ access denied for the active persona.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Submit a supplier RFQ quote via standalone endpoint",
+                "operationId": "submitStandaloneRfqQuote",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RfqQuoteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "RFQ quote created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqQuote"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Supplier access denied or RFQ invitation missing.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/rfqs": {
             "get": {
                 "tags": [
@@ -18340,10 +18917,10 @@
                 "operationId": "listRfqs",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/PerPageQuery"
+                        "$ref": "#/components/parameters/CursorQuery"
                     },
                     {
-                        "$ref": "#/components/parameters/PageQuery"
+                        "$ref": "#/components/parameters/PerPageQuery"
                     },
                     {
                         "name": "tab",
@@ -18374,8 +18951,8 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "sent_at",
-                                "deadline_at"
+                                "due_at",
+                                "created_at"
                             ]
                         }
                     },
@@ -18411,7 +18988,7 @@
                                             "type": "object",
                                             "properties": {
                                                 "data": {
-                                                    "$ref": "#/components/schemas/RfqCollection"
+                                                    "$ref": "#/components/schemas/RfqCursorCollection"
                                                 }
                                             }
                                         }
@@ -18442,10 +19019,9 @@
                                                     }
                                                 ],
                                                 "meta": {
-                                                    "total": 1,
                                                     "per_page": 15,
-                                                    "current_page": 1,
-                                                    "last_page": 1
+                                                    "next_cursor": "eyJpZCI6IjNmZjBhIn0=",
+                                                    "prev_cursor": null
                                                 }
                                             }
                                         }
@@ -20011,7 +20587,7 @@
                 "tags": [
                     "Quotes"
                 ],
-                "summary": "List quotes for RFQ",
+                "summary": "List quotes for an RFQ",
                 "operationId": "listQuotesForRfq",
                 "responses": {
                     "200": {
@@ -20046,6 +20622,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
                     }
                 }
             },
@@ -21815,6 +22394,131 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier/rfqs": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "List RFQs for the acting supplier persona",
+                "description": "Returns the RFQs that invited the currently selected supplier persona for the active session. Buyer RFQs remain hidden until the user switches personas.",
+                "operationId": "listSupplierRfqInbox",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "due_at",
+                                "created_at",
+                                "close_at"
+                            ]
+                        },
+                        "description": "Column used to order the cursor window. Defaults to `due_at`."
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        },
+                        "description": "Sort direction applied to the selected column. Defaults to ascending."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor-paginated list of RFQs visible to the supplier persona.",
+                        "headers": {
+                            "X-Request-Id": {
+                                "$ref": "#/components/headers/XRequestId"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/RfqCursorCollection"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "examples": {
+                                    "inbox": {
+                                        "summary": "Supplier RFQ inbox listing",
+                                        "value": {
+                                            "status": "success",
+                                            "message": null,
+                                            "data": {
+                                                "items": [
+                                                    {
+                                                        "id": "5b3c7a47-9e3a-4e03-9a14-abc402c5d91b",
+                                                        "number": "RFQ-00421",
+                                                        "title": "Precision Bracket",
+                                                        "method": "cnc",
+                                                        "quantity_total": 250,
+                                                        "open_bidding": false,
+                                                        "due_at": 1764547199,
+                                                        "close_at": null,
+                                                        "status": "open",
+                                                        "created_at": 1761656505,
+                                                        "updated_at": 1761656712
+                                                    }
+                                                ],
+                                                "meta": {
+                                                    "per_page": 15,
+                                                    "next_cursor": "eyJpZCI6IjVmZmY1In0=",
+                                                    "prev_cursor": null
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or expired authentication token.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The request was issued without an active supplier persona or supplier approval.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
                                 }
                             }
                         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Services\UserAvatarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,10 @@ use Illuminate\Contracts\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(private readonly UserAvatarService $avatarService)
+    {
+    }
+
     /**
      * Show the user's profile settings page.
      */
@@ -24,13 +29,25 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $payload = $request->validated();
+        $avatarFile = $request->file('avatar');
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        unset($payload['avatar']);
+
+        if ($avatarFile) {
+            $payload['avatar_path'] = $this->avatarService->store($user, $avatarFile);
+        } elseif ($request->exists('avatar_path') && ($payload['avatar_path'] ?? null) === null) {
+            $this->avatarService->delete($user);
         }
 
-        $request->user()->save();
+        $user->fill($payload);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return to_route('profile.edit');
     }

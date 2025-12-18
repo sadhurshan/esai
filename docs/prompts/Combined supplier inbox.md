@@ -1,0 +1,7 @@
+- Combined supplier inbox
+    - [x] Add `GET /api/supplier/rfqs/combined` returning cursor-paginated RFQs drawn from every buyer tenant that invited the acting supplier user; each row must include `persona_key`, `buyer_company_id`, and `buyer_company_name` so the client can attribute follow-up actions to the correct tenant.
+    - [x] Enforce row-level authorization by joining `supplier_contacts` and `rfq_invitations` so only invitations tied to the authenticated supplier user and supplier record are returned; respect buyer plan gates and suspension flags before exposing a row.
+    - [x] Update OpenAPI fragments and docs to describe the combined inbox contract, including the requirement that write actions continue to pass the `persona_key` from the selected row.
+    - [x] Extend the supplier RFQ service + controller (or add a dedicated controller) to serve the combined listing while continuing to support the existing per-persona endpoint.
+    - [x] Introduce Feature + Contract tests covering multi-tenant supplier users to ensure combined responses remain tenant-safe and include the persona metadata.
+    - [x] Update the React persona switcher / inbox experience so the supplier sees a single table grouped by buyer company, automatically switching personas (or passing the persona key) before drilling into RFQ details or submitting quotes.

@@ -5,9 +5,14 @@ use App\Models\Company;
 use App\Models\Document;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderEvent;
+use App\Models\Supplier;
+use App\Models\SupplierContact;
 use App\Models\PurchaseOrderLine;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Session;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\getJson;
@@ -217,4 +222,128 @@ it('requires an active subscription before cancelling purchase orders', function
         ->assertStatus(402)
         ->assertJsonPath('message', 'Upgrade required')
         ->assertJsonPath('errors.code', 'subscription_inactive');
+});
+
+it('lists purchase orders with cursor pagination metadata', function (): void {
+    $company = companyWithActivePlan();
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'buyer_admin',
+    ]);
+
+    $orders = PurchaseOrder::factory()->count(3)->sequence(
+        ['company_id' => $company->id, 'created_at' => now()->subDays(3)],
+        ['company_id' => $company->id, 'created_at' => now()->subDays(2)],
+        ['company_id' => $company->id, 'created_at' => now()->subDay()]
+    )->create();
+
+    actingAs($user);
+
+    $firstPage = getJson('/api/purchase-orders?per_page=2')
+        ->assertOk()
+        ->assertJsonCount(2, 'data.items')
+        ->assertJsonPath('meta.cursor.has_next', true)
+        ->assertJsonPath('meta.cursor.has_prev', false)
+        ->json();
+
+    $nextCursor = Arr::get($firstPage, 'meta.cursor.next_cursor');
+    expect($nextCursor)->not->toBeNull();
+
+    getJson('/api/purchase-orders?per_page=2&cursor='.$nextCursor)
+        ->assertOk()
+        ->assertJsonCount(1, 'data.items')
+        ->assertJsonPath('meta.cursor.has_next', false)
+        ->assertJsonPath('meta.cursor.has_prev', true)
+        ->assertJsonStructure([
+            'data' => [
+                'meta' => ['next_cursor', 'prev_cursor', 'per_page'],
+            ],
+        ]);
+});
+
+it('paginates purchase order events using cursors', function (): void {
+    $company = companyWithActivePlan();
+    $user = User::factory()->create([
+        'company_id' => $company->id,
+        'role' => 'buyer_admin',
+    ]);
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $company->id,
+    ]);
+
+    foreach ([5, 4, 3] as $minutesAgo) {
+        PurchaseOrderEvent::create([
+            'purchase_order_id' => $purchaseOrder->id,
+            'event_type' => 'timeline',
+            'summary' => 'Event '.$minutesAgo,
+            'description' => 'Event at minute '.$minutesAgo,
+            'meta' => [],
+            'occurred_at' => now()->subMinutes($minutesAgo),
+        ]);
+    }
+
+    actingAs($user);
+
+    $first = getJson("/api/purchase-orders/{$purchaseOrder->id}/events?per_page=2")
+        ->assertOk()
+        ->assertJsonCount(2, 'data.items')
+        ->assertJsonPath('meta.cursor.has_next', true)
+        ->assertJsonPath('meta.cursor.has_prev', false)
+        ->json();
+
+    $cursor = Arr::get($first, 'meta.cursor.next_cursor');
+    expect($cursor)->not->toBeNull();
+
+    getJson("/api/purchase-orders/{$purchaseOrder->id}/events?per_page=2&cursor={$cursor}")
+        ->assertOk()
+        ->assertJsonCount(1, 'data.items')
+        ->assertJsonPath('meta.cursor.has_next', false)
+        ->assertJsonPath('meta.cursor.has_prev', true);
+});
+
+it('allows supplier personas to view purchase orders addressed to them', function (): void {
+    $buyerCompany = companyWithActivePlan();
+    $supplierCompany = companyWithActivePlan();
+
+    $user = User::factory()->create([
+        'company_id' => $buyerCompany->id,
+        'role' => 'owner',
+    ]);
+
+    $supplier = Supplier::factory()->create([
+        'company_id' => $supplierCompany->id,
+    ]);
+
+    SupplierContact::factory()->create([
+        'company_id' => $buyerCompany->id,
+        'supplier_id' => $supplier->id,
+        'user_id' => $user->id,
+    ]);
+
+    $purchaseOrder = PurchaseOrder::factory()->create([
+        'company_id' => $buyerCompany->id,
+        'supplier_id' => $supplier->id,
+        'status' => 'sent',
+    ]);
+
+    Session::start();
+    session()->put('active_persona', [
+        'key' => sprintf('supplier:%d:%d', $buyerCompany->id, $supplier->id),
+        'type' => 'supplier',
+        'company_id' => $buyerCompany->id,
+        'company_name' => $buyerCompany->name,
+        'supplier_id' => $supplier->id,
+        'supplier_name' => $supplier->name,
+        'supplier_company_id' => $supplierCompany->id,
+        'supplier_company_name' => $supplierCompany->name,
+        'role' => 'supplier_admin',
+        'is_default' => false,
+    ]);
+
+    actingAs($user);
+
+    getJson("/api/purchase-orders/{$purchaseOrder->id}")
+        ->assertOk()
+        ->assertJsonPath('data.id', $purchaseOrder->id);
 });

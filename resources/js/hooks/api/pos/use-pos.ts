@@ -76,6 +76,8 @@ export function usePos(params: UsePosParams = {}): UsePosResult {
         },
         placeholderData: keepPreviousData,
         staleTime: 30_000,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
     });
 
     const rawItems = useMemo(() => query.data?.items ?? [], [query.data?.items]);

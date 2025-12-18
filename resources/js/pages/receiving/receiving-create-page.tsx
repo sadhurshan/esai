@@ -89,13 +89,15 @@ export type GrnFormValues = z.infer<typeof grnFormSchema>;
 
 export function ReceivingCreatePage() {
     const navigate = useNavigate();
-    const { hasFeature, state } = useAuth();
+    const { hasFeature, state, activePersona } = useAuth();
     const createGrn = useCreateGrn();
     const [poPickerOpen, setPoPickerOpen] = useState(false);
     const [selectedPoSummary, setSelectedPoSummary] = useState<PurchaseOrderSummary | null>(null);
     const lastPoAppliedRef = useRef<number | null>(null);
 
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier' || supplierRole;
     const receivingEnabled = hasFeature('inventory_enabled');
 
     const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -126,7 +128,8 @@ export function ReceivingCreatePage() {
             ? formState.errors.lines.message
             : null;
 
-    const poDetailQuery = usePurchaseOrder(Number.isFinite(activePoId) ? activePoId : 0);
+    const effectivePoId = Number.isFinite(activePoId) && !isSupplierPersona ? activePoId : 0;
+    const poDetailQuery = usePurchaseOrder(effectivePoId);
     const poDetail = poDetailQuery.data;
 
     useEffect(() => {
@@ -165,8 +168,19 @@ export function ReceivingCreatePage() {
 
     const submitGrn = async (values: GrnFormValues, status: 'draft' | 'posted') => {
         clearErrors('lines');
-        if (status === 'posted' && !values.lines.some((line) => line.qtyReceived > 0)) {
-            setError('lines', { type: 'manual', message: 'Enter at least one received quantity before posting.' });
+        if (!Array.isArray(values.lines) || values.lines.length === 0) {
+            setError('lines', {
+                type: 'manual',
+                message: 'This purchase order has no open quantities left to receive. Choose another PO to continue.',
+            });
+            return;
+        }
+
+        if (!values.lines.some((line) => line.qtyReceived > 0)) {
+            setError('lines', {
+                type: 'manual',
+                message: 'Enter at least one received quantity greater than zero before saving.',
+            });
             return;
         }
 
@@ -198,6 +212,24 @@ export function ReceivingCreatePage() {
 
     const isSubmitting = createGrn.isPending;
     const mutationError = createGrn.error;
+
+    if (featureFlagsLoaded && isSupplierPersona) {
+        return (
+            <div className="flex flex-1 flex-col gap-6">
+                <Helmet>
+                    <title>Record receiving</title>
+                </Helmet>
+                <WorkspaceBreadcrumbs />
+                <EmptyState
+                    title="Receiving is buyer-only"
+                    description="Suppliers cannot post GRNs. Switch to a buyer persona to record goods receipt notes or quality findings."
+                    icon={<PackagePlus className="h-12 w-12 text-muted-foreground" />}
+                    ctaLabel="Back to dashboard"
+                    ctaProps={{ onClick: () => navigate('/app') }}
+                />
+            </div>
+        );
+    }
 
     if (featureFlagsLoaded && !receivingEnabled) {
         return (

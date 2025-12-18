@@ -1,4 +1,4 @@
-import { ShieldAlert } from 'lucide-react';
+import { Eye, ShieldAlert } from 'lucide-react';
 
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ export interface CompanyApprovalTableProps {
     onApprove?: (company: CompanyApprovalItem) => void;
     onReject?: (company: CompanyApprovalItem) => void;
     onPageChange?: (page: number) => void;
+    onView?: (company: CompanyApprovalItem) => void;
 }
 
 export function CompanyApprovalTable({
@@ -31,6 +32,7 @@ export function CompanyApprovalTable({
     onApprove,
     onReject,
     onPageChange,
+    onView,
 }: CompanyApprovalTableProps) {
     if (isLoading) {
         return <CompanyApprovalSkeleton />;
@@ -67,7 +69,7 @@ export function CompanyApprovalTable({
                 </thead>
                 <tbody className="divide-y divide-muted bg-background">
                     {companies.map((company) => {
-                        const eligible = moderationStatuses.has((company.status ?? '').toLowerCase());
+                        const eligible = isCompanyModerationEligible(company.status);
                         const awaitingApproval = approvingId === company.id;
                         const awaitingRejection = rejectingId === company.id;
                         const onboardingComplete = Boolean(company.has_completed_onboarding);
@@ -98,8 +100,8 @@ export function CompanyApprovalTable({
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="flex flex-col gap-2">
-                                        <Badge variant={statusVariant(company.status)} className="w-fit">
-                                            {statusLabel(company.status)}
+                                        <Badge variant={companyStatusVariant(company.status)} className="w-fit">
+                                            {companyStatusLabel(company.status)}
                                         </Badge>
                                         {onboardingComplete ? (
                                             <Badge variant="outline" className="w-fit text-[11px]">
@@ -127,6 +129,17 @@ export function CompanyApprovalTable({
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="flex flex-col gap-2 text-right sm:flex-row sm:justify-end">
+                                        {onView ? (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="secondary"
+                                                className="gap-1"
+                                                onClick={() => onView(company)}
+                                            >
+                                                <Eye className="h-4 w-4" aria-hidden /> View details
+                                            </Button>
+                                        ) : null}
                                         <Button
                                             type="button"
                                             size="sm"
@@ -171,7 +184,15 @@ export function CompanyApprovalTable({
     );
 }
 
-function statusLabel(status?: string | null): string {
+export function isCompanyModerationEligible(status?: string | null): boolean {
+    if (!status) {
+        return false;
+    }
+
+    return moderationStatuses.has(status.toLowerCase());
+}
+
+export function companyStatusLabel(status?: string | null): string {
     if (!status) {
         return 'Unknown';
     }
@@ -180,7 +201,7 @@ function statusLabel(status?: string | null): string {
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function statusVariant(status?: string | null): 'default' | 'secondary' | 'outline' {
+export function companyStatusVariant(status?: string | null): 'default' | 'secondary' | 'outline' {
     switch (status) {
         case 'pending':
             return 'outline';

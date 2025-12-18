@@ -52,9 +52,10 @@ interface FormattingProviderProps {
 }
 
 export function FormattingProvider({ children, disableRemoteFetch = false }: FormattingProviderProps) {
-    const { state } = useAuth();
+    const { state, activePersona } = useAuth();
     const role = state.user?.role ?? null;
-    const allowRemoteFetch = !disableRemoteFetch && !isPlatformRole(role);
+    const isSupplierPersona = activePersona?.type === 'supplier';
+    const allowRemoteFetch = !disableRemoteFetch && !isPlatformRole(role) && !isSupplierPersona;
     const localization = useLocalizationSettings({ enabled: allowRemoteFetch });
 
     const value = useMemo(() => buildFormattingContext(localization.data), [localization.data]);

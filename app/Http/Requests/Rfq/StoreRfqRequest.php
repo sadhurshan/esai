@@ -3,11 +3,17 @@
 namespace App\Http\Requests\Rfq;
 
 use App\Http\Requests\ApiFormRequest;
+use App\Http\Requests\Concerns\InteractsWithDocumentRules;
 
 class StoreRfqRequest extends ApiFormRequest
 {
+    use InteractsWithDocumentRules;
+
     public function rules(): array
     {
+        $extensions = $this->documentAllowedExtensions();
+        $maxKilobytes = $this->documentMaxKilobytes();
+
         return [
             'title' => ['required', 'string', 'max:200'],
             'type' => ['required', 'in:ready_made,manufacture'],
@@ -24,7 +30,7 @@ class StoreRfqRequest extends ApiFormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.uom' => ['nullable', 'string', 'max:16'],
             'items.*.target_price' => ['nullable', 'numeric', 'min:0'],
-            'cad_file' => ['nullable', 'file', 'max:10240'], // TODO: clarify with spec - enforce module-specific file size limit
+            'cad_file' => ['nullable', 'file', 'mimes:'.implode(',', $extensions), 'max:'.$maxKilobytes],
         ];
     }
 }

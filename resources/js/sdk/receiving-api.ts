@@ -108,7 +108,7 @@ export class ReceivingApi extends BaseAPI {
                 method: 'POST',
                 headers,
                 body: {
-                    po_id: payload.purchaseOrderId,
+                    purchase_order_id: payload.purchaseOrderId,
                     received_at: payload.receivedAt,
                     reference: payload.reference,
                     notes: payload.notes,

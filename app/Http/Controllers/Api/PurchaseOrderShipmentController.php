@@ -32,19 +32,25 @@ class PurchaseOrderShipmentController extends ApiController
             return $this->fail('Purchase order not found.', 404);
         }
 
-        $shipments = $order->shipments()
+        $paginator = $order->shipments()
             ->with([
                 'lines.purchaseOrderLine',
             ])
             ->orderByDesc('shipped_at')
             ->orderByDesc('id')
-            ->get();
+            ->cursorPaginate(
+                $this->perPage($request, 25, 100),
+                ['*'],
+                'cursor',
+                $request->query('cursor')
+            )
+            ->withQueryString();
 
-        $items = PurchaseOrderShipmentResource::collection($shipments)->toArray($request);
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, PurchaseOrderShipmentResource::class);
 
         return $this->ok([
             'purchaseOrderId' => $order->getKey(),
             'items' => $items,
-        ]);
+        ], null, $meta);
     }
 }

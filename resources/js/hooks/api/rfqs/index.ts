@@ -12,6 +12,7 @@ export * from './use-invite-suppliers';
 export * from './use-add-line';
 export * from './use-update-line';
 export * from './use-delete-line';
+export * from './use-delete-rfq';
 export * from './use-upload-attachment';
 export * from './use-delete-attachment';
 export * from './use-rfq-attachments';

@@ -68,6 +68,18 @@ export interface SubmitQuoteRequest {
      * @type {string}
      * @memberof SubmitQuoteRequest
      */
+    incoterm?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubmitQuoteRequest
+     */
+    paymentTerms?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubmitQuoteRequest
+     */
     status?: SubmitQuoteRequestStatusEnum;
     /**
      * 
@@ -120,6 +132,8 @@ export function SubmitQuoteRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
         'minOrderQty': json['min_order_qty'] == null ? undefined : json['min_order_qty'],
         'note': json['note'] == null ? undefined : json['note'],
+        'incoterm': json['incoterm'] == null ? undefined : json['incoterm'],
+        'paymentTerms': json['payment_terms'] == null ? undefined : json['payment_terms'],
         'status': json['status'] == null ? undefined : json['status'],
         'items': ((json['items'] as Array<any>).map(SubmitQuoteRequestItemsInnerFromJSON)),
         'attachments': json['attachments'] == null ? undefined : json['attachments'],
@@ -143,6 +157,8 @@ export function SubmitQuoteRequestToJSONTyped(value?: SubmitQuoteRequest | null,
         'lead_time_days': value['leadTimeDays'],
         'min_order_qty': value['minOrderQty'],
         'note': value['note'],
+        'incoterm': value['incoterm'],
+        'payment_terms': value['paymentTerms'],
         'status': value['status'],
         'items': ((value['items'] as Array<any>).map(SubmitQuoteRequestItemsInnerToJSON)),
         'attachments': value['attachments'],

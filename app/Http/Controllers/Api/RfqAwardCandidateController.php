@@ -38,8 +38,15 @@ class RfqAwardCandidateController extends ApiController
         ]);
 
         $quotes = $rfq->quotes()
-            ->with(['supplier', 'items.award'])
+            ->with([
+                'supplier' => function ($query) {
+                    $query->withTrashed()->with('company');
+                },
+                'items.award',
+            ])
             ->whereNull('quotes.deleted_at')
+            ->whereNull('quotes.withdrawn_at')
+            ->whereIn('quotes.status', ['submitted', 'awarded'])
             ->orderByDesc('submitted_at')
             ->get();
 
@@ -117,6 +124,13 @@ class RfqAwardCandidateController extends ApiController
         $candidates = [];
 
         foreach ($quotes as $quote) {
+            if (! in_array($quote->status, ['submitted', 'awarded'], true) || $quote->withdrawn_at !== null) {
+                continue;
+            }
+
+            $supplier = $quote->supplier;
+            $supplierName = $supplier?->name ?: $supplier?->company?->name;
+
             foreach ($quote->items as $item) {
                 if ((int) $item->rfq_item_id === 0) {
                     continue;
@@ -131,7 +145,7 @@ class RfqAwardCandidateController extends ApiController
                     'quote_id' => (int) $quote->id,
                     'quote_item_id' => (int) $item->id,
                     'supplier_id' => $quote->supplier_id !== null ? (int) $quote->supplier_id : null,
-                    'supplier_name' => $quote->supplier?->name,
+                    'supplier_name' => $supplierName,
                     'unit_price_minor' => $unitPriceMinor,
                     'unit_price_currency' => $lineCurrency,
                     'converted_unit_price_minor' => $converted['amount_minor'],

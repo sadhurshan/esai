@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\PurchaseOrder\CancelPurchaseOrderAction;
 use App\Actions\PurchaseOrder\ConvertAwardsToPurchaseOrdersAction;
 use App\Actions\PurchaseOrder\HandleSupplierAcknowledgementAction;
 use App\Actions\PurchaseOrder\SendPurchaseOrderAction;
@@ -40,6 +41,7 @@ class PurchaseOrderController extends ApiController
         private readonly ConvertAwardsToPurchaseOrdersAction $convertAwardsToPurchaseOrdersAction,
         private readonly SendPurchaseOrderAction $sendPurchaseOrder,
         private readonly HandleSupplierAcknowledgementAction $supplierAcknowledgement,
+        private readonly CancelPurchaseOrderAction $cancelPurchaseOrderAction,
         private readonly AuditLogger $auditLogger,
     ) {}
 
@@ -57,12 +59,31 @@ class PurchaseOrderController extends ApiController
 
         $isSupplierListing = $request->boolean('supplier') === true;
 
-        $query = PurchaseOrder::query()->with(['quote.supplier', 'rfq']);
+        $query = PurchaseOrder::query()->with(['quote.supplier', 'supplier', 'rfq']);
 
         if ($isSupplierListing) {
-            $query->whereHas('quote.supplier', function ($supplierQuery) use ($companyId): void {
-                $supplierQuery->where('company_id', $companyId);
+            $supplierContext = $this->resolveSupplierWorkspaceContext($user);
+            $supplierCompanyId = $supplierContext['supplierCompanyId'];
+
+            if ($supplierCompanyId === null) {
+                return $this->fail('Supplier company context required.', 422);
+            }
+
+            $query->where(function ($builder) use ($supplierCompanyId): void {
+                $builder
+                    ->whereHas('supplier', function ($supplierQuery) use ($supplierCompanyId): void {
+                        $supplierQuery->where('company_id', $supplierCompanyId);
+                    })
+                    ->orWhereHas('quote.supplier', function ($supplierQuery) use ($supplierCompanyId): void {
+                        $supplierQuery->where('company_id', $supplierCompanyId);
+                    });
             });
+
+            $buyerCompanyId = $supplierContext['buyerCompanyId'];
+
+            if ($buyerCompanyId !== null) {
+                $query->where('company_id', $buyerCompanyId);
+            }
         } else {
             $query->where('company_id', $companyId);
         }
@@ -79,7 +100,12 @@ class PurchaseOrderController extends ApiController
         $paginator = $query
             ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->paginate($this->perPage($request, 25, 100))
+            ->cursorPaginate(
+                $this->perPage($request, 25, 100),
+                ['*'],
+                'cursor',
+                $request->query('cursor')
+            )
             ->withQueryString();
 
         ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, PurchaseOrderResource::class);
@@ -101,11 +127,16 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $purchaseOrder->loadMissing(['quote.supplier']);
+        $purchaseOrder->loadMissing(['quote.supplier', 'supplier']);
 
-        $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
+        $supplierCompanyId = $this->purchaseOrderSupplierCompanyId($purchaseOrder);
+        $workspaceContext = $this->resolveSupplierWorkspaceContext($user);
         $isBuyer = $companyId === $purchaseOrder->company_id;
-        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
+        $isSupplier = $this->supplierWorkspaceOwnsPurchaseOrder(
+            $workspaceContext,
+            $supplierCompanyId,
+            (int) $purchaseOrder->company_id,
+        );
 
         if (! $isBuyer && ! $isSupplier) {
             return $this->fail('Forbidden', 403);
@@ -145,7 +176,7 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Forbidden', 403);
         }
 
-        $delivery = $this->sendPurchaseOrder->execute($user, $purchaseOrder, $request->payload());
+        $deliveries = $this->sendPurchaseOrder->execute($user, $purchaseOrder, $request->payload());
 
         $purchaseOrder->refresh()->load([
             'lines.taxes.taxCode',
@@ -157,16 +188,18 @@ class PurchaseOrderController extends ApiController
             'deliveries.creator',
         ]);
 
-        $this->auditLogger->custom($purchaseOrder, 'purchase_order_sent', [
-            'delivery_id' => $delivery->getKey(),
-            'channel' => $delivery->channel,
-            'recipients_to' => $delivery->recipients_to,
-            'recipients_cc' => $delivery->recipients_cc,
-        ]);
+        foreach ($deliveries as $delivery) {
+            $this->auditLogger->custom($purchaseOrder, 'purchase_order_sent', [
+                'delivery_id' => $delivery->getKey(),
+                'channel' => $delivery->channel,
+                'recipients_to' => $delivery->recipients_to,
+                'recipients_cc' => $delivery->recipients_cc,
+            ]);
+        }
 
         return $this->ok([
             'purchase_order' => (new PurchaseOrderResource($purchaseOrder))->toArray($request),
-            'delivery' => (new PurchaseOrderDeliveryResource($delivery))->toArray($request),
+            'deliveries' => PurchaseOrderDeliveryResource::collection($deliveries)->toArray($request),
         ], 'Purchase order issued.');
     }
 
@@ -190,22 +223,18 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Forbidden', 403);
         }
 
-        $before = $purchaseOrder->only(['status', 'cancelled_at']);
-        $purchaseOrder->status = 'cancelled';
-        $purchaseOrder->cancelled_at = now();
-        $purchaseOrder->save();
-
-        $this->auditLogger->updated($purchaseOrder, $before, [
-            'status' => $purchaseOrder->status,
-            'cancelled_at' => $purchaseOrder->cancelled_at,
-        ]);
+        try {
+            $updatedPurchaseOrder = $this->cancelPurchaseOrderAction->execute($purchaseOrder);
+        } catch (ValidationException $exception) {
+            return $this->fail($exception->getMessage(), 422, $exception->errors());
+        }
 
         Log::info('purchase_order.cancelled', [
             'purchase_order_id' => $purchaseOrder->id,
             'cancelled_by_user_id' => $user->id,
         ]);
 
-        $purchaseOrder->load([
+        $updatedPurchaseOrder->load([
             'lines.taxes.taxCode',
             'lines.invoiceLines',
             'lines.rfqItem',
@@ -214,7 +243,7 @@ class PurchaseOrderController extends ApiController
             'pdfDocument',
         ]);
 
-        return $this->ok((new PurchaseOrderResource($purchaseOrder))->toArray($request), 'Purchase order cancelled.');
+        return $this->ok((new PurchaseOrderResource($updatedPurchaseOrder))->toArray($request), 'Purchase order cancelled.');
     }
 
     public function acknowledge(SupplierAcknowledgeRequest $request, PurchaseOrder $purchaseOrder): JsonResponse
@@ -229,7 +258,20 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $purchaseOrder->loadMissing(['quote.supplier']);
+        $purchaseOrder->loadMissing(['quote.supplier', 'supplier']);
+
+        $supplierCompanyId = $this->purchaseOrderSupplierCompanyId($purchaseOrder);
+        $workspaceContext = $this->resolveSupplierWorkspaceContext($user);
+        $isBuyer = (int) $purchaseOrder->company_id === (int) $companyId;
+        $isSupplier = $this->supplierWorkspaceOwnsPurchaseOrder(
+            $workspaceContext,
+            $supplierCompanyId,
+            (int) $purchaseOrder->company_id,
+        );
+
+        if (! $isBuyer && ! $isSupplier) {
+            return $this->fail('Forbidden', 403);
+        }
 
         if ($this->authorizeDenied($user, 'acknowledge', $purchaseOrder)) {
             return $this->fail('Forbidden', 403);
@@ -278,11 +320,16 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $purchaseOrder->loadMissing(['quote.supplier']);
+        $purchaseOrder->loadMissing(['quote.supplier', 'supplier']);
 
-        $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
+        $supplierCompanyId = $this->purchaseOrderSupplierCompanyId($purchaseOrder);
+        $workspaceContext = $this->resolveSupplierWorkspaceContext($user);
         $isBuyer = (int) $purchaseOrder->company_id === (int) $companyId;
-        $isSupplier = $supplierCompanyId !== null && (int) $supplierCompanyId === (int) $companyId;
+        $isSupplier = $this->supplierWorkspaceOwnsPurchaseOrder(
+            $workspaceContext,
+            $supplierCompanyId,
+            (int) $purchaseOrder->company_id,
+        );
 
         if (! $isBuyer && ! $isSupplier) {
             return $this->fail('Forbidden', 403);
@@ -292,15 +339,20 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Forbidden', 403);
         }
 
-        $events = $purchaseOrder->events()
+        $cursorName = 'cursor';
+        $cursor = $request->query($cursorName);
+
+        $paginator = $purchaseOrder->events()
             ->with('actor')
             ->orderByDesc('occurred_at')
-            ->limit(200)
-            ->get();
+            ->orderByDesc('id')
+            ->cursorPaginate($this->perPage($request, 50, 200), ['*'], $cursorName, $cursor);
+
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, PurchaseOrderEventResource::class);
 
         return $this->ok([
-            'items' => PurchaseOrderEventResource::collection($events)->resolve(),
-        ]);
+            'items' => $items,
+        ], null, $meta);
     }
 
     public function export(PurchaseOrder $purchaseOrder, Request $request, DocumentStorer $documentStorer): JsonResponse
@@ -315,11 +367,16 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $purchaseOrder->loadMissing(['quote.supplier']);
+        $purchaseOrder->loadMissing(['quote.supplier', 'supplier']);
 
-        $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
+        $supplierCompanyId = $this->purchaseOrderSupplierCompanyId($purchaseOrder);
+        $workspaceContext = $this->resolveSupplierWorkspaceContext($user);
         $isBuyer = $companyId === $purchaseOrder->company_id;
-        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
+        $isSupplier = $this->supplierWorkspaceOwnsPurchaseOrder(
+            $workspaceContext,
+            $supplierCompanyId,
+            (int) $purchaseOrder->company_id,
+        );
 
         if (! $isBuyer && ! $isSupplier) {
             return $this->fail('Forbidden', 403);
@@ -369,11 +426,16 @@ class PurchaseOrderController extends ApiController
             return $this->fail('Company context required.', 403);
         }
 
-        $purchaseOrder->loadMissing(['quote.supplier']);
+        $purchaseOrder->loadMissing(['quote.supplier', 'supplier']);
 
-        $supplierCompanyId = $purchaseOrder->quote?->supplier?->company_id;
+        $supplierCompanyId = $this->purchaseOrderSupplierCompanyId($purchaseOrder);
+        $workspaceContext = $this->resolveSupplierWorkspaceContext($user);
         $isBuyer = $companyId === $purchaseOrder->company_id;
-        $isSupplier = $supplierCompanyId !== null && $supplierCompanyId === $companyId;
+        $isSupplier = $this->supplierWorkspaceOwnsPurchaseOrder(
+            $workspaceContext,
+            $supplierCompanyId,
+            (int) $purchaseOrder->company_id,
+        );
 
         if (! $isBuyer && ! $isSupplier) {
             return $this->fail('Forbidden', 403);
@@ -525,5 +587,70 @@ class PurchaseOrderController extends ApiController
         $tempDisk->delete($tempPath);
 
         return $document;
+    }
+
+    private function purchaseOrderSupplierCompanyId(PurchaseOrder $purchaseOrder): ?int
+    {
+        $supplier = $purchaseOrder->relationLoaded('supplier')
+            ? $purchaseOrder->getRelation('supplier')
+            : null;
+
+        if ($supplier === null && $purchaseOrder->supplier_id !== null) {
+            CompanyContext::bypass(function () use ($purchaseOrder): void {
+                $purchaseOrder->loadMissing('supplier');
+            });
+
+            $supplier = $purchaseOrder->getRelation('supplier');
+        }
+
+        if ($supplier?->company_id !== null) {
+            return (int) $supplier->company_id;
+        }
+
+        if (! $purchaseOrder->relationLoaded('quote')) {
+            $purchaseOrder->loadMissing('quote.supplier');
+        }
+
+        if ($purchaseOrder->quote?->supplier?->company_id !== null) {
+            return (int) $purchaseOrder->quote->supplier->company_id;
+        }
+
+        if ($purchaseOrder->quote?->supplier_id !== null) {
+            return (int) $purchaseOrder->quote->supplier_id;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array{supplierCompanyId:?int,buyerCompanyId:?int}  $workspaceContext
+     */
+    private function supplierWorkspaceOwnsPurchaseOrder(
+        array $workspaceContext,
+        ?int $purchaseOrderSupplierCompanyId,
+        ?int $purchaseOrderBuyerCompanyId
+    ): bool
+    {
+        $contextSupplierCompanyId = $workspaceContext['supplierCompanyId'];
+
+        if ($contextSupplierCompanyId === null || $purchaseOrderSupplierCompanyId === null) {
+            return false;
+        }
+
+        if ((int) $contextSupplierCompanyId !== (int) $purchaseOrderSupplierCompanyId) {
+            return false;
+        }
+
+        $personaBuyerCompanyId = $workspaceContext['buyerCompanyId'];
+
+        if ($personaBuyerCompanyId === null) {
+            return true;
+        }
+
+        if ($purchaseOrderBuyerCompanyId === null) {
+            return false;
+        }
+
+        return (int) $personaBuyerCompanyId === (int) $purchaseOrderBuyerCompanyId;
     }
 }

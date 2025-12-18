@@ -25,14 +25,13 @@ class SupplierApplicationRejected extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail'];
     }
 
     public function viaQueues(): array
     {
         return [
             'mail' => 'mail',
-            'database' => 'default',
         ];
     }
 

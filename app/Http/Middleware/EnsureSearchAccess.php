@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
@@ -27,22 +28,14 @@ class EnsureSearchAccess
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Authentication required.',
-                'data' => null,
-            ], Response::HTTP_UNAUTHORIZED);
+            return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
         $user->loadMissing('company.plan');
         $company = $user->company;
 
         if (! $company instanceof Company) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Company context required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Company context required.', Response::HTTP_FORBIDDEN);
         }
 
         $plan = $company->plan;
@@ -54,11 +47,7 @@ class EnsureSearchAccess
         }
 
         if (! $this->permissionRegistry->userHasAny($user, self::PERMISSIONS, (int) $company->id)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Search access requires read permissions.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Search access requires read permissions.', Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

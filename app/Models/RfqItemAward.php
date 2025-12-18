@@ -50,7 +50,9 @@ class RfqItemAward extends CompanyScopedModel
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Supplier::class)
+            ->withoutGlobalScope('company_scope')
+            ->withTrashed();
     }
 
     public function quote(): BelongsTo

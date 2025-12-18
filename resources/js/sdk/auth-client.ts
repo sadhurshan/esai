@@ -19,6 +19,8 @@ export interface LoginResponse {
     company?: Record<string, unknown> | null;
     feature_flags?: unknown;
     plan?: unknown;
+    personas?: unknown;
+    active_persona?: unknown;
 }
 
 export interface ForgotPasswordRequest {
@@ -61,6 +63,12 @@ export interface AuthSessionResponse {
     feature_flags?: unknown;
     plan?: unknown;
     token?: string;
+    personas?: unknown;
+    active_persona?: unknown;
+}
+
+export interface SwitchPersonaRequest {
+    key: string;
 }
 
 function unwrapEnvelope<T>(payload: ApiEnvelope<T> | T): T {
@@ -134,6 +142,20 @@ export class AuthApi extends BaseAPI {
                 Accept: 'application/json',
             },
         });
+    }
+
+    async switchPersona(payload: SwitchPersonaRequest): Promise<AuthSessionResponse> {
+        const response = await this.request({
+            path: '/api/auth/persona',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+
+        return parseJson<AuthSessionResponse>(response);
     }
 
     async resendVerificationEmail(): Promise<void> {

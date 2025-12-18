@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class AuthenticateApiSession
 {
@@ -45,10 +46,48 @@ class AuthenticateApiSession
 
         Auth::onceUsingId($user->getAuthIdentifier());
         $request->setUserResolver(static fn () => $user);
+        $this->attachSessionPersona($request, $session);
 
         $this->touchSession($sessionId);
 
         return $next($request);
+    }
+
+    private function attachSessionPersona(Request $request, object $session): void
+    {
+        if ($request->attributes->has('session.active_persona')) {
+            return;
+        }
+
+        $persona = $this->extractActivePersona($session->payload ?? null);
+
+        if ($persona !== null) {
+            $request->attributes->set('session.active_persona', $persona);
+        }
+    }
+
+    private function extractActivePersona(mixed $payload): ?array
+    {
+        if (! is_string($payload) || $payload === '') {
+            return null;
+        }
+
+        $decoded = base64_decode($payload, true);
+        $serialized = $decoded !== false ? $decoded : $payload;
+
+        try {
+            $data = unserialize($serialized, ['allowed_classes' => true]);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (! is_array($data)) {
+            return null;
+        }
+
+        $persona = $data['active_persona'] ?? null;
+
+        return is_array($persona) ? $persona : null;
     }
 
     private function resolveSessionId(Request $request): ?string

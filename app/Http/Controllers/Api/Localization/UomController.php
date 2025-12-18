@@ -31,11 +31,18 @@ class UomController extends ApiController
             $query->where('dimension', $dimension);
         }
 
-        $uoms = $query->get();
+        $paginator = $query->cursorPaginate(
+            $this->perPage($request, 25, 100),
+            ['*'],
+            'cursor',
+            $request->query('cursor')
+        );
 
-        $data = $uoms->map(fn (Uom $uom) => (new UomResource($uom))->toArray($request))->all();
+        ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, UomResource::class);
 
-        return $this->ok(['items' => $data, 'meta' => ['total' => $uoms->count()]]);
+        return $this->ok([
+            'items' => $items,
+        ], 'Units retrieved.', $meta);
     }
 
     public function store(StoreUomRequest $request): JsonResponse

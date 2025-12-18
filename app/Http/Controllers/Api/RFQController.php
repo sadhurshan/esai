@@ -809,9 +809,11 @@ class RFQController extends ApiController
             ->orderBy($sort, $direction)
             ->orderBy('id', $direction);
 
+        $cursorName = 'cursor';
+        $cursor = $request->query($cursorName);
+
         $paginator = $query
-            ->paginate($this->perPage($request, 25, 100))
-            ->withQueryString();
+            ->cursorPaginate($this->perPage($request, 25, 100), ['*'], $cursorName, $cursor);
 
         ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, RFQResource::class);
 

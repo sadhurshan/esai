@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -33,10 +34,6 @@ class EnsureBuyerAccess
 
     private function errorResponse(string $message, int $status): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ], $status);
+        return ApiResponse::error($message, $status);
     }
 }

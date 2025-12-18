@@ -20,6 +20,7 @@ class AuthResponseFactory
         'approvals_enabled',
         'rma_enabled',
         'credit_notes_enabled',
+        'supplier_invoicing_enabled',
         'global_search_enabled',
         'quotes_enabled',
         'quote_revisions_enabled',
@@ -43,6 +44,7 @@ class AuthResponseFactory
         'purchase_orders' => ['growth', 'enterprise'],
         'invoices_enabled' => ['growth', 'enterprise'],
         'digital_twin_enabled' => ['growth', 'enterprise'],
+        'supplier_invoicing_enabled' => ['growth', 'enterprise'],
     ];
 
     /**
@@ -58,11 +60,16 @@ class AuthResponseFactory
         'suppliers.directory.browse',
     ];
 
+    public function __construct(private readonly PersonaResolver $personaResolver)
+    {
+    }
+
     public function make(User $user, ?string $token = null): array
     {
         $user->loadMissing(['company.plan', 'company.featureFlags']);
 
         $company = $user->company;
+        $personas = $this->personaResolver->resolve($user);
 
         return [
             'token' => $token,
@@ -72,6 +79,8 @@ class AuthResponseFactory
             'plan' => $company?->plan_code ?? $company?->plan?->code ?? null,
             'requires_plan_selection' => $company ? $this->requiresPlanSelection($company) : false,
             'requires_email_verification' => ! $user->hasVerifiedEmail(),
+            'personas' => $personas,
+            'active_persona' => $this->personaResolver->determineActivePersona($user, $personas),
         ];
     }
 

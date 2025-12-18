@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Http\Resources\UserProfileResource;
+use App\Services\UserAvatarService;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UserProfileController extends ApiController
 {
-    public function __construct(private readonly AuditLogger $auditLogger)
-    {
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly UserAvatarService $avatarService,
+    ) {
     }
 
     public function show(Request $request): JsonResponse
@@ -34,6 +37,15 @@ class UserProfileController extends ApiController
         }
 
         $payload = $request->validated();
+        $avatarFile = $request->file('avatar');
+
+        unset($payload['avatar']);
+
+        if ($avatarFile) {
+            $payload['avatar_path'] = $this->avatarService->store($user, $avatarFile);
+        } elseif ($request->exists('avatar_path') && ($payload['avatar_path'] ?? null) === null) {
+            $this->avatarService->delete($user);
+        }
 
         $before = $user->only(array_keys($payload));
 

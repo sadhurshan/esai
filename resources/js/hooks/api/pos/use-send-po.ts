@@ -7,47 +7,36 @@ import type { PurchaseOrderDelivery } from '@/types/sourcing';
 
 export interface SendPoInput {
     poId: number;
-    channel: 'email' | 'webhook';
-    to?: string[];
-    cc?: string[];
     message?: string;
+    overrideEmail?: string;
 }
 
 interface SendPoResponse {
-    delivery?: PurchaseOrderDelivery;
+    deliveries?: PurchaseOrderDelivery[];
 }
 
 export function useSendPo(): UseMutationResult<PurchaseOrderDelivery | undefined, Error, SendPoInput> {
     const queryClient = useQueryClient();
 
     return useMutation<PurchaseOrderDelivery | undefined, Error, SendPoInput>({
-        mutationFn: async ({ poId, channel, to, cc, message }) => {
+        mutationFn: async ({ poId, message, overrideEmail }) => {
             if (!Number.isFinite(poId) || poId <= 0) {
                 throw new Error('A valid PO id is required to send to the supplier.');
             }
 
-            const sanitizedTo = channel === 'email' ? (to ?? []).map((recipient) => recipient.trim()).filter(Boolean) : undefined;
-            const sanitizedCc = channel === 'email' ? (cc ?? []).map((recipient) => recipient.trim()).filter(Boolean) : undefined;
-
-            if (channel === 'email' && (!sanitizedTo || sanitizedTo.length === 0)) {
-                throw new Error('Provide at least one recipient when emailing the purchase order.');
-            }
-
             // TODO: switch to the TS SDK once the send endpoint accepts payloads in the generated client.
             const response = (await api.post<SendPoResponse>(`/purchase-orders/${poId}/send`, {
-                channel,
-                to: sanitizedTo,
-                cc: sanitizedCc,
                 message: message?.trim() || undefined,
+                override_email: overrideEmail?.trim() || undefined,
             })) as unknown as SendPoResponse;
 
-            return response?.delivery;
+            return response?.deliveries?.[0];
         },
         onSuccess: (_, { poId }) => {
             publishToast({
                 variant: 'success',
                 title: 'Purchase order sent',
-                description: 'Supplier has been notified via the configured channel.',
+                description: 'Supplier has been notified via email and webhook.',
             });
 
             void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });

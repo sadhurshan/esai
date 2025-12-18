@@ -24,14 +24,15 @@ class AnalyticsController extends ApiController
 
     public function overview(Request $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $user->loadMissing('company.plan');
-        $company = $user->company;
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        $company = Company::query()->with('plan')->find($companyId);
 
         if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);
@@ -93,14 +94,15 @@ class AnalyticsController extends ApiController
 
     public function generate(GenerateAnalyticsRequest $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $user->loadMissing('company.plan');
-        $company = $user->company;
+        ['user' => $user, 'companyId' => $companyId] = $context;
+
+        $company = Company::query()->with('plan')->find($companyId);
 
         if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);

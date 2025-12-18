@@ -19,6 +19,7 @@ const config: StorybookConfig = {
         config.resolve.alias = {
             ...(config.resolve.alias ?? {}),
             '@': resolve(__dirname, '../resources/js'),
+            'react-helmet-async': resolve(__dirname, '../resources/js/lib/helmet-shim.tsx'),
         };
         return config;
     },

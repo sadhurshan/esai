@@ -33,8 +33,10 @@ const DEFAULT_PER_PAGE = 25;
 
 export function useGrns(
     params: UseGrnsParams = {},
+    options: { enabled?: boolean } = {},
 ): UseQueryResult<GrnListResult, HttpError> {
     const receivingApi = useSdkClient(ReceivingApi);
+    const enabled = options.enabled ?? true;
 
     return useQuery<GrnCollectionResponse, HttpError, GrnListResult>({
         queryKey: queryKeys.receiving.list({
@@ -47,7 +49,7 @@ export function useGrns(
             receivedFrom: params.receivedFrom,
             receivedTo: params.receivedTo,
         }),
-        enabled: true,
+        enabled,
         placeholderData: keepPreviousData,
         queryFn: async () =>
             (await receivingApi.listGrns({

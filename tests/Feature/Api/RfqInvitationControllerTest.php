@@ -15,6 +15,10 @@ function rfqInvitationTestContext(): array {
         'supplier_status' => CompanySupplierStatus::Approved,
     ]);
 
+    $supplierCompany = createSubscribedCompany([
+        'supplier_status' => CompanySupplierStatus::Approved,
+    ]);
+
     $buyerAdmin = User::factory()->create([
         'company_id' => $company->id,
         'role' => 'buyer_admin',
@@ -26,11 +30,17 @@ function rfqInvitationTestContext(): array {
     ]);
 
     $supplier = Supplier::factory()->create([
-        'company_id' => $company->id,
+        'company_id' => $supplierCompany->id,
         'status' => 'approved',
     ]);
 
-    return compact('company', 'buyerAdmin', 'rfq', 'supplier');
+    return [
+        'company' => $company,
+        'supplierCompany' => $supplierCompany,
+        'buyerAdmin' => $buyerAdmin,
+        'rfq' => $rfq,
+        'supplier' => $supplier,
+    ];
 }
 
 it('allows buyer admins to invite approved suppliers and list invitations', function (): void {

@@ -22,13 +22,14 @@ class CompanyRoleTemplateController extends ApiController
         $paginator = RoleTemplate::query()
             ->whereNotIn('slug', ['platform_admin', 'platform_super', 'platform_support'])
             ->orderBy('name')
-            ->paginate($perPage)
+            ->orderBy('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'))
             ->withQueryString();
 
         $paginated = $this->paginate($paginator, $request, RoleTemplateResource::class);
 
         $payload = [
-            'roles' => $paginated['items'],
+            'items' => $paginated['items'],
             'permission_groups' => config('rbac.permission_groups', []),
         ];
 

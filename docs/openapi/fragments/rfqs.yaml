@@ -236,6 +236,29 @@ components:
             $ref: '#/components/schemas/Rfq'
         meta:
           $ref: '#/components/schemas/PageMeta'
+    RfqCursorCollection:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rfq'
+        meta:
+          type: object
+          required:
+            - per_page
+          properties:
+            next_cursor:
+              type: string
+              nullable: true
+            prev_cursor:
+              type: string
+              nullable: true
+            per_page:
+              type: integer
     RfqInvitation:
       type: object
       required:
@@ -722,8 +745,8 @@ paths:
       summary: List RFQs
       operationId: listRfqs
       parameters:
+        - $ref: '#/components/parameters/CursorQuery'
         - $ref: '#/components/parameters/PerPageQuery'
-        - $ref: '#/components/parameters/PageQuery'
         - name: tab
           in: query
           schema:
@@ -740,7 +763,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [sent_at, deadline_at]
+            enum: [due_at, created_at]
         - name: sort_direction
           in: query
           required: false
@@ -761,7 +784,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/RfqCollection'
+                        $ref: '#/components/schemas/RfqCursorCollection'
               examples:
                 default:
                   summary: RFQ listing
@@ -784,10 +807,9 @@ paths:
                           created_at: 2025-10-28T13:01:45Z
                           updated_at: 2025-10-28T13:05:12Z
                       meta:
-                        total: 1
                         per_page: 15
-                        current_page: 1
-                        last_page: 1
+                        next_cursor: eyJpZCI6IjNmZjBhIn0=
+                        prev_cursor: null
     post:
       tags:
         - RFQs
@@ -935,6 +957,80 @@ paths:
                         $ref: '#/components/schemas/Rfq'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /api/supplier/rfqs:
+    get:
+      tags:
+        - RFQs
+      summary: List RFQs for the acting supplier persona
+      description: Returns the RFQs that invited the currently selected supplier persona for the active session. Buyer RFQs remain hidden until the user switches personas.
+      operationId: listSupplierRfqInbox
+      parameters:
+        - $ref: '#/components/parameters/CursorQuery'
+        - $ref: '#/components/parameters/PerPageQuery'
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [due_at, created_at, close_at]
+          description: Column used to order the cursor window. Defaults to `due_at`.
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort direction applied to the selected column. Defaults to ascending.
+      responses:
+        '200':
+          description: Cursor-paginated list of RFQs visible to the supplier persona.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RfqCursorCollection'
+              examples:
+                inbox:
+                  summary: Supplier RFQ inbox listing
+                  value:
+                    status: success
+                    message: null
+                    data:
+                      items:
+                        - id: 5b3c7a47-9e3a-4e03-9a14-abc402c5d91b
+                          number: RFQ-00421
+                          title: Precision Bracket
+                          method: cnc
+                          quantity_total: 250
+                          open_bidding: false
+                          due_at: 2025-11-30T23:59:59Z
+                          close_at: null
+                          status: open
+                          created_at: 2025-10-28T13:01:45Z
+                          updated_at: 2025-10-28T13:05:12Z
+                      meta:
+                        per_page: 15
+                        next_cursor: eyJpZCI6IjVmZmY1In0=
+                        prev_cursor: null
+        '401':
+          description: Missing or expired authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: The request was issued without an active supplier persona or supplier approval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/rfqs/{rfqId}:
     parameters:
       - name: rfqId

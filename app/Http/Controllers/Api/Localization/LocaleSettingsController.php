@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Localization;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Localization\UpdateLocaleSettingsRequest;
 use App\Http\Resources\Localization\CompanyLocaleSettingResource;
+use App\Models\Company;
 use App\Models\CompanyLocaleSetting;
 use App\Services\LocaleService;
 use Illuminate\Http\JsonResponse;
@@ -18,15 +19,17 @@ class LocaleSettingsController extends ApiController
 
     public function show(Request $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $company = $user->company;
+        ['companyId' => $companyId] = $context;
 
-        if ($company === null) {
+        $company = Company::query()->with('localeSetting')->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);
         }
 
@@ -37,21 +40,23 @@ class LocaleSettingsController extends ApiController
 
     public function update(UpdateLocaleSettingsRequest $request): JsonResponse
     {
-        $user = $this->resolveRequestUser($request);
+        $context = $this->requireCompanyContext($request);
 
-        if ($user === null) {
-            return $this->fail('Authentication required.', 401);
+        if ($context instanceof JsonResponse) {
+            return $context;
         }
 
-        $company = $user->company;
+        ['companyId' => $companyId] = $context;
 
-        if ($company === null) {
+        $company = Company::query()->with('localeSetting')->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('Company context required.', 403);
         }
 
         $payload = $request->payload();
 
-        $setting = CompanyLocaleSetting::query()->firstOrNew(['company_id' => $company->id]);
+        $setting = CompanyLocaleSetting::query()->firstOrNew(['company_id' => $companyId]);
         $before = $setting->exists ? $setting->getOriginal() : [];
 
         $setting->fill($payload);

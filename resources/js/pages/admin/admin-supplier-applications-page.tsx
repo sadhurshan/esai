@@ -26,7 +26,7 @@ import type {
     SupplierApplicationStatusValue,
 } from '@/types/admin';
 
-const DEFAULT_STATUS: StatusFilterValue = 'pending';
+const DEFAULT_STATUS: StatusFilterValue = 'all';
 const PAGE_SIZE = 25;
 
 const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
@@ -34,6 +34,11 @@ const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
 type StatusFilterValue = SupplierApplicationStatusValue | 'all';
 
 const STATUS_FILTERS: Array<{ label: string; value: StatusFilterValue; description: string }> = [
+        {
+        label: 'All',
+        value: 'all',
+        description: 'Every supplier application regardless of status.',
+    },
     {
         label: 'Pending review',
         value: 'pending',
@@ -48,11 +53,6 @@ const STATUS_FILTERS: Array<{ label: string; value: StatusFilterValue; descripti
         label: 'Rejected',
         value: 'rejected',
         description: 'Declined submissions pending re-work from the tenant.',
-    },
-    {
-        label: 'All',
-        value: 'all',
-        description: 'Every supplier application regardless of status.',
     },
 ];
 
@@ -87,6 +87,21 @@ export function AdminSupplierApplicationsPage() {
     if (!isPlatformOperator) {
         return <AccessDeniedPage />;
     }
+
+    const selectedForm = selectedApplication?.form_json;
+    const applicationContactName = selectedForm?.contact?.name?.trim() || undefined;
+    const applicationContactEmail = selectedForm?.contact?.email?.trim() || undefined;
+    const applicationContactPhone = selectedForm?.contact?.phone?.trim() || undefined;
+    const hasApplicationContact = Boolean(
+        applicationContactName || applicationContactEmail || applicationContactPhone,
+    );
+    const applicationDescription = selectedForm?.description?.trim() || undefined;
+    const applicationAddressLine = selectedForm?.address?.trim() || undefined;
+    const applicationCity = selectedForm?.city?.trim() || undefined;
+    const applicationCountry = selectedForm?.country?.trim() || undefined;
+    const hasApplicationAddress = Boolean(
+        applicationAddressLine || applicationCity || applicationCountry,
+    );
 
     const openReviewPanel = (application: SupplierApplicationItem) => {
         setSelectedApplication(application);
@@ -229,6 +244,53 @@ export function AdminSupplierApplicationsPage() {
                                             <p className="text-sm text-muted-foreground">Not provided</p>
                                         )}
                                     </InfoBlock>
+                                    <InfoBlock label="Application contact">
+                                        {hasApplicationContact ? (
+                                            <div className="space-y-1 text-sm text-foreground">
+                                                {applicationContactName ? (
+                                                    <p className="font-medium">{applicationContactName}</p>
+                                                ) : null}
+                                                {applicationContactEmail ? (
+                                                    <a
+                                                        href={`mailto:${applicationContactEmail}`}
+                                                        className="text-xs text-primary underline"
+                                                    >
+                                                        {applicationContactEmail}
+                                                    </a>
+                                                ) : null}
+                                                {applicationContactPhone ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {applicationContactPhone}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Not provided</p>
+                                        )}
+                                    </InfoBlock>
+                                    <InfoBlock label="Application address">
+                                        {hasApplicationAddress ? (
+                                            <div className="space-y-1 text-sm text-foreground">
+                                                {applicationAddressLine ? <p>{applicationAddressLine}</p> : null}
+                                                {applicationCity || applicationCountry ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {[applicationCity, applicationCountry]
+                                                            .filter(Boolean)
+                                                            .join(', ')}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Not provided</p>
+                                        )}
+                                    </InfoBlock>
+                                    <div className="sm:col-span-2">
+                                        <InfoBlock label="Supplier overview">
+                                            <p className="text-sm text-foreground">
+                                                {applicationDescription ?? 'Not provided'}
+                                            </p>
+                                        </InfoBlock>
+                                    </div>
                                 </div>
                             </DetailSection>
 

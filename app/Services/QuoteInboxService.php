@@ -10,12 +10,10 @@ use Illuminate\Http\Request;
 
 class QuoteInboxService
 {
-    public function supplierQuery(Request $request, int $companyId): Builder
+    public function supplierQuery(Request $request, int $companyId, ?int $supplierId = null): Builder
     {
         $query = Quote::query()
-            ->whereHas('supplier', static function (Builder $builder) use ($companyId): void {
-                $builder->where('company_id', $companyId);
-            })
+            ->forCompany($companyId)
             ->with([
                 'supplier',
                 'rfq',
@@ -23,6 +21,10 @@ class QuoteInboxService
                 'items.rfqItem',
                 'documents',
             ]);
+
+        if ($supplierId !== null) {
+            $query->where('supplier_id', $supplierId);
+        }
 
         $this->applyCommonFilters($query, $request);
 

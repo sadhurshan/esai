@@ -24,10 +24,17 @@ class CompanyPlanController extends ApiController
 
     public function store(PlanSelectionRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user?->company;
+        $context = $this->requireCompanyContext($request);
 
-        if ($company === null) {
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
+        $company = Company::query()->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('No company linked to this user.', 422);
         }
 

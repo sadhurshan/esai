@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\Plan;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
+use App\Models\Supplier;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\Security\Exceptions\VirusScanFailedException;
@@ -163,6 +164,97 @@ test('company receiving endpoints list and show goods receipts', function (): vo
         ->assertJsonPath('data.id', $noteId)
         ->assertJsonPath('data.purchase_order_id', $purchaseOrder->id)
         ->assertJsonPath('data.lines.0.purchase_order_line_id', $line->id);
+});
+
+test('receiving detail exposes supplier name even when supplier is archived', function (): void {
+    [
+        'company' => $company,
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $supplier = Supplier::factory()->for($company)->create([
+        'name' => 'Forge Works Fabrication',
+    ]);
+
+    $purchaseOrder->forceFill([
+        'supplier_id' => $supplier->id,
+    ])->save();
+
+    $this->actingAs($user);
+
+    $payload = [
+        'number' => 'GRN-ARCHIVE',
+        'inspected_by_id' => $user->id,
+        'inspected_at' => now()->toISOString(),
+        'lines' => [
+            [
+                'purchase_order_line_id' => $line->id,
+                'received_qty' => 2,
+                'accepted_qty' => 2,
+                'rejected_qty' => 0,
+            ],
+        ],
+    ];
+
+    $create = $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/grns", $payload);
+    $create->assertOk();
+
+    $noteId = (int) $create->json('data.id');
+
+    $supplier->delete();
+
+    $detail = $this->getJson("/api/receiving/grns/{$noteId}");
+    $detail->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.supplier_name', $supplier->name);
+});
+
+test('po-scoped receiving exposes cursor pagination metadata', function (): void {
+    [
+        'user' => $user,
+        'purchaseOrder' => $purchaseOrder,
+        'line' => $line,
+    ] = provisionGoodsReceivingContext();
+
+    $this->actingAs($user);
+
+    foreach (range(1, 2) as $index) {
+        $payload = [
+            'number' => 'GRN-CURSOR-'.$index,
+            'inspected_by_id' => $user->id,
+            'lines' => [
+                [
+                    'purchase_order_line_id' => $line->id,
+                    'received_qty' => 1,
+                    'accepted_qty' => 1,
+                    'rejected_qty' => 0,
+                ],
+            ],
+        ];
+
+        $this->postJson("/api/purchase-orders/{$purchaseOrder->id}/grns", $payload)->assertOk();
+    }
+
+    $firstPage = $this->getJson("/api/purchase-orders/{$purchaseOrder->id}/grns?per_page=1");
+
+    $firstPage
+        ->assertOk()
+        ->assertJsonPath('data.meta.per_page', 1)
+        ->assertJsonPath('meta.cursor.has_next', true);
+
+    $cursor = $firstPage->json('data.meta.next_cursor');
+
+    expect($cursor)->not->toBeNull();
+
+    $secondPage = $this->getJson(
+        "/api/purchase-orders/{$purchaseOrder->id}/grns?per_page=1&cursor=".urlencode((string) $cursor)
+    );
+
+    $secondPage
+        ->assertOk()
+        ->assertJsonPath('meta.cursor.has_prev', true);
 });
 
 test('company receiving endpoint can create goods receipt notes', function (): void {

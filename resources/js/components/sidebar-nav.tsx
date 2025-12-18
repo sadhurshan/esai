@@ -15,7 +15,10 @@ import {
     Wallet,
     Boxes,
     Factory,
+    Layers,
+    PackageCheck,
     PackageSearch,
+    ReceiptText,
     ShieldCheck,
     LineChart,
     Settings,
@@ -55,9 +58,12 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'RFQs', to: '/app/rfqs', icon: FileSpreadsheet },
     { label: 'Quotes', to: '/app/quotes', icon: FileText },
     { label: 'Purchase Orders', to: '/app/purchase-orders', icon: ClipboardList },
+    { label: 'Receiving & Quality', to: '/app/receiving', icon: PackageCheck, featureKey: 'inventory_enabled' },
     { label: 'Invoices', to: '/app/invoices', icon: Wallet },
     { label: 'Matching', to: '/app/matching', icon: Scale, featureKey: 'finance_enabled' },
-    { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory.access' },
+    { label: 'Credit Notes', to: '/app/credit-notes', icon: ReceiptText, featureKey: 'finance_enabled' },
+    { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory_enabled' },
+    { label: 'Assets', to: '/app/assets', icon: Layers },
     {
         label: 'Digital Twin Library',
         to: '/app/library/digital-twins',
@@ -86,14 +92,29 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
 ];
 
+const SUPPLIER_NAV_ITEMS: NavItem[] = [
+    { label: 'Dashboard', to: '/app/supplier', icon: LayoutDashboard, matchExact: true },
+    { label: 'RFQs', to: '/app/supplier/rfqs', icon: FileSpreadsheet },
+    { label: 'Quotes', to: '/app/supplier/quotes', icon: FileText },
+    { label: 'Orders', to: '/app/supplier/orders', icon: PackageSearch },
+    { label: 'Invoices', to: '/app/supplier/invoices', icon: Wallet, featureKey: 'supplier_invoicing_enabled' },
+    { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
+    { label: 'Supplier Profile', to: '/app/supplier/company-profile', icon: Factory, matchExact: true },
+];
+
 export function SidebarNav() {
-    const { hasFeature, state, canAccessAdminConsole } = useAuth();
+    const { hasFeature, state, canAccessAdminConsole, activePersona } = useAuth();
     const location = useLocation();
     const role = state.user?.role ?? null;
     const isPlatformOperator = role ? PLATFORM_ROLES.has(role) : false;
+    const isSupplierPersona = activePersona?.type === 'supplier';
 
     const items = useMemo(() => {
-        const sourceItems = isPlatformOperator ? ADMIN_NAV_ITEMS : WORKSPACE_NAV_ITEMS;
+        const sourceItems = isPlatformOperator
+            ? ADMIN_NAV_ITEMS
+            : isSupplierPersona
+              ? SUPPLIER_NAV_ITEMS
+              : WORKSPACE_NAV_ITEMS;
         return sourceItems.filter((item) => {
             if (item.requiresAdminConsole && !canAccessAdminConsole) {
                 return false;
@@ -109,12 +130,14 @@ export function SidebarNav() {
 
             return true;
         });
-    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, role]);
+    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, isSupplierPersona, role]);
+
+    const sidebarLabel = isPlatformOperator ? 'Admin Console' : isSupplierPersona ? 'Supplier Workspace' : 'Workspace';
 
     return (
         <SidebarContent>
             <SidebarGroup className="px-2 py-0">
-                <SidebarGroupLabel>{isPlatformOperator ? 'Admin Console' : 'Workspace'}</SidebarGroupLabel>
+                <SidebarGroupLabel>{sidebarLabel}</SidebarGroupLabel>
                 <SidebarMenu>
                     {items.map((item) => {
                         const match = matchPath({ path: item.to, end: item.matchExact ?? false }, location.pathname);

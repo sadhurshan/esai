@@ -6,19 +6,27 @@ use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
 use App\Enums\RmaStatus;
 use App\Models\Company;
+use App\Models\CreditNote;
 use App\Models\GoodsReceiptNote;
+use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Rma;
+use App\Models\Supplier;
 use App\Models\User;
+use App\Services\CreditNoteService;
+use App\Services\SupplierRiskService;
 use App\Support\Audit\AuditLogger;
 use App\Support\Documents\DocumentStorer;
 use App\Support\Notifications\NotificationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class RmaService
 {
@@ -29,6 +37,8 @@ class RmaService
         private readonly AuditLogger $auditLogger,
         private readonly DocumentStorer $documentStorer,
         private readonly NotificationService $notifications,
+        private readonly CreditNoteService $creditNotes,
+        private readonly SupplierRiskService $supplierRisk,
         private readonly array $reviewerRoles = ['buyer_admin', 'quality', 'finance'],
     ) {
     }
@@ -71,6 +81,7 @@ class RmaService
             'reason',
             'description',
             'resolution_requested',
+            'defect_qty',
         ]);
 
         if (! isset($payload['reason']) || trim((string) $payload['reason']) === '') {
@@ -95,6 +106,7 @@ class RmaService
                 'reason' => $payload['reason'],
                 'description' => $payload['description'] ?? null,
                 'resolution_requested' => $payload['resolution_requested'],
+                'defect_qty' => $this->resolveDefectQuantity($payload, $line),
                 'status' => RmaStatus::Raised,
             ]);
 
@@ -134,7 +146,7 @@ class RmaService
                 ]
             );
 
-            $this->updateSupplierMetrics($rma);
+            $this->updateSupplierMetrics($rma, $purchaseOrder);
 
             return $rma->fresh(['documents']);
         });
@@ -194,10 +206,16 @@ class RmaService
             );
 
             if ($status === RmaStatus::Approved && in_array($rma->resolution_requested, ['credit', 'refund'], true)) {
-                // TODO: trigger credit note workflow once available.
+                $this->triggerCreditNote($rma, $reviewer);
             }
 
+            $purchaseOrder = $rma->purchaseOrder()->first();
+
             $this->closeRma($rma);
+
+            if ($purchaseOrder instanceof PurchaseOrder) {
+                $this->updateSupplierMetrics($rma, $purchaseOrder);
+            }
 
             return $rma->fresh(['documents']);
         });
@@ -292,8 +310,161 @@ class RmaService
         );
     }
 
-    private function updateSupplierMetrics(Rma $rma): void
+    private function resolveDefectQuantity(array $payload, ?PurchaseOrderLine $line): int
     {
-        // TODO: wire into supplier risk score calculations once metrics module is ready.
+        $inputQuantity = isset($payload['defect_qty']) ? (int) $payload['defect_qty'] : null;
+
+        if ($inputQuantity !== null && $inputQuantity > 0) {
+            return $inputQuantity;
+        }
+
+        if ($line !== null && (int) $line->quantity > 0) {
+            return (int) $line->quantity;
+        }
+
+        return 1;
+    }
+
+    private function triggerCreditNote(Rma $rma, User $reviewer): ?CreditNote
+    {
+        if ($rma->credit_note_id !== null) {
+            return null;
+        }
+
+        $rma->loadMissing(['company.plan', 'purchaseOrder.supplier', 'purchaseOrderLine']);
+
+        $company = $rma->company;
+        $plan = $company?->plan;
+
+        if ($plan !== null && ! $plan->credit_notes_enabled) {
+            return null;
+        }
+
+        $purchaseOrder = $rma->purchaseOrder;
+
+        if (! $purchaseOrder instanceof PurchaseOrder) {
+            return null;
+        }
+
+        $invoice = $this->resolveInvoiceForRma($rma, $purchaseOrder);
+
+        if (! $invoice instanceof Invoice) {
+            return null;
+        }
+
+        $amount = $this->resolveCreditAmount($rma, $invoice);
+
+        if ($amount === null) {
+            return null;
+        }
+
+        $payload = [
+            'reason' => sprintf('RMA #%d resolved (%s)', $rma->id, $rma->resolution_requested),
+            'amount' => $amount,
+        ];
+
+        if ($rma->grn_id !== null) {
+            $payload['grn_id'] = $rma->grn_id;
+        }
+
+        $creditNote = $this->creditNotes->createCreditNote(
+            $invoice,
+            $purchaseOrder,
+            $payload,
+            $reviewer
+        );
+
+        $rma->credit_note_id = $creditNote->id;
+        $rma->save();
+
+        return $creditNote;
+    }
+
+    private function resolveInvoiceForRma(Rma $rma, PurchaseOrder $purchaseOrder): ?Invoice
+    {
+        $lineId = $rma->purchase_order_line_id;
+
+        if ($lineId !== null) {
+            $invoiceWithLine = $purchaseOrder->invoices()
+                ->whereHas('lines', function (Builder $builder) use ($lineId): void {
+                    $builder->where('po_line_id', $lineId);
+                })
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($invoiceWithLine instanceof Invoice) {
+                $invoiceWithLine->loadMissing('lines');
+
+                return $invoiceWithLine;
+            }
+        }
+
+        $invoice = $purchaseOrder->invoices()
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($invoice instanceof Invoice) {
+            $invoice->loadMissing('lines');
+        }
+
+        return $invoice;
+    }
+
+    private function resolveCreditAmount(Rma $rma, Invoice $invoice): ?string
+    {
+        $amount = 0.0;
+        $invoice->loadMissing('lines');
+        $lineId = $rma->purchase_order_line_id;
+
+        if ($lineId !== null && $invoice->relationLoaded('lines')) {
+            $lineAmount = $invoice->lines
+                ->where('po_line_id', $lineId)
+                ->reduce(
+                    fn (float $carry, InvoiceLine $line): float => $carry + ((float) $line->quantity * (float) $line->unit_price),
+                    0.0
+                );
+
+            if ($lineAmount > 0) {
+                $lineQuantity = $rma->purchaseOrderLine?->quantity;
+                $defectQty = $rma->defect_qty;
+
+                if ($defectQty !== null && $lineQuantity !== null && (int) $lineQuantity > 0) {
+                    $ratio = min(1.0, $defectQty / (int) $lineQuantity);
+                    $lineAmount *= $ratio;
+                }
+
+                $amount = $lineAmount;
+            }
+        }
+
+        if ($amount <= 0) {
+            $amount = (float) $invoice->total;
+        }
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        return number_format($amount, 2, '.', '');
+    }
+
+    private function updateSupplierMetrics(Rma $rma, PurchaseOrder $purchaseOrder): void
+    {
+        $purchaseOrder->loadMissing('supplier');
+
+        $supplier = $purchaseOrder->supplier;
+
+        if (! $supplier instanceof Supplier) {
+            return;
+        }
+
+        $periodStart = Carbon::now()->copy()->startOfMonth();
+        $periodEnd = Carbon::now();
+
+        try {
+            $this->supplierRisk->calculateForSupplier($supplier, $periodStart, $periodEnd);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

@@ -60,12 +60,12 @@ class MaintenancePlanner
 
         return $this->database->transaction(function () use ($asset, $procedure, $frequencyValue, $frequencyUnit, $lastDoneAt, $nextDueAt, $meta): AssetProcedureLink {
             /** @var AssetProcedureLink|null $existing */
-            $existing = AssetProcedureLink::query()
-                ->where('asset_id', $asset->id)
+            $existing = $asset->procedureLinks()
                 ->where('maintenance_procedure_id', $procedure->id)
                 ->first();
 
             $payload = [
+                'company_id' => $asset->company_id,
                 'frequency_value' => $frequencyValue,
                 'frequency_unit' => $frequencyUnit,
                 'last_done_at' => $lastDoneAt,
@@ -96,8 +96,7 @@ class MaintenancePlanner
     public function recordCompletion(Asset $asset, MaintenanceProcedure $procedure, Carbon $completedAt): AssetProcedureLink
     {
         /** @var AssetProcedureLink|null $link */
-        $link = AssetProcedureLink::query()
-            ->where('asset_id', $asset->id)
+        $link = $asset->procedureLinks()
             ->where('maintenance_procedure_id', $procedure->id)
             ->first();
 
@@ -128,8 +127,7 @@ class MaintenancePlanner
     {
         $this->database->transaction(function () use ($asset, $procedure): void {
             /** @var AssetProcedureLink|null $link */
-            $link = AssetProcedureLink::query()
-                ->where('asset_id', $asset->id)
+            $link = $asset->procedureLinks()
                 ->where('maintenance_procedure_id', $procedure->id)
                 ->first();
 

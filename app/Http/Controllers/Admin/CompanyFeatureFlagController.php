@@ -9,6 +9,7 @@ use App\Http\Resources\Admin\CompanyFeatureFlagResource;
 use App\Models\Company;
 use App\Models\CompanyFeatureFlag;
 use App\Services\Admin\CompanyFeatureFlagService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,7 +75,9 @@ class CompanyFeatureFlagController extends ApiController
     private function ensureFlagForCompany(Company $company, CompanyFeatureFlag $flag): void
     {
         if ($flag->company_id !== $company->id) {
-            abort(Response::HTTP_NOT_FOUND);
+            throw new HttpResponseException(
+                $this->fail('Feature flag not found for this company.', Response::HTTP_NOT_FOUND)
+            );
         }
     }
 

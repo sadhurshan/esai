@@ -39,6 +39,9 @@ export function FileDropzone({
 
         const files = Array.from(event.target.files);
         onFilesSelected?.(files);
+
+        // Reset the input so picking the same file again still triggers change events.
+        event.target.value = '';
     };
 
     const acceptedDisplay = acceptLabel ??

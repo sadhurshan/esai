@@ -13,13 +13,12 @@ use App\Models\InvoiceMatch;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\User;
-use App\Notifications\InvoiceMatchResultNotification;
 use App\Services\FxService;
+use App\Support\Notifications\NotificationService;
 use App\Support\Money\Money;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Notification;
 
 class PerformInvoiceMatchAction
 {
@@ -31,6 +30,7 @@ class PerformInvoiceMatchAction
     public function __construct(
         private readonly DatabaseManager $db,
         private readonly FxService $fxService,
+        private readonly NotificationService $notifications,
     ) {}
 
     /**
@@ -328,6 +328,38 @@ class PerformInvoiceMatchAction
             return;
         }
 
-        Notification::send($recipients, new InvoiceMatchResultNotification($invoice, $summary, $mismatches));
+        $invoiceNumber = $invoice->invoice_number ?? sprintf('INV-%d', $invoice->id);
+        $poNumber = $invoice->purchaseOrder?->po_number ?? sprintf('PO-%d', $invoice->purchase_order_id ?? $invoice->id);
+        $mismatchCount = ($summary['qty_mismatch'] ?? 0)
+            + ($summary['price_mismatch'] ?? 0)
+            + ($summary['unmatched'] ?? 0);
+
+        $title = 'Invoice match requires review';
+        $body = sprintf(
+            '%s against %s has %d mismatched line%s. Review the match summary to resolve exceptions.',
+            $invoiceNumber,
+            $poNumber,
+            $mismatchCount,
+            $mismatchCount === 1 ? '' : 's'
+        );
+
+        $this->notifications->send(
+            $recipients,
+            'invoice_match.review',
+            $title,
+            $body,
+            Invoice::class,
+            $invoice->id,
+            [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'po_id' => $invoice->purchase_order_id,
+                'po_number' => $invoice->purchaseOrder?->po_number,
+                'summary' => $summary,
+                'mismatches' => $mismatches,
+                'cta_url' => sprintf('/invoices/%d', $invoice->id),
+                'cta_label' => 'Review invoice match',
+            ]
+        );
     }
 }

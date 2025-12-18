@@ -7,6 +7,10 @@ import { HttpError, RFQsApi, type ApiSuccessResponse, type RfqClarification } fr
 
 type RfqIdentifier = string | number | null | undefined;
 
+export interface UseRfqClarificationsOptions {
+    enabled?: boolean;
+}
+
 async function fetchClarifications(rfqsApi: RFQsApi, rfqId: string | number): Promise<RfqClarification[]> {
     const response = await rfqsApi.listRfqClarifications({
         rfqId: String(rfqId),
@@ -28,11 +32,14 @@ export type UseRfqClarificationsResult = UseQueryResult<RfqClarification[]> & {
     isSubmittingAnswer: boolean;
 };
 
-export function useRfqClarifications(rfqId: RfqIdentifier): UseRfqClarificationsResult {
+export function useRfqClarifications(
+    rfqId: RfqIdentifier,
+    options: UseRfqClarificationsOptions = {},
+): UseRfqClarificationsResult {
     const rfqsApi = useSdkClient(RFQsApi);
     const { configuration } = useApiClientContext();
     const queryClient = useQueryClient();
-    const enabled = Boolean(rfqId);
+    const enabled = options.enabled ?? Boolean(rfqId);
 
     const query = useQuery<RfqClarification[]>({
         queryKey: queryKeys.rfqs.clarifications(rfqId ?? 'undefined'),
@@ -42,7 +49,7 @@ export function useRfqClarifications(rfqId: RfqIdentifier): UseRfqClarifications
 
     const submitClarification = useCallback(
         async (path: 'clarifications/question' | 'clarifications/answer', payload: ClarificationSubmissionPayload) => {
-            if (!rfqId) {
+            if (!rfqId || !enabled) {
                 throw new Error('RFQ identifier is required to submit a clarification.');
             }
 
@@ -77,7 +84,7 @@ export function useRfqClarifications(rfqId: RfqIdentifier): UseRfqClarifications
 
             return (await response.json()) as ApiSuccessResponse;
         },
-        [configuration, rfqId]
+        [configuration, enabled, rfqId]
     );
 
     const questionMutation = useMutation({
@@ -94,14 +101,20 @@ export function useRfqClarifications(rfqId: RfqIdentifier): UseRfqClarifications
         },
     });
 
-    const items = useMemo(() => query.data ?? [], [query.data]);
+    const items = useMemo(() => {
+        if (!enabled) {
+            return [];
+        }
+
+        return query.data ?? [];
+    }, [enabled, query.data]);
 
     return {
         ...query,
         items,
         askQuestion: async (payload: ClarificationSubmissionPayload) => questionMutation.mutateAsync(payload),
         answerQuestion: async (payload: ClarificationSubmissionPayload) => answerMutation.mutateAsync(payload),
-        isSubmittingQuestion: questionMutation.isPending,
-        isSubmittingAnswer: answerMutation.isPending,
+        isSubmittingQuestion: enabled ? questionMutation.isPending : false,
+        isSubmittingAnswer: enabled ? answerMutation.isPending : false,
     };
 }

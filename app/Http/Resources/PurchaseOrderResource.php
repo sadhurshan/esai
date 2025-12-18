@@ -50,6 +50,7 @@ class PurchaseOrderResource extends JsonResource
                         return [
                             'id' => $this->supplier->getKey(),
                             'name' => $this->supplier->name,
+                            'email' => $this->supplier->email,
                         ];
                     }
 
@@ -57,6 +58,7 @@ class PurchaseOrderResource extends JsonResource
                         return [
                             'id' => $this->quote->supplier->getKey(),
                             'name' => $this->quote->supplier->name,
+                            'email' => $this->quote->supplier->email,
                         ];
                     }
 
@@ -64,6 +66,7 @@ class PurchaseOrderResource extends JsonResource
                         return [
                             'id' => $this->quote->supplier_id,
                             'name' => null,
+                            'email' => null,
                         ];
                     }
 

@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -13,7 +15,10 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
+    Storage::fake('public');
+
     $user = User::factory()->create();
+    $avatar = UploadedFile::fake()->image('avatar.png', 256, 256);
 
     $response = $this
         ->actingAs($user)
@@ -24,7 +29,7 @@ test('profile information can be updated', function () {
             'phone' => '+1-555-1000',
             'locale' => 'en',
             'timezone' => 'America/New_York',
-            'avatar_path' => 'avatars/test-user.png',
+            'avatar' => $avatar,
         ]);
 
     $response
@@ -40,7 +45,35 @@ test('profile information can be updated', function () {
     expect($user->phone)->toBe('+1-555-1000');
     expect($user->locale)->toBe('en');
     expect($user->timezone)->toBe('America/New_York');
-    expect($user->avatar_path)->toBe('avatars/test-user.png');
+    expect($user->avatar_path)->not->toBeNull();
+    Storage::disk('public')->assertExists($user->avatar_path);
+});
+
+test('avatar can be removed', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $existingPath = sprintf('avatars/%d/original.png', $user->id);
+
+    $user->forceFill(['avatar_path' => $existingPath])->save();
+    Storage::disk('public')->put($existingPath, 'avatar-bytes');
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar_path' => '',
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('profile.edit'));
+
+    $user->refresh();
+
+    expect($user->avatar_path)->toBeNull();
+    Storage::disk('public')->assertMissing($existingPath);
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Enums\CompanyStatus;
 use App\Models\Company;
+use App\Support\ActivePersonaContext;
+use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +26,10 @@ class EnsureSubscribed
 
         if ($company === null) {
             return $this->errorResponse('Subscription unavailable for this user.', 403);
+        }
+
+        if (ActivePersonaContext::isSupplier()) {
+            return $next($request);
         }
 
         $company->loadMissing(['plan', 'subscriptions']);
@@ -173,15 +179,10 @@ class EnsureSubscribed
 
     private function upgradeRequired(string $code, array $context = []): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Upgrade required',
-            'data' => null,
-            'errors' => array_merge($context, [
-                'code' => $code,
-                'upgrade_url' => $this->upgradeUrl(),
-            ]),
-        ], 402);
+        return ApiResponse::error('Upgrade required', 402, array_merge($context, [
+            'code' => $code,
+            'upgrade_url' => $this->upgradeUrl(),
+        ]));
     }
 
     private function upgradeUrl(): string
@@ -191,10 +192,6 @@ class EnsureSubscribed
 
     private function errorResponse(string $message, int $status): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ], $status);
+        return ApiResponse::error($message, $status);
     }
 }

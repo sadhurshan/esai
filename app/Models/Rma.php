@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RmaStatus;
+use App\Models\CreditNote;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,11 +25,13 @@ class Rma extends CompanyScopedModel
         'reason',
         'description',
         'resolution_requested',
+        'defect_qty',
         'status',
         'reviewed_by',
         'review_outcome',
         'review_comment',
         'reviewed_at',
+        'credit_note_id',
     ];
 
     protected $casts = [
@@ -64,6 +67,11 @@ class Rma extends CompanyScopedModel
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function creditNote(): BelongsTo
+    {
+        return $this->belongsTo(CreditNote::class);
     }
 
     public function rmaDocuments(): HasMany

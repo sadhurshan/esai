@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,6 +44,17 @@ const TIMEZONE_OPTIONS = [
     'Australia/Sydney',
 ];
 
+const MAX_AVATAR_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
+const ACCEPTED_AVATAR_TYPES = 'image/png,image/jpeg,image/webp';
+
+const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File;
+
+const avatarFileSchema = z
+    .custom<File>((value) => isFile(value), {
+        message: 'Upload must be an image file.',
+    })
+    .refine((file) => file.size <= MAX_AVATAR_FILE_SIZE, 'Avatar must be 4 MB or smaller.');
+
 const profileSchema = z.object({
     name: z.string().min(1, 'Name is required.').max(255),
     email: z.string().email('Enter a valid email.').max(255),
@@ -52,6 +63,7 @@ const profileSchema = z.object({
     locale: z.string().max(10).optional().nullable(),
     timezone: z.string().max(64).optional().nullable(),
     avatarPath: z.string().max(255).optional().nullable(),
+    avatarFile: avatarFileSchema.optional().nullable(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -64,6 +76,7 @@ const emptyValues: ProfileFormValues = {
     locale: '',
     timezone: '',
     avatarPath: '',
+    avatarFile: null,
 };
 
 function toFormValues(profile?: User | null): ProfileFormValues {
@@ -79,19 +92,29 @@ function toFormValues(profile?: User | null): ProfileFormValues {
         locale: profile.locale ?? '',
         timezone: profile.timezone ?? '',
         avatarPath: profile.avatar_path ?? '',
+        avatarFile: null,
     } satisfies ProfileFormValues;
 }
 
 function toPayload(values: ProfileFormValues): UpdateProfilePayload {
-    return {
+    const trimmedAvatarPath = values.avatarPath?.trim() ?? '';
+    const normalizedAvatarPath = trimmedAvatarPath.length > 0 ? trimmedAvatarPath : null;
+
+    const payload: UpdateProfilePayload = {
         name: values.name.trim(),
         email: values.email.trim(),
         job_title: values.jobTitle?.trim() || null,
         phone: values.phone?.trim() || null,
         locale: values.locale?.trim() || null,
         timezone: values.timezone?.trim() || null,
-        avatar_path: values.avatarPath?.trim() || null,
+        avatar: values.avatarFile ?? null,
     } satisfies UpdateProfilePayload;
+
+    if (!values.avatarFile) {
+        payload.avatar_path = normalizedAvatarPath;
+    }
+
+    return payload;
 }
 
 export function ProfileSettingsPage() {
@@ -115,9 +138,28 @@ export function ProfileSettingsPage() {
     }, [profileQuery.data, form]);
 
     const avatarPath = useWatch({ control: form.control, name: 'avatarPath' });
+    const avatarFile = useWatch({ control: form.control, name: 'avatarFile' });
     const watchedName = useWatch({ control: form.control, name: 'name' });
 
-    const avatarPreview = avatarPath || profileQuery.data?.avatar_url || '';
+    const [avatarFilePreview, setAvatarFilePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!avatarFile || !isFile(avatarFile)) {
+            setAvatarFilePreview(null);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(avatarFile);
+        setAvatarFilePreview(objectUrl);
+
+        return () => {
+            URL.revokeObjectURL(objectUrl);
+        };
+    }, [avatarFile]);
+
+    const hasStoredAvatar = Boolean(avatarPath && avatarPath.length > 0);
+    const avatarPreview = avatarFilePreview ?? (hasStoredAvatar ? profileQuery.data?.avatar_url ?? '' : '');
+    const canRemoveAvatar = Boolean(avatarFile || hasStoredAvatar);
     const nameFallback = watchedName || profileQuery.data?.name || profileQuery.data?.email || '';
 
     const handleSubmit = form.handleSubmit(async (values) => {
@@ -139,6 +181,11 @@ export function ProfileSettingsPage() {
             });
         }
     });
+
+    const handleRemoveAvatar = (): void => {
+        form.setValue('avatarFile', null, { shouldDirty: true });
+        form.setValue('avatarPath', '', { shouldDirty: true });
+    };
 
     const isLoading = profileQuery.isLoading && !profileQuery.data;
     const companies = companiesQuery.data ?? [];
@@ -228,7 +275,7 @@ export function ProfileSettingsPage() {
                                 />
                             </div>
                         </CardContent>
-                        <CardHeader className="border-t">
+                        <CardHeader className="border-t pt-6">
                             <CardTitle>Localization</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -293,24 +340,51 @@ export function ProfileSettingsPage() {
                                 )}
                             />
                         </CardContent>
-                        <CardHeader className="border-t">
+                        <CardHeader className="border-t pt-6">
                             <CardTitle>Avatar</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-4 md:grid-cols-[2fr_1fr]">
-                            <FormField
-                                control={form.control}
-                                name="avatarPath"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Avatar path or URL</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="uploads/avatars/alex.png" {...field} value={field.value ?? ''} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="flex items-center justify-center">
+                            <div className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="avatarPath"
+                                    render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="avatarFile"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Upload a photo</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="file"
+                                                    accept={ACCEPTED_AVATAR_TYPES}
+                                                    onChange={(event) => {
+                                                        const file = event.target.files?.[0] ?? null;
+                                                        field.onChange(file);
+                                                        event.target.value = '';
+                                                    }}
+                                                    onBlur={field.onBlur}
+                                                    ref={field.ref}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>PNG, JPG, or WebP up to 4 MB.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={!canRemoveAvatar}
+                                    onClick={handleRemoveAvatar}
+                                >
+                                    Remove photo
+                                </Button>
+                            </div>
+                            <div className="flex flex-col items-center gap-2">
                                 <Avatar className="h-20 w-20">
                                     {avatarPreview ? (
                                         <AvatarImage src={avatarPreview} alt={nameFallback} />
@@ -318,9 +392,10 @@ export function ProfileSettingsPage() {
                                         <AvatarFallback>{initials(nameFallback)}</AvatarFallback>
                                     )}
                                 </Avatar>
+                                <p className="text-xs text-muted-foreground text-center">This is how teammates see you.</p>
                             </div>
                         </CardContent>
-                        <CardFooter className="justify-end border-t">
+                        <CardFooter className="justify-end border-t pt-6">
                             <Button type="submit" disabled={updateProfile.isPending}>
                                 {updateProfile.isPending ? 'Saving…' : 'Save profile'}
                             </Button>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Billing;
 use App\Actions\Billing\StartPlanCheckoutAction;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Billing\StartPlanCheckoutRequest;
+use App\Models\Company;
 use App\Models\Plan;
 use App\Services\Billing\StripeCheckoutService;
 use Illuminate\Http\JsonResponse;
@@ -20,11 +21,20 @@ class PlanCheckoutController extends ApiController
 
     public function store(StartPlanCheckoutRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user?->company;
+        $context = $this->requireCompanyContext($request);
 
-        if ($company === null) {
-            return $this->error('Company context required.', Response::HTTP_FORBIDDEN);
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
+        $company = Company::query()->find($companyId);
+
+        if (! $company instanceof Company) {
+            return $this->fail('Company context required.', Response::HTTP_UNPROCESSABLE_ENTITY, [
+                'code' => 'company_context_missing',
+            ]);
         }
 
         $planCode = $request->string('plan_code')->lower();

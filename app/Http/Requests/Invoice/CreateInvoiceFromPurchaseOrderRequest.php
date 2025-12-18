@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Invoice;
 
 use App\Http\Requests\ApiFormRequest;
+use App\Models\PurchaseOrder;
+use App\Support\CompanyContext;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -16,14 +18,27 @@ class CreateInvoiceFromPurchaseOrderRequest extends ApiFormRequest
         $maxSizeMb = (int) config('documents.max_size_mb', 8);
         $maxSizeKb = $maxSizeMb * 1024;
 
+        $companyId = CompanyContext::get();
+        $purchaseOrderSupplierId = $this->resolvePurchaseOrderSupplierId($companyId);
+
         return [
             'po_id' => ['nullable', 'integer', Rule::exists('purchase_orders', 'id')->where(fn ($query) => $query->whereNull('deleted_at'))],
-            'supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')->where(function ($query): void {
-                $companyId = $this->user()?->company_id;
+            'supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')->where(function ($query) use ($companyId, $purchaseOrderSupplierId): void {
+                $query->whereNull('deleted_at');
 
-                if ($companyId !== null) {
-                    $query->where('company_id', $companyId);
+                if ($companyId === null && $purchaseOrderSupplierId === null) {
+                    return;
                 }
+
+                $query->where(function ($scope) use ($companyId, $purchaseOrderSupplierId): void {
+                    if ($companyId !== null) {
+                        $scope->where('company_id', $companyId);
+                    }
+
+                    if ($purchaseOrderSupplierId !== null) {
+                        $scope->orWhere('id', $purchaseOrderSupplierId);
+                    }
+                });
             })],
             'invoice_number' => ['nullable', 'string', 'max:60'],
             'invoice_date' => ['nullable', 'date'],
@@ -92,5 +107,20 @@ class CreateInvoiceFromPurchaseOrderRequest extends ApiFormRequest
         }
 
         return $data;
+    }
+
+    private function resolvePurchaseOrderSupplierId(?int $companyId): ?int
+    {
+        $poId = $this->input('po_id');
+
+        if ($poId === null || $companyId === null) {
+            return null;
+        }
+
+        return PurchaseOrder::query()
+            ->where('company_id', $companyId)
+            ->whereNull('deleted_at')
+            ->whereKey($poId)
+            ->value('supplier_id');
     }
 }

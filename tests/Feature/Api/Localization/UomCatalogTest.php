@@ -17,8 +17,9 @@ it('lists seeded units of measure', function (): void {
 
     $response->assertOk()
         ->assertJsonPath('status', 'success')
-        ->assertJsonPath('data.meta.total', fn ($total) => $total >= 10)
-        ->assertJsonPath('data.items.0.code', fn ($code) => is_string($code));
+        ->assertJsonPath('data.items.0.code', fn ($code) => is_string($code))
+        ->assertJsonPath('data.meta.per_page', fn ($perPage) => $perPage >= 10)
+        ->assertJsonPath('meta.cursor.has_next', fn ($hasNext) => is_bool($hasNext));
 });
 
 it('creates a new unit of measure', function (): void {

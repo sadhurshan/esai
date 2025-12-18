@@ -244,6 +244,7 @@ export interface PurchaseOrderSummary {
     quoteId: number | null;
     supplierId?: number | null;
     supplierName?: string | null;
+    supplierEmail?: string | null;
     rfqNumber?: string | null;
     rfqTitle?: string | null;
     createdAt?: string | null;
@@ -311,15 +312,24 @@ export interface InvoiceSummary {
     supplierId: number;
     invoiceNumber: string;
     invoiceDate?: string | null;
+    dueDate?: string | null;
     currency: string;
     status: string;
+    matchedStatus?: string | null;
+    createdByType?: string | null;
+    createdById?: number | null;
     subtotal: number;
     taxAmount: number;
     total: number;
     subtotalMinor?: number;
     taxAmountMinor?: number;
     totalMinor?: number;
+    supplierCompanyId?: number | null;
     supplier?: {
+        id: number;
+        name?: string | null;
+    } | null;
+    supplierCompany?: {
         id: number;
         name?: string | null;
     } | null;
@@ -330,6 +340,15 @@ export interface InvoiceSummary {
     document?: DocumentAttachment | null;
     attachments?: DocumentAttachment[];
     matchSummary?: Record<string, number>;
+    submittedAt?: string | null;
+    reviewedAt?: string | null;
+    reviewedById?: number | null;
+    reviewedBy?: {
+        id: number;
+        name?: string | null;
+    } | null;
+    reviewNote?: string | null;
+    paymentReference?: string | null;
     createdAt?: string | null;
     updatedAt?: string | null;
 }

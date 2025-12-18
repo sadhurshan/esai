@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,21 +19,13 @@ class BuyerAdminOnly
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Authentication required.',
-                'data' => null,
-            ], Response::HTTP_UNAUTHORIZED);
+            return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
         $companyId = $user->company_id ? (int) $user->company_id : null;
 
         if (! $this->permissions->userHasAny($user, ['tenant.settings.manage'], $companyId)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tenant admin permission required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Tenant admin permission required.', Response::HTTP_FORBIDDEN);
         }
 
         return $next($request);

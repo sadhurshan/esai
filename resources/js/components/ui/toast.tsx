@@ -1,5 +1,6 @@
 import * as ToastPrimitives from '@radix-ui/react-toast';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { X } from 'lucide-react';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -69,16 +70,24 @@ ToastAction.displayName = ToastPrimitives.Action.displayName;
 const ToastClose = React.forwardRef<
     React.ElementRef<typeof ToastPrimitives.Close>,
     React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
->(({ className, ...props }, ref) => (
+>(({ children, className, ...props }, ref) => (
     <ToastPrimitives.Close
         ref={ref}
         className={cn(
             'absolute right-3 top-3 rounded-md p-1 text-sm text-muted-foreground transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
             className,
         )}
+        aria-label="Close toast"
         toast-close=""
         {...props}
-    />
+    >
+        {children ?? (
+            <>
+                <span className="sr-only">Dismiss notification</span>
+                <X className="h-4 w-4" aria-hidden="true" />
+            </>
+        )}
+    </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;
 

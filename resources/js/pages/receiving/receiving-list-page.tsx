@@ -35,10 +35,12 @@ type CursorMeta = {
 
 export function ReceivingListPage() {
     const navigate = useNavigate();
-    const { hasFeature, state } = useAuth();
+    const { hasFeature, state, activePersona } = useAuth();
     const { formatDate, formatNumber } = useFormatting();
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
     const receivingEnabled = hasFeature('inventory_enabled');
+    const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier' || supplierRole;
 
     const [statusFilter, setStatusFilter] = useState('all');
     const [supplierPickerOpen, setSupplierPickerOpen] = useState(false);
@@ -59,15 +61,18 @@ export function ReceivingListPage() {
         return Number.isFinite(parsed) ? parsed : undefined;
     }, [poFilter]);
 
-    const grnsQuery = useGrns({
-        cursor,
-        perPage: PER_PAGE,
-        status: statusFilter === 'all' ? undefined : statusFilter,
-        supplierId,
-        purchaseOrderId,
-        receivedFrom: receivedFrom || undefined,
-        receivedTo: receivedTo || undefined,
-    });
+    const grnsQuery = useGrns(
+        {
+            cursor,
+            perPage: PER_PAGE,
+            status: statusFilter === 'all' ? undefined : statusFilter,
+            supplierId,
+            purchaseOrderId,
+            receivedFrom: receivedFrom || undefined,
+            receivedTo: receivedTo || undefined,
+        },
+        { enabled: !isSupplierPersona },
+    );
 
     const grns = grnsQuery.data?.items ?? [];
     const cursorMeta = (grnsQuery.data?.meta ?? null) as CursorMeta | null;
@@ -162,6 +167,24 @@ export function ReceivingListPage() {
         setSupplierFilter('');
         setCursor(null);
     };
+
+    if (featureFlagsLoaded && isSupplierPersona) {
+        return (
+            <div className="flex flex-1 flex-col gap-6">
+                <Helmet>
+                    <title>Receiving</title>
+                </Helmet>
+                <WorkspaceBreadcrumbs />
+                <EmptyState
+                    title="Receiving is buyer-only"
+                    description="Switch to a buyer persona to record goods receipt notes or review quality activity."
+                    icon={<PackageCheck className="h-12 w-12 text-muted-foreground" />}
+                    ctaLabel="Back to dashboard"
+                    ctaProps={{ onClick: () => navigate('/app') }}
+                />
+            </div>
+        );
+    }
 
     if (featureFlagsLoaded && !receivingEnabled) {
         return (

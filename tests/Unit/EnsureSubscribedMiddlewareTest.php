@@ -5,7 +5,11 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\Supplier;
 use App\Models\User;
+use App\Models\SupplierContact;
+use App\Support\ActivePersona;
+use App\Support\ActivePersonaContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
@@ -220,4 +224,44 @@ test('middleware blocks write requests during billing grace period', function ()
     expect($response->getStatusCode())->toBe(402)
         ->and($payload['errors']['code'])->toBe('subscription_past_due')
         ->and($payload['errors']['read_only'])->toBeTrue();
+});
+
+test('middleware allows supplier personas without enforcing subscription checks', function (): void {
+    $company = Company::factory()->create();
+    $company->update(['plan_id' => null, 'plan_code' => null]);
+
+    $user = User::factory()->for($company)->create();
+    $supplier = Supplier::factory()->for($company)->create();
+
+    SupplierContact::factory()->create([
+        'company_id' => $company->id,
+        'supplier_id' => $supplier->id,
+        'user_id' => $user->id,
+    ]);
+
+    $persona = ActivePersona::fromArray([
+        'key' => 'supplier-'.$supplier->id,
+        'type' => ActivePersona::TYPE_SUPPLIER,
+        'company_id' => $company->id,
+        'company_name' => $company->name,
+        'supplier_id' => $supplier->id,
+        'supplier_name' => $supplier->name,
+    ]);
+
+    expect($persona)->not->toBeNull();
+
+    ActivePersonaContext::set($persona);
+
+    try {
+        $request = Request::create('/api/money/settings', 'GET');
+        $request->setUserResolver(static fn () => $user);
+
+        $middleware = new EnsureSubscribed();
+
+        $response = $middleware->handle($request, static fn () => new Response('ok'));
+
+        expect($response->getContent())->toBe('ok');
+    } finally {
+        ActivePersonaContext::clear();
+    }
 });

@@ -10,12 +10,14 @@ use App\Models\RFQ;
 use App\Models\RfqClarification;
 use App\Models\RfqInvitation;
 use App\Models\Supplier;
+use App\Models\SupplierContact;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\post;
 
@@ -71,6 +73,7 @@ function rfqClarificationContext(bool $inviteSupplier = true, bool $openBidding 
 
     if ($inviteSupplier) {
         $invitation = RfqInvitation::create([
+            'company_id' => $buyerCompany->id,
             'rfq_id' => $rfq->id,
             'supplier_id' => $supplierProfile->id,
             'invited_by' => $buyer->id,
@@ -168,6 +171,67 @@ it('stores multiple clarification attachments with document metadata', function 
     expect(Document::count())->toBe(2);
 });
 
+it('allows invited suppliers to post answers with attachments', function (): void {
+    $context = rfqClarificationContext();
+    $supplier = $context['supplierUser'];
+    $buyerCompany = $context['buyerCompany'];
+    $rfq = $context['rfq'];
+
+    config(['documents.disk' => 'local']);
+    Storage::fake('local');
+
+    actingAs($supplier);
+
+    $response = post("/api/rfqs/{$rfq->id}/clarifications/answer", [
+        'message' => 'Supplier response to buyer question.',
+        'attachments' => [
+            UploadedFile::fake()->create('supplier-clarification.pdf', 80, 'application/pdf'),
+        ],
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.type', 'answer')
+        ->assertJsonPath('data.message', 'Supplier response to buyer question.')
+        ->assertJsonPath('data.attachments.0.filename', 'supplier-clarification.pdf');
+
+    $clarification = RfqClarification::first();
+
+    expect($clarification)
+        ->not->toBeNull()
+        ->and($clarification?->type)->toBe(RfqClarificationType::Answer)
+        ->and($clarification?->company_id)->toBe($buyerCompany->id);
+
+    expect(Document::count())->toBe(1);
+});
+
+it('allows invited suppliers to download clarification attachments', function (): void {
+    $context = rfqClarificationContext();
+    $supplier = $context['supplierUser'];
+    $rfq = $context['rfq'];
+
+    config(['documents.disk' => 'local']);
+    Storage::fake('local');
+
+    actingAs($supplier);
+
+    post("/api/rfqs/{$rfq->id}/clarifications/question", [
+        'message' => 'Attachment download check.',
+        'attachments' => [
+            UploadedFile::fake()->create('download-me.pdf', 50, 'application/pdf'),
+        ],
+    ])->assertCreated();
+
+    $clarification = RfqClarification::first();
+    $documentId = $clarification?->attachmentIds()[0] ?? null;
+
+    expect($documentId)->not->toBeNull();
+
+    $response = get("/api/rfqs/{$rfq->id}/clarifications/{$clarification?->id}/attachments/{$documentId}");
+
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toBe('application/pdf');
+});
+
 it('increments RFQ version and logs amendment details when buyers post amendments', function (): void {
     $context = rfqClarificationContext();
     $buyerCompany = $context['buyerCompany'];
@@ -214,16 +278,12 @@ it('increments RFQ version and logs amendment details when buyers post amendment
     expect(AuditLog::query()->where('entity_type', RFQ::class)->count())->toBeGreaterThanOrEqual(1);
 });
 
-it('prevents unauthorized users from posting answers or amendments', function (): void {
+it('prevents suppliers from posting amendments', function (): void {
     $context = rfqClarificationContext();
     $supplier = $context['supplierUser'];
     $rfq = $context['rfq'];
 
     actingAs($supplier);
-
-    post("/api/rfqs/{$rfq->id}/clarifications/answer", [
-        'message' => 'Answer from supplier should be rejected.',
-    ])->assertForbidden();
 
     post("/api/rfqs/{$rfq->id}/clarifications/amendment", [
         'message' => 'Unauthorized amendment attempt.',
@@ -292,6 +352,10 @@ it('blocks uninvited suppliers from viewing or posting clarifications on private
         'message' => 'Attempting to bypass invite requirements.',
     ])->assertForbidden();
 
+    post("/api/rfqs/{$rfq->id}/clarifications/answer", [
+        'message' => 'Attempting to answer without invitation.',
+    ])->assertForbidden();
+
     getJson("/api/rfqs/{$rfq->id}/clarifications")
         ->assertForbidden();
 });
@@ -320,6 +384,60 @@ it('lets supplier users in open bidding rfqs ask questions without invitations',
     $notifiedUserIds = Notification::query()->pluck('user_id');
 
     expect($notifiedUserIds)->toContain($buyer->id);
+});
+
+it('allows buyer users acting via supplier persona to view and ask questions', function (): void {
+    $context = rfqClarificationContext();
+    $buyer = $context['buyer'];
+    $buyerCompany = $context['buyerCompany'];
+    $supplierProfile = $context['supplierProfile'];
+    $rfq = $context['rfq'];
+
+    SupplierContact::create([
+        'company_id' => $buyerCompany->id,
+        'supplier_id' => $supplierProfile->id,
+        'user_id' => $buyer->id,
+    ]);
+
+    $personaKey = sprintf('supplier:%d:%d', $buyerCompany->id, $supplierProfile->id);
+
+    actingAs($buyer);
+
+    getJson("/api/rfqs/{$rfq->id}/clarifications", [
+        'X-Active-Persona' => $personaKey,
+    ])->assertOk();
+
+    post("/api/rfqs/{$rfq->id}/clarifications/question", [
+        'message' => 'Question via supplier persona.',
+    ], [
+        'X-Active-Persona' => $personaKey,
+    ])->assertCreated();
+});
+
+it('allows buyer users acting via supplier persona to post answers', function (): void {
+    $context = rfqClarificationContext();
+    $buyer = $context['buyer'];
+    $buyerCompany = $context['buyerCompany'];
+    $supplierProfile = $context['supplierProfile'];
+    $rfq = $context['rfq'];
+
+    SupplierContact::create([
+        'company_id' => $buyerCompany->id,
+        'supplier_id' => $supplierProfile->id,
+        'user_id' => $buyer->id,
+    ]);
+
+    $personaKey = sprintf('supplier:%d:%d', $buyerCompany->id, $supplierProfile->id);
+
+    actingAs($buyer);
+
+    post("/api/rfqs/{$rfq->id}/clarifications/answer", [
+        'message' => 'Answer via supplier persona.',
+    ], [
+        'X-Active-Persona' => $personaKey,
+    ])->assertCreated()
+        ->assertJsonPath('data.type', 'answer')
+        ->assertJsonPath('data.message', 'Answer via supplier persona.');
 });
 
 it('blocks clarification postings when the rfq deadline has passed', function (): void {

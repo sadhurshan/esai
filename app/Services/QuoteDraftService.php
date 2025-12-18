@@ -118,6 +118,44 @@ class QuoteDraftService
         });
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function updateDraftDetails(Quote $quote, array $payload): Quote
+    {
+        return CompanyContext::bypass(function () use ($quote, $payload): Quote {
+            $this->assertDraft($quote);
+            $this->rfqResponseWindowGuard->ensureQuoteRfqOpenForResponses($quote, 'update quote drafts');
+
+            $allowedFields = ['currency', 'min_order_qty', 'lead_time_days', 'note', 'incoterm', 'payment_terms'];
+            $updates = [];
+
+            foreach ($allowedFields as $field) {
+                if (array_key_exists($field, $payload)) {
+                    if ($field === 'note') {
+                        $updates['notes'] = $payload[$field];
+                        continue;
+                    }
+
+                    $updates[$field] = $payload[$field];
+                }
+            }
+
+            if ($updates === []) {
+                return $quote->fresh($this->defaultRelations());
+            }
+
+            $before = Arr::only($quote->getAttributes(), array_keys($updates));
+
+            $quote->fill($updates);
+            $quote->save();
+
+            $this->auditLogger->updated($quote, $before, Arr::only($quote->getAttributes(), array_keys($updates)));
+
+            return $quote->fresh($this->defaultRelations());
+        });
+    }
+
     public function submitDraft(Quote $quote, int $userId): Quote
     {
         return CompanyContext::bypass(function () use ($quote, $userId): Quote {

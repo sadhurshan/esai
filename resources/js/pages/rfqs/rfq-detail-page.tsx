@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useReducer } from 'react';
 import { addDays, format, formatDistanceToNow } from 'date-fns';
 import { Helmet } from 'react-helmet-async';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Plus, PenLine, Trash2 } from 'lucide-react';
 
 import { AttachmentUploader } from '@/components/rfqs/attachment-uploader';
@@ -39,6 +39,7 @@ import {
     useAddLine,
     useAmendRfq,
     useCloseRfq,
+    useDeleteRfq,
     useDeleteLine,
     useExtendRfqDeadline,
     usePublishRfq,
@@ -51,7 +52,8 @@ import {
     useRfqTimeline,
     useUpdateRfq,
 } from '@/hooks/api/rfqs';
-import type { Rfq, RfqInvitation, RfqItem, RfqLinePayload, RfqTimelineEntry } from '@/sdk';
+import type { InvitationSupplierProfile, RfqInvitationWithProfile } from '@/hooks/api/rfqs/use-rfq-suppliers';
+import type { Rfq, RfqItem, RfqLinePayload, RfqTimelineEntry } from '@/sdk';
 import { RFQ_METHOD_OPTIONS, isRfqMethod, type RfqMethod } from '@/constants/rfq';
 
 interface PublishFormState {
@@ -254,7 +256,7 @@ function isDateLikeContextKey(key: string): boolean {
     return /(_at|_on|_due|_deadline|deadline|due)/i.test(key);
 }
 
-function computeSupplierStats(invitations: RfqInvitation[]) {
+function computeSupplierStats(invitations: RfqInvitationWithProfile[]) {
     const totalInvited = invitations.length;
     const accepted = invitations.filter((invitation) => invitation.status === 'accepted').length;
     const declined = invitations.filter((invitation) => invitation.status === 'declined').length;
@@ -382,6 +384,22 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
                                 requiredDateLabel = format(requiredDate, 'PP');
                             }
                         }
+                        const detailEntries = [
+                            { label: 'Method', value: item.method },
+                            { label: 'Material', value: item.material },
+                            { label: 'Tolerance', value: item.tolerance },
+                            { label: 'Finish', value: item.finish },
+                        ].reduce<Array<{ label: string; value: string }>>((acc, entry) => {
+                            if (typeof entry.value !== 'string') {
+                                return acc;
+                            }
+                            const trimmed = entry.value.trim();
+                            if (trimmed.length === 0) {
+                                return acc;
+                            }
+                            acc.push({ label: entry.label, value: trimmed });
+                            return acc;
+                        }, []);
 
                         return (
                             <tr key={item.id} className="border-b last:border-none">
@@ -389,6 +407,16 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
                                 <td className="px-3 py-2">
                                     <div className="font-medium text-foreground">{item.partName}</div>
                                     {item.spec ? <div className="text-xs text-muted-foreground">{item.spec}</div> : null}
+                                    {detailEntries.length > 0 ? (
+                                        <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
+                                            {detailEntries.map((entry) => (
+                                                <div key={`${item.id}-${entry.label}`} className="flex gap-1">
+                                                    <dt className="font-medium text-foreground">{entry.label}:</dt>
+                                                    <dd className="text-muted-foreground">{entry.value}</dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+                                    ) : null}
                                 </td>
                                 <td className="px-3 py-2 text-muted-foreground">
                                     <div>
@@ -448,20 +476,11 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
     );
 }
 
-type InvitationSupplierProfile = {
-    id?: number | string | null;
-    name?: string | null;
-    city?: string | null;
-    country?: string | null;
-    capabilities?: { methods?: string[] | null } | null;
-};
-
-function getInvitationSupplier(invitation: RfqInvitation): InvitationSupplierProfile | null {
-    const enriched = invitation as RfqInvitation & { supplier?: InvitationSupplierProfile | null };
-    return enriched.supplier ?? null;
+function getInvitationSupplier(invitation: RfqInvitationWithProfile): InvitationSupplierProfile | null {
+    return invitation.supplier ?? null;
 }
 
-function formatInvitationLocation(invitation: RfqInvitation): string | null {
+function formatInvitationLocation(invitation: RfqInvitationWithProfile): string | null {
     const supplier = getInvitationSupplier(invitation);
     const city = supplier?.city?.trim();
     const country = supplier?.country?.trim();
@@ -473,7 +492,7 @@ function formatInvitationLocation(invitation: RfqInvitation): string | null {
     return city || country || null;
 }
 
-function extractInvitationMethods(invitation: RfqInvitation): string[] {
+function extractInvitationMethods(invitation: RfqInvitationWithProfile): string[] {
     const methods = getInvitationSupplier(invitation)?.capabilities?.methods;
     if (!Array.isArray(methods)) {
         return [];
@@ -485,7 +504,8 @@ function extractInvitationMethods(invitation: RfqInvitation): string[] {
         .slice(0, 3);
 }
 
-function SuppliersList({ invitations }: { invitations: RfqInvitation[] }) {
+function SuppliersList({ invitations }: { invitations: RfqInvitationWithProfile[] }) {
+    
     if (invitations.length === 0) {
         return <p className="text-sm text-muted-foreground">No suppliers invited yet.</p>;
     }
@@ -493,6 +513,7 @@ function SuppliersList({ invitations }: { invitations: RfqInvitation[] }) {
     return (
         <ul className="space-y-3">
             {invitations.map((invitation) => {
+                
                 const supplier = getInvitationSupplier(invitation);
                 const supplierName = supplier?.name ?? `Supplier #${invitation.supplierId}`;
                 const location = formatInvitationLocation(invitation) ?? 'Location unavailable';
@@ -568,9 +589,98 @@ function TimelineView({ items }: { items: RfqTimelineEntry[] }) {
     );
 }
 
+interface SupplierRfqHeaderProps {
+    rfq: Rfq;
+    onShowAttachments?: () => void;
+    deliveryLocation?: string | null;
+    incoterm?: string | null;
+    paymentTerms?: string | null;
+    currency?: string | null;
+}
+
+function SupplierRfqHeader({
+    rfq,
+    onShowAttachments,
+    deliveryLocation,
+    incoterm,
+    paymentTerms,
+    currency,
+}: SupplierRfqHeaderProps) {
+    const dueLabel = rfq.deadlineAt ? `${toShortDate(rfq.deadlineAt)} (${toRelativeDate(rfq.deadlineAt)})` : null;
+    const publishLabel = rfq.sentAt ? `${toShortDate(rfq.sentAt)} (${toRelativeDate(rfq.sentAt)})` : 'Not yet sent';
+    const quotePath = `/app/supplier/rfqs/${rfq.id}/quotes/new`;
+    const canSubmitQuote = rfq.status === 'open';
+    const deliveryLabel = deliveryLocation && deliveryLocation.trim().length > 0 ? deliveryLocation : '—';
+    const incotermLabel = incoterm && incoterm.trim().length > 0 ? incoterm : '—';
+    const paymentTermsLabel = paymentTerms && paymentTerms.trim().length > 0 ? paymentTerms : '—';
+    const currencyLabel = currency && currency.trim().length > 0 ? currency : '—';
+
+    return (
+        <div className="rounded-lg border bg-card px-4 py-3 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">RFQ #{rfq.number ?? rfq.id}</p>
+                    <h2 className="text-xl font-semibold text-foreground">{rfq.itemName}</h2>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <RfqStatusBadge status={rfq.status} />
+                        {dueLabel ? <span>Due {dueLabel}</span> : <span>No due date provided</span>}
+                    </div>
+                </div>
+                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                    {canSubmitQuote ? (
+                        <Button asChild>
+                            <Link to={quotePath}>Submit quote</Link>
+                        </Button>
+                    ) : (
+                        <Button disabled>Quotes closed</Button>
+                    )}
+                    <Button type="button" variant="outline" onClick={onShowAttachments} disabled={!onShowAttachments}>
+                        View documents
+                    </Button>
+                </div>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Published</span>
+                    <p className="text-foreground">{publishLabel}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Manufacturing method</span>
+                    <p className="text-foreground">{rfq.method}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Material</span>
+                    <p className="text-foreground">{rfq.material}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Quantity</span>
+                    <p className="text-foreground">{rfq.quantity}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Delivery location</span>
+                    <p className="text-foreground">{deliveryLabel}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Incoterm</span>
+                    <p className="text-foreground">{incotermLabel}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Payment terms</span>
+                    <p className="text-foreground">{paymentTermsLabel}</p>
+                </div>
+                <div>
+                    <span className="text-xs uppercase tracking-wide">Currency</span>
+                    <p className="text-foreground">{currencyLabel}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function RfqDetailPage() {
     const params = useParams<{ id: string }>();
     const rfqId = params.id;
+    const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState('overview');
     const [isPublishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -587,15 +697,36 @@ export function RfqDetailPage() {
     const [editForm, setEditForm] = useState<EditDetailsFormState>(DEFAULT_EDIT_FORM);
     const [isExtendDialogOpen, setExtendDialogOpen] = useState(false);
     const [extendForm, setExtendForm] = useState<ExtendDeadlineFormState>(DEFAULT_EXTEND_FORM);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-    const { hasFeature, state: authState } = useAuth();
+    const { hasFeature, state: authState, activePersona } = useAuth();
+    const isSupplierPersona = activePersona?.type === 'supplier';
+    const isOwnerPersona = activePersona?.role === 'owner';
+    const hasRfqId = Boolean(rfqId);
     const featureFlagsLoaded = Object.keys(authState.featureFlags ?? {}).length > 0;
-    const allowFeature = (key: string) => (featureFlagsLoaded ? hasFeature(key) : true);
+    const allowFeature = (key: string) => {
+        if (isSupplierPersona) {
+            return false;
+        }
 
-    const rfqQuery = useRfq(rfqId, { enabled: Boolean(rfqId) });
+        return featureFlagsLoaded ? hasFeature(key) : true;
+    };
+
+    useEffect(() => {
+        if (isSupplierPersona && activeTab === 'suppliers') {
+            setActiveTab('clarifications');
+            return;
+        }
+
+        if (!isSupplierPersona && activeTab === 'clarifications') {
+            setActiveTab('overview');
+        }
+    }, [activeTab, isSupplierPersona]);
+
+    const rfqQuery = useRfq(rfqId, { enabled: hasRfqId });
     const linesQuery = useRfqLines({ rfqId });
-    const suppliersQuery = useRfqSuppliers(rfqId);
-    const clarificationsQuery = useRfqClarifications(rfqId);
+    const suppliersQuery = useRfqSuppliers(rfqId, { enabled: !isSupplierPersona && hasRfqId });
+    const clarificationsQuery = useRfqClarifications(rfqId, { enabled: hasRfqId });
     const timelineQuery = useRfqTimeline(rfqId);
     const attachmentsQuery = useRfqAttachments(rfqId);
 
@@ -618,6 +749,7 @@ export function RfqDetailPage() {
         },
     });
     const extendDeadlineMutation = useExtendRfqDeadline();
+    const deleteRfqMutation = useDeleteRfq();
 
     const isLoading = rfqQuery.isLoading || !rfqId;
     const rfq = rfqQuery.data ?? null;
@@ -631,6 +763,7 @@ export function RfqDetailPage() {
     }, [timelineQuery.items]);
 
     const supplierStats = useMemo(() => computeSupplierStats(suppliersQuery.items ?? []), [suppliersQuery.items]);
+    
 
     const canManageLines = allowFeature('rfqs.lines.manage');
     const canManageAttachments = allowFeature('rfqs.attachments.manage');
@@ -638,9 +771,12 @@ export function RfqDetailPage() {
     const canInviteSuppliers = allowFeature('rfqs.suppliers.invite');
     const canAmendRfq = allowFeature('rfqs.amend');
     const canCloseRfq = allowFeature('rfqs.close');
-    const canEditMetadata = allowFeature('rfqs.edit');
-    const canManageClarifications = allowFeature('rfqs.clarifications.manage');
+    const canEditMetadata = isOwnerPersona || allowFeature('rfqs.edit');
+    const canManageClarifications = isOwnerPersona || allowFeature('rfqs.clarifications.manage');
+    const canAskClarifications = isSupplierPersona ? true : canManageClarifications;
+    const canAnswerClarifications = isSupplierPersona ? true : canManageClarifications;
     const canExtendDeadline = allowFeature('rfqs.deadline.extend');
+    const canDeleteRfq = isOwnerPersona || allowFeature('rfqs.edit');
 
     const isSavingLine = addLineMutation.isPending || updateLineMutation.isPending;
     const isDeletingLine = deleteLineMutation.isPending;
@@ -858,6 +994,51 @@ export function RfqDetailPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Publish failed',
+                description: message,
+            });
+        }
+    };
+
+    const handleOpenDeleteDialog = () => {
+        if (!allowDeleteAction) {
+            return;
+        }
+
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteDialogOpenChange = (open: boolean) => {
+        if (!open && deleteRfqMutation.isPending) {
+            return;
+        }
+
+        setDeleteDialogOpen(open);
+    };
+
+    const handleDeleteRfq = async () => {
+        if (!rfqId) {
+            publishToast({
+                variant: 'destructive',
+                title: 'RFQ unavailable',
+                description: 'Select an RFQ before attempting to delete it.',
+            });
+            return;
+        }
+
+        try {
+            await deleteRfqMutation.mutateAsync({ rfqId });
+            publishToast({
+                variant: 'success',
+                title: 'RFQ deleted',
+                description: 'The RFQ and its documents have been removed.',
+            });
+            setDeleteDialogOpen(false);
+            navigate('/app/rfqs');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to delete the RFQ right now.';
+            publishToast({
+                variant: 'destructive',
+                title: 'Delete failed',
                 description: message,
             });
         }
@@ -1133,12 +1314,40 @@ export function RfqDetailPage() {
         );
     }
 
-    const extendedRfq = rfq as Rfq & { incoterm?: string | null; paymentTerms?: string | null; taxPercent?: number | null };
-    const incoterm = extendedRfq.incoterm ?? '—';
-    const paymentTerms = extendedRfq.paymentTerms ?? '—';
+    const statusLabel = String(rfq.status);
+    const isDraftStatus = statusLabel === 'awaiting' || statusLabel === 'draft';
+    const allowDeleteAction = canDeleteRfq && isDraftStatus;
+
+    const extendedRfq = rfq as Rfq & {
+        incoterm?: string | null;
+        paymentTerms?: string | null;
+        taxPercent?: number | null;
+        deliveryLocation?: string | null;
+        delivery_location?: string | null;
+        clientCompany?: string | null;
+        currency?: string | null;
+    };
+    const incoterm =
+        typeof extendedRfq.incoterm === 'string' && extendedRfq.incoterm.trim().length > 0
+            ? extendedRfq.incoterm.trim()
+            : '—';
+    const paymentTerms =
+        typeof extendedRfq.paymentTerms === 'string' && extendedRfq.paymentTerms.trim().length > 0
+            ? extendedRfq.paymentTerms.trim()
+            : '—';
+    const deliveryLocationValue =
+        extendedRfq.deliveryLocation ?? extendedRfq.delivery_location ?? extendedRfq.clientCompany ?? null;
+    const deliveryLocation =
+        typeof deliveryLocationValue === 'string' && deliveryLocationValue.trim().length > 0
+            ? deliveryLocationValue.trim()
+            : '—';
     const taxPercent =
         typeof extendedRfq.taxPercent === 'number' && Number.isFinite(extendedRfq.taxPercent)
             ? `${extendedRfq.taxPercent}%`
+            : '—';
+    const currencyCode =
+        typeof extendedRfq.currency === 'string' && extendedRfq.currency.trim().length > 0
+            ? extendedRfq.currency.trim().toUpperCase()
             : '—';
     const visibilityLabel = extendedRfq.isOpenBidding ? 'Public (open bidding)' : 'Invite only';
     const currentDeadlineDate = parseDateInput(rfq.deadlineAt ?? null);
@@ -1152,40 +1361,67 @@ export function RfqDetailPage() {
                 <title>{rfq.itemName} · RFQ workspace</title>
             </Helmet>
 
-            <RfqActionBar
-                rfq={rfq as Rfq}
-                onEdit={canEditMetadata ? handleEditDetails : undefined}
-                onInviteSuppliers={canInviteSuppliers ? () => setInviteDialogOpen(true) : undefined}
-                onPublish={canPublishRfq ? handleOpenPublishDialog : undefined}
-                onAmend={canAmendRfq ? () => {
-                        setAmendBody('');
-                        setAmendDialogOpen(true);
-                    }
-                    : undefined}
-                onExtendDeadline={showExtendDeadlineAction ? handleOpenExtendDeadlineDialog : undefined}
-                onClose={canCloseRfq ? () => {
-                        setCloseReason('');
-                        setCloseDialogOpen(true);
-                    }
-                    : undefined}
-            />
-
-            <div className="flex flex-wrap items-center gap-2">
-                <Button asChild variant="secondary">
-                    <Link to={`/app/rfqs/${rfq.id}/awards`}>Review awards &amp; convert to POs</Link>
-                </Button>
-                <ExportButtons
-                    documentType="rfq"
-                    documentId={rfq.id}
-                    reference={rfq.number ?? rfq.itemName ?? undefined}
+            {isSupplierPersona ? (
+                <SupplierRfqHeader
+                    rfq={rfq as Rfq}
+                    onShowAttachments={() => setActiveTab('attachments')}
+                    deliveryLocation={deliveryLocation}
+                    incoterm={incoterm}
+                    paymentTerms={paymentTerms}
+                    currency={currencyCode}
                 />
-            </div>
+            ) : (
+                <RfqActionBar
+                    rfq={rfq as Rfq}
+                    onEdit={canEditMetadata ? handleEditDetails : undefined}
+                    onInviteSuppliers={canInviteSuppliers ? () => setInviteDialogOpen(true) : undefined}
+                    onPublish={canPublishRfq ? handleOpenPublishDialog : undefined}
+                    onAmend={
+                        canAmendRfq
+                            ? () => {
+                                  setAmendBody('');
+                                  setAmendDialogOpen(true);
+                              }
+                            : undefined
+                    }
+                    onExtendDeadline={showExtendDeadlineAction ? handleOpenExtendDeadlineDialog : undefined}
+                    onClose={
+                        canCloseRfq
+                            ? () => {
+                                  setCloseReason('');
+                                  setCloseDialogOpen(true);
+                              }
+                            : undefined
+                    }
+                    onDelete={allowDeleteAction ? handleOpenDeleteDialog : undefined}
+                />
+            )}
+
+            {!isSupplierPersona ? (
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button asChild variant="outline">
+                        <Link to={`/app/rfqs/${rfq.id}/quotes`}>Review quotes</Link>
+                    </Button>
+                    <Button asChild variant="secondary">
+                        <Link to={`/app/rfqs/${rfq.id}/awards`}>Review awards &amp; convert to POs</Link>
+                    </Button>
+                    <ExportButtons
+                        documentType="rfq"
+                        documentId={rfq.id}
+                        reference={rfq.number ?? rfq.itemName ?? undefined}
+                    />
+                </div>
+            ) : null}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="overview">
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="lines">Lines</TabsTrigger>
-                    <TabsTrigger value="suppliers">Suppliers &amp; clarifications</TabsTrigger>
+                    {!isSupplierPersona ? (
+                        <TabsTrigger value="suppliers">Suppliers &amp; clarifications</TabsTrigger>
+                    ) : (
+                        <TabsTrigger value="clarifications">Clarifications</TabsTrigger>
+                    )}
                     <TabsTrigger value="timeline">Timeline / audit</TabsTrigger>
                     <TabsTrigger value="attachments">Attachments</TabsTrigger>
                 </TabsList>
@@ -1232,12 +1468,20 @@ export function RfqDetailPage() {
                                         <span className="mt-1 block text-foreground">{rfq.quantity}</span>
                                     </div>
                                     <div>
+                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Delivery location</span>
+                                        <span className="mt-1 block text-foreground">{deliveryLocation}</span>
+                                    </div>
+                                    <div>
                                         <span className="block text-xs uppercase tracking-wide text-muted-foreground">Incoterm</span>
                                         <span className="mt-1 block text-foreground">{incoterm}</span>
                                     </div>
                                     <div>
                                         <span className="block text-xs uppercase tracking-wide text-muted-foreground">Payment terms</span>
                                         <span className="mt-1 block text-foreground">{paymentTerms}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Currency</span>
+                                        <span className="mt-1 block text-foreground">{currencyCode}</span>
                                     </div>
                                     <div>
                                         <span className="block text-xs uppercase tracking-wide text-muted-foreground">Tax rate</span>
@@ -1266,36 +1510,38 @@ export function RfqDetailPage() {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Supplier coverage</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid gap-4 text-sm">
-                                <div>
-                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Invited suppliers</span>
-                                    <div className="mt-1 text-2xl font-semibold text-foreground">{supplierStats.totalInvited}</div>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Accepted invitations</span>
-                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.accepted}</div>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Declined invitations</span>
-                                    <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.declined}</div>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="justify-self-start"
-                                    onClick={() => setActiveTab('suppliers')}
-                                >
-                                    View clarifications
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        {!isSupplierPersona ? (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Supplier coverage</CardTitle>
+                                </CardHeader>
+                                <CardContent className="grid gap-4 text-sm">
+                                    <div>
+                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Invited suppliers</span>
+                                        <div className="mt-1 text-2xl font-semibold text-foreground">{supplierStats.totalInvited}</div>
+                                    </div>
+                                    <Separator />
+                                    <div>
+                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Accepted invitations</span>
+                                        <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.accepted}</div>
+                                    </div>
+                                    <Separator />
+                                    <div>
+                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Declined invitations</span>
+                                        <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.declined}</div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="justify-self-start"
+                                        onClick={() => setActiveTab('suppliers')}
+                                    >
+                                        View clarifications
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ) : null}
                     </div>
                 </TabsContent>
 
@@ -1306,16 +1552,18 @@ export function RfqDetailPage() {
                                 <CardTitle>Line items</CardTitle>
                                 <p className="text-sm text-muted-foreground">Track the parts suppliers will respond to.</p>
                             </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleCreateLine}
-                                disabled={!canManageLines || isLineMutationPending}
-                                title={!canManageLines ? 'Upgrade plan to manage RFQ lines.' : undefined}
-                            >
-                                <Plus className="mr-2 h-4 w-4" /> Add line
-                            </Button>
+                            {canManageLines ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCreateLine}
+                                    disabled={!canManageLines || isLineMutationPending}
+                                    title={!canManageLines ? 'Upgrade plan to manage RFQ lines.' : undefined}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" /> Add line
+                                </Button>
+                            ) : null}
                         </CardHeader>
                         <CardContent>
                             {linesQuery.isLoading ? (
@@ -1342,35 +1590,59 @@ export function RfqDetailPage() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="suppliers">
-                    <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(0,2fr)]">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Invited suppliers</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {suppliersQuery.isLoading ? (
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Spinner /> Loading supplier list…
-                                    </div>
-                                ) : (
-                                    <SuppliersList invitations={suppliersQuery.items ?? []} />
-                                )}
-                            </CardContent>
-                        </Card>
-                        <div className="flex flex-col gap-4">
-                            <ClarificationThread
-                                clarifications={clarificationsQuery.items ?? []}
-                                onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
-                                onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
-                                isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
-                                isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
-                                canAskQuestion={canManageClarifications}
-                                canAnswerQuestion={canManageClarifications}
-                            />
+                {!isSupplierPersona ? (
+                    <TabsContent value="suppliers">
+                        <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(0,2fr)]">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Invited suppliers</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {suppliersQuery.isLoading ? (
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                            <Spinner /> Loading supplier list…
+                                        </div>
+                                    ) : (
+                                        <SuppliersList invitations={suppliersQuery.items ?? []} />
+                                    )}
+                                </CardContent>
+                            </Card>
+                            <div className="flex flex-col gap-4">
+                                <ClarificationThread
+                                    clarifications={clarificationsQuery.items ?? []}
+                                    onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
+                                    onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
+                                    isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
+                                    isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
+                                    canAskQuestion={canAskClarifications}
+                                    canAnswerQuestion={canAnswerClarifications}
+                                    askTitle="Ask suppliers a question"
+                                    askDescription="Share context or request clarifications from invited suppliers."
+                                    answerTitle="Respond to suppliers"
+                                    answerDescription="Answer supplier questions or log amendments for their reference."
+                                />
+                            </div>
                         </div>
-                    </div>
-                </TabsContent>
+                    </TabsContent>
+                ) : null}
+
+                {isSupplierPersona ? (
+                    <TabsContent value="clarifications">
+                        <ClarificationThread
+                            clarifications={clarificationsQuery.items ?? []}
+                            onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
+                            onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
+                            isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
+                            isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
+                            canAskQuestion={canAskClarifications}
+                            canAnswerQuestion={canAnswerClarifications}
+                            askTitle="Ask the buying team"
+                            askDescription="Send a clarification request or flag missing details for the buyer."
+                            answerTitle="Supplier replies"
+                            answerDescription="Track buyer responses and upload supporting documents."
+                        />
+                    </TabsContent>
+                ) : null}
 
                 <TabsContent value="timeline">
                     <Card>
@@ -1439,6 +1711,17 @@ export function RfqDetailPage() {
                 cancelLabel="Cancel"
                 onConfirm={handleDeleteLine}
                 isProcessing={isDeletingLine}
+            />
+
+            <ConfirmDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={handleDeleteDialogOpenChange}
+                title="Delete RFQ"
+                description="This permanently removes the RFQ, associated documents, and audit history. This action cannot be undone."
+                confirmLabel="Delete RFQ"
+                cancelLabel="Cancel"
+                onConfirm={handleDeleteRfq}
+                isProcessing={deleteRfqMutation.isPending}
             />
 
             <InviteSuppliersDialog

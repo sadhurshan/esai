@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Orders;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiFormRequest;
 use Illuminate\Validation\Rule;
 
-class ListBuyerOrdersRequest extends FormRequest
+class ListBuyerOrdersRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

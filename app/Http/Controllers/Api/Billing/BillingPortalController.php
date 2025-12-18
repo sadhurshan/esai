@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Billing;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Billing\BillingPortalSessionRequest;
+use App\Models\Company;
 use App\Services\Billing\StripeBillingPortalService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,9 +17,17 @@ class BillingPortalController extends ApiController
 
     public function store(BillingPortalSessionRequest $request): JsonResponse
     {
-        $company = $request->user()?->company;
+        $context = $this->requireCompanyContext($request);
 
-        if ($company === null) {
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        ['companyId' => $companyId] = $context;
+
+        $company = Company::query()->find($companyId);
+
+        if (! $company instanceof Company) {
             return $this->fail('Company context required.', Response::HTTP_UNPROCESSABLE_ENTITY, [
                 'code' => 'company_context_missing',
             ]);

@@ -4,6 +4,7 @@ namespace App\Support\Permissions;
 
 use App\Models\RoleTemplate;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -121,6 +122,33 @@ class PermissionRegistry
 
     private function resolveRoleForCompany(User $user, ?int $companyId): ?string
     {
+        $persona = ActivePersonaContext::get();
+
+        if ($persona !== null) {
+            if ($persona->isSupplier()) {
+                $supplierCompanyId = $persona->supplierCompanyId();
+
+                if ($companyId !== null) {
+                    $allowedCompanyIds = array_values(array_filter([
+                        $supplierCompanyId,
+                        $persona->companyId(),
+                    ], static fn ($value) => $value !== null));
+
+                    if ($allowedCompanyIds !== [] && ! in_array($companyId, $allowedCompanyIds, true)) {
+                        return null;
+                    }
+                }
+
+                return $this->resolveSupplierRole($user, $persona->role());
+            }
+
+            if ($companyId !== null && $persona->companyId() !== $companyId) {
+                return null;
+            }
+
+            return $persona->role ?? $user->role;
+        }
+
         if ($companyId === null || (int) $user->company_id === $companyId) {
             return $user->role;
         }
@@ -135,5 +163,22 @@ class PermissionRegistry
         }
 
         return (string) $membershipRole;
+    }
+
+    private function resolveSupplierRole(User $user, ?string $personaRole): string
+    {
+        $eligibleRoles = ['owner', 'supplier_admin', 'supplier_estimator'];
+
+        if ($personaRole !== null && in_array($personaRole, $eligibleRoles, true)) {
+            return $personaRole;
+        }
+
+        $role = $user->role;
+
+        if ($role !== null && in_array($role, $eligibleRoles, true)) {
+            return $role;
+        }
+
+        return 'supplier_estimator';
     }
 }

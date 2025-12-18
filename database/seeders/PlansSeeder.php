@@ -31,6 +31,7 @@ class PlansSeeder extends Seeder
                 'rma_enabled' => false,
                 'rma_monthly_limit' => 0,
                 'credit_notes_enabled' => false,
+                'supplier_invoicing_enabled' => false,
                 'global_search_enabled' => false,
                 'quotes_enabled' => false,
                 'quote_revisions_enabled' => false,
@@ -65,6 +66,7 @@ class PlansSeeder extends Seeder
                 'rma_enabled' => false,
                 'rma_monthly_limit' => 0,
                 'credit_notes_enabled' => false,
+                'supplier_invoicing_enabled' => false,
                 'global_search_enabled' => false,
                 'quotes_enabled' => false,
                 'quote_revisions_enabled' => false,
@@ -99,6 +101,7 @@ class PlansSeeder extends Seeder
                 'rma_enabled' => true,
                 'rma_monthly_limit' => 20,
                 'credit_notes_enabled' => true,
+                'supplier_invoicing_enabled' => true,
                 'global_search_enabled' => true,
                 'quotes_enabled' => true,
                 'quote_revisions_enabled' => true,
@@ -133,6 +136,7 @@ class PlansSeeder extends Seeder
                 'rma_enabled' => true,
                 'rma_monthly_limit' => 0,
                 'credit_notes_enabled' => true,
+                'supplier_invoicing_enabled' => true,
                 'global_search_enabled' => true,
                 'quotes_enabled' => true,
                 'quote_revisions_enabled' => true,
@@ -161,7 +165,7 @@ class PlansSeeder extends Seeder
         DB::table('plans')->upsert(
             $payload,
             ['code'],
-            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'approvals_enabled', 'approval_levels_limit', 'rma_enabled', 'rma_monthly_limit', 'credit_notes_enabled', 'global_search_enabled', 'quotes_enabled', 'quote_revisions_enabled', 'digital_twin_enabled', 'maintenance_enabled', 'inventory_enabled', 'inventory_history_months', 'pr_enabled', 'multi_currency_enabled', 'tax_engine_enabled', 'localization_enabled', 'exports_enabled', 'export_row_limit', 'data_export_enabled', 'export_history_days', 'updated_at']
+            ['name', 'price_usd', 'rfqs_per_month', 'invoices_per_month', 'users_max', 'storage_gb', 'erp_integrations_max', 'analytics_enabled', 'analytics_history_months', 'risk_scores_enabled', 'risk_history_months', 'approvals_enabled', 'approval_levels_limit', 'rma_enabled', 'rma_monthly_limit', 'credit_notes_enabled', 'supplier_invoicing_enabled', 'global_search_enabled', 'quotes_enabled', 'quote_revisions_enabled', 'digital_twin_enabled', 'maintenance_enabled', 'inventory_enabled', 'inventory_history_months', 'pr_enabled', 'multi_currency_enabled', 'tax_engine_enabled', 'localization_enabled', 'exports_enabled', 'export_row_limit', 'data_export_enabled', 'export_history_days', 'updated_at']
         );
     }
 }

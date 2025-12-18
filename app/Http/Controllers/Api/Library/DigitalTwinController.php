@@ -16,6 +16,7 @@ use App\Models\DigitalTwin;
 use App\Models\DigitalTwinCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\CursorPaginator;
@@ -259,7 +260,7 @@ class DigitalTwinController extends ApiController
         $categoryActive = $digitalTwin->category_id === null || ($digitalTwin->category && $digitalTwin->category->is_active);
 
         if (! $isPublished || ! $isPublic || ! $categoryActive) {
-            abort(Response::HTTP_NOT_FOUND, 'Digital twin not found.');
+            throw new HttpResponseException($this->fail('Digital twin not found.', Response::HTTP_NOT_FOUND));
         }
 
         return $digitalTwin;

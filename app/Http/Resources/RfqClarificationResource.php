@@ -24,8 +24,10 @@ class RfqClarificationResource extends JsonResource
         return [
             'id' => $this->id,
             'rfq_id' => $this->rfq_id,
+            'author' => $this->transformUser(),
             'user' => $this->transformUser(),
             'type' => $this->resolveType(),
+            'body' => $this->message,
             'message' => $this->message,
             'version_increment' => (bool) $this->version_increment,
             'version_no' => $this->version_no,
@@ -91,12 +93,24 @@ class RfqClarificationResource extends JsonResource
                 continue;
             }
 
+            $downloadUrl = $document->temporaryDownloadUrl((int) config('documents.download_ttl_minutes', 10));
+
+            if ($downloadUrl === null) {
+                $downloadUrl = route('rfqs.clarifications.attachments.download', [
+                    'rfq' => $this->rfq_id,
+                    'clarification' => $this->id,
+                    'attachment' => $document->id,
+                ]);
+            }
+
             $attachments[] = [
+                'id' => (string) $document->id,
                 'document_id' => (string) $document->id,
                 'filename' => $entry['filename'] ?? $document->filename,
                 'mime' => $entry['mime'] ?? $document->mime,
                 'size_bytes' => (int) ($entry['size_bytes'] ?? $document->size_bytes ?? 0),
-                'download_url' => $document->temporaryDownloadUrl(),
+                'download_url' => $downloadUrl,
+                'url' => $downloadUrl,
                 'uploaded_by' => $entry['uploaded_by'] ?? null,
                 'uploaded_at' => $entry['uploaded_at'] ?? $document->created_at?->toIso8601String(),
             ];

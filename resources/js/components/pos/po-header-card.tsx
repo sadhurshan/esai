@@ -41,7 +41,7 @@ export function PoHeaderCard({
             <CardHeader>
                 <div className="flex flex-wrap items-center gap-3">
                     <CardTitle className="text-2xl font-semibold text-foreground">PO #{po.poNumber}</CardTitle>
-                    <PoStatusBadge status={po.status} />
+                    {po.status?.toLowerCase() !== 'acknowledged' ? <PoStatusBadge status={po.status} /> : null}
                     <AckStatusChip
                         status={po.ackStatus}
                         sentAt={po.sentAt}

@@ -28,6 +28,7 @@ const ROUTE_BREADCRUMBS: BreadcrumbDefinition[] = [
         dynamicLabel: () => 'Award review',
     },
     { path: '/app/quotes', label: 'Quotes' },
+    { path: '/app/supplier/quotes', label: 'My Quotes' },
     { path: '/app/purchase-orders', label: 'Purchase Orders' },
     {
         path: '/app/purchase-orders/:purchaseOrderId',

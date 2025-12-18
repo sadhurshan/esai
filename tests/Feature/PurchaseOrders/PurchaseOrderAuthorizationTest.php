@@ -1,14 +1,17 @@
 <?php
 
 use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Models\User;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\postJson;
 
 test('buyer admin can send a purchase order', function (): void {
     $company = createSubscribedCompany();
+    $supplier = Supplier::factory()->for($company)->create();
     $purchaseOrder = PurchaseOrder::factory()->create([
         'company_id' => $company->id,
+        'supplier_id' => $supplier->id,
         'status' => 'draft',
     ]);
 
@@ -20,14 +23,16 @@ test('buyer admin can send a purchase order', function (): void {
     actingAs($user);
 
     postJson("/api/purchase-orders/{$purchaseOrder->getKey()}/send", [
-        'channel' => 'webhook',
+        'message' => 'Please confirm receipt.',
     ])->assertOk();
 });
 
 test('buyer member cannot send a purchase order', function (): void {
     $company = createSubscribedCompany();
+    $supplier = Supplier::factory()->for($company)->create();
     $purchaseOrder = PurchaseOrder::factory()->create([
         'company_id' => $company->id,
+        'supplier_id' => $supplier->id,
         'status' => 'draft',
     ]);
 
@@ -39,7 +44,7 @@ test('buyer member cannot send a purchase order', function (): void {
     actingAs($user);
 
     postJson("/api/purchase-orders/{$purchaseOrder->getKey()}/send", [
-        'channel' => 'webhook',
+        'message' => 'Please confirm receipt.',
     ])->assertStatus(403);
 });
 

@@ -64,14 +64,13 @@ class SupplierApplicationStoreRequest extends ApiFormRequest
 
     protected function failedAuthorization(): void
     {
-        throw new HttpResponseException(response()->json([
-            'status' => 'error',
-            'message' => 'Supplier application permissions required.',
-            'data' => null,
-            'errors' => [
-                'code' => 'supplier_application_permission_required',
-            ],
-        ], 403));
+        throw new HttpResponseException(
+            $this->fail(
+                'Supplier application permissions required.',
+                403,
+                ['code' => 'supplier_application_permission_required']
+            )
+        );
     }
 
     /**

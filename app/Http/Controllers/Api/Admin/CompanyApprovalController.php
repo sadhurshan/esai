@@ -9,8 +9,13 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Company\RejectCompanyRequest;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
+use App\Models\User;
+use App\Notifications\CompanyApproved;
+use App\Notifications\CompanyRejected;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 
 class CompanyApprovalController extends ApiController
 {
@@ -31,17 +36,24 @@ class CompanyApprovalController extends ApiController
         }
 
         $status = $request->query('status', CompanyStatus::PendingVerification->value);
+        $isAllStatuses = $status === 'all';
+        $validStatuses = array_map(static fn (CompanyStatus $value) => $value->value, CompanyStatus::cases());
 
-        if (! in_array($status, array_map(static fn (CompanyStatus $value) => $value->value, CompanyStatus::cases()), true)) {
+        if (! $isAllStatuses && ! in_array($status, $validStatuses, true)) {
             return $this->fail('Invalid status filter.', 422);
         }
 
         $perPage = $this->perPage($request, 25, 100);
 
-        $paginator = Company::query()
-            ->where('status', $status)
+        $query = Company::query()
             ->orderByDesc('created_at')
-            ->orderByDesc('id')
+            ->orderByDesc('id');
+
+        if (! $isAllStatuses) {
+            $query->where('status', $status);
+        }
+
+        $paginator = $query
             ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'))
             ->withQueryString();
 
@@ -67,9 +79,8 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Only pending companies can be approved.', 422);
         }
 
-        $company = $this->approveCompanyAction->execute($company)->refresh();
-
-        // TODO: trigger notification to company owner about approval.
+        $company = $this->approveCompanyAction->execute($company)->fresh(['owner']);
+        $this->notifyApproval($company);
 
         return $this->ok((new CompanyResource($company))->toArray($request), 'Company approved.');
     }
@@ -89,10 +100,51 @@ class CompanyApprovalController extends ApiController
             return $this->fail('Only pending companies can be rejected.', 422);
         }
 
-        $company = $this->rejectCompanyAction->execute($company, $request->validated('reason'))->refresh();
-
-        // TODO: trigger notification to company owner about rejection.
+        $reason = $request->validated('reason');
+        $company = $this->rejectCompanyAction->execute($company, $reason)->fresh(['owner']);
+        $this->notifyRejection($company, $reason);
 
         return $this->ok((new CompanyResource($company))->toArray($request), 'Company rejected.');
+    }
+
+    private function notifyApproval(Company $company): void
+    {
+        $owner = $company->owner;
+
+        if ($owner !== null) {
+            $owner->notify(new CompanyApproved($company, 'owner'));
+        }
+
+        $platformAdmins = $this->platformOperators($owner?->id);
+
+        if ($platformAdmins->isNotEmpty()) {
+            Notification::send($platformAdmins, new CompanyApproved($company, 'platform'));
+        }
+    }
+
+    private function notifyRejection(Company $company, string $reason): void
+    {
+        $owner = $company->owner;
+
+        if ($owner !== null) {
+            $owner->notify(new CompanyRejected($company, $reason, 'owner'));
+        }
+
+        $platformAdmins = $this->platformOperators($owner?->id);
+
+        if ($platformAdmins->isNotEmpty()) {
+            Notification::send($platformAdmins, new CompanyRejected($company, $reason, 'platform'));
+        }
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    private function platformOperators(?int $excludeUserId = null): Collection
+    {
+        return User::query()
+            ->whereIn('role', ['platform_super', 'platform_support'])
+            ->when($excludeUserId, fn ($query) => $query->where('id', '!=', $excludeUserId))
+            ->get();
     }
 }

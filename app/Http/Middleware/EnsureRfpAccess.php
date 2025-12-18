@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -47,16 +48,8 @@ class EnsureRfpAccess
 
     private function errorResponse(string $message, int $status, ?string $code = null): JsonResponse
     {
-        $payload = [
-            'status' => 'error',
-            'message' => $message,
-            'data' => null,
-        ];
+        $errors = $code !== null ? ['code' => $code] : null;
 
-        if ($code !== null) {
-            $payload['errors'] = ['code' => $code];
-        }
-
-        return response()->json($payload, $status);
+        return ApiResponse::error($message, $status, $errors);
     }
 }

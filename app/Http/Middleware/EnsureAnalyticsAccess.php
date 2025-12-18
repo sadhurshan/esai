@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -34,30 +35,18 @@ class EnsureAnalyticsAccess
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json([
-                'status' => 'errors',
-                'message' => 'Authentication required.',
-                'data' => null,
-            ], Response::HTTP_UNAUTHORIZED);
+            return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
         if (! $this->hasAnalyticsAccess($user)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Analytics role required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Analytics role required.', Response::HTTP_FORBIDDEN);
         }
 
         $user->loadMissing('company.plan');
         $company = $user->company;
 
         if (! $company instanceof Company) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Company context required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Company context required.', Response::HTTP_FORBIDDEN);
         }
 
         $plan = $company->plan;

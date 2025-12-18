@@ -22,8 +22,12 @@ const DEFAULT_QUERY_OPTIONS = {
     },
 };
 
-export function ApiClientProvider({ children }: PropsWithChildren) {
-    const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit } = useAuth();
+interface ApiClientProviderProps extends PropsWithChildren {
+    onQueryClientReady?: (client: QueryClient | null) => void;
+}
+
+export function ApiClientProvider({ children, onQueryClientReady }: ApiClientProviderProps) {
+    const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit, activePersona } = useAuth();
     const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
     const navigate = useNavigate();
     const location = useLocation();
@@ -123,6 +127,8 @@ export function ApiClientProvider({ children }: PropsWithChildren) {
         });
     }, [clearPlanLimit, handleApiError]);
 
+    const personaKey = activePersona?.key ?? null;
+
     const configuration = useMemo(() => {
         return createConfiguration({
             baseUrl,
@@ -130,8 +136,9 @@ export function ApiClientProvider({ children }: PropsWithChildren) {
             defaultHeaders: {
                 'X-Requested-With': 'XMLHttpRequest',
             },
+            activePersona: personaKey ? () => personaKey : undefined,
         });
-    }, [baseUrl, getAccessToken]);
+    }, [baseUrl, getAccessToken, personaKey]);
 
     const clientsRef = useRef(new Map<ApiConstructor<unknown>, unknown>());
 
@@ -160,6 +167,14 @@ export function ApiClientProvider({ children }: PropsWithChildren) {
         }),
         [configuration, getClient],
     );
+
+    useEffect(() => {
+        onQueryClientReady?.(queryClient);
+
+        return () => {
+            onQueryClientReady?.(null);
+        };
+    }, [onQueryClientReady, queryClient]);
 
     return (
         <ApiClientContext.Provider value={value}>

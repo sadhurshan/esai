@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\RespondsWithEnvelope;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
 use App\Support\CompanyContext;
 use App\Support\RequestCompanyContextResolver;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -34,15 +35,25 @@ abstract class ApiController extends Controller
             $next = $paginator->nextCursor()?->encode();
             $prev = $paginator->previousCursor()?->encode();
 
+            $paginationMeta = [
+                'total' => $paginator->count(),
+                'per_page' => $paginator->perPage(),
+                'current_page' => 1,
+                'last_page' => 1,
+                'page' => 1,
+            ];
+
+            $cursorSnapshot = array_merge($paginationMeta, [
+                'next_cursor' => $next,
+                'prev_cursor' => $prev,
+            ]);
+
             return [
                 'items' => $items,
                 'meta' => [
-                    'data' => [
-                        'next_cursor' => $next,
-                        'prev_cursor' => $prev,
-                        'per_page' => $paginator->perPage(),
-                    ],
+                    'data' => $cursorSnapshot,
                     'envelope' => [
+                        'pagination' => $paginationMeta,
                         'cursor' => [
                             'next_cursor' => $next,
                             'prev_cursor' => $prev,
@@ -54,6 +65,9 @@ abstract class ApiController extends Controller
             ];
         }
 
+        $nextCursor = $paginator->currentPage() < $paginator->lastPage() ? (string) ($paginator->currentPage() + 1) : null;
+        $prevCursor = $paginator->currentPage() > 1 ? (string) ($paginator->currentPage() - 1) : null;
+
         return [
             'items' => $items,
             'meta' => [
@@ -62,6 +76,9 @@ abstract class ApiController extends Controller
                     'per_page' => $paginator->perPage(),
                     'current_page' => $paginator->currentPage(),
                     'last_page' => $paginator->lastPage(),
+                    'page' => $paginator->currentPage(),
+                    'next_cursor' => $nextCursor,
+                    'prev_cursor' => $prevCursor,
                 ],
                 'envelope' => [
                     'pagination' => [
@@ -69,6 +86,13 @@ abstract class ApiController extends Controller
                         'per_page' => $paginator->perPage(),
                         'current_page' => $paginator->currentPage(),
                         'last_page' => $paginator->lastPage(),
+                        'page' => $paginator->currentPage(),
+                    ],
+                    'cursor' => [
+                        'next_cursor' => $nextCursor,
+                        'prev_cursor' => $prevCursor,
+                        'has_next' => $nextCursor !== null,
+                        'has_prev' => $prevCursor !== null,
                     ],
                 ],
             ],
@@ -103,6 +127,28 @@ abstract class ApiController extends Controller
     }
 
     /**
+     * @return array{supplierCompanyId:?int,buyerCompanyId:?int}
+     */
+    protected function resolveSupplierWorkspaceContext(User $user): array
+    {
+        $persona = ActivePersonaContext::get();
+        $supplierCompanyId = null;
+        $buyerCompanyId = null;
+
+        if ($persona !== null && $persona->isSupplier()) {
+            $supplierCompanyId = $persona->supplierCompanyId();
+            $buyerCompanyId = $persona->companyId();
+        } elseif (is_string($user->role) && str_starts_with($user->role, 'supplier_')) {
+            $supplierCompanyId = $user->company_id !== null ? (int) $user->company_id : null;
+        }
+
+        return [
+            'supplierCompanyId' => $supplierCompanyId,
+            'buyerCompanyId' => $buyerCompanyId,
+        ];
+    }
+
+    /**
      * @return array{user:User, companyId:int}|JsonResponse
      */
     protected function requireCompanyContext(Request $request): array|JsonResponse
@@ -121,9 +167,7 @@ abstract class ApiController extends Controller
             ]);
         }
 
-        if ($user->company_id === null) {
-            $user->company_id = $companyId;
-        }
+        $user->company_id = $companyId;
 
         CompanyContext::set($companyId);
 

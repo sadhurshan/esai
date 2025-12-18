@@ -20,6 +20,7 @@ class StoreRmaRequest extends ApiFormRequest
             'reason' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'resolution_requested' => ['required', Rule::in(['repair', 'replacement', 'credit', 'refund', 'other'])],
+            'defect_qty' => ['nullable', 'integer', 'min:1'],
             'purchase_order_line_id' => ['nullable', 'integer', 'exists:po_lines,id'],
             'grn_id' => ['nullable', 'integer', 'exists:goods_receipt_notes,id'],
             'attachments' => ['nullable', 'array', 'max:10'],
@@ -46,6 +47,12 @@ class StoreRmaRequest extends ApiFormRequest
 
                 if ($line === null) {
                     $validator->errors()->add('purchase_order_line_id', 'PO line does not belong to the selected purchase order.');
+                } else {
+                    $defectQty = (int) $this->input('defect_qty');
+
+                    if ($defectQty > 0 && $defectQty > (int) $line->quantity) {
+                        $validator->errors()->add('defect_qty', 'Defect quantity cannot exceed the ordered quantity.');
+                    }
                 }
             }
 

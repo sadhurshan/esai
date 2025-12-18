@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { Controller, UseFormReturn, useWatch } from 'react-hook-form';
 import { Info, ShieldAlert } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +66,18 @@ function getDisplayPrice(candidate: RfqAwardCandidateOption, companyCurrency?: s
     };
 }
 
+function clampAwardQuantity(value: number, max?: number) {
+    if (!Number.isFinite(value)) {
+        return undefined;
+    }
+    const upperBound = typeof max === 'number' && max > 0 ? Math.floor(max) : undefined;
+    const normalized = Math.max(1, Math.floor(value));
+    if (upperBound === undefined) {
+        return normalized;
+    }
+    return Math.min(normalized, upperBound);
+}
+
 export function AwardLinePicker({
     lines,
     form,
@@ -73,7 +85,7 @@ export function AwardLinePicker({
     isLoading = false,
     companyCurrency,
 }: AwardLinePickerProps) {
-    const selections = form.watch('lines');
+    const selections = useWatch({ control: form.control, name: 'lines' }) ?? [];
 
     const indexByLineId = useMemo(() => {
         const map = new Map<number, number>();
@@ -134,7 +146,7 @@ export function AwardLinePicker({
 
                 return (
                     <Card key={line.id} className="border-border/70">
-                        <CardHeader className="flex flex-col gap-2 space-y-0 border-b bg-muted/50 py-3">
+                        <CardHeader className="flex flex-col gap-2 space-y-0 border-b py-3">
                             <div className="flex flex-wrap items-center gap-2">
                                 <CardTitle className="text-base font-semibold text-foreground">
                                     Line {line.lineNo}: {line.partName}
@@ -222,17 +234,42 @@ export function AwardLinePicker({
                                 <Label htmlFor={`award-qty-${line.id}`} className="text-xs uppercase text-muted-foreground">
                                     Award quantity
                                 </Label>
-                                <Input
-                                    id={`award-qty-${line.id}`}
-                                    type="number"
-                                    inputMode="numeric"
-                                    min={1}
-                                    max={line.quantity}
-                                    step={1}
-                                    disabled={!selectedCandidate || isSubmitting}
-                                    {...form.register(`lines.${index}.awardedQty`, {
-                                        valueAsNumber: true,
-                                    })}
+                                <Controller
+                                    control={form.control}
+                                    name={`lines.${index}.awardedQty`}
+                                    render={({ field }) => (
+                                        <Input
+                                            id={`award-qty-${line.id}`}
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            max={line.quantity}
+                                            step={1}
+                                            disabled={!selectedCandidate || isSubmitting}
+                                            value={field.value ?? ''}
+                                            onChange={(event) => {
+                                                const rawValue = Number(event.currentTarget.value);
+                                                if (Number.isNaN(rawValue)) {
+                                                    field.onChange(undefined);
+                                                    return;
+                                                }
+                                                const clamped = clampAwardQuantity(rawValue, line.quantity);
+                                                field.onChange(clamped);
+                                            }}
+                                            onBlur={(event) => {
+                                                field.onBlur();
+                                                const rawValue = Number(event.currentTarget.value);
+                                                if (Number.isNaN(rawValue)) {
+                                                    field.onChange(line.quantity);
+                                                    return;
+                                                }
+                                                const clamped = clampAwardQuantity(rawValue, line.quantity);
+                                                if (clamped !== rawValue) {
+                                                    field.onChange(clamped);
+                                                }
+                                            }}
+                                        />
+                                    )}
                                 />
                                 <p className="text-xs text-muted-foreground">
                                     Default is RFQ quantity. Adjust if you only need a partial award.

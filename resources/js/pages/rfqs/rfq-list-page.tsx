@@ -19,6 +19,7 @@ import { useEffect, useState, type ChangeEvent } from 'react';
 import { useFormatting } from '@/contexts/formatting-context';
 import { getRfqMethodLabel } from '@/constants/rfq';
 import type { Rfq } from '@/sdk';
+import { useAuth } from '@/contexts/auth-context';
 
 function getStatusPresentation(status?: string) {
     switch (status) {
@@ -81,6 +82,7 @@ const BIDDING_OPTIONS: Array<{ value: BiddingFilter; label: string }> = [
 ];
 
 export function RfqListPage() {
+    const { activePersona } = useAuth();
     const { formatNumber, formatDate } = useFormatting();
     const [statusFilter, setStatusFilter] = useState<RfqStatusFilter>('all');
     const [searchInput, setSearchInput] = useState('');
@@ -116,6 +118,8 @@ export function RfqListPage() {
         setCursor(undefined);
     };
 
+    const isSupplierPersona = activePersona?.type === 'supplier';
+
     const rfqsQuery = useRfqs({
         perPage,
         status: statusFilter,
@@ -124,6 +128,7 @@ export function RfqListPage() {
         dueTo: dateTo,
         cursor,
         openBidding: biddingFilter === 'all' ? undefined : biddingFilter === 'open',
+        audience: isSupplierPersona ? 'supplier' : 'buyer',
     });
 
     const { items, cursor: cursorMeta } = rfqsQuery;
@@ -142,18 +147,24 @@ export function RfqListPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Requests for Quotation</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        {isSupplierPersona ? 'RFQs Received' : 'Requests for Quotation'}
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Manage sourcing events, monitor supplier engagement, and keep your pipeline of RFQs on track.
+                        {isSupplierPersona
+                            ? 'View the RFQs your team has been invited to by each buyer tenant and track upcoming deadlines.'
+                            : 'Manage sourcing events, monitor supplier engagement, and keep your pipeline of RFQs on track.'}
                     </p>
                 </div>
-                <Button asChild size="sm">
-                    <Link to="/app/rfqs/new">
-                        {/* TODO: confirm RFQ wizard route once implemented */}
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        New RFQ
-                    </Link>
-                </Button>
+                {!isSupplierPersona ? (
+                    <Button asChild size="sm">
+                        <Link to="/app/rfqs/new">
+                            {/* TODO: confirm RFQ wizard route once implemented */}
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            New RFQ
+                        </Link>
+                    </Button>
+                ) : null}
             </div>
 
             <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm">

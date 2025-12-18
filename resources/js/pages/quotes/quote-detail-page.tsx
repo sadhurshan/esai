@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Award, Download, FileText, Star } from 'lucide-react';
+import { Award, Download, FileText, Star, Loader2 } from 'lucide-react';
 
 import { ExportButtons } from '@/components/downloads/export-buttons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,7 +17,9 @@ import { MoneyCell } from '@/components/quotes/money-cell';
 import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
 import { useAuth } from '@/contexts/auth-context';
 import { useQuote } from '@/hooks/api/quotes/use-quote';
-import type { Quote, QuoteAttachmentsInner, QuoteItem, QuoteRevision } from '@/sdk';
+import { useQuoteShortlistMutation } from '@/hooks/api/quotes/use-shortlist-mutation';
+import { useTaxCodes } from '@/hooks/api/use-tax-codes';
+import type { Quote, QuoteAttachmentsInner, QuoteItem, QuoteRevision, TaxCode } from '@/sdk';
 import { publishToast } from '@/components/ui/use-toast';
 import { useFormatting } from '@/contexts/formatting-context';
 
@@ -46,11 +48,18 @@ export function QuoteDetailPage() {
 
     const quoteQuery = useQuote(quoteId, { enabled: Boolean(quoteId) && canAccessQuotes });
     const quote = quoteQuery.data?.quote;
-
-    const [shortlisted, setShortlisted] = useState(false);
-    const [markedForAward, setMarkedForAward] = useState(false);
+    const shortlistMutation = useQuoteShortlistMutation();
+    const taxCodesQuery = useTaxCodes(undefined, { enabled: Boolean(quoteId) && canAccessQuotes });
+    const taxCodeLookup = useMemo(() => {
+        const lookup = new Map<number, TaxCode>();
+        (taxCodesQuery.items ?? []).forEach((taxCode) => {
+            lookup.set(taxCode.id, taxCode);
+        });
+        return lookup;
+    }, [taxCodesQuery.items]);
 
     const supplierName = getSupplierName(quote);
+    const shortlisted = Boolean(quote?.isShortlisted);
     const revisions = quote?.revisions ?? [];
     const attachments = quote?.attachments ?? [];
     const lines = quote?.items ?? [];
@@ -100,23 +109,53 @@ export function QuoteDetailPage() {
     }, [quote]);
 
     const handleShortlistToggle = () => {
-        setShortlisted((previous) => {
-            const next = !previous;
-            publishToast({
-                variant: 'default',
-                title: next ? 'Quote shortlisted' : 'Shortlist removed',
-                description: `${supplierName} will${next ? '' : ' no longer'} be highlighted for award prep.`,
-            });
-            return next;
-        });
+        if (!quote || shortlistMutation.isPending) {
+            return;
+        }
+
+        const shouldShortlist = !quote.isShortlisted;
+        shortlistMutation.mutate(
+            { quoteId: quote.id, shortlist: shouldShortlist, rfqId: quote.rfqId },
+            {
+                onSuccess: (updated) => {
+                    publishToast({
+                        variant: 'success',
+                        title: shouldShortlist ? 'Quote shortlisted' : 'Shortlist updated',
+                        description: shouldShortlist
+                            ? `${getSupplierName(updated)} is now on your shortlist.`
+                            : `${getSupplierName(updated)} was removed from your shortlist.`,
+                    });
+                    if (typeof window !== 'undefined') {
+                        window.location.reload();
+                    }
+                },
+                onError: (error) => {
+                    publishToast({
+                        variant: 'destructive',
+                        title: 'Unable to update shortlist',
+                        description:
+                            error instanceof Error ? error.message : 'Please check your connection and try again.',
+                    });
+                },
+            },
+        );
     };
 
-    const handleMarkForAward = () => {
-        setMarkedForAward(true);
-        publishToast({
-            variant: 'default',
-            title: 'Marked for award',
-            description: 'Recording intent only; create PO to award officially.',
+    const handleLaunchAwardReview = () => {
+        if (!quote?.rfqId) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to open awards',
+                description: 'This quote is missing its RFQ reference.',
+            });
+            return;
+        }
+
+        navigate(`/app/rfqs/${quote.rfqId}/awards`, {
+            state: {
+                quoteIds: [String(quote.id)],
+                source: 'quoteDetail',
+            },
         });
     };
 
@@ -229,20 +268,18 @@ export function QuoteDetailPage() {
                         type="button"
                         variant={shortlisted ? 'secondary' : 'outline'}
                         size="sm"
+                        disabled={shortlistMutation.isPending}
                         onClick={handleShortlistToggle}
                     >
-                        <Star className={shortlisted ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
+                        {shortlistMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Star className={shortlisted ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
+                        )}
                         {shortlisted ? 'Shortlisted' : 'Shortlist'}
                     </Button>
-                    <Button
-                        type="button"
-                        variant={markedForAward ? 'secondary' : 'default'}
-                        size="sm"
-                        onClick={handleMarkForAward}
-                        disabled={markedForAward}
-                    >
-                        <Award className="h-4 w-4" />
-                        {markedForAward ? 'Marked for award' : 'Mark for award'}
+                    <Button type="button" size="sm" onClick={handleLaunchAwardReview}>
+                        <Award className="mr-2 h-4 w-4" /> Award this quote
                     </Button>
                     <ExportButtons
                         documentType="quote"
@@ -280,7 +317,7 @@ export function QuoteDetailPage() {
                     <QuoteOverviewCard quote={quote} />
                 </TabsContent>
                 <TabsContent value="lines">
-                    <QuoteLinesTable items={lines} currency={quote.currency} />
+                    <QuoteLinesTable items={lines} currency={quote.currency} taxCodes={taxCodeLookup} />
                 </TabsContent>
                 <TabsContent value="attachments">
                     <QuoteAttachmentsPanel attachments={attachments} />
@@ -328,13 +365,20 @@ function QuoteOverviewCard({ quote }: { quote: Quote }) {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Submitted by</p>
                     <p className="text-base font-semibold text-foreground">{quote.submittedBy ? `User #${quote.submittedBy}` : '—'}</p>
                 </div>
-                {/* TODO: clarify with spec if incoterms/payment fields surface from Quote API so we can display them here. */}
+                <div className="space-y-1 text-sm">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Incoterm</p>
+                    <p className="text-base font-semibold text-foreground">{quote.incoterm ?? '—'}</p>
+                </div>
+                <div className="space-y-1 text-sm">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Payment terms</p>
+                    <p className="text-base font-semibold text-foreground">{quote.paymentTerms ?? '—'}</p>
+                </div>
             </CardContent>
         </Card>
     );
 }
 
-function QuoteLinesTable({ items, currency }: { items: QuoteItem[]; currency?: string | null }) {
+function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; currency?: string | null; taxCodes?: Map<number, TaxCode> }) {
     const { formatNumber } = useFormatting();
     if (items.length === 0) {
         return (
@@ -356,6 +400,7 @@ function QuoteLinesTable({ items, currency }: { items: QuoteItem[]; currency?: s
                         <th className="px-4 py-3 font-semibold">Unit price</th>
                         <th className="px-4 py-3 font-semibold">Extended</th>
                         <th className="px-4 py-3 font-semibold">Lead time</th>
+                        <th className="px-4 py-3 font-semibold">Taxes</th>
                         <th className="px-4 py-3 font-semibold">Notes</th>
                     </tr>
                 </thead>
@@ -384,6 +429,44 @@ function QuoteLinesTable({ items, currency }: { items: QuoteItem[]; currency?: s
                                 </td>
                                 <td className="px-4 py-4 align-top">
                                     <DeliveryLeadTimeChip leadTimeDays={item.leadTimeDays} />
+                                </td>
+                                <td className="px-4 py-4 align-top text-sm text-muted-foreground">
+                                    {item.taxes && item.taxes.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {item.taxes.map((tax, index) => {
+                                                const taxCode = tax.taxCodeId && taxCodes ? taxCodes.get(tax.taxCodeId) : undefined;
+                                                const codeLabel = taxCode?.code ?? (tax.taxCodeId ? `Tax ${tax.taxCodeId}` : 'Custom tax');
+                                                const nameLabel = taxCode?.name ?? '—';
+
+                                                return (
+                                                    <div
+                                                        key={tax.id ?? `${item.id}-tax-${tax.taxCodeId ?? index}`}
+                                                        className="rounded-xl border border-sidebar-border/40 bg-muted/20 px-3 py-2"
+                                                    >
+                                                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                            <Badge variant="outline" className="font-semibold">
+                                                                {codeLabel}
+                                                            </Badge>
+                                                            {typeof tax.ratePercent === 'number' ? (
+                                                                <span className="text-muted-foreground">{tax.ratePercent}%</span>
+                                                            ) : null}
+                                                        </div>
+                                                        <p className="mt-1 text-[11px] text-muted-foreground">{nameLabel}</p>
+                                                        {typeof tax.amountMinor === 'number' ? (
+                                                            <MoneyCell
+                                                                amountMinor={tax.amountMinor}
+                                                                currency={item.currency ?? currency}
+                                                                label=""
+                                                                className="mt-1"
+                                                            />
+                                                        ) : null}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <span>—</span>
+                                    )}
                                 </td>
                                 <td className="px-4 py-4 align-top text-sm text-muted-foreground">{item.note ?? '—'}</td>
                             </tr>
@@ -421,7 +504,11 @@ function QuoteAttachmentsPanel({ attachments }: { attachments: QuoteAttachmentsI
                     </div>
                     {attachment.path ? (
                         <Button asChild variant="outline" size="sm">
-                            <a href={attachment.path} target="_blank" rel="noreferrer">
+                            <a
+                                href={attachment.path}
+                                download={attachment.filename ?? undefined}
+                                rel="noreferrer"
+                            >
                                 <Download className="h-4 w-4" />
                                 Download
                             </a>

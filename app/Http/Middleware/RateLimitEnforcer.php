@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\RateLimitScope;
 use App\Services\Admin\RateLimitService;
+use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,10 +34,6 @@ class RateLimitEnforcer
 
     private function tooManyRequestsResponse(): JsonResponse
     {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Rate limit exceeded.',
-            'data' => null,
-        ], 429);
+        return ApiResponse::error('Rate limit exceeded.', 429);
     }
 }

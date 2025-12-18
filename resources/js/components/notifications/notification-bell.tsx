@@ -49,7 +49,7 @@ export function NotificationBell() {
                     {hasUnread && (
                         <span
                             className={cn(
-                                'absolute -right-0.5 -top-0.5 inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground shadow-sm',
+                                'absolute -right-0.5 -top-0.5 inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white shadow-sm',
                             )}
                         >
                             {badgeLabel}

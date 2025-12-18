@@ -10,15 +10,44 @@ use Illuminate\Support\Collection;
 
 class QuoteComparisonService
 {
+    public function __construct(private readonly SupplierFitService $fitService)
+    {
+    }
+
     /**
-     * @return Collection<int, array{quote: Quote, scores: array{price: float, lead_time: float, rating: float, composite: float, rank: int}}>
+     * @return Collection<int, array{quote: Quote, scores: array{price: float, lead_time: float, risk: float, fit: float, composite: float, rank: int}}>
      */
     public function build(RFQ $rfq): Collection
     {
+        $rfq->loadMissing('items');
+
         $quotes = $rfq->quotes()
             ->with([
-                'supplier.company',
-                'supplier.riskScore',
+                'supplier' => function ($query): void {
+                    $query->withoutGlobalScope('company_scope')
+                        ->with([
+                            'company:id,name,supplier_status,is_verified,verified_at',
+                            'riskScore' => static fn ($riskQuery) => $riskQuery->withoutGlobalScope('company_scope'),
+                            'documents' => function ($documentQuery): void {
+                                $documentQuery
+                                    ->withoutGlobalScope('company_scope')
+                                    ->select(['id', 'supplier_id', 'type', 'status', 'expires_at'])
+                                    ->orderBy('expires_at')
+                                    ->limit(10);
+                            },
+                        ])
+                        ->withCount([
+                            'documents as valid_documents_count' => static fn ($docQuery) => $docQuery
+                                ->withoutGlobalScope('company_scope')
+                                ->where('status', 'valid'),
+                            'documents as expiring_documents_count' => static fn ($docQuery) => $docQuery
+                                ->withoutGlobalScope('company_scope')
+                                ->where('status', 'expiring'),
+                            'documents as expired_documents_count' => static fn ($docQuery) => $docQuery
+                                ->withoutGlobalScope('company_scope')
+                                ->where('status', 'expired'),
+                        ]);
+                },
                 'items.rfqItem',
                 'items.taxes.taxCode',
                 'documents',
@@ -37,24 +66,31 @@ class QuoteComparisonService
             ->reject(static fn (?int $value): bool => $value === null || $value <= 0)
             ->min() ?? 0;
 
-        $results = $quotes->map(function (Quote $quote) use ($minTotal, $minLead): array {
+        $results = $quotes->map(function (Quote $quote) use ($rfq, $minTotal, $minLead): array {
             $totalMinor = (int) ($quote->total_price_minor ?? 0);
             $lead = $quote->lead_time_days ?? 0;
             $riskScore = (float) ($quote->supplier?->riskScore?->overall_score ?? 0);
+            $fitResult = $this->fitService->score($rfq, $quote);
+            $fitScore = $fitResult['score'];
 
             $priceScore = $this->normalizeBenefit($minTotal, $totalMinor);
             $leadScore = $this->normalizeBenefit($minLead, $lead);
-            $ratingScore = $this->normalizeClamp($riskScore);
+            $normalizedRisk = $this->normalizeClamp($riskScore);
 
-            // TODO: clarify weighting with product team once scoring spec is finalized.
-            $composite = round(($priceScore * 0.5) + ($leadScore * 0.3) + ($ratingScore * 0.2), 4);
+            $composite = round((
+                $priceScore
+                + $leadScore
+                + $normalizedRisk
+                + $fitScore
+            ) / 4, 4);
 
             return [
                 'quote' => $quote,
                 'scores' => [
                     'price' => $priceScore,
                     'lead_time' => $leadScore,
-                    'rating' => $ratingScore,
+                    'risk' => $normalizedRisk,
+                    'fit' => $fitScore,
                     'composite' => $composite,
                     'rank' => 0,
                 ],

@@ -5,6 +5,7 @@ use App\Console\Commands\ApiSpecPostmanCommand;
 use App\Console\Commands\ApiSpecSdkTypescriptCommand;
 use App\Console\Commands\CleanupExpiredExportsCommand;
 use App\Console\Commands\DemoReset;
+use App\Console\Commands\BackfillSupplierPersonas;
 use App\Http\Middleware\AdminGuard;
 use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
@@ -25,6 +26,7 @@ use App\Http\Middleware\EnsurePrAccess;
 use App\Http\Middleware\EnsureRfpAccess;
 use App\Http\Middleware\EnsureMoneyAccess;
 use App\Http\Middleware\EnsureOrdersAccess;
+use App\Http\Middleware\EnsureSupplierInvoicingAccess;
 use App\Http\Middleware\EnsureSourcingAccess;
 use App\Http\Middleware\EnsureLocalizationAccess;
 use App\Http\Middleware\EnsureInventoryAccess;
@@ -39,8 +41,14 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Session\Middleware\StartSession;
 
-return Application::configure(basePath: dirname(__DIR__))
+$runtimeEnvironment = $_SERVER['APP_ENV']
+    ?? $_ENV['APP_ENV']
+    ?? getenv('APP_ENV')
+    ?? null;
+
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -53,7 +61,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ApiSpecBuildCommand::class,
         ApiSpecPostmanCommand::class,
         ApiSpecSdkTypescriptCommand::class,
+        BackfillSupplierPersonas::class,
     ])
+    ->withBroadcasting(__DIR__.'/../routes/channels.php')
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
@@ -64,7 +74,6 @@ return Application::configure(basePath: dirname(__DIR__))
             ],
             replace: [
                 \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class => \App\Http\Middleware\VerifyCsrfToken::class,
-                \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => \App\Http\Middleware\VerifyCsrfToken::class,
             ],
         );
 
@@ -93,6 +102,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'orders_access' => EnsureOrdersAccess::class,
             'sourcing_access' => EnsureSourcingAccess::class,
             'rfp_access' => EnsureRfpAccess::class,
+            'supplier_invoicing_access' => EnsureSupplierInvoicingAccess::class,
             'buyer_admin_only' => BuyerAdminOnly::class,
             'apply.company.locale' => ApplyCompanyLocale::class,
             'admin.guard' => AdminGuard::class,
@@ -103,6 +113,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->prependToGroup('api', AuthenticateApiSession::class);
+        $middleware->appendToGroup('api', StartSession::class);
         $middleware->appendToGroup('api', ResolveCompanyContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -139,3 +150,10 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json($payload, $exception->status);
         });
     })->create();
+
+if ($runtimeEnvironment === 'testing') {
+    // Force the testing environment to use the isolated .env.testing database config.
+    $app->loadEnvironmentFrom('.env.testing');
+}
+
+return $app;

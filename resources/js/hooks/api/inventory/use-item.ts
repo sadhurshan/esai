@@ -17,6 +17,7 @@ export function useItem(
 ): UseQueryResult<InventoryItemDetail, HttpError | Error> {
     const inventoryApi = useSdkClient(InventoryModuleApi);
     const enabled = (options.enabled ?? true) && Boolean(itemId);
+    const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
     return useQuery<Record<string, unknown>, HttpError | Error, InventoryItemDetail>({
         queryKey: queryKeys.inventory.item(itemId ? String(itemId) : 'new'),
@@ -28,6 +29,9 @@ export function useItem(
             }
             return (await inventoryApi.showItem(itemId)) as Record<string, unknown>;
         },
-        select: (response) => mapInventoryItemDetail(response),
+        select: (response) => {
+            const payload = isRecord(response.item) ? response.item : response;
+            return mapInventoryItemDetail(payload);
+        },
     });
 }

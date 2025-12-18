@@ -2,11 +2,12 @@
 
 namespace App\Policies;
 
-use App\Enums\CompanySupplierStatus;
 use App\Models\Quote;
 use App\Models\RFQ;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
+use App\Support\CompanyContext;
 use App\Support\Permissions\PermissionRegistry;
 
 class QuotePolicy
@@ -17,27 +18,38 @@ class QuotePolicy
 
     public function submit(User $user, RFQ $rfq, int $supplierId): bool
     {
-        if ($user->company_id === null) {
+        $companyId = $this->resolveActingCompanyId($user);
+
+        if ($companyId === null) {
             return false;
         }
 
-        $supplier = Supplier::query()
+        $supplier = CompanyContext::bypass(static fn () => Supplier::query()
             ->with('company')
             ->whereKey($supplierId)
-            ->where('company_id', $user->company_id)
-            ->first();
+            ->first());
 
         if ($supplier === null) {
             return false;
         }
 
-        $company = $supplier->company;
-
-        if ($company === null || $company->supplier_status !== CompanySupplierStatus::Approved) {
+        if (! $this->supplierMatchesActivePersona($supplier)) {
             return false;
         }
 
-        if (! $this->userHasCompanyPermission($user, (int) $supplier->company_id, 'rfqs.read')) {
+        if (! $this->supplierIsActive($supplier)) {
+            return false;
+        }
+
+        $permissionCompanyId = ActivePersonaContext::isSupplier()
+            ? (int) ($supplier->company_id ?? 0)
+            : $companyId;
+
+        if ($permissionCompanyId <= 0) {
+            return false;
+        }
+
+        if (! $this->userHasCompanyPermission($user, $permissionCompanyId, 'rfqs.read')) {
             return false;
         }
 
@@ -62,6 +74,11 @@ class QuotePolicy
     public function withdraw(User $user, Quote $quote): bool
     {
         return $this->revise($user, $quote);
+    }
+
+    public function manageShortlist(User $user, Quote $quote): bool
+    {
+        return $this->buyerHasPermission($user, $quote, 'rfqs.write');
     }
 
     public function view(User $user, Quote $quote): bool
@@ -114,17 +131,19 @@ class QuotePolicy
 
     private function supplierHasQuotePermission(User $user, Quote $quote, string $permission): bool
     {
-        $supplier = $quote->relationLoaded('supplier') ? $quote->supplier : $quote->supplier()->withTrashed()->first();
+        $supplier = $this->resolveQuoteSupplier($quote);
 
         if ($supplier === null || $supplier->company_id === null) {
             return false;
         }
 
-        if ((int) ($user->company_id ?? 0) !== (int) $supplier->company_id) {
+        if (! $this->supplierActorMatches($supplier, $user)) {
             return false;
         }
 
-        return $this->userHasCompanyPermission($user, (int) $supplier->company_id, $permission);
+        $companyId = (int) $supplier->company_id;
+
+        return $companyId > 0 && $this->userHasCompanyPermission($user, $companyId, $permission);
     }
 
     private function userHasCompanyPermission(User $user, int $companyId, string $permission): bool
@@ -134,5 +153,68 @@ class QuotePolicy
         }
 
         return $this->permissionRegistry->userHasAny($user, [$permission], $companyId);
+    }
+
+    private function supplierMatchesActivePersona(Supplier $supplier): bool
+    {
+        $personaSupplierId = ActivePersonaContext::supplierId();
+
+        if ($personaSupplierId === null) {
+            return true;
+        }
+
+        return $personaSupplierId === (int) $supplier->id;
+    }
+
+    private function supplierIsActive(Supplier $supplier): bool
+    {
+        if ($supplier->status === null) {
+            return true;
+        }
+
+        return ! in_array($supplier->status, ['rejected', 'suspended'], true);
+    }
+
+    private function resolveActingCompanyId(User $user): ?int
+    {
+        $personaCompanyId = ActivePersonaContext::companyId();
+
+        if ($personaCompanyId !== null) {
+            return $personaCompanyId;
+        }
+
+        if ($user->company_id !== null) {
+            return (int) $user->company_id;
+        }
+
+        return null;
+    }
+
+    private function resolveQuoteSupplier(Quote $quote): ?Supplier
+    {
+        if ($quote->relationLoaded('supplier')) {
+            $supplier = $quote->getRelation('supplier');
+
+            if ($supplier instanceof Supplier) {
+                return $supplier;
+            }
+        }
+
+        return CompanyContext::bypass(static fn () => $quote->supplier()->withTrashed()->first());
+    }
+
+    private function supplierActorMatches(Supplier $supplier, User $user): bool
+    {
+        if (ActivePersonaContext::isSupplier()) {
+            $personaSupplierId = ActivePersonaContext::supplierId();
+
+            return $personaSupplierId !== null && $personaSupplierId === (int) $supplier->id;
+        }
+
+        if ($supplier->company_id === null || $user->company_id === null) {
+            return false;
+        }
+
+        return (int) $user->company_id === (int) $supplier->company_id;
     }
 }

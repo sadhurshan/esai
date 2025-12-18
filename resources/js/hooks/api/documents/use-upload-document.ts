@@ -102,7 +102,7 @@ export function useUploadDocument(): UseMutationResult<DocumentAttachment | null
                 },
             });
 
-            const body = response.data as unknown;
+            const body = response as unknown;
             const payload = isUploadResponse(body) ? body.data : isDocumentPayload(body) ? body : undefined;
 
             return mapDocument(payload);

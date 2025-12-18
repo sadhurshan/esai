@@ -131,6 +131,7 @@ const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const plansUrl = apiBase ? `${apiBase}/api/plans` : '/api/plans';
 const billingPortalUrl = apiBase ? `${apiBase}/api/billing/portal` : '/api/billing/portal';
 const billingInvoicesUrl = apiBase ? `${apiBase}/api/billing/invoices` : '/api/billing/invoices';
+const EMPTY_FEATURE_FLAGS: Record<string, boolean> = Object.freeze({});
 
 export function BillingSettingsPage() {
     const navigate = useNavigate();
@@ -150,7 +151,7 @@ export function BillingSettingsPage() {
 
     const company = state.company;
     const currentPlanCode = state.plan ?? company?.plan ?? null;
-    const featureFlags = (state.featureFlags ?? {}) as Record<string, boolean>;
+    const featureFlags = (state.featureFlags ?? EMPTY_FEATURE_FLAGS) as Record<string, boolean>;
 
     useEffect(() => {
         let cancelled = false;

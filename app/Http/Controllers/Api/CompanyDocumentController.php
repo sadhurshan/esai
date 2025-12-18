@@ -26,11 +26,12 @@ class CompanyDocumentController extends ApiController
         }
 
         $activeCompanyId = $this->resolveUserCompanyId($user);
-        if ($activeCompanyId === null || $activeCompanyId !== $company->id) {
+        if (! $user->isPlatformSuper() && ($activeCompanyId === null || $activeCompanyId !== $company->id)) {
             return $this->fail('Forbidden.', 403);
         }
 
-        $paginator = $company->documents()
+        $paginator = CompanyDocument::query()
+            ->forCompany($company->id)
             ->with('document')
             ->latest('created_at')
             ->cursorPaginate($this->perPage($request));
@@ -50,7 +51,7 @@ class CompanyDocumentController extends ApiController
         }
 
         $activeCompanyId = $this->resolveUserCompanyId($user);
-        if ($activeCompanyId === null || $activeCompanyId !== $company->id) {
+        if (! $user->isPlatformSuper() && ($activeCompanyId === null || $activeCompanyId !== $company->id)) {
             return $this->fail('Forbidden.', 403);
         }
 
@@ -73,7 +74,7 @@ class CompanyDocumentController extends ApiController
         }
 
         $activeCompanyId = $this->resolveUserCompanyId($user);
-        if ($activeCompanyId === null || $activeCompanyId !== $company->id) {
+        if (! $user->isPlatformSuper() && ($activeCompanyId === null || $activeCompanyId !== $company->id)) {
             return $this->fail('Forbidden.', 403);
         }
 

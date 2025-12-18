@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings;
 
 use App\Http\Requests\ApiFormRequest;
+use Illuminate\Validation\Rules\File;
 
 class UpdateCompanySettingsRequest extends ApiFormRequest
 {
@@ -35,6 +36,8 @@ class UpdateCompanySettingsRequest extends ApiFormRequest
             'ship_from.country' => ['required_with:ship_from', 'string', 'size:2'],
             'logo_url' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'mark_url' => ['sometimes', 'nullable', 'string', 'max:2048'],
+            'logo' => ['sometimes', 'nullable', File::image()->max(4096)],
+            'mark' => ['sometimes', 'nullable', File::image()->max(4096)],
         ];
     }
 
@@ -57,6 +60,9 @@ class UpdateCompanySettingsRequest extends ApiFormRequest
         if ($this->exists('ship_from')) {
             $merged['ship_from'] = $this->normalizeAddress($this->input('ship_from'));
         }
+
+        $this->normalizeOptionalString('logo_url');
+        $this->normalizeOptionalString('mark_url');
 
         if ($merged !== []) {
             $this->merge($merged);
@@ -114,5 +120,28 @@ class UpdateCompanySettingsRequest extends ApiFormRequest
             'postal_code' => $value['postal_code'] ?? null,
             'country' => strtoupper((string) $value['country']),
         ];
+    }
+
+    private function normalizeOptionalString(string $key): void
+    {
+        if (! $this->exists($key)) {
+            return;
+        }
+
+        $value = $this->input($key);
+
+        if ($value === null) {
+            return;
+        }
+
+        if (! is_string($value)) {
+            return;
+        }
+
+        $trimmed = trim($value);
+
+        $this->merge([
+            $key => $trimmed === '' ? null : $trimmed,
+        ]);
     }
 }

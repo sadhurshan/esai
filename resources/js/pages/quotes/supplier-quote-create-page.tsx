@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
-import { FilePlus, FileText, Loader2 } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
+import { FileText, Loader2 } from 'lucide-react';
 
+import { QuoteAttachmentsInput } from '@/components/quotes/quote-attachments-input';
 import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import { publishToast } from '@/components/ui/use-toast';
 import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
 import { MoneyCell } from '@/components/quotes/money-cell';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useRfq } from '@/hooks/api/rfqs/use-rfq';
 import { useRfqLines } from '@/hooks/api/rfqs/use-rfq-lines';
 import { useMoneySettings } from '@/hooks/api/use-money-settings';
@@ -29,18 +31,23 @@ import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-sche
 import { supplierQuoteFormSchema } from '@/pages/quotes/supplier-quote-schema';
 import type { RfqItem, SubmitQuoteRequest, Quote } from '@/sdk';
 import { SubmitQuoteRequestStatusEnum, HttpError } from '@/sdk';
+import { getRfqDeadlineDate, isResponseWindowClosed } from '@/lib/rfq-response-window';
+import { normalizeTaxCodeIds } from '@/lib/tax-code-helpers';
 
 const MIN_MINOR_UNIT = 2;
 
 export function SupplierQuoteCreatePage() {
     const { rfqId } = useParams<{ rfqId: string }>();
     const navigate = useNavigate();
-    const { hasFeature, state, notifyPlanLimit } = useAuth();
+    const { hasFeature, state, notifyPlanLimit, activePersona } = useAuth();
     const supplierRole = state.user?.role === 'supplier';
+    const isSupplierPersona = activePersona?.type === 'supplier';
     const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const quotesEnabled = hasFeature('quotes_enabled');
-    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole;
+    const quotesEnabled = hasFeature('quotes_enabled') || isSupplierPersona;
+    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole || isSupplierPersona;
     const canAccessQuotes = !featureFlagsLoaded || (quotesEnabled && supplierPortalEnabled);
+
+    const { formatDate } = useFormatting();
 
     const rfqQuery = useRfq(rfqId, { enabled: Boolean(rfqId) && canAccessQuotes });
     const rfqLinesQuery = useRfqLines({ rfqId: rfqId ?? null });
@@ -64,6 +71,7 @@ export function SupplierQuoteCreatePage() {
 
     const watchedLines = useWatch({ control: form.control, name: 'lines' });
     const watchedCurrency = useWatch({ control: form.control, name: 'currency' });
+    const watchedMinOrderQty = useWatch({ control: form.control, name: 'minOrderQty' });
 
     const linesSignature = useMemo(() => JSON.stringify(rfqLines.map((line) => [line.id, line.quantity])), [rfqLines]);
 
@@ -85,6 +93,11 @@ export function SupplierQuoteCreatePage() {
         return calculateReviewTotals(watchedLines, rfqLineQuantities, minorUnit);
     }, [minorUnit, rfqLineQuantities, watchedLines]);
 
+    const rfq = rfqQuery.data ?? null;
+    const rfqDeadlineDate = getRfqDeadlineDate(rfq);
+    const responseWindowClosed = isResponseWindowClosed(rfq);
+    const deadlineLabel = rfqDeadlineDate ? formatDate(rfqDeadlineDate) : null;
+
     const handleSaveDraft = async (values: SupplierQuoteFormValues) => {
         if (!rfqId) {
             return;
@@ -98,7 +111,7 @@ export function SupplierQuoteCreatePage() {
                 title: 'Draft created',
                 description: 'Continue editing and submit when ready.',
             });
-            navigate(`/app/suppliers/quotes/${response.id}`);
+            navigate(`/app/supplier/quotes/${response.id}`);
         } catch (error) {
             handleQuoteError(error, notifyPlanLimit);
         }
@@ -118,7 +131,7 @@ export function SupplierQuoteCreatePage() {
                 title: 'Quote submitted',
                 description: 'We notified the buyer and logged this revision.',
             });
-            navigate(`/app/quotes/${response.id}`);
+            navigate(`/app/supplier/quotes/${response.id}`);
         } catch (error) {
             handleQuoteError(error, notifyPlanLimit);
         }
@@ -168,6 +181,17 @@ export function SupplierQuoteCreatePage() {
 
             <PlanUpgradeBanner />
 
+            {!isLoading && responseWindowClosed ? (
+                <Alert variant="warning">
+                    <AlertTitle>RFQ closed for responses</AlertTitle>
+                    <AlertDescription>
+                        {deadlineLabel
+                            ? `The submission window ended on ${deadlineLabel}. Contact the buyer to request an extension before editing.`
+                            : 'This RFQ is no longer open for supplier edits. Contact the buyer if you need the deadline extended.'}
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
             {isLoading ? (
                 <Card className="border-sidebar-border/60">
                     <CardContent className="flex items-center gap-3 p-8 text-muted-foreground">
@@ -205,6 +229,7 @@ export function SupplierQuoteCreatePage() {
                                 <div className="space-y-2">
                                     <Label htmlFor="quote-currency">Currency</Label>
                                     <Select
+                                        disabled={responseWindowClosed}
                                         value={watchedCurrency}
                                         onValueChange={(value) => form.setValue('currency', value, { shouldDirty: true })}
                                     >
@@ -228,10 +253,50 @@ export function SupplierQuoteCreatePage() {
                                         min={0}
                                         step="1"
                                         placeholder="Optional"
+                                        disabled={responseWindowClosed}
                                         {...form.register('leadTimeDays')}
                                     />
                                     {form.formState.errors.leadTimeDays ? (
                                         <p className="text-xs text-destructive">{form.formState.errors.leadTimeDays.message}</p>
+                                    ) : null}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="quote-incoterm">Incoterm (optional)</Label>
+                                    <Input
+                                        id="quote-incoterm"
+                                        placeholder="FOB Shenzhen"
+                                        disabled={responseWindowClosed}
+                                        {...form.register('incoterm')}
+                                    />
+                                    {form.formState.errors.incoterm ? (
+                                        <p className="text-xs text-destructive">{form.formState.errors.incoterm.message}</p>
+                                    ) : null}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="quote-payment-terms">Payment terms (optional)</Label>
+                                    <Input
+                                        id="quote-payment-terms"
+                                        placeholder="Net 30"
+                                        disabled={responseWindowClosed}
+                                        {...form.register('paymentTerms')}
+                                    />
+                                    {form.formState.errors.paymentTerms ? (
+                                        <p className="text-xs text-destructive">{form.formState.errors.paymentTerms.message}</p>
+                                    ) : null}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="quote-moq">Minimum order quantity</Label>
+                                    <Input
+                                        id="quote-moq"
+                                        type="number"
+                                        min={1}
+                                        step="1"
+                                        placeholder="Optional"
+                                        disabled={responseWindowClosed}
+                                        {...form.register('minOrderQty')}
+                                    />
+                                    {form.formState.errors.minOrderQty ? (
+                                        <p className="text-xs text-destructive">{form.formState.errors.minOrderQty.message}</p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
@@ -240,6 +305,7 @@ export function SupplierQuoteCreatePage() {
                                         id="quote-note"
                                         rows={3}
                                         placeholder="Share payment terms, included tooling, or other assumptions."
+                                        disabled={responseWindowClosed}
                                         {...form.register('note')}
                                     />
                                     {form.formState.errors.note ? (
@@ -254,7 +320,13 @@ export function SupplierQuoteCreatePage() {
                                 <CardTitle>3. Line pricing</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <QuoteLineEditor form={form} rfqLines={rfqLines} currency={watchedCurrency ?? defaultCurrency} />
+                                <QuoteLineEditor
+                                    form={form}
+                                    rfqLines={rfqLines}
+                                    currency={watchedCurrency ?? defaultCurrency}
+                                    disabled={responseWindowClosed}
+                                    enableTaxCodes={!isSupplierPersona}
+                                />
                             </CardContent>
                         </Card>
 
@@ -263,13 +335,12 @@ export function SupplierQuoteCreatePage() {
                                 <CardTitle>4. Attachments</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <Alert>
-                                    <AlertTitle>Attachment uploads ship with documents service</AlertTitle>
-                                    <AlertDescription>
-                                        Paste shareable doc IDs or URLs for now. TODO: replace with S3-backed uploads once /deep-specs/documents.md endpoints are exposed.
-                                    </AlertDescription>
-                                </Alert>
-                                <AttachmentsInput form={form} />
+                                <QuoteAttachmentsInput
+                                    form={form}
+                                    entity="rfq"
+                                    entityId={rfqId}
+                                    disabled={responseWindowClosed}
+                                />
                             </CardContent>
                         </Card>
                     </div>
@@ -279,8 +350,10 @@ export function SupplierQuoteCreatePage() {
                             rfqNumber={rfqQuery.data?.number ?? rfqId}
                             totalMinor={quoteTotals.totalMinor}
                             currency={watchedCurrency ?? defaultCurrency}
+                            minOrderQty={watchedMinOrderQty}
                             lineCount={quoteTotals.completedLines}
                             totalLines={watchedLines?.length ?? 0}
+                            showNumberPreview={!isSupplierPersona}
                         />
 
                         <Card className="border-sidebar-border/60">
@@ -288,11 +361,11 @@ export function SupplierQuoteCreatePage() {
                                 <CardTitle>Submit</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <Button
+                                    <Button
                                     type="button"
                                     variant="outline"
                                     className="w-full"
-                                    disabled={createQuote.isPending}
+                                        disabled={createQuote.isPending || responseWindowClosed}
                                     onClick={form.handleSubmit(handleSaveDraft)}
                                 >
                                     Save draft
@@ -300,13 +373,15 @@ export function SupplierQuoteCreatePage() {
                                 <Button
                                     type="button"
                                     className="w-full"
-                                    disabled={createQuote.isPending || submitQuote.isPending}
+                                        disabled={createQuote.isPending || submitQuote.isPending || responseWindowClosed}
                                     onClick={form.handleSubmit(handleSubmitQuote)}
                                 >
                                     {createQuote.isPending || submitQuote.isPending ? 'Submitting…' : 'Submit quote'}
                                 </Button>
                                 <p className="text-xs text-muted-foreground">
-                                    We will email the buyer and show this submission in the RFQ timeline.
+                                        {responseWindowClosed
+                                            ? 'This RFQ is locked. Ask the buyer to extend the deadline before making changes.'
+                                            : 'We will email the buyer and show this submission in the RFQ timeline.'}
                                 </p>
                             </CardContent>
                         </Card>
@@ -320,7 +395,10 @@ export function SupplierQuoteCreatePage() {
 function createDefaultValues(lines: RfqItem[], currency: string): SupplierQuoteFormValues {
     return {
         currency,
+        minOrderQty: '',
         note: '',
+        incoterm: '',
+        paymentTerms: '',
         leadTimeDays: '',
         revisionNote: '',
         attachments: [],
@@ -330,6 +408,7 @@ function createDefaultValues(lines: RfqItem[], currency: string): SupplierQuoteF
             unitPrice: '',
             leadTimeDays: '',
             note: '',
+            taxCodeIds: [],
         })),
     };
 }
@@ -397,19 +476,30 @@ function toMinorUnits(amount: number, minorUnit: number): number {
 }
 
 function buildSubmitQuotePayload(values: SupplierQuoteFormValues, rfqId: string | number, minorUnit: number): SubmitQuoteRequest {
+    const attachmentIds = (values.attachments ?? [])
+        .map((attachment) => String(attachment.id))
+        .filter((value) => value.length > 0);
+
     return {
         rfqId: String(rfqId),
         currency: values.currency,
+        minOrderQty: values.minOrderQty && values.minOrderQty.length ? Number(values.minOrderQty) : undefined,
         leadTimeDays: values.leadTimeDays && values.leadTimeDays.length ? Number(values.leadTimeDays) : undefined,
         note: values.note && values.note.length ? values.note : undefined,
-        attachments: values.attachments ?? [],
-        items: values.lines.map((line) => ({
-            rfqItemId: line.rfqItemId,
-            currency: values.currency,
-            leadTimeDays: Number(line.leadTimeDays),
-            unitPriceMinor: toMinorUnits(Number(line.unitPrice), minorUnit),
-            note: line.note && line.note.length ? line.note : undefined,
-        })),
+        incoterm: values.incoterm && values.incoterm.length ? values.incoterm : undefined,
+        paymentTerms: values.paymentTerms && values.paymentTerms.length ? values.paymentTerms : undefined,
+        attachments: attachmentIds.length ? attachmentIds : undefined,
+        items: values.lines.map((line) => {
+            const taxCodeIds = normalizeTaxCodeIds(line.taxCodeIds);
+            return {
+                rfqItemId: line.rfqItemId,
+                currency: values.currency,
+                leadTimeDays: Number(line.leadTimeDays),
+                unitPriceMinor: toMinorUnits(Number(line.unitPrice), minorUnit),
+                note: line.note && line.note.length ? line.note : undefined,
+                taxCodeIds: taxCodeIds.length ? taxCodeIds : undefined,
+            };
+        }),
     };
 }
 
@@ -442,14 +532,18 @@ function ReviewPanel({
     rfqNumber,
     totalMinor,
     currency,
+    minOrderQty,
     lineCount,
     totalLines,
+    showNumberPreview = true,
 }: {
     rfqNumber: string | number;
     totalMinor: number;
     currency: string;
+    minOrderQty?: string | number | null;
     lineCount: number;
     totalLines: number;
+    showNumberPreview?: boolean;
 }) {
     return (
         <Card className="border-sidebar-border/60">
@@ -466,6 +560,10 @@ function ReviewPanel({
                     <MoneyCell amountMinor={totalMinor} currency={currency} />
                 </div>
                 <div>
+                    <p className="text-xs uppercase text-muted-foreground">Minimum order qty</p>
+                    <p className="text-sm font-medium">{minOrderQty && String(minOrderQty).length ? minOrderQty : '—'}</p>
+                </div>
+                <div>
                     <p className="text-xs uppercase text-muted-foreground">Line progress</p>
                     <p className="text-sm">
                         {lineCount}/{totalLines} complete
@@ -478,7 +576,13 @@ function ReviewPanel({
                         Draft in progress
                     </div>
                 </div>
-                <DocumentNumberPreview docType="quote" className="w-full" />
+                {showNumberPreview ? (
+                    <DocumentNumberPreview docType="quote" className="w-full" />
+                ) : (
+                    <div className="rounded-lg border border-dashed border-sidebar-border/60 bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
+                        Quote numbers are assigned by the buyer after they review your submission.
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
@@ -489,55 +593,6 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
         <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="text-sm font-medium text-foreground">{children}</p>
-        </div>
-    );
-}
-
-function AttachmentsInput({ form }: { form: UseFormReturn<SupplierQuoteFormValues> }) {
-    const attachments = useWatch({ control: form.control, name: 'attachments' }) ?? [];
-    const [draftValue, setDraftValue] = useState('');
-
-    const handleAdd = () => {
-        const trimmed = draftValue.trim();
-        if (!trimmed) {
-            return;
-        }
-        form.setValue('attachments', [...attachments, trimmed], { shouldDirty: true, shouldTouch: true });
-        setDraftValue('');
-    };
-
-    const handleRemove = (index: number) => {
-        const next = attachments.filter((_, idx) => idx !== index);
-        form.setValue('attachments', next, { shouldDirty: true, shouldTouch: true });
-    };
-
-    return (
-        <div className="space-y-3">
-            <div className="flex gap-2">
-                <Input
-                    placeholder="Paste document ID or URL"
-                    value={draftValue}
-                    onChange={(event) => setDraftValue(event.target.value)}
-                />
-                <Button type="button" variant="secondary" onClick={handleAdd}>
-                    <FilePlus className="h-4 w-4" />
-                    Add
-                </Button>
-            </div>
-            {attachments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No references added yet.</p>
-            ) : (
-                <ul className="space-y-2">
-                    {attachments.map((item, index) => (
-                        <li key={`${item}-${index}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                            <span className="truncate">{item}</span>
-                            <Button variant="ghost" size="sm" onClick={() => handleRemove(index)}>
-                                Remove
-                            </Button>
-                        </li>
-                    ))}
-                </ul>
-            )}
         </div>
     );
 }

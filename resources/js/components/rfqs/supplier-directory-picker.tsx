@@ -30,9 +30,17 @@ export interface SupplierDirectoryPickerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSelect: (supplier: Supplier) => void;
+    allowAllSuppliersOption?: boolean;
+    onSelectAllSuppliers?: () => void;
 }
 
-export function SupplierDirectoryPicker({ open, onOpenChange, onSelect }: SupplierDirectoryPickerProps) {
+export function SupplierDirectoryPicker({
+    open,
+    onOpenChange,
+    onSelect,
+    allowAllSuppliersOption = false,
+    onSelectAllSuppliers,
+}: SupplierDirectoryPickerProps) {
     const [search, setSearch] = useState('');
     const debouncedSearch = useDebouncedValue(search);
 
@@ -54,6 +62,11 @@ export function SupplierDirectoryPicker({ open, onOpenChange, onSelect }: Suppli
 
     const handleSelect = (supplier: Supplier) => {
         onSelect(supplier);
+        onOpenChange(false);
+    };
+
+    const handleSelectAll = () => {
+        onSelectAllSuppliers?.();
         onOpenChange(false);
     };
 
@@ -87,6 +100,21 @@ export function SupplierDirectoryPicker({ open, onOpenChange, onSelect }: Suppli
                     ) : null}
 
                     <ul className="grid gap-2">
+                        {allowAllSuppliersOption ? (
+                            <li className="rounded-md border border-dashed p-3" key="all-suppliers">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="font-semibold text-foreground">All suppliers</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Include every supplier in your approved directory.
+                                        </p>
+                                    </div>
+                                    <Button type="button" size="sm" variant="secondary" onClick={handleSelectAll}>
+                                        Select
+                                    </Button>
+                                </div>
+                            </li>
+                        ) : null}
                         {suppliers.map((supplier) => (
                             <li key={supplier.id} className="rounded-md border p-3">
                                 <div className="flex items-start justify-between gap-3">

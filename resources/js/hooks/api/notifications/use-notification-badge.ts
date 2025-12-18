@@ -7,6 +7,10 @@ interface NotificationBadgeResponse {
     meta?: {
         unread_count?: number;
         unreadCount?: number;
+        envelope?: {
+            unread_count?: number;
+            unreadCount?: number;
+        } | null;
     } | null;
 }
 
@@ -26,9 +30,19 @@ export function useNotificationBadge(): UseQueryResult<NotificationBadgeResult, 
             const query = buildQuery(DEFAULT_PARAMS);
             return (await api.get<NotificationBadgeResponse>(`/notifications${query}`)) as unknown as NotificationBadgeResponse;
         },
-        select: (response) => ({
-            unreadCount: response.meta?.unread_count ?? response.meta?.unreadCount ?? 0,
-        }),
+        select: (response) => {
+            const meta = response.meta ?? undefined;
+            const envelope = meta && meta.envelope && typeof meta.envelope === 'object' ? meta.envelope : undefined;
+
+            const unreadCount =
+                meta?.unread_count ??
+                meta?.unreadCount ??
+                (envelope && typeof envelope.unread_count === 'number' ? envelope.unread_count : undefined) ??
+                (envelope && typeof envelope.unreadCount === 'number' ? envelope.unreadCount : undefined) ??
+                0;
+
+            return { unreadCount };
+        },
         staleTime: 10_000,
     });
 }

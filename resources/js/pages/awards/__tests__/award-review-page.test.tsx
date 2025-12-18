@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HelmetProvider } from 'react-helmet-async';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Location } from 'react-router-dom';
 
 import { AwardReviewPage } from '../award-review-page';
 import type {
@@ -12,6 +13,13 @@ import type {
 import type { UseRfqAwardCandidatesResult } from '@/hooks/api/awards/use-rfq-award-candidates';
 
 const mockNavigate = vi.fn();
+const mockLocation: Location & { state?: unknown } = {
+    pathname: '/app/rfqs/77/awards',
+    search: '',
+    hash: '',
+    key: 'default',
+    state: undefined,
+};
 
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -19,6 +27,7 @@ vi.mock('react-router-dom', async () => {
         ...actual,
         useNavigate: () => mockNavigate,
         useParams: () => ({ rfqId: '77' }),
+        useLocation: () => mockLocation,
     };
 });
 
@@ -153,6 +162,7 @@ describe('AwardReviewPage', () => {
         createAwardsMutation.mutateAsync = vi.fn();
         createPoMutation.mutateAsync = vi.fn();
         deleteAwardMutation.mutateAsync = vi.fn();
+        mockLocation.state = undefined;
     });
 
     afterEach(() => {
@@ -225,5 +235,16 @@ describe('AwardReviewPage', () => {
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('/app/purchase-orders/900');
+    });
+
+    it('prefills line selections when quoteIds context is provided', async () => {
+        mockLocation.state = { quoteIds: ['100'], source: 'compare' };
+        mockAwardCandidatesResult();
+
+        renderPage();
+
+        await waitFor(() => {
+            expect(screen.getByRole('radio', { name: /Alpha Manufacturing/i })).toBeChecked();
+        });
     });
 });

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
+use App\Support\ActivePersonaContext;
+use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
 use Illuminate\Http\Request;
@@ -23,22 +25,26 @@ class EnsureMoneyAccess
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Authentication required.',
-                'data' => null,
-            ], Response::HTTP_UNAUTHORIZED);
+            return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
         $user->loadMissing('company.plan');
         $company = $user->company;
 
         if (! $company instanceof Company) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Company context required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+            return ApiResponse::error('Company context required.', Response::HTTP_FORBIDDEN);
+        }
+
+        $normalizedScope = strtolower($scope);
+        $companyId = (int) $company->id;
+        $isReadRequest = in_array(strtoupper($request->method()), ['GET', 'HEAD', 'OPTIONS'], true);
+
+        if (ActivePersonaContext::isSupplier()) {
+            if ($normalizedScope !== 'billing' && $isReadRequest) {
+                return $next($request);
+            }
+
+            return ApiResponse::error('Supplier access does not include money permissions.', Response::HTTP_FORBIDDEN);
         }
 
         $plan = $company->plan;
@@ -46,10 +52,6 @@ class EnsureMoneyAccess
         if ($plan === null || ! $plan->multi_currency_enabled || ! $plan->tax_engine_enabled) {
             return $this->upgradeRequiredResponse();
         }
-
-        $normalizedScope = strtolower($scope);
-        $companyId = (int) $company->id;
-        $isReadRequest = in_array(strtoupper($request->method()), ['GET', 'HEAD', 'OPTIONS'], true);
 
         $allowed = match ($normalizedScope) {
             'billing' => $this->permissionRegistry->userHasAny(
@@ -64,13 +66,12 @@ class EnsureMoneyAccess
         };
 
         if (! $allowed) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $normalizedScope === 'billing'
+            return ApiResponse::error(
+                $normalizedScope === 'billing'
                     ? 'Billing permissions required.'
                     : 'Tenant settings permission required.',
-                'data' => null,
-            ], Response::HTTP_FORBIDDEN);
+                Response::HTTP_FORBIDDEN
+            );
         }
 
         return $next($request);

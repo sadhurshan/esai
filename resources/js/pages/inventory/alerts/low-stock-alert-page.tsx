@@ -40,6 +40,8 @@ const defaultFilters: FilterState = {
     category: '',
 };
 
+const ANY_OPTION_VALUE = '__any__';
+
 export function LowStockAlertPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
@@ -59,7 +61,7 @@ export function LowStockAlertPage() {
     });
 
     const siteOptionsQuery = useLocations({ perPage: 100, type: 'site' });
-    const locationOptionsQuery = useLocations({ perPage: 200, type: 'bin' });
+    const locationOptionsQuery = useLocations({ perPage: 100, type: 'bin' });
 
     const siteOptions = siteOptionsQuery.data?.items ?? [];
     const locationOptions = locationOptionsQuery.data?.items ?? [];
@@ -243,12 +245,17 @@ export function LowStockAlertPage() {
                 <CardContent className="grid gap-4 py-6 md:grid-cols-4">
                     <div className="space-y-2">
                         <Label>Site</Label>
-                        <Select value={filters.siteId} onValueChange={(value) => handleFilterChange('siteId', value)}>
+                        <Select
+                            value={filters.siteId || ANY_OPTION_VALUE}
+                            onValueChange={(value) =>
+                                handleFilterChange('siteId', value === ANY_OPTION_VALUE ? '' : value)
+                            }
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Any site" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Any site</SelectItem>
+                                <SelectItem value={ANY_OPTION_VALUE}>Any site</SelectItem>
                                 {siteOptions.map((site) => (
                                     <SelectItem key={site.id} value={site.id}>
                                         {site.name}
@@ -259,12 +266,17 @@ export function LowStockAlertPage() {
                     </div>
                     <div className="space-y-2">
                         <Label>Location</Label>
-                        <Select value={filters.locationId} onValueChange={(value) => handleFilterChange('locationId', value)}>
+                        <Select
+                            value={filters.locationId || ANY_OPTION_VALUE}
+                            onValueChange={(value) =>
+                                handleFilterChange('locationId', value === ANY_OPTION_VALUE ? '' : value)
+                            }
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Any location" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Any location</SelectItem>
+                                <SelectItem value={ANY_OPTION_VALUE}>Any location</SelectItem>
                                 {locationOptions.map((location) => (
                                     <SelectItem key={location.id} value={location.id}>
                                         {location.name}

@@ -7,6 +7,7 @@ import { PurchaseOrdersApi } from '@/sdk';
 
 export interface CancelPoInput {
     poId: number;
+    rfqId?: number | null;
 }
 
 export function useCancelPo(): UseMutationResult<void, Error, CancelPoInput> {
@@ -23,7 +24,7 @@ export function useCancelPo(): UseMutationResult<void, Error, CancelPoInput> {
                 purchaseOrderId: poId,
             });
         },
-        onSuccess: (_, { poId }) => {
+        onSuccess: (_, { poId, rfqId }) => {
             publishToast({
                 variant: 'success',
                 title: 'Purchase order cancelled',
@@ -32,6 +33,23 @@ export function useCancelPo(): UseMutationResult<void, Error, CancelPoInput> {
 
             void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });
             void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.root() });
+
+            if (rfqId && Number.isFinite(rfqId) && rfqId > 0) {
+                const normalizedRfqId = Number(rfqId);
+                const relatedKeys = [
+                    queryKeys.awards.candidates(normalizedRfqId),
+                    queryKeys.awards.summary(normalizedRfqId),
+                    queryKeys.rfqs.detail(normalizedRfqId),
+                    queryKeys.rfqs.lines(normalizedRfqId),
+                    queryKeys.rfqs.quotes(normalizedRfqId),
+                    queryKeys.quotes.rfq(normalizedRfqId),
+                    queryKeys.quotes.root(),
+                ];
+
+                relatedKeys.forEach((key) => {
+                    void queryClient.invalidateQueries({ queryKey: key });
+                });
+            }
         },
         onError: (error) => {
             publishToast({

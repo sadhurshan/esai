@@ -1,4 +1,21 @@
-"""FastAPI application that exposes forecasting and supplier risk endpoints."""
+"""FastAPI microservice for forecasting and supplier risk workflows.
+
+Run locally with ``uvicorn ai_microservice.app:app --reload``. The service exposes two
+endpoints:
+
+* ``POST /forecast`` — accepts a ``ForecastRequest`` payload containing ``part_id``,
+    historical {date, quantity} records, and a forecast ``horizon``. Returns
+    ``demand_qty``, ``avg_daily_demand``, ``reorder_point``, ``safety_stock``, and
+    ``order_by_date`` fields from :class:`AISupplyService`.
+* ``POST /supplier-risk`` — accepts a ``SupplierRiskRequest`` with a supplier feature
+    dictionary and returns a risk category plus explanatory metadata.
+
+Deployment requires the underlying :class:`AISupplyService` to resolve its database
+connection and feature toggles via environment variables such as
+``AI_SERVICE_DATABASE_URL`` (or ``DATABASE_URL``), ``AI_SERVICE_INVENTORY_TABLE``,
+``AI_SERVICE_DEFAULT_LEAD_TIME_DAYS``, ``AI_SERVICE_RESPONSE_SLA_HOURS``, and
+``AI_SERVICE_RISK_THRESHOLDS``.
+"""
 from __future__ import annotations
 
 import logging
@@ -7,7 +24,7 @@ from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from ai_service import AISupplyService
 
@@ -31,7 +48,8 @@ class ForecastRequest(BaseModel):
     history: list[Dict[str, Any]] = Field(..., description="List of {date, quantity} records")
     horizon: int = Field(..., gt=0, le=90)
 
-    @validator("history")
+    @field_validator("history")
+    @classmethod
     def validate_history(cls, value: list[Dict[str, Any]]) -> list[Dict[str, Any]]:  # noqa: D417
         if not value:
             raise ValueError("history must contain at least one record")
@@ -44,7 +62,8 @@ class ForecastRequest(BaseModel):
 class SupplierRiskRequest(BaseModel):
     supplier: Dict[str, Any]
 
-    @validator("supplier")
+    @field_validator("supplier")
+    @classmethod
     def validate_supplier(cls, value: Dict[str, Any]) -> Dict[str, Any]:  # noqa: D417
         if not value:
             raise ValueError("supplier object cannot be empty")

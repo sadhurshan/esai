@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController as AdminApiKeyController;
+use App\Http\Controllers\Admin\AiEventController as AdminAiEventController;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyFeatureFlagController as AdminCompanyFeatureFlagController;
 use App\Http\Controllers\Admin\DigitalTwinCategoryController as AdminDigitalTwinCategoryController;
@@ -75,6 +76,7 @@ use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseOrderShipmentController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierQuoteController;
+use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
 use App\Http\Controllers\Api\SupplierDashboardController;
 use App\Http\Controllers\Api\SupplierApplicationController;
@@ -184,6 +186,7 @@ Route::middleware(['auth', 'admin.guard', \App\Http\Middleware\BypassCompanyCont
     Route::get('roles', [AdminRoleTemplateController::class, 'index']);
     Route::patch('roles/{roleTemplate}', [AdminRoleTemplateController::class, 'update']);
     Route::get('audit', [AdminAuditLogController::class, 'index']);
+    Route::get('ai-events', [AdminAiEventController::class, 'index']);
     Route::get('company-approvals', [CompanyApprovalController::class, 'index']);
     Route::post('company-approvals/{company}/approve', [CompanyApprovalController::class, 'approve']);
     Route::post('company-approvals/{company}/reject', [CompanyApprovalController::class, 'reject']);
@@ -223,6 +226,21 @@ Route::middleware(['auth'])->prefix('supplier-applications')->group(function ():
     Route::get('{application}', [SupplierApplicationController::class, 'show']);
     Route::delete('{application}', [SupplierApplicationController::class, 'destroy']);
 });
+
+Route::prefix('ai')
+    ->middleware([
+        'auth',
+        'ensure.company.onboarded:strict',
+        'ensure.company.approved',
+        'ensure.subscribed',
+    ])
+    ->group(function (): void {
+        Route::post('forecast', [AiController::class, 'forecast'])
+            ->middleware(['ensure.inventory.access']);
+
+        Route::post('supplier-risk', [AiController::class, 'supplierRisk'])
+            ->middleware(['ensure.risk.access']);
+    });
 
 Route::middleware(['auth', 'ensure.subscribed', 'ensure.digital_twin.access', 'buyer_access'])
     ->prefix('library')

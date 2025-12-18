@@ -34,6 +34,7 @@ import {
     Users,
     FolderTree,
     DownloadCloud,
+    Sparkles,
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
@@ -90,6 +91,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Webhooks', to: '/app/admin/webhooks', icon: RadioTower, requiresAdminConsole: true },
     { label: 'Rate Limits', to: '/app/admin/rate-limits', icon: Activity, requiresAdminConsole: true },
     { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
+    { label: 'AI Activity', to: '/app/admin/ai-events', icon: Sparkles, requiresAdminConsole: true },
 ];
 
 const SUPPLIER_NAV_ITEMS: NavItem[] = [

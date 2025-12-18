@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, BadgeInfo, Building2, Database, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Users } from 'lucide-react';
+import { Activity, BadgeInfo, Building2, Database, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -64,6 +64,12 @@ const quickLinks = [
         description: 'Review privileged actions and export compliance trails.',
         href: '/app/admin/audit',
         icon: ScrollText,
+    },
+    {
+        title: 'AI activity log',
+        description: 'Debug AI usage, latency, and errors across every tenant.',
+        href: '/app/admin/ai-events',
+        icon: Sparkles,
     },
 ];
 

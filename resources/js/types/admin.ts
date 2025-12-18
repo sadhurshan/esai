@@ -95,6 +95,35 @@ export interface AuditLogResponse {
     meta?: CursorPaginationMeta;
 }
 
+export type AiEventActor = AuditLogActor;
+export type AiEventEntityRef = AuditLogResourceRef;
+
+export interface AiEventEntry {
+    id: string;
+    timestamp?: string | null;
+    feature?: string | null;
+    status?: string | null;
+    latency_ms?: number | null;
+    error_message?: string | null;
+    user?: AiEventActor | null;
+    entity?: AiEventEntityRef | null;
+}
+
+export interface AiEventFilters extends Record<string, unknown> {
+    feature?: string;
+    status?: string;
+    entity?: string;
+    from?: string;
+    to?: string;
+    cursor?: string | null;
+    perPage?: number;
+}
+
+export interface AiEventResponse {
+    items: AiEventEntry[];
+    meta?: CursorPaginationMeta;
+}
+
 export interface SupplierApplicationAuditLogResponse {
     items: AuditLogEntry[];
 }

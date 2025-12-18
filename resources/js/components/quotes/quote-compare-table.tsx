@@ -2,6 +2,7 @@ import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpDown, Award, Loader2, Star } from 'lucide-react';
 
+import { LazySupplierRiskBadge } from '@/components/ai/LazySupplierRiskBadge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { QuoteStatusBadge } from './quote-status-badge';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useQuoteComparison } from '@/hooks/api/quotes/use-quote-comparison';
 import { useQuoteShortlistMutation } from '@/hooks/api/quotes/use-shortlist-mutation';
+import { useSupplierRiskAccess } from '@/hooks/use-supplier-risk-access';
 import { cn } from '@/lib/utils';
 import type { Quote, QuoteItem, RfqItem } from '@/sdk';
 import type { QuoteComparisonRow } from '@/types/quotes';
@@ -76,6 +78,7 @@ export function QuoteCompareTable({
     const [statusFilter, setStatusFilter] = useState<Set<Quote['status']>>(() => new Set());
     const [shortlistTargetId, setShortlistTargetId] = useState<string | null>(null);
     const shortlistMutation = useQuoteShortlistMutation();
+    const { canViewSupplierRisk, isSupplierRiskLocked } = useSupplierRiskAccess();
 
     const selection = useMemo(() => {
         if (selectedQuoteIds) {
@@ -468,6 +471,18 @@ export function QuoteCompareTable({
                                                             risk={row.scores.risk}
                                                             fit={row.scores.fit}
                                                         />
+                                                        {canViewSupplierRisk ? (
+                                                            <LazySupplierRiskBadge
+                                                                supplierId={quote.supplierId ?? quote.supplier?.id ?? undefined}
+                                                                supplier={buildQuoteSupplierRiskPayload(quote)}
+                                                                entityType="quote"
+                                                                entityId={quote.id}
+                                                                disabled={isSupplierRiskLocked}
+                                                                label="AI risk"
+                                                                autoLoad={!isSupplierRiskLocked}
+                                                                prefetchOnHover={false}
+                                                            />
+                                                        ) : null}
                                                         <div className="text-xs text-muted-foreground">
                                                             Incoterm:{' '}
                                                             <span className="font-medium">{quote.incoterm ?? '—'}</span>
@@ -899,4 +914,24 @@ function formatQuoteStatusLabel(status: Quote['status']): string {
               .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
               .join(' ')
         : 'Status';
+}
+
+function buildQuoteSupplierRiskPayload(quote: Quote) {
+    const supplierDetails = quote.supplier ?? null;
+
+    return {
+        quote_id: quote.id,
+        rfq_id: quote.rfqId ?? null,
+        supplier_id: supplierDetails?.id ?? quote.supplierId ?? null,
+        supplier_name: supplierDetails?.name ?? null,
+        supplier_company_id: (supplierDetails as { companyId?: number | null })?.companyId ?? null,
+        supplier_company_name: (supplierDetails as { companyName?: string | null })?.companyName ?? null,
+        currency: quote.currency,
+        total_minor: quote.totalMinor ?? null,
+        lead_time_days: quote.leadTimeDays ?? null,
+        incoterm: quote.incoterm ?? null,
+        payment_terms: quote.paymentTerms ?? null,
+        submitted_at: quote.submittedAt ?? null,
+        revision_no: quote.revisionNo ?? null,
+    } satisfies Record<string, unknown>;
 }

@@ -60,6 +60,7 @@ import {
 } from '@/pages/settings';
 import {
     AdminApiKeysPage,
+    AdminAiActivityLogPage,
     AdminAuditLogPage,
     AdminCompanyApprovalsPage,
     AdminDigitalTwinCategoriesPage,
@@ -197,6 +198,7 @@ export function AppRoutes(): ReactElement {
                             <Route path="admin/webhooks" element={<AdminWebhooksPage />} />
                             <Route path="admin/rate-limits" element={<AdminRateLimitsPage />} />
                             <Route path="admin/audit" element={<AdminAuditLogPage />} />
+                            <Route path="admin/ai-events" element={<AdminAiActivityLogPage />} />
                             <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />
                             <Route path="admin/supplier-applications" element={<AdminSupplierApplicationsPage />} />
                             <Route path="admin/digital-twins" element={<AdminDigitalTwinListPage />} />

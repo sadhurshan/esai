@@ -160,6 +160,7 @@ export const queryKeys = {
             ['admin', 'webhooks', subscriptionId, 'deliveries', params ?? {}] as const,
         rateLimits: () => ['admin', 'rate-limits'] as const,
         auditLog: (filters?: Record<string, unknown>) => ['admin', 'audit-log', filters ?? {}] as const,
+        aiEvents: (filters?: Record<string, unknown>) => ['admin', 'ai-events', filters ?? {}] as const,
     },
     me: {
         supplierStatus: () => ['me', 'supplier', 'status'] as const,
@@ -272,6 +273,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['admin']['webhookDeliveries']
     | (typeof queryKeys)['admin']['rateLimits']
     | (typeof queryKeys)['admin']['auditLog']
+    | (typeof queryKeys)['admin']['aiEvents']
     | (typeof queryKeys)['me']['supplierStatus']
     | (typeof queryKeys)['me']['profile']
     | (typeof queryKeys)['me']['companies']

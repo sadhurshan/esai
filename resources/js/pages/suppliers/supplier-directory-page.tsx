@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { Aperture, BadgeCheck, Building2, ChevronRight, Factory, Layers, MapPin, Star } from 'lucide-react';
 
+import { LazySupplierRiskBadge } from '@/components/ai/LazySupplierRiskBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/empty-state';
 import { useSuppliers } from '@/hooks/api/useSuppliers';
+import { useSupplierRiskAccess } from '@/hooks/use-supplier-risk-access';
 import type { Supplier } from '@/types/sourcing';
 import { cn } from '@/lib/utils';
 
@@ -103,6 +105,7 @@ export function SupplierDirectoryPage() {
     }, [filters, page, searchTerm]);
 
     const supplierQuery = useSuppliers(queryParams);
+    const { canViewSupplierRisk, isSupplierRiskLocked } = useSupplierRiskAccess();
     const suppliers = supplierQuery.data?.items ?? [];
     const meta = supplierQuery.data?.meta;
 
@@ -249,7 +252,13 @@ export function SupplierDirectoryPage() {
                 {showSkeleton
                     ? Array.from({ length: 6 }).map((_, index) => <SupplierCardSkeleton key={`supplier-skeleton-${index}`} />)
                     : suppliers.map((supplier) => (
-                          <SupplierCard key={supplier.id} supplier={supplier} onViewProfile={() => navigate(`/app/suppliers/${supplier.id}`)} />
+                          <SupplierCard
+                              key={supplier.id}
+                              supplier={supplier}
+                              onViewProfile={() => navigate(`/app/suppliers/${supplier.id}`)}
+                              showRiskBadge={canViewSupplierRisk}
+                              riskBadgeLocked={isSupplierRiskLocked}
+                          />
                       ))}
 
                 {showEmptyState ? (
@@ -286,9 +295,11 @@ export function SupplierDirectoryPage() {
 interface SupplierCardProps {
     supplier: Supplier;
     onViewProfile: () => void;
+    showRiskBadge: boolean;
+    riskBadgeLocked: boolean;
 }
 
-function SupplierCard({ supplier, onViewProfile }: SupplierCardProps) {
+function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked }: SupplierCardProps) {
     const branding = supplier.branding ?? { logoUrl: null, markUrl: null };
     const location = [supplier.address.city, supplier.address.country].filter(Boolean).join(', ');
     const topMethods = supplier.capabilities.methods?.slice(0, 3) ?? [];
@@ -326,6 +337,15 @@ function SupplierCard({ supplier, onViewProfile }: SupplierCardProps) {
                                 <span className="inline-flex items-center gap-1">
                                     <ClockIcon /> {supplier.leadTimeDays} day lead time
                                 </span>
+                            ) : null}
+                            {showRiskBadge ? (
+                                <LazySupplierRiskBadge
+                                    supplierId={supplier.id}
+                                    supplier={buildDirectorySupplierRiskPayload(supplier)}
+                                    entityType="supplier_directory"
+                                    entityId={supplier.id}
+                                    disabled={riskBadgeLocked}
+                                />
                             ) : null}
                         </div>
                         {topMethods.length > 0 ? (
@@ -381,6 +401,23 @@ function SupplierCard({ supplier, onViewProfile }: SupplierCardProps) {
             </div>
         </div>
     );
+}
+
+function buildDirectorySupplierRiskPayload(supplier: Supplier) {
+    return {
+        supplier_id: supplier.id,
+        supplier_name: supplier.name,
+        company_id: supplier.companyId,
+        company_name: supplier.company?.name ?? null,
+        rating_avg: supplier.ratingAvg,
+        risk_grade: supplier.riskGrade ?? null,
+        lead_time_days: supplier.leadTimeDays ?? null,
+        capabilities: supplier.capabilities,
+        certificates: supplier.certificates,
+        verified_at: supplier.verifiedAt ?? null,
+        address: supplier.address,
+        geo: supplier.geo,
+    } satisfies Record<string, unknown>;
 }
 
 function SupplierCardSkeleton() {

@@ -38,10 +38,19 @@ abstract class TestCase extends BaseTestCase
 
     protected function purgeCachedConfiguration(): void
     {
-        $configCache = __DIR__.'/../bootstrap/cache/config.php';
+        $cacheDir = __DIR__.'/../bootstrap/cache';
+        $cacheFiles = [
+            'config.php',
+            'routes.php',
+            'routes-v7.php',
+        ];
 
-        if (file_exists($configCache)) {
-            unlink($configCache);
+        foreach ($cacheFiles as $file) {
+            $path = $cacheDir.'/'.$file;
+
+            if (file_exists($path)) {
+                unlink($path);
+            }
         }
     }
 

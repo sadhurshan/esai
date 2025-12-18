@@ -10,6 +10,9 @@ import type {
     AuditLogFilters,
     AuditLogResponse,
     AuditLogEntry,
+    AiEventFilters,
+    AiEventResponse,
+    AiEventEntry,
     CompanyApprovalFilters,
     CompanyApprovalItem,
     CompanyApprovalResponse,
@@ -124,6 +127,37 @@ export class AdminConsoleApi extends BaseAPI {
             items: data.items ?? [],
             meta: toCursorMeta(data.meta),
         } satisfies AuditLogResponse;
+    }
+
+    async listAiEvents(
+        filters: AiEventFilters = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<AiEventResponse> {
+        const headers: HTTPHeaders = {};
+        const response = await this.request(
+            {
+                path: '/api/admin/ai-events',
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    feature: filters.feature,
+                    status: filters.status,
+                    entity: filters.entity,
+                    from: filters.from,
+                    to: filters.to,
+                    cursor: filters.cursor,
+                    per_page: filters.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<AiEventEntry>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toCursorMeta(data.meta),
+        } satisfies AiEventResponse;
     }
 
     async listCompanyApprovals(

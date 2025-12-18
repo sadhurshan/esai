@@ -73,27 +73,32 @@ class AISupplyService:
             A pandas DataFrame with the schema ``[part_id:int, date:datetime64, quantity:float]`` where ``quantity``
             represents the net movement for that day (issues, returns, transfers, adjustments). Missing calendar days
             must be zero-filled per part to maintain continuous daily series.
+
+        Raises:
+            ValueError: If ``start_date`` is after ``end_date``.
+            RuntimeError: If a database URL is not configured on the service instance.
+            SQLAlchemyError: If the underlying query execution fails.
         """
         engine = self._get_engine()
         table_name = self._sanitize_table_name(self._inventory_table)
         end_dt = self._coerce_date(end_date) or dt.date.today()
         start_dt = self._coerce_date(start_date) or (end_dt - dt.timedelta(days=365))
 
-        if start_dt > end_dt:
-            raise ValueError("start_date must be earlier than or equal to end_date")
+        self._validate_date_bounds(start_dt, end_dt, "load_inventory_data")
 
         base_sql = f"""
             SELECT part_id,
                    DATE(transaction_date) AS txn_date,
                    SUM(quantity) AS quantity
             FROM {table_name}
-            WHERE transaction_date BETWEEN :start_date AND :end_date
+            WHERE transaction_date >= :start_date
+              AND transaction_date < :end_date_exclusive
               AND transaction_type IN :transaction_types
         """
 
         params = {
             "start_date": start_dt,
-            "end_date": end_dt,
+            "end_date_exclusive": end_dt + dt.timedelta(days=1),
             "transaction_types": self._DEFAULT_TRANSACTION_TYPES,
         }
 
@@ -115,10 +120,14 @@ class AISupplyService:
             raise
 
         if df.empty:
-            return pd.DataFrame(columns=["part_id", "date", "quantity"])
+            empty_frame = pd.DataFrame(columns=["part_id", "date", "quantity"])
+            self._warn_if_dataframe_sparse(empty_frame, "load_inventory_data")
+            return empty_frame
+
+        self._warn_if_dataframe_sparse(df, "load_inventory_data.raw", min_rows=7)
 
         df = df.rename(columns={"txn_date": "date"})
-        df["date"] = pd.to_datetime(df["date"], utc=False).dt.normalize()
+        df["date"] = self._normalize_datetime_series(df["date"], normalize=True)
         df["quantity"] = df["quantity"].astype(float)
 
         parts = df["part_id"].unique()
@@ -132,6 +141,9 @@ class AISupplyService:
             .reset_index()
             .rename(columns={"level_0": "part_id", "level_1": "date"})
         )
+
+        min_rows = max(len(parts), len(parts) * min(7, len(full_range)))
+        self._warn_if_dataframe_sparse(filled, "load_inventory_data", min_rows=min_rows)
 
         return filled[["part_id", "date", "quantity"]]
 
@@ -282,28 +294,35 @@ class AISupplyService:
             A DataFrame keyed by ``supplier_id`` with feature columns such as ``on_time_rate``, ``defect_rate``,
             ``lead_time_variance``, ``price_volatility`` and ``service_responsiveness``. Each column should be scaled
             and cleansed according to the deep spec so that downstream models receive normalized inputs.
+
+        Raises:
+            ValueError: If ``start_date`` is after ``end_date``.
+            RuntimeError: If a database URL is not configured on the service instance.
+            SQLAlchemyError: If any of the supplier sub-queries fail while executing against the database.
         """
         engine = self._get_engine()
         end_dt = self._coerce_date(end_date) or dt.date.today()
         start_dt = self._coerce_date(start_date) or (end_dt - dt.timedelta(days=365))
 
-        if start_dt > end_dt:
-            raise ValueError("start_date must be earlier than or equal to end_date")
+        self._validate_date_bounds(start_dt, end_dt, "load_supplier_data")
+
+        feature_columns = [
+            "supplier_id",
+            "on_time_rate",
+            "defect_rate",
+            "lead_time_variance",
+            "price_volatility",
+            "service_responsiveness",
+        ]
 
         deliveries_df = self._fetch_supplier_deliveries(engine, start_dt, end_dt, company_id)
         price_df = self._fetch_supplier_prices(engine, start_dt, end_dt, company_id)
         events_df = self._fetch_supplier_events(engine, start_dt, end_dt, company_id)
 
         if deliveries_df.empty and price_df.empty and events_df.empty:
-            columns = [
-                "supplier_id",
-                "on_time_rate",
-                "defect_rate",
-                "lead_time_variance",
-                "price_volatility",
-                "service_responsiveness",
-            ]
-            return pd.DataFrame(columns=columns)
+            empty_frame = pd.DataFrame(columns=feature_columns)
+            self._warn_if_dataframe_sparse(empty_frame, "load_supplier_data")
+            return empty_frame
 
         supplier_ids: set[int] = set()
         if "supplier_id" in deliveries_df:
@@ -313,6 +332,11 @@ class AISupplyService:
         if "supplier_id" in events_df:
             supplier_ids.update(events_df["supplier_id"].dropna().unique())
         supplier_ids = sorted(int(s) for s in supplier_ids if pd.notna(s))
+
+        if not supplier_ids:
+            empty_frame = pd.DataFrame(columns=feature_columns)
+            self._warn_if_dataframe_sparse(empty_frame, "load_supplier_data")
+            return empty_frame
 
         feature_rows: list[Dict[str, Optional[float]]] = []
         for supplier_id in supplier_ids:
@@ -328,7 +352,17 @@ class AISupplyService:
                 )
             )
 
-        return pd.DataFrame(feature_rows)
+        feature_df = pd.DataFrame(feature_rows, columns=feature_columns)
+        if feature_df.empty:
+            self._warn_if_dataframe_sparse(feature_df, "load_supplier_data")
+            return feature_df
+
+        defaults = {column: 0.0 for column in feature_columns if column != "supplier_id"}
+        feature_df = self._fill_missing_features(feature_df, defaults=defaults, skip_columns={"supplier_id"})
+        feature_df = feature_df.sort_values("supplier_id").reset_index(drop=True)
+
+        self._warn_if_dataframe_sparse(feature_df, "load_supplier_data", min_rows=3)
+        return feature_df
 
     def train_risk_model(self, supplier_df: pd.DataFrame) -> Tuple[object, Dict[str, float]]:
         """Fit and evaluate a supplier risk model.
@@ -796,13 +830,9 @@ class AISupplyService:
         if deliveries.empty:
             return deliveries
 
-        deliveries["promised_date"] = pd.to_datetime(deliveries["promised_date"], errors="coerce").dt.normalize()
-        deliveries["received_at"] = (
-            pd.to_datetime(deliveries["received_at"], errors="coerce").dt.tz_localize(None)
-        )
-        deliveries["po_created_at"] = (
-            pd.to_datetime(deliveries["po_created_at"], errors="coerce").dt.tz_localize(None)
-        )
+        deliveries["promised_date"] = self._normalize_datetime_series(deliveries["promised_date"], normalize=True)
+        deliveries["received_at"] = self._normalize_datetime_series(deliveries["received_at"])
+        deliveries["po_created_at"] = self._normalize_datetime_series(deliveries["po_created_at"])
         deliveries["received_qty"] = deliveries["received_qty"].fillna(0).astype(float)
         deliveries["rejected_qty"] = deliveries["rejected_qty"].fillna(0).astype(float)
         return deliveries
@@ -844,7 +874,7 @@ class AISupplyService:
             return prices
 
         prices["unit_price"] = prices["unit_price"].astype(float)
-        prices["priced_at"] = pd.to_datetime(prices["priced_at"], errors="coerce").dt.tz_localize(None)
+        prices["priced_at"] = self._normalize_datetime_series(prices["priced_at"])
         return prices
 
     def _fetch_supplier_events(
@@ -885,9 +915,7 @@ class AISupplyService:
             return events
 
         events["event_type"] = events["event_type"].astype(str).str.lower()
-        events["occurred_at"] = (
-            pd.to_datetime(events["occurred_at"], errors="coerce").dt.tz_localize(None)
-        )
+        events["occurred_at"] = self._normalize_datetime_series(events["occurred_at"])
         return events
 
     @staticmethod
@@ -1170,3 +1198,46 @@ class AISupplyService:
         if not candidate.replace("_", "").isalnum():  # basic guardrail against SQL injection via env vars
             raise ValueError("Invalid inventory table name configured")
         return candidate
+
+    @staticmethod
+    def _normalize_datetime_series(series: pd.Series, *, normalize: bool = False) -> pd.Series:
+        base = series.copy() if isinstance(series, pd.Series) else pd.Series(series)
+        converted = pd.to_datetime(base, errors="coerce").dt.tz_localize(None)
+        if normalize:
+            converted = converted.dt.normalize()
+        converted.index = base.index
+        return converted
+
+    @staticmethod
+    def _validate_date_bounds(start_dt: dt.date, end_dt: dt.date, context: str) -> None:
+        if start_dt > end_dt:
+            raise ValueError(f"{context}: start_date must be earlier than or equal to end_date")
+
+    def _fill_missing_features(
+        self,
+        frame: pd.DataFrame,
+        *,
+        defaults: Optional[Dict[str, float]] = None,
+        skip_columns: Optional[set[str]] = None,
+    ) -> pd.DataFrame:
+        if frame.empty:
+            return frame
+        defaults = defaults or {}
+        skip_columns = skip_columns or set()
+        numeric_columns = [col for col in frame.columns if col not in skip_columns]
+        medians = frame[numeric_columns].apply(pd.to_numeric, errors="coerce").median(numeric_only=True)
+        for column in numeric_columns:
+            coerced = pd.to_numeric(frame[column], errors="coerce")
+            fill_value = medians.get(column)
+            if pd.isna(fill_value):
+                fill_value = defaults.get(column, 0.0)
+            frame[column] = coerced.fillna(0.0 if fill_value is None else float(fill_value))
+        return frame
+
+    @staticmethod
+    def _warn_if_dataframe_sparse(frame: pd.DataFrame, context: str, *, min_rows: int = 1) -> None:
+        row_count = len(frame)
+        if row_count == 0:
+            LOGGER.warning("%s returned no rows", context)
+        elif row_count < max(1, min_rows):
+            LOGGER.warning("%s returned limited rows (rows=%s, expected>=%s)", context, row_count, min_rows)

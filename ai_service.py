@@ -148,17 +148,18 @@ class AISupplyService:
         return filled[["part_id", "date", "quantity"]]
 
     def train_forecasting_models(self, data: pd.DataFrame, horizon: int) -> Dict[int, Dict[str, Dict[str, float]]]:
-        """Train statistical and ML-based demand forecasting models for each part.
+        """Train statistical and ML forecasting models for every part in the input frame.
 
         Args:
-            data: A tidy DataFrame with at least ``part_id``, ``date`` and ``quantity`` columns representing daily
-                demand history.
-            horizon: Number of future days each model should forecast.
+            data: DataFrame that must contain ``part_id``, ``date`` and ``quantity`` columns representing daily demand.
+            horizon: Number of future days the models should forecast when evaluated.
 
         Returns:
-            A dictionary keyed by ``part_id`` whose values contain metadata about the fitted models (e.g. serialized
-            model handles and evaluation metrics such as MAE and MAPE). Exact structure is defined by downstream API
-            consumers and should include enough detail to select the best-performing model when forecasting.
+            Mapping keyed by ``part_id`` that includes the selected ``best_model`` name and the ``metrics`` recorded for
+            each evaluated model.
+
+        Raises:
+            ValueError: If ``horizon`` is not positive or the required columns are missing from ``data``.
         """
         if horizon <= 0:
             raise ValueError("horizon must be a positive integer")
@@ -170,7 +171,18 @@ class AISupplyService:
 
         normalized = data.copy()
         normalized["date"] = pd.to_datetime(normalized["date"], errors="coerce").dt.normalize()
-        normalized = normalized.dropna(subset=["date"]).astype({"quantity": float})
+        normalized = normalized.dropna(subset=["date", "part_id"]).astype({"quantity": float})
+
+        part_ids = normalized["part_id"].dropna().unique()
+        if part_ids.size == 0:
+            LOGGER.warning("train_forecasting_models received no part history rows")
+            return {}
+
+        LOGGER.info(
+            "Training forecasting models for %s parts (horizon=%s)",
+            part_ids.size,
+            horizon,
+        )
 
         results: Dict[int, Dict[str, Dict[str, float]]] = {}
         for part_id, part_df in normalized.groupby("part_id"):
@@ -213,29 +225,40 @@ class AISupplyService:
             registry_entry = {
                 "best_model": best_model,
                 "models": model_cards,
-                "trained_at": dt.datetime.utcnow().isoformat(),
+                "trained_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "horizon": horizon,
             }
             self._forecast_registry[int(part_id)] = registry_entry
+            best_metrics = model_cards.get(best_model, {}).get("metrics", {})
+            LOGGER.info(
+                "Trained forecasting models for part %s best_model=%s mape=%.4f mae=%.4f",
+                part_id,
+                best_model,
+                float(best_metrics.get("mape", float("nan"))),
+                float(best_metrics.get("mae", float("nan"))),
+            )
             results[int(part_id)] = {
                 "best_model": best_model,
                 "metrics": {name: card["metrics"] for name, card in model_cards.items()},
             }
 
+        LOGGER.info("Completed forecasting model training for %s parts", len(results))
         return results
 
     def predict_demand(self, part_id: int, history: pd.Series, horizon: int) -> Dict[str, float]:
-        """Forecast forward demand for a specific part.
+        """Forecast demand for a part and emit reorder recommendations.
 
         Args:
-            part_id: Unique identifier of the inventory part to forecast.
-            history: A pandas Series indexed by date with historical quantities used for inference.
-            horizon: Number of days to project into the future.
+            part_id: Identifier of the part whose demand should be projected.
+            history: Pandas Series indexed by date containing historical quantities for the part.
+            horizon: Number of future days to include in the forecast window.
 
         Returns:
-            A dictionary payload that includes ``demand_qty`` (total expected units), ``avg_daily_demand``,
-            ``reorder_point``, ``safety_stock`` and ``order_by_date`` (ISO date string). The consumer writes these
-            fields into Laravel forecast snapshots.
+            Dictionary containing the ``model`` used, ``demand_qty``, ``avg_daily_demand``, ``safety_stock``,
+            ``reorder_point`` and ``order_by_date`` (ISO string) fields used by the Laravel layer.
+
+        Raises:
+            ValueError: If ``horizon`` is non-positive or ``history`` does not contain any observations.
         """
         if horizon <= 0:
             raise ValueError("horizon must be a positive integer")
@@ -244,16 +267,33 @@ class AISupplyService:
         if series.empty:
             raise ValueError("history must contain at least one observation")
 
-        registry_entry = self._forecast_registry.get(part_id, {})
-        best_model = registry_entry.get("best_model", "exp_smoothing")
-        model_config = registry_entry.get("models", {}).get(best_model, {}).get("config", {})
+        registry_entry = self._forecast_registry.get(part_id)
+        selected_model = None
+        model_config: Dict[str, Any] = {}
+        forecast_series: Optional[pd.Series] = None
+        fallback_reason: Optional[str] = None
 
-        forecast_series = self._forecast_with_model(best_model, series, horizon, model_config)
-        fallback_model = False
+        if registry_entry:
+            selected_model = registry_entry.get("best_model", "exp_smoothing")
+            model_config = registry_entry.get("models", {}).get(selected_model, {}).get("config", {})
+            forecast_series = self._forecast_with_model(selected_model, series, horizon, model_config)
+            if forecast_series is None:
+                fallback_reason = "model_failure"
+        else:
+            fallback_reason = "missing_model"
+
         if forecast_series is None:
             forecast_series = self._naive_average_forecast(series, horizon)
-            best_model = "moving_average"
-            fallback_model = True
+            if fallback_reason == "missing_model":
+                LOGGER.info("No trained model found for part %s; using moving-average forecast", part_id)
+            else:
+                LOGGER.warning(
+                    "Forecasting model %s failed for part %s; falling back to moving-average forecast",
+                    selected_model or "unknown",
+                    part_id,
+                )
+            selected_model = "moving_average"
+            model_config = {}
 
         demand_qty = float(forecast_series.sum())
         avg_daily_demand = demand_qty / float(horizon)
@@ -265,11 +305,8 @@ class AISupplyService:
         last_date = series.index.max().to_pydatetime().date()
         order_by_date = (last_date + dt.timedelta(days=max(1, lead_time_days - 1))).isoformat()
 
-        if fallback_model:
-            LOGGER.warning("Falling back to moving average forecast for part %s", part_id)
-
         return {
-            "model": best_model,
+            "model": selected_model,
             "demand_qty": demand_qty,
             "avg_daily_demand": avg_daily_demand,
             "reorder_point": reorder_point,
@@ -365,63 +402,73 @@ class AISupplyService:
         return feature_df
 
     def train_risk_model(self, supplier_df: pd.DataFrame) -> Tuple[object, Dict[str, float]]:
-        """Fit and evaluate a supplier risk model.
+        """Train and evaluate the supplier risk model.
 
         Args:
-            supplier_df: Feature matrix containing supplier KPIs and the supervised label/score (if available).
+            supplier_df: DataFrame that must contain the KPI feature columns and either ``risk_grade`` or
+                ``overall_score`` for supervision.
 
         Returns:
-            A tuple of ``(fitted_model, metrics)`` where ``fitted_model`` is the serialized estimator (e.g. gradient
-            boosting classifier) and ``metrics`` is a dictionary of evaluation statistics such as ROC-AUC, accuracy and
-            calibration values captured on a validation split.
+            Tuple where the first entry is the fitted Gradient Boosting estimator and the second entry is a dictionary
+            of evaluation metrics (accuracy/F1 for classification, MAE/R² for regression).
+
+        Raises:
+            ValueError: If required feature or supervision columns are missing or contain no valid rows.
         """
         if supplier_df.empty:
             raise ValueError("supplier_df cannot be empty")
 
-        feature_candidates = [
+        required_features = [
             "on_time_rate",
             "defect_rate",
             "lead_time_variance",
             "price_volatility",
             "service_responsiveness",
         ]
-        feature_columns = [col for col in feature_candidates if col in supplier_df]
-        if not feature_columns:
-            raise ValueError("supplier_df must include at least one KPI feature column")
+        missing_features = [col for col in required_features if col not in supplier_df.columns]
+        if missing_features:
+            raise ValueError(
+                "supplier_df is missing required KPI columns: " + ", ".join(sorted(missing_features))
+            )
 
-        label_mode: Optional[str] = None
-        label_column: Optional[str] = None
-        if "risk_grade" in supplier_df:
+        feature_columns = required_features
+        if "risk_grade" in supplier_df.columns:
             label_mode = "classification"
             label_column = "risk_grade"
-        elif "overall_score" in supplier_df:
+        elif "overall_score" in supplier_df.columns:
             label_mode = "regression"
             label_column = "overall_score"
         else:
             raise ValueError("supplier_df must include 'risk_grade' or 'overall_score' for supervision")
 
+        LOGGER.info(
+            "Training supplier risk model rows=%s label_mode=%s",
+            len(supplier_df),
+            label_mode,
+        )
+
         feature_frame = supplier_df[feature_columns].apply(pd.to_numeric, errors="coerce")
-        impute_values = feature_frame.median(numeric_only=True).to_dict()
+        impute_values: Dict[str, float] = {}
         for column in feature_columns:
-            fill_value = float(impute_values.get(column, 0.0))
-            feature_frame[column] = feature_frame[column].fillna(fill_value)
+            median_value = float(feature_frame[column].median(skipna=True)) if not feature_frame[column].dropna().empty else 0.0
+            impute_values[column] = median_value
+            feature_frame[column] = feature_frame[column].fillna(median_value)
 
         if label_mode == "classification":
-            label_series = supplier_df[label_column].astype(str).str.lower()
-            y = label_series.map(self._risk_label_map).to_numpy(dtype=float)
-            valid_mask = ~np.isnan(y)
-            y = y[valid_mask].astype(int)
+            label_series = supplier_df[label_column].astype(str).str.strip().str.lower()
+            mapped = label_series.map(self._risk_label_map).astype(float)
+            valid_mask = mapped.notna()
+            y = mapped[valid_mask].astype(int).to_numpy()
         else:
-            y = pd.to_numeric(supplier_df[label_column], errors="coerce").to_numpy(dtype=float)
-            valid_mask = ~np.isnan(y)
-            y = y[valid_mask]
+            label_series = pd.to_numeric(supplier_df[label_column], errors="coerce")
+            valid_mask = label_series.notna()
+            y = label_series[valid_mask].to_numpy(dtype=float)
 
-        feature_frame = feature_frame.iloc[valid_mask]
-        X = feature_frame.to_numpy(dtype=float)
-
-        if X.size == 0 or y.size == 0:
+        feature_frame = feature_frame.loc[valid_mask].reset_index(drop=True)
+        if feature_frame.empty or y.size == 0:
             raise ValueError("Supplier supervision columns produced no valid rows")
 
+        X = feature_frame.to_numpy(dtype=float)
         if label_mode == "classification" and len(np.unique(y)) <= 1:
             LOGGER.warning("Only one risk grade present; falling back to regression-style risk model")
             label_mode = "regression"
@@ -432,7 +479,7 @@ class AISupplyService:
         min_samples_for_validation = max(5, n_classes * 2)
 
         if n_samples >= min_samples_for_validation:
-            stratify_labels: Optional[np.ndarray]
+            stratify_labels: Optional[np.ndarray] = None
             if label_mode == "classification" and n_classes > 1:
                 stratify_labels = y.copy()
                 _, class_counts = np.unique(stratify_labels, return_counts=True)
@@ -441,19 +488,12 @@ class AISupplyService:
                         "Insufficient samples per risk grade for stratified split; using unstratified data"
                     )
                     stratify_labels = None
-            else:
-                stratify_labels = None
-
-            test_size = 0.2
-            if label_mode == "classification":
-                min_test_fraction = n_classes / n_samples
-                test_size = min(0.5, max(0.2, min_test_fraction))
 
             try:
                 X_train, X_val, y_train, y_val = train_test_split(
                     X,
                     y,
-                    test_size=test_size,
+                    test_size=0.2,
                     random_state=42,
                     stratify=stratify_labels,
                 )
@@ -462,7 +502,7 @@ class AISupplyService:
                 X_train, X_val, y_train, y_val = train_test_split(
                     X,
                     y,
-                    test_size=test_size,
+                    test_size=0.2,
                     random_state=42,
                     stratify=None,
                 )
@@ -477,7 +517,7 @@ class AISupplyService:
         model.fit(X_train, y_train)
 
         metrics: Dict[str, float]
-        if X_val.size and len(X_val) > 0:
+        if len(X_val):
             y_pred = model.predict(X_val)
             if label_mode == "classification":
                 metrics = {
@@ -500,35 +540,55 @@ class AISupplyService:
             "means": {col: float(feature_frame[col].mean()) for col in feature_columns},
         }
 
+        LOGGER.info(
+            "Risk model trained label_mode=%s samples=%s metrics=%s",
+            label_mode,
+            n_samples,
+            metrics,
+        )
+
         return model, metrics
 
-    def predict_supplier_risk(self, supplier_row: pd.Series) -> Dict[str, str]:
-        """Score a single supplier and explain the driving factors.
+    def predict_supplier_risk(self, supplier_row: pd.Series) -> Dict[str, float | str]:
+        """Score a single supplier and describe the drivers behind the prediction.
 
         Args:
-            supplier_row: A Series containing the feature vector expected by ``train_risk_model``.
+            supplier_row: Series or mapping that supplies the KPI columns captured during ``train_risk_model``.
 
         Returns:
-            A dictionary with the predicted ``risk_category`` (``High``, ``Medium`` or ``Low``) and a human-readable
-            ``explanation`` string describing the top contributing KPIs (e.g. late deliveries, volatility spikes,
-            quality issues).
+            Dictionary containing the ``risk_category`` (Low/Medium/High), the numeric ``risk_score`` and a textual
+            ``explanation`` summarising the most influential KPIs.
+
+        Raises:
+            RuntimeError: If a risk model has not been trained yet.
         """
         if self._risk_model is None or not self._risk_model_features:
             raise RuntimeError("Risk model not trained. Call train_risk_model() first.")
 
         supplier_series = supplier_row if isinstance(supplier_row, pd.Series) else pd.Series(supplier_row)
         feature_vector = self._prepare_supplier_feature_vector(supplier_series)
+        supplier_id = supplier_series.get("supplier_id", "unknown")
 
+        predicted_class: Optional[int] = None
         if self._risk_model_type == "classification":
-            prediction = int(self._risk_model.predict(feature_vector)[0])
-            risk_category = self._risk_label_inverse.get(prediction, "medium").title()
+            predicted_class = int(self._risk_model.predict(feature_vector)[0])
             risk_score = self._classification_risk_score(feature_vector)
         else:
-            score = float(self._risk_model.predict(feature_vector)[0])
-            risk_score = score
-            risk_category = self._score_to_category(score)
+            risk_score = float(self._risk_model.predict(feature_vector)[0])
 
+        score_for_category = float(np.clip(risk_score, 0.0, 1.0)) if math.isfinite(risk_score) else 0.0
+        risk_category = self._score_to_category(score_for_category)
         explanation = self._build_risk_explanation(feature_vector)
+
+        LOGGER.info(
+            "Predicted supplier risk supplier_id=%s category=%s score=%.3f model_type=%s predicted_class=%s",
+            supplier_id,
+            risk_category,
+            risk_score,
+            self._risk_model_type,
+            predicted_class,
+        )
+
         return {
             "risk_category": risk_category,
             "risk_score": float(risk_score),
@@ -559,6 +619,7 @@ class AISupplyService:
         return low, high
 
     def _prepare_supplier_feature_vector(self, supplier_row: pd.Series) -> np.ndarray:
+        """Convert a supplier Series into a numeric vector using stored imputation values."""
         impute_values = self._risk_feature_stats.get("impute_values", {})
         values: list[float] = []
         for column in self._risk_model_features:
@@ -573,14 +634,18 @@ class AISupplyService:
         return np.array(values, dtype=float).reshape(1, -1)
 
     def _classification_risk_score(self, feature_vector: np.ndarray) -> float:
+        """Return the probability of the "high" risk class for classifier models."""
         model = self._risk_model
         if model is None:
             return 0.0
         if hasattr(model, "predict_proba"):
             probabilities = model.predict_proba(feature_vector)
-            high_index = self._risk_label_map["high"]
-            if probabilities.shape[1] > high_index:
-                return float(probabilities[0][high_index])
+            classes = getattr(model, "classes_", None)
+            if classes is not None:
+                class_to_index = {int(label): idx for idx, label in enumerate(classes)}
+                high_label = self._risk_label_map["high"]
+                if high_label in class_to_index:
+                    return float(probabilities[0][class_to_index[high_label]])
             return float(probabilities[0].max())
         prediction = int(model.predict(feature_vector)[0])
         label_keys = list(self._risk_label_inverse.keys())
@@ -588,6 +653,7 @@ class AISupplyService:
         return float(prediction / max(1, max_label))
 
     def _build_risk_explanation(self, feature_vector: np.ndarray) -> str:
+        """Create an explanation string by comparing top features against training means."""
         model = self._risk_model
         if model is None:
             return "Risk score generated from supplier KPIs."
@@ -607,6 +673,7 @@ class AISupplyService:
         return "; ".join(fragments) or "Risk score generated from supplier KPIs."
 
     def _score_to_category(self, score: float) -> str:
+        """Map a normalized risk score onto the configured Low/Medium/High thresholds."""
         low, high = self._risk_thresholds
         if score <= low:
             return "Low"
@@ -920,11 +987,13 @@ class AISupplyService:
 
     @staticmethod
     def _determine_validation_window(history_len: int, horizon: int) -> int:
-        baseline = max(horizon, 14)
-        window = min(baseline, max(1, history_len // 5))
+        if history_len <= 0:
+            return max(1, horizon)
+        pct_window = max(1, math.ceil(history_len * 0.2))
+        window = max(pct_window, horizon)
         if window >= history_len:
-            window = max(1, history_len // 2)
-        return max(1, window)
+            window = max(1, history_len - 1)
+        return window
 
     def _evaluate_exponential_model(
         self,

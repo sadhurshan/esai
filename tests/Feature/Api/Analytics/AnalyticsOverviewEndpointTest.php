@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvoiceStatus;
 use App\Models\Company;
 use App\Models\GoodsReceiptLine;
 use App\Models\GoodsReceiptNote;
@@ -100,7 +101,7 @@ test('analytics overview returns enriched metadata for charts and kpis', functio
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplierA->id,
-        'status' => 'paid',
+        'status' => InvoiceStatus::Paid->value,
         'total' => 15000,
         'subtotal' => 15000,
         'tax_amount' => 0,
@@ -112,7 +113,7 @@ test('analytics overview returns enriched metadata for charts and kpis', functio
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplierB->id,
-        'status' => 'pending',
+        'status' => InvoiceStatus::Submitted->value,
         'total' => 6000,
         'subtotal' => 6000,
         'tax_amount' => 0,

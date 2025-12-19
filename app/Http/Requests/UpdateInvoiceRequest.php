@@ -12,10 +12,8 @@ class UpdateInvoiceRequest extends ApiFormRequest
      */
     public function rules(): array
     {
-        $statuses = array_values(array_unique(array_merge(InvoiceStatus::values(), ['pending', 'overdue', 'disputed'])));
-
         return [
-            'status' => ['nullable', Rule::in($statuses)],
+            'status' => ['nullable', Rule::in(InvoiceStatus::values())],
             'lines' => ['nullable', 'array', 'min:1'],
             'lines.*.id' => ['required_with:lines', 'integer', 'exists:invoice_lines,id'],
             'lines.*.description' => ['nullable', 'string', 'max:200'],

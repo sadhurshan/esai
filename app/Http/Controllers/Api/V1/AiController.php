@@ -43,6 +43,7 @@ class AiController extends ApiController
 
         $requestPayload = $request->payload();
         $payload = Arr::except($requestPayload, ['entity_type', 'entity_id']);
+        $payload['company_id'] = $companyId;
         $metadata = Arr::only($requestPayload, ['entity_type', 'entity_id']);
 
         $startedAt = microtime(true);
@@ -103,6 +104,7 @@ class AiController extends ApiController
         }
 
         $payload = Arr::except($requestPayload, ['entity_type', 'entity_id']);
+        $payload['company_id'] = $companyId;
         $metadata = Arr::only($requestPayload, ['entity_type', 'entity_id']);
 
         $startedAt = microtime(true);

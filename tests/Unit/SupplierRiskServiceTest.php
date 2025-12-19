@@ -315,7 +315,7 @@ it('counts RMAs and credit notes in defect metrics', function (): void {
     $rangeStart = $periodStart->copy()->startOfDay();
     $rangeEnd = $periodStart->copy()->endOfMonth()->endOfDay();
 
-    $rmaCount = Rma::query()
+    $rmaCount = (int) Rma::query()
         ->where('company_id', $company->id)
         ->whereBetween('created_at', [$rangeStart, $rangeEnd])
         ->whereIn('status', ['approved', 'closed'])
@@ -324,7 +324,7 @@ it('counts RMAs and credit notes in defect metrics', function (): void {
         })
         ->count();
 
-    $creditCount = CreditNote::query()
+    $creditCount = (int) CreditNote::query()
         ->where('company_id', $company->id)
         ->whereBetween('created_at', [$rangeStart, $rangeEnd])
         ->whereHas('purchaseOrder', function ($query) use ($supplier): void {
@@ -332,7 +332,7 @@ it('counts RMAs and credit notes in defect metrics', function (): void {
         })
         ->count();
 
-    $defectUnits = Rma::query()
+    $defectUnits = (int) Rma::query()
         ->where('company_id', $company->id)
         ->whereBetween('created_at', [$rangeStart, $rangeEnd])
         ->whereIn('status', ['approved', 'closed'])

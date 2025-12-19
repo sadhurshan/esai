@@ -114,3 +114,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/v1/admin/ai/reindex-document:
+    post:
+      tags:
+        - Admin
+      summary: Queue AI document reindex for a tenant document
+      operationId: adminReindexDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiDocumentReindexRequest'
+      responses:
+        '200':
+          description: Document reindex job dispatched to the AI worker queue.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiDocumentReindexStatus'

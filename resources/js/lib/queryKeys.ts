@@ -54,6 +54,7 @@ export const queryKeys = {
     },
     settings: {
         company: () => ['settings', 'company'] as const,
+        ai: () => ['settings', 'ai'] as const,
         localization: () => ['settings', 'localization'] as const,
         numbering: () => ['settings', 'numbering'] as const,
         notificationPreferences: () => ['settings', 'notification-preferences'] as const,
@@ -161,6 +162,7 @@ export const queryKeys = {
         rateLimits: () => ['admin', 'rate-limits'] as const,
         auditLog: (filters?: Record<string, unknown>) => ['admin', 'audit-log', filters ?? {}] as const,
         aiEvents: (filters?: Record<string, unknown>) => ['admin', 'ai-events', filters ?? {}] as const,
+        aiModelMetrics: (filters?: Record<string, unknown>) => ['admin', 'ai-model-metrics', filters ?? {}] as const,
     },
     me: {
         supplierStatus: () => ['me', 'supplier', 'status'] as const,
@@ -214,6 +216,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['localization']['convert']
     | (typeof queryKeys)['localization']['uoms']
     | (typeof queryKeys)['settings']['company']
+    | (typeof queryKeys)['settings']['ai']
     | (typeof queryKeys)['settings']['localization']
     | (typeof queryKeys)['settings']['numbering']
     | (typeof queryKeys)['settings']['notificationPreferences']
@@ -274,6 +277,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['admin']['rateLimits']
     | (typeof queryKeys)['admin']['auditLog']
     | (typeof queryKeys)['admin']['aiEvents']
+    | (typeof queryKeys)['admin']['aiModelMetrics']
     | (typeof queryKeys)['me']['supplierStatus']
     | (typeof queryKeys)['me']['profile']
     | (typeof queryKeys)['me']['companies']

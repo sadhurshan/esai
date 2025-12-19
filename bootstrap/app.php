@@ -6,11 +6,13 @@ use App\Console\Commands\ApiSpecSdkTypescriptCommand;
 use App\Console\Commands\CleanupExpiredExportsCommand;
 use App\Console\Commands\DemoReset;
 use App\Console\Commands\BackfillSupplierPersonas;
+use App\Http\Middleware\AiRateLimiter;
 use App\Http\Middleware\AdminGuard;
 use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
+use App\Http\Middleware\EnsureAiServiceAvailable;
 use App\Http\Middleware\EnsureBuyerAccess;
 use App\Http\Middleware\EnsureBillingAccess;
 use App\Http\Middleware\EnsureRiskAccess;
@@ -109,6 +111,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'bypass.company.context' => \App\Http\Middleware\BypassCompanyContext::class,
             'api.key.auth' => ApiKeyAuth::class,
             'rate.limit.enforcer' => RateLimitEnforcer::class,
+            'ai.rate.limit' => \App\Http\Middleware\AiRateLimiter::class,
+            'ai.ensure.available' => \App\Http\Middleware\EnsureAiServiceAvailable::class,
             'auth.session' => AuthenticateApiSession::class,
         ]);
 

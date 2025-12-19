@@ -406,6 +406,146 @@ paths:
       operationId: deleteGrn
       responses:
         '200':
+          description: Goods receipt deleted with audit trail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/inventory/items:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory items
+      operationId: listInventoryItems
+      responses:
+        '200':
+          description: Inventory items for the company.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Inventory
+      summary: Create inventory item
+      operationId: createInventoryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Inventory item created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/inventory/items/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Inventory
+      summary: Show inventory item
+      operationId: showInventoryItem
+      responses:
+        '200':
+          description: Inventory item detail payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    patch:
+      tags:
+        - Inventory
+      summary: Update inventory item
+      operationId: updateInventoryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Inventory item updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/inventory/low-stock:
+    get:
+      tags:
+        - Inventory
+      summary: List low stock alerts
+      operationId: listLowStockAlerts
+      responses:
+        '200':
+          description: Low inventory report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/inventory/movements:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory movements
+      operationId: listInventoryMovements
+      responses:
+        '200':
+          description: Inventory movement history.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    post:
+      tags:
+        - Inventory
+      summary: Create inventory movement
+      operationId: createInventoryMovement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Inventory movement recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/inventory/locations:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory locations
+      operationId: listInventoryLocations
+      responses:
+        '200':
+          description: Warehouse and bin metadata for the tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Inventory
+      summary: Delete goods receipt note
+      operationId: deleteGrn
+      responses:
+        '200':
           description: Goods receipt deleted.
           content:
             application/json:

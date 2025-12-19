@@ -58,3 +58,8 @@ export interface NumberingSettings {
     grn: NumberingRule;
     credit: NumberingRule;
 }
+
+export interface CompanyAiSettings {
+    llmAnswersEnabled: boolean;
+    llmProvider: 'dummy' | 'openai';
+}

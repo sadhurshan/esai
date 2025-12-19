@@ -2,6 +2,7 @@
 
 use App\Enums\ExportRequestStatus;
 use App\Enums\ExportRequestType;
+use App\Enums\InvoiceStatus;
 use App\Enums\MoneyRoundRule;
 use App\Enums\TaxRegime;
 use App\Models\Company;
@@ -385,7 +386,7 @@ function createInvoiceWithLine(PurchaseOrder $purchaseOrder, Supplier $supplier,
             'subtotal' => 200.00,
             'tax_amount' => 20.00,
             'total' => 220.00,
-            'status' => 'pending',
+            'status' => InvoiceStatus::Draft->value,
         ]);
 
     $line = InvoiceLine::query()->create([

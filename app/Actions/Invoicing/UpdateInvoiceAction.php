@@ -65,7 +65,11 @@ class UpdateInvoiceAction
                 (int) ($line['id'] ?? 0) => true,
             ]);
 
-        $editableStatuses = $context['editable_statuses'] ?? ['pending', InvoiceStatus::Draft->value];
+        $editableStatuses = $context['editable_statuses'] ?? [
+            InvoiceStatus::Draft->value,
+            InvoiceStatus::BuyerReview->value,
+            InvoiceStatus::Rejected->value,
+        ];
 
         if ($linesPayload->isNotEmpty() && ! in_array($invoice->status, $editableStatuses, true)) {
             throw ValidationException::withMessages([
@@ -75,10 +79,7 @@ class UpdateInvoiceAction
 
         $targetStatus = $payload['status'] ?? null;
 
-        $allowedStatusTransitions = $context['allowed_status_transitions'] ?? array_merge(
-            ['pending', 'paid', 'overdue', 'disputed'],
-            InvoiceStatus::values(),
-        );
+        $allowedStatusTransitions = $context['allowed_status_transitions'] ?? InvoiceStatus::values();
 
         if ($targetStatus !== null && ! in_array($targetStatus, $allowedStatusTransitions, true)) {
             throw ValidationException::withMessages([
@@ -88,7 +89,7 @@ class UpdateInvoiceAction
 
         $beforeSnapshot = $invoice->toArray();
 
-        $preventRevertStatus = $context['prevent_revert_status'] ?? 'pending';
+        $preventRevertStatus = $context['prevent_revert_status'] ?? InvoiceStatus::Draft->value;
 
         return $this->db->transaction(function () use (
             $invoice,

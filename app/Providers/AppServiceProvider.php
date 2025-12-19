@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AiEvent;
+use App\Models\AiModelMetric;
 use App\Models\ApiKey;
 use App\Models\AuditLog;
 use App\Models\Asset;
@@ -40,6 +41,7 @@ use App\Models\TaxCode;
 use App\Models\WebhookDelivery;
 use App\Models\WebhookSubscription;
 use App\Policies\Admin\AiEventPolicy as AdminAiEventPolicy;
+use App\Policies\Admin\AiModelMetricPolicy as AdminAiModelMetricPolicy;
 use App\Policies\Admin\ApiKeyPolicy as AdminApiKeyPolicy;
 use App\Policies\Admin\AuditLogPolicy as AdminAuditLogPolicy;
 use App\Policies\Admin\CompanyFeatureFlagPolicy as AdminCompanyFeatureFlagPolicy;
@@ -115,6 +117,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RoleTemplate::class, AdminRoleTemplatePolicy::class);
         Gate::policy(AuditLog::class, AdminAuditLogPolicy::class);
         Gate::policy(AiEvent::class, AdminAiEventPolicy::class);
+        Gate::policy(AiModelMetric::class, AdminAiModelMetricPolicy::class);
 
         Gate::policy(Quote::class, QuotePolicy::class);
         Gate::policy(Part::class, PartPolicy::class);

@@ -33,7 +33,7 @@ class SupplierShipmentController extends ApiController
         $supplierCompanyId = $workspace['supplierCompanyId'];
         $buyerCompanyId = $workspace['buyerCompanyId'];
 
-        if ($supplierCompanyId === null || $buyerCompanyId === null) {
+        if ($supplierCompanyId === null) {
             return $this->fail('Supplier persona required.', 403, [
                 'code' => 'supplier_persona_required',
             ]);
@@ -42,7 +42,7 @@ class SupplierShipmentController extends ApiController
         return CompanyContext::bypass(function () use ($supplierCompanyId, $buyerCompanyId, $orderId, $request, $user) {
             $order = $this->orderDetailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($orderId)
                 ->first();
 
@@ -65,7 +65,7 @@ class SupplierShipmentController extends ApiController
 
             $projection = $this->orderDetailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($order->getKey())
                 ->firstOrFail();
 
@@ -85,7 +85,7 @@ class SupplierShipmentController extends ApiController
         $supplierCompanyId = $workspace['supplierCompanyId'];
         $buyerCompanyId = $workspace['buyerCompanyId'];
 
-        if ($supplierCompanyId === null || $buyerCompanyId === null) {
+        if ($supplierCompanyId === null) {
             return $this->fail('Supplier persona required.', 403, [
                 'code' => 'supplier_persona_required',
             ]);
@@ -94,7 +94,7 @@ class SupplierShipmentController extends ApiController
         return CompanyContext::bypass(function () use ($supplierCompanyId, $buyerCompanyId, $shipmentId, $request, $user) {
             $shipment = PurchaseOrderShipment::query()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($shipmentId)
                 ->first();
 
@@ -111,7 +111,7 @@ class SupplierShipmentController extends ApiController
 
             $projection = $this->orderDetailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->where('purchase_order_id', $updatedShipment->purchase_order_id)
                 ->firstOrFail();
 

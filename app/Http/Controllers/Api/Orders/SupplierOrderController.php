@@ -29,18 +29,31 @@ class SupplierOrderController extends ApiController
 
         $workspace = $this->resolveSupplierWorkspaceContext($user);
         $supplierCompanyId = $workspace['supplierCompanyId'];
-        $buyerCompanyId = $workspace['buyerCompanyId'];
+        $personaBuyerCompanyId = $workspace['buyerCompanyId'];
 
-        if ($supplierCompanyId === null || $buyerCompanyId === null) {
+        if ($supplierCompanyId === null) {
             return $this->fail('Supplier persona required.', 403, [
                 'code' => 'supplier_persona_required',
             ]);
         }
 
+        $requestedBuyerId = $request->filled('buyer_id') ? $request->integer('buyer_id') : null;
+
+        if ($personaBuyerCompanyId !== null && $requestedBuyerId !== null && $personaBuyerCompanyId !== $requestedBuyerId) {
+            return $this->fail('Buyer context mismatch.', 422, [
+                'code' => 'buyer_context_mismatch',
+            ]);
+        }
+
+        $buyerCompanyId = $personaBuyerCompanyId ?? $requestedBuyerId;
+
         return CompanyContext::bypass(function () use ($request, $supplierCompanyId, $buyerCompanyId) {
             $query = $this->baseQuery()
-                ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId);
+                ->where('supplier_company_id', $supplierCompanyId);
+
+            if ($buyerCompanyId !== null) {
+                $query->where('company_id', $buyerCompanyId);
+            }
             $this->applyFilters($query, $request);
 
             $paginator = $query
@@ -78,7 +91,7 @@ class SupplierOrderController extends ApiController
         $supplierCompanyId = $workspace['supplierCompanyId'];
         $buyerCompanyId = $workspace['buyerCompanyId'];
 
-        if ($supplierCompanyId === null || $buyerCompanyId === null) {
+        if ($supplierCompanyId === null) {
             return $this->fail('Supplier persona required.', 403, [
                 'code' => 'supplier_persona_required',
             ]);
@@ -87,7 +100,7 @@ class SupplierOrderController extends ApiController
         return CompanyContext::bypass(function () use ($supplierCompanyId, $buyerCompanyId, $orderId, $request) {
             $order = $this->detailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($orderId)
                 ->first();
 
@@ -111,7 +124,7 @@ class SupplierOrderController extends ApiController
         $supplierCompanyId = $workspace['supplierCompanyId'];
         $buyerCompanyId = $workspace['buyerCompanyId'];
 
-        if ($supplierCompanyId === null || $buyerCompanyId === null) {
+        if ($supplierCompanyId === null) {
             return $this->fail('Supplier persona required.', 403, [
                 'code' => 'supplier_persona_required',
             ]);
@@ -120,7 +133,7 @@ class SupplierOrderController extends ApiController
         return CompanyContext::bypass(function () use ($user, $supplierCompanyId, $buyerCompanyId, $orderId, $request) {
             $order = $this->detailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($orderId)
                 ->first();
 
@@ -145,7 +158,7 @@ class SupplierOrderController extends ApiController
 
             $projection = $this->detailQuery()
                 ->where('supplier_company_id', $supplierCompanyId)
-                ->where('company_id', $buyerCompanyId)
+                ->when($buyerCompanyId !== null, fn (Builder $builder) => $builder->where('company_id', $buyerCompanyId))
                 ->whereKey($order->getKey())
                 ->first();
 

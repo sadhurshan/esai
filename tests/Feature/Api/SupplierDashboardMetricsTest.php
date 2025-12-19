@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CompanySupplierStatus;
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use App\Models\Quote;
@@ -94,21 +95,21 @@ it('returns aggregated supplier dashboard metrics for the active supplier person
 			'company_id' => $buyer->id,
 			'purchase_order_id' => $pendingPurchaseOrder->id,
 			'supplier_id' => $supplierContext['supplier']->id,
-			'status' => 'pending',
+			'status' => InvoiceStatus::Submitted->value,
 		]);
 
 		Invoice::factory()->create([
 			'company_id' => $buyer->id,
 			'purchase_order_id' => $acknowledgedPurchaseOrder->id,
 			'supplier_id' => $supplierContext['supplier']->id,
-			'status' => 'paid',
+			'status' => InvoiceStatus::Paid->value,
 		]);
 
 		Invoice::factory()->create([
 			'company_id' => $buyer->id,
 			'purchase_order_id' => $otherSupplierPurchaseOrder->id,
 			'supplier_id' => $otherSupplier->id,
-			'status' => 'pending',
+			'status' => InvoiceStatus::Submitted->value,
 		]);
 	});
 

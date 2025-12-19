@@ -333,6 +333,139 @@ components:
           format: date-time
           nullable: true
           description: ISO 8601 timestamp in the tenant's configured timezone.
+    CopilotSearchFilters:
+      type: object
+      description: Optional filters applied to copilot search and answer endpoints.
+      properties:
+        source_type:
+          type: string
+          maxLength: 100
+        doc_id:
+          type: string
+          description: Document identifier as a string to match the AI index payloads.
+        doc_version:
+          type: string
+          maxLength: 100
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+          description: Arbitrary metadata tags stored with the document index.
+    CopilotQueryRequest:
+      type: object
+      description: Query payload accepted by copilot semantic search and answer endpoints.
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          maxLength: 2000
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 20
+          description: Overrides the default number of chunks returned by the AI service.
+        filters:
+          $ref: '#/components/schemas/CopilotSearchFilters'
+    CopilotSearchHit:
+      type: object
+      description: Ranked chunk metadata returned from the semantic search endpoint.
+      required:
+        - doc_id
+        - doc_version
+        - chunk_id
+        - score
+        - snippet
+      properties:
+        doc_id:
+          type: string
+        doc_version:
+          type: string
+        chunk_id:
+          type: string
+        title:
+          type: string
+        snippet:
+          type: string
+          description: Preview text trimmed to the first 250 characters.
+        score:
+          type: number
+          format: float
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Arbitrary metadata captured when the chunk was indexed.
+    CopilotSearchResult:
+      type: object
+      required:
+        - hits
+      properties:
+        hits:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotSearchHit'
+          description: Ordered by cosine similarity.
+    CopilotCitation:
+      type: object
+      required:
+        - doc_id
+        - doc_version
+        - chunk_id
+        - snippet
+        - score
+      properties:
+        doc_id:
+          type: string
+        doc_version:
+          type: string
+        chunk_id:
+          type: string
+        score:
+          type: number
+          format: float
+        snippet:
+          type: string
+    CopilotAnswerResult:
+      type: object
+      required:
+        - answer
+        - citations
+      properties:
+        answer:
+          type: string
+          description: Structured natural language response assembled from the top chunks.
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotCitation'
+          description: Source mapping each bullet point back to a document chunk.
+    AiDocumentReindexRequest:
+      type: object
+      description: Payload required to queue an AI reindex for a document.
+      required:
+        - doc_id
+        - doc_version
+      properties:
+        doc_id:
+          type: integer
+          minimum: 1
+        doc_version:
+          type: string
+          maxLength: 100
+    AiDocumentReindexStatus:
+      type: object
+      description: Echo payload describing the queued reindex operation.
+      required:
+        - doc_id
+        - doc_version
+      properties:
+        doc_id:
+          type: integer
+          minimum: 1
+        doc_version:
+          type: string
+          maxLength: 100
   responses:
     Unauthorized:
       description: Missing or invalid credentials.

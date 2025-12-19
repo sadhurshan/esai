@@ -3,7 +3,9 @@
 namespace App\Console;
 
 use App\Jobs\AuditSupplierDocumentExpiryJob;
+use App\Jobs\ComputeForecastAccuracyMetricsJob;
 use App\Jobs\ComputeInventoryForecastSnapshotsJob;
+use App\Jobs\ComputeSupplierRiskMetricsJob;
 use App\Jobs\ComputeTenantUsageJob;
 use App\Jobs\PurgeExpiredExportsJob;
 use App\Jobs\RetryFailedWebhooksJob;
@@ -31,6 +33,16 @@ class Kernel extends ConsoleKernel
 
         $schedule->job(new ComputeInventoryForecastSnapshotsJob())
             ->dailyAt('03:00')
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        $schedule->job(new ComputeForecastAccuracyMetricsJob())
+            ->dailyAt('03:30')
+            ->withoutOverlapping()
+            ->onOneServer();
+
+        $schedule->job(new ComputeSupplierRiskMetricsJob())
+            ->dailyAt('04:00')
             ->withoutOverlapping()
             ->onOneServer();
 

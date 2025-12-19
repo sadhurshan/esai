@@ -1249,6 +1249,41 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/RfqClarification'
+  /api/rfqs/{rfqId}/clarifications/{clarificationId}/attachments/{attachmentId}:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: clarificationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: attachmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - RFQs
+      summary: Download clarification attachment
+      operationId: downloadRfqClarificationAttachment
+      responses:
+        '200':
+          description: Attachment stream for the clarification entry.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/rfqs/{rfqId}/clarifications/question:
     post:
       tags:

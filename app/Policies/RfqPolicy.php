@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\RFQ;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
 use App\Support\Permissions\PermissionRegistry;
 
 class RfqPolicy
@@ -14,6 +15,10 @@ class RfqPolicy
 
     public function create(User $user): bool
     {
+        if ($this->actingAsSupplierPersona()) {
+            return false;
+        }
+
         $companyId = $user->company_id;
 
         if ($companyId === null) {
@@ -132,5 +137,10 @@ class RfqPolicy
         }
 
         return $this->permissionRegistry->userHasAny($user, [$permission], $companyId);
+    }
+
+    private function actingAsSupplierPersona(): bool
+    {
+        return ActivePersonaContext::isSupplier();
     }
 }

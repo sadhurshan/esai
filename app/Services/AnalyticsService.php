@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InvoiceStatus;
 use App\Models\AnalyticsSnapshot;
 use App\Models\Company;
 use App\Models\GoodsReceiptLine;
@@ -216,7 +217,12 @@ class AnalyticsService
         $invoices = Invoice::query()
             ->where('company_id', $company->id)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
-            ->whereIn('status', ['paid', 'pending'])
+            ->whereIn('status', [
+                InvoiceStatus::Paid->value,
+                InvoiceStatus::Approved->value,
+                InvoiceStatus::BuyerReview->value,
+                InvoiceStatus::Submitted->value,
+            ])
             ->with('supplier')
             ->get();
 

@@ -53,7 +53,8 @@ class GlobalSearchService
         $results = collect();
 
         foreach ($entityEnums as $entityType) {
-            $results = $results->merge($this->searchByType($entityType, $tokens, $filters, $company));
+            $typeResults = $this->searchByType($entityType, $tokens, $filters, $company);
+            $results = $results->merge($typeResults);
         }
 
         if ($results->isEmpty()) {
@@ -138,7 +139,7 @@ class GlobalSearchService
                 'suppliers.email',
                 'suppliers.phone',
             ])
-            ->where('company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['suppliers.name', $capabilityColumn], $booleanQuery, $tokens);
@@ -219,7 +220,7 @@ class GlobalSearchService
                 'parts.spec',
                 'parts.created_at',
             ])
-            ->where('parts.company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['parts.part_number', 'parts.name', 'parts.spec'], $booleanQuery, $tokens);
@@ -275,7 +276,7 @@ class GlobalSearchService
         $booleanQuery = $this->booleanQuery($tokens);
         $builder = RFQ::query()
             ->select(['id', 'title', 'number', 'status', 'publish_at', 'created_at'])
-            ->where('company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['title', 'number'], $booleanQuery, $tokens);
@@ -310,7 +311,7 @@ class GlobalSearchService
         $booleanQuery = $this->booleanQuery($tokens);
         $builder = PurchaseOrder::query()
             ->select(['id', 'po_number', 'status', 'created_at'])
-            ->where('company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['po_number'], $booleanQuery, $tokens);
@@ -345,7 +346,7 @@ class GlobalSearchService
         $booleanQuery = $this->booleanQuery($tokens);
         $builder = Invoice::query()
             ->select(['id', 'invoice_number', 'status', 'created_at', 'total'])
-            ->where('company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['invoice_number'], $booleanQuery, $tokens);
@@ -382,7 +383,7 @@ class GlobalSearchService
         $booleanQuery = $this->booleanQuery($tokens);
         $builder = Document::query()
             ->select(['id', 'filename', 'category', 'visibility', 'created_at', 'meta'])
-            ->where('company_id', $company->id)
+            ->forCompany($company->id)
             ->limit(self::MAX_RESULTS_PER_ENTITY);
 
         $relevanceColumn = $this->applySearchCondition($builder, ['filename'], $booleanQuery, $tokens);
@@ -584,7 +585,7 @@ class GlobalSearchService
      */
     private function applySearchCondition(EloquentBuilder|QueryBuilder $builder, array $columns, string $booleanQuery, array $tokens): string
     {
-        if ($this->supportsFullText()) {
+        if ($this->canUseFullText($tokens)) {
             $columnList = implode(', ', $columns);
             $alias = 'relevance_'.md5(implode('-', $columns));
 
@@ -624,5 +625,24 @@ class GlobalSearchService
     private function supportsFullText(): bool
     {
         return in_array(DB::getDriverName(), ['mysql', 'mariadb'], true);
+    }
+
+    private function canUseFullText(array $tokens): bool
+    {
+        if (! $this->supportsFullText()) {
+            return false;
+        }
+
+        if (DB::connection()->transactionLevel() > 0) {
+            return false;
+        }
+
+        foreach ($tokens as $token) {
+            if (strlen($token) < 3) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @mixin \App\Models\User
@@ -77,6 +78,28 @@ class CompanyMemberResource extends JsonResource
         $roles = $this->normalizeRoles($roleList);
 
         $totalCompanies = (int) ($this->membership_company_total ?? ($this->membership_company_id ? 1 : 0));
+
+        if ($this->id !== null) {
+            $records = DB::table('company_user')
+                ->select('role', 'company_id')
+                ->where('user_id', (int) $this->id)
+                ->get();
+
+            if ($records->isNotEmpty()) {
+                $roles = $records->pluck('role')
+                    ->filter(static fn ($role) => is_string($role) && $role !== '')
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->all();
+
+                $totalCompanies = $records->pluck('company_id')
+                    ->filter(static fn ($companyId) => $companyId !== null)
+                    ->unique()
+                    ->count();
+            }
+        }
+
         $hasMultipleCompanies = $totalCompanies > 1;
         $hasMultipleRoles = count($roles) > 1;
 

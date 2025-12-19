@@ -410,6 +410,11 @@ export function QuoteCompareTable({
                                                 quote.isShortlisted ?? shortlistedQuoteIds?.has(quote.id),
                                             );
                                             const isUpdatingShortlist = shortlistMutation.isPending && shortlistTargetId === quote.id;
+                                            const parsedEntityId =
+                                                typeof quote.id === 'number'
+                                                    ? quote.id
+                                                    : Number.parseInt(String(quote.id), 10);
+                                            const entityIdForBadge = Number.isNaN(parsedEntityId) ? undefined : parsedEntityId;
 
                                             return (
                                                 <div
@@ -476,7 +481,7 @@ export function QuoteCompareTable({
                                                                 supplierId={quote.supplierId ?? quote.supplier?.id ?? undefined}
                                                                 supplier={buildQuoteSupplierRiskPayload(quote)}
                                                                 entityType="quote"
-                                                                entityId={quote.id}
+                                                                entityId={entityIdForBadge}
                                                                 disabled={isSupplierRiskLocked}
                                                                 label="AI risk"
                                                                 autoLoad={!isSupplierRiskLocked}

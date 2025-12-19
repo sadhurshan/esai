@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  ai_microservice:
+    container_name: elements-ai-microservice
+    build:
+      context: .
+      dockerfile: ai_microservice/Dockerfile
+    image: elements-ai-microservice:latest
+    environment:
+      PORT: "8000"
+      AI_SERVICE_DATABASE_URL: "${AI_SERVICE_DATABASE_URL:-mysql://user:pass@db:3306/elements}"
+      AI_SERVICE_MODEL_PATH: "/app/storage/ai_models.joblib"
+      AI_SERVICE_DEFAULT_LEAD_TIME_DAYS: "7"
+      AI_SERVICE_RISK_THRESHOLDS: "0.4,0.7"
+      AI_CACHE_TTL_SECONDS: "300"
+    volumes:
+      - ai-model-storage:/app/storage
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  ai-model-storage:

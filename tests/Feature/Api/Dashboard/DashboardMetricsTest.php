@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvoiceStatus;
 use App\Enums\ReorderStatus;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -51,7 +52,7 @@ it('returns aggregated dashboard metrics for the authenticated company', functio
         'company_id' => $company->id,
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
-        'status' => 'pending',
+        'status' => InvoiceStatus::Submitted->value,
     ]);
 
     $part = Part::factory()->create(['company_id' => $company->id]);
@@ -92,7 +93,7 @@ it('returns aggregated dashboard metrics for the authenticated company', functio
         'company_id' => $otherCompany->id,
         'purchase_order_id' => $otherPurchaseOrder->id,
         'supplier_id' => $otherSupplier->id,
-        'status' => 'pending',
+        'status' => InvoiceStatus::Submitted->value,
     ]);
 
     $otherPart = Part::factory()->create(['company_id' => $otherCompany->id]);

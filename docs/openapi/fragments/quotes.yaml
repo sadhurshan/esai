@@ -960,6 +960,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/rfqs/{rfqId}/quotes/{quoteId}/draft:
+    parameters:
+      - name: rfqId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags:
+        - Quotes
+      summary: Update quote draft details
+      operationId: updateRfqQuoteDraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Draft quote updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
   /api/quotes/{quoteId}:
     parameters:
       - name: quoteId
@@ -1014,6 +1047,38 @@ paths:
                         $ref: '#/components/schemas/Quote'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /api/quotes/{quoteId}/shortlist:
+    parameters:
+      - name: quoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Quotes
+      summary: Add quote to shortlist
+      operationId: shortlistQuote
+      responses:
+        '200':
+          description: Quote shortlisted for award consideration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    delete:
+      tags:
+        - Quotes
+      summary: Remove quote from shortlist
+      operationId: unshortlistQuote
+      responses:
+        '200':
+          description: Quote removed from shortlist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
   /api/quotes/{quoteId}/lines:
     parameters:
       - name: quoteId

@@ -11,7 +11,7 @@ use App\Support\CompanyContext;
 class RfqClarificationPolicy
 {
     private const BUYER_ROLES = ['owner', 'buyer_admin', 'buyer_requester'];
-    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator', 'owner'];
+    private const SUPPLIER_ROLES = ['supplier_admin', 'supplier_estimator'];
     private const PLATFORM_ROLES = ['platform_super', 'platform_support'];
 
     public function viewClarifications(User $user, RFQ $rfq): bool

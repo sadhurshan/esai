@@ -7,6 +7,7 @@ use App\Http\Resources\CompanyMemberResource;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\JsonResponse;
@@ -35,10 +36,17 @@ class CompanyMemberController extends ApiController
 
         $perPage = $this->perPage($request, 25, 100);
 
-        $members = $this->memberQuery($companyId)
+        $memberQuery = $this->memberQuery($companyId)
             ->orderByDesc('users.created_at')
-            ->orderByDesc('users.id')
-            ->cursorPaginate($perPage, ['*'], 'cursor', $request->query('cursor'));
+            ->orderByDesc('users.id');
+
+        $members = $memberQuery->cursorPaginate(
+            perPage: $perPage,
+            columns: ['users.*'],
+            cursor: $request->query('cursor')
+        );
+
+        $this->hydrateMembershipAttributes($members, $companyId);
 
         ['items' => $items, 'meta' => $meta] = $this->paginate($members, $request, CompanyMemberResource::class);
 
@@ -235,13 +243,13 @@ class CompanyMemberController extends ApiController
                     ->where('cu.company_id', '=', $companyId);
             })
             ->addSelect([
-                'membership_id' => 'cu.id',
-                'membership_company_id' => 'cu.company_id',
-                'membership_role' => 'cu.role',
-                'membership_is_default' => 'cu.is_default',
-                'membership_last_used_at' => 'cu.last_used_at',
-                'membership_created_at' => 'cu.created_at',
-                'membership_updated_at' => 'cu.updated_at',
+                DB::raw('cu.id as membership_id'),
+                DB::raw('cu.company_id as membership_company_id'),
+                DB::raw('cu.role as membership_role'),
+                DB::raw('cu.is_default as membership_is_default'),
+                DB::raw('cu.last_used_at as membership_last_used_at'),
+                DB::raw('cu.created_at as membership_created_at'),
+                DB::raw('cu.updated_at as membership_updated_at'),
                 'membership_role_list' => DB::table('company_user as cu_roles')
                     ->selectRaw($this->roleListAggregateExpression())
                     ->whereColumn('cu_roles.user_id', 'users.id'),
@@ -343,5 +351,74 @@ class CompanyMemberController extends ApiController
             'pgsql' => "STRING_AGG(DISTINCT cu_roles.role, ',')",
             default => "GROUP_CONCAT(DISTINCT cu_roles.role ORDER BY cu_roles.role SEPARATOR ',')",
         };
+    }
+
+    private function hydrateMembershipAttributes(CursorPaginator $paginator, int $companyId): void
+    {
+        $users = $paginator->getCollection();
+
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $userIds = $users
+            ->pluck('id')
+            ->filter(fn ($id) => $id !== null)
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if ($userIds === []) {
+            return;
+        }
+
+        $memberships = DB::table('company_user')
+            ->where('company_id', $companyId)
+            ->whereIn('user_id', $userIds)
+            ->get()
+            ->keyBy('user_id');
+
+        $allMemberships = DB::table('company_user')
+            ->whereIn('user_id', $userIds)
+            ->orderBy('role')
+            ->get()
+            ->groupBy('user_id');
+
+        foreach ($users as $user) {
+            $membership = $memberships->get($user->id);
+
+            $user->setAttribute('membership_id', $membership->id ?? null);
+            $user->setAttribute('membership_company_id', $membership->company_id ?? null);
+            $user->setAttribute('membership_role', $membership->role ?? null);
+            $user->setAttribute('membership_is_default', (bool) ($membership->is_default ?? false));
+            $user->setAttribute('membership_last_used_at', $membership->last_used_at ?? null);
+            $user->setAttribute('membership_created_at', $membership->created_at ?? null);
+            $user->setAttribute('membership_updated_at', $membership->updated_at ?? null);
+
+            $records = $allMemberships->get($user->id);
+
+            if ($records === null) {
+                $user->setAttribute('membership_role_list', null);
+                $user->setAttribute('membership_company_total', $membership?->company_id ? 1 : 0);
+
+                continue;
+            }
+
+            $roles = $records
+                ->pluck('role')
+                ->filter(fn ($role) => is_string($role) && $role !== '')
+                ->unique()
+                ->sort()
+                ->values();
+
+            $companies = $records
+                ->pluck('company_id')
+                ->filter(fn ($id) => $id !== null)
+                ->unique()
+                ->count();
+
+            $user->setAttribute('membership_role_list', $roles->isEmpty() ? null : $roles->implode(','));
+            $user->setAttribute('membership_company_total', $companies);
+        }
     }
 }

@@ -147,3 +147,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/ai/forecast:
+    post:
+      tags:
+        - Analytics
+      summary: Request AI forecast insights
+      operationId: aiForecast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Forecast projections returned from the AI service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/ai/supplier-risk:
+    post:
+      tags:
+        - Analytics
+      summary: Request AI supplier risk insights
+      operationId: aiSupplierRisk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Supplier risk insight payload from the AI service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier/dashboard/metrics:
+    get:
+      tags:
+        - Analytics
+      summary: Retrieve supplier dashboard metrics
+      operationId: supplierDashboardMetrics
+      responses:
+        '200':
+          description: Aggregated metrics for the active supplier persona.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

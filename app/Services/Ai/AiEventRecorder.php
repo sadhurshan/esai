@@ -7,6 +7,8 @@ use App\Support\CompanyContext;
 
 class AiEventRecorder
 {
+    private const FIELD_CHAR_LIMIT = 10000;
+
     /**
      * @param array<string, mixed> $requestPayload
      * @param array<string, mixed>|null $responsePayload
@@ -29,8 +31,8 @@ class AiEventRecorder
             'feature' => $feature,
             'entity_type' => $entityType,
             'entity_id' => $entityId,
-            'request_json' => $requestPayload,
-            'response_json' => $responsePayload,
+            'request_json' => $this->truncatePayload($requestPayload),
+            'response_json' => $this->truncatePayload($responsePayload),
             'latency_ms' => $this->normalizeLatency($latencyMs),
             'status' => $this->normalizeStatus($status),
             'error_message' => $errorMessage,
@@ -55,5 +57,42 @@ class AiEventRecorder
         }
 
         return max(0, $latencyMs);
+    }
+
+    /**
+     * @param array<string, mixed>|null $payload
+     * @return array<string, mixed>|null
+     */
+    private function truncatePayload(?array $payload): ?array
+    {
+        if ($payload === null) {
+            return null;
+        }
+
+        $truncated = [];
+
+        foreach ($payload as $key => $value) {
+            $truncated[$key] = $this->truncateValue($value);
+        }
+
+        return $truncated;
+    }
+
+    private function truncateValue(mixed $value): mixed
+    {
+        if (is_string($value) && mb_strlen($value) > self::FIELD_CHAR_LIMIT) {
+            return mb_substr($value, 0, self::FIELD_CHAR_LIMIT);
+        }
+
+        if (is_array($value)) {
+            $result = [];
+            foreach ($value as $key => $nested) {
+                $result[$key] = $this->truncateValue($nested);
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }

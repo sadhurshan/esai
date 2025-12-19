@@ -46,6 +46,12 @@ class RequestCompanyContextResolver
 
     public static function resolveRequestUser(Request $request): ?User
     {
+        $defaultUser = $request->user();
+
+        if ($defaultUser instanceof User) {
+            return $defaultUser;
+        }
+
         if (config('auth.guards.sanctum') !== null) {
             try {
                 $sanctumUser = $request->user('sanctum');
@@ -56,12 +62,6 @@ class RequestCompanyContextResolver
             if ($sanctumUser instanceof User) {
                 return $sanctumUser;
             }
-        }
-
-        $defaultUser = $request->user();
-
-        if ($defaultUser instanceof User) {
-            return $defaultUser;
         }
 
         $sessionId = self::resolveSessionId($request);

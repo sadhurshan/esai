@@ -39,6 +39,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/copilot/search:
+    post:
+      tags:
+        - Copilot
+      summary: Run semantic search across indexed tenant documents
+      operationId: copilotSemanticSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotQueryRequest'
+      responses:
+        '200':
+          description: Ranked document chunks matching the supplied query.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CopilotSearchResult'
+  /api/copilot/answer:
+    post:
+      tags:
+        - Copilot
+      summary: Generate grounded answers with citations
+      operationId: copilotAnswer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotQueryRequest'
+      responses:
+        '200':
+          description: Answer assembled from the top semantic search hits plus citations.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CopilotAnswerResult'
   /api/copilot/prompts:
     get:
       tags:

@@ -124,6 +124,39 @@ export interface AiEventResponse {
     meta?: CursorPaginationMeta;
 }
 
+export interface AiModelMetricEntityRef {
+    type?: string | null;
+    id?: string | number | null;
+}
+
+export interface AiModelMetricEntry {
+    id: string;
+    company_id: number;
+    feature: string;
+    metric_name: string;
+    metric_value?: number | null;
+    window_start?: string | null;
+    window_end?: string | null;
+    notes?: Record<string, unknown> | null;
+    entity?: AiModelMetricEntityRef | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface AiModelMetricFilters extends Record<string, unknown> {
+    feature?: string;
+    metricName?: string;
+    from?: string;
+    to?: string;
+    cursor?: string | null;
+    perPage?: number;
+}
+
+export interface AiModelMetricResponse {
+    items: AiModelMetricEntry[];
+    meta?: CursorPaginationMeta;
+}
+
 export interface SupplierApplicationAuditLogResponse {
     items: AuditLogEntry[];
 }

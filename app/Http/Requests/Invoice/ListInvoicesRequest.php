@@ -26,10 +26,8 @@ class ListInvoicesRequest extends ApiFormRequest
      */
     public function rules(): array
     {
-        $statuses = array_values(array_unique(array_merge(InvoiceStatus::values(), ['pending', 'overdue', 'disputed'])));
-
         return [
-            'status' => ['nullable', 'string', Rule::in($statuses)],
+            'status' => ['nullable', 'string', Rule::in(InvoiceStatus::values())],
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],

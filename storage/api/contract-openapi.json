@@ -285,6 +285,42 @@
                     }
                 }
             },
+            "AiDocumentReindexRequest": {
+                "type": "object",
+                "description": "Payload required to queue an AI reindex for a document.",
+                "required": [
+                    "doc_id",
+                    "doc_version"
+                ],
+                "properties": {
+                    "doc_id": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "doc_version": {
+                        "type": "string",
+                        "maxLength": 100
+                    }
+                }
+            },
+            "AiDocumentReindexStatus": {
+                "type": "object",
+                "description": "Echo payload describing the queued reindex operation.",
+                "required": [
+                    "doc_id",
+                    "doc_version"
+                ],
+                "properties": {
+                    "doc_id": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "doc_version": {
+                        "type": "string",
+                        "maxLength": 100
+                    }
+                }
+            },
             "ApiErrorResponse": {
                 "allOf": [
                     {
@@ -1156,6 +1192,155 @@
                         "type": "string",
                         "format": "uri",
                         "nullable": true
+                    }
+                }
+            },
+            "CopilotAnswerResult": {
+                "type": "object",
+                "required": [
+                    "answer",
+                    "citations"
+                ],
+                "properties": {
+                    "answer": {
+                        "type": "string",
+                        "description": "Structured natural language response assembled from the top chunks."
+                    },
+                    "citations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotCitation"
+                        },
+                        "description": "Source mapping each bullet point back to a document chunk."
+                    }
+                }
+            },
+            "CopilotCitation": {
+                "type": "object",
+                "required": [
+                    "doc_id",
+                    "doc_version",
+                    "chunk_id",
+                    "snippet",
+                    "score"
+                ],
+                "properties": {
+                    "doc_id": {
+                        "type": "string"
+                    },
+                    "doc_version": {
+                        "type": "string"
+                    },
+                    "chunk_id": {
+                        "type": "string"
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "snippet": {
+                        "type": "string"
+                    }
+                }
+            },
+            "CopilotQueryRequest": {
+                "type": "object",
+                "description": "Query payload accepted by copilot semantic search and answer endpoints.",
+                "required": [
+                    "query"
+                ],
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 2000
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20,
+                        "description": "Overrides the default number of chunks returned by the AI service."
+                    },
+                    "filters": {
+                        "$ref": "#/components/schemas/CopilotSearchFilters"
+                    }
+                }
+            },
+            "CopilotSearchFilters": {
+                "type": "object",
+                "description": "Optional filters applied to copilot search and answer endpoints.",
+                "properties": {
+                    "source_type": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "doc_id": {
+                        "type": "string",
+                        "description": "Document identifier as a string to match the AI index payloads."
+                    },
+                    "doc_version": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 100
+                        },
+                        "description": "Arbitrary metadata tags stored with the document index."
+                    }
+                }
+            },
+            "CopilotSearchHit": {
+                "type": "object",
+                "description": "Ranked chunk metadata returned from the semantic search endpoint.",
+                "required": [
+                    "doc_id",
+                    "doc_version",
+                    "chunk_id",
+                    "score",
+                    "snippet"
+                ],
+                "properties": {
+                    "doc_id": {
+                        "type": "string"
+                    },
+                    "doc_version": {
+                        "type": "string"
+                    },
+                    "chunk_id": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "snippet": {
+                        "type": "string",
+                        "description": "Preview text trimmed to the first 250 characters."
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Arbitrary metadata captured when the chunk was indexed."
+                    }
+                }
+            },
+            "CopilotSearchResult": {
+                "type": "object",
+                "required": [
+                    "hits"
+                ],
+                "properties": {
+                    "hits": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotSearchHit"
+                        },
+                        "description": "Ordered by cosine similarity."
                     }
                 }
             },
@@ -8916,6 +9101,70 @@
                 }
             }
         },
+        "/api/ai/forecast": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Request AI forecast insights",
+                "operationId": "aiForecast",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Forecast projections returned from the AI service.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/supplier-risk": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Request AI supplier risk insights",
+                "operationId": "aiSupplierRisk",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier risk insight payload from the AI service.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/analytics/generate": {
             "post": {
                 "tags": [
@@ -11151,6 +11400,49 @@
                 }
             }
         },
+        "/api/copilot/answer": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Generate grounded answers with citations",
+                "operationId": "copilotAnswer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotQueryRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Answer assembled from the top semantic search hits plus citations.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CopilotAnswerResult"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/copilot/chat/completions": {
             "post": {
                 "tags": [
@@ -11197,6 +11489,49 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/copilot/search": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Run semantic search across indexed tenant documents",
+                "operationId": "copilotSemanticSearch",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotQueryRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ranked document chunks matching the supplied query.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CopilotSearchResult"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -13866,6 +14201,230 @@
                 }
             }
         },
+        "/api/inventory/items": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "List inventory items",
+                "operationId": "listInventoryItems",
+                "responses": {
+                    "200": {
+                        "description": "Inventory items for the company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Create inventory item",
+                "operationId": "createInventoryItem",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inventory item created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/inventory/items/{itemId}": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Show inventory item",
+                "operationId": "showInventoryItem",
+                "responses": {
+                    "200": {
+                        "description": "Inventory item detail payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "itemId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Update inventory item",
+                "operationId": "updateInventoryItem",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inventory item updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/inventory/locations": {
+            "delete": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Delete goods receipt note",
+                "operationId": "deleteGrn",
+                "responses": {
+                    "200": {
+                        "description": "Goods receipt deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "List inventory locations",
+                "operationId": "listInventoryLocations",
+                "responses": {
+                    "200": {
+                        "description": "Warehouse and bin metadata for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/inventory/low-stock": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "List low stock alerts",
+                "operationId": "listLowStockAlerts",
+                "responses": {
+                    "200": {
+                        "description": "Low inventory report.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/inventory/movements": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "List inventory movements",
+                "operationId": "listInventoryMovements",
+                "responses": {
+                    "200": {
+                        "description": "Inventory movement history.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Create inventory movement",
+                "operationId": "createInventoryMovement",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inventory movement recorded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/invoices": {
             "get": {
                 "tags": [
@@ -14298,6 +14857,54 @@
                 }
             }
         },
+        "/api/invoices/{invoiceId}/mark-paid": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Mark invoice as paid",
+                "operationId": "markInvoicePaid",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "payment_reference": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invoice marked as paid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/invoices/{invoiceId}/recalculate": {
             "post": {
                 "tags": [
@@ -14335,6 +14942,154 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/{invoiceId}/review/approve": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Approve invoice review request",
+                "operationId": "approveInvoiceReview",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "note": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invoice approved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/{invoiceId}/review/reject": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Reject invoice during review",
+                "operationId": "rejectInvoiceReview",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "note"
+                                ],
+                                "properties": {
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invoice rejected with reviewer notes.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/{invoiceId}/review/request-changes": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Request changes from supplier invoice",
+                "operationId": "requestInvoiceChanges",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "note"
+                                ],
+                                "properties": {
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Change request recorded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }
@@ -16898,7 +17653,7 @@
                 "operationId": "deleteGrn",
                 "responses": {
                     "200": {
-                        "description": "Goods receipt deleted.",
+                        "description": "Goods receipt deleted with audit trail.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -17801,6 +18556,57 @@
                 "responses": {
                     "200": {
                         "description": "Quote totals recalculated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/quotes/{quoteId}/shortlist": {
+            "delete": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Remove quote from shortlist",
+                "operationId": "unshortlistQuote",
+                "responses": {
+                    "200": {
+                        "description": "Quote removed from shortlist.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Add quote to shortlist",
+                "operationId": "shortlistQuote",
+                "responses": {
+                    "200": {
+                        "description": "Quote shortlisted for award consideration.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -20094,6 +20900,60 @@
                 }
             }
         },
+        "/api/rfqs/{rfqId}/clarifications/{clarificationId}/attachments/{attachmentId}": {
+            "get": {
+                "tags": [
+                    "RFQs"
+                ],
+                "summary": "Download clarification attachment",
+                "operationId": "downloadRfqClarificationAttachment",
+                "responses": {
+                    "200": {
+                        "description": "Attachment stream for the clarification entry.",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "clarificationId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "attachmentId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ]
+        },
         "/api/rfqs/{rfqId}/close": {
             "post": {
                 "tags": [
@@ -20847,6 +21707,58 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
+        "/api/rfqs/{rfqId}/quotes/{quoteId}/draft": {
+            "parameters": [
+                {
+                    "name": "rfqId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                {
+                    "name": "quoteId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "patch": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Update quote draft details",
+                "operationId": "updateRfqQuoteDraft",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Draft quote updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -22031,6 +22943,142 @@
                 }
             ]
         },
+        "/api/supplier/dashboard/metrics": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Retrieve supplier dashboard metrics",
+                "operationId": "supplierDashboardMetrics",
+                "responses": {
+                    "200": {
+                        "description": "Aggregated metrics for the active supplier persona.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier/invoices": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "List supplier-authored invoices",
+                "operationId": "listSupplierInvoices",
+                "responses": {
+                    "200": {
+                        "description": "Supplier invoice listing scoped to persona.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier/invoices/{invoiceId}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Show supplier-authored invoice",
+                "operationId": "showSupplierInvoice",
+                "responses": {
+                    "200": {
+                        "description": "Supplier invoice details.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "invoiceId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "put": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Update supplier invoice draft",
+                "operationId": "updateSupplierInvoice",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier invoice updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier/invoices/{invoiceId}/submit": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Submit supplier invoice for buyer review",
+                "operationId": "submitSupplierInvoice",
+                "parameters": [
+                    {
+                        "name": "invoiceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier invoice submitted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/supplier/orders": {
             "get": {
                 "tags": [
@@ -22285,6 +23333,49 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/supplier/purchase-orders/{purchaseOrderId}/invoices": {
+            "parameters": [
+                {
+                    "name": "purchaseOrderId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Supplier submits invoice for purchase order",
+                "operationId": "supplierCreateInvoiceFromPurchaseOrder",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier-authored invoice created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
                                 }
                             }
                         }
@@ -22822,6 +23913,49 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/ai/reindex-document": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Queue AI document reindex for a tenant document",
+                "operationId": "adminReindexDocument",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiDocumentReindexRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document reindex job dispatched to the AI worker queue.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiDocumentReindexStatus"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

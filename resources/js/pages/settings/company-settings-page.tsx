@@ -4,6 +4,7 @@ import { useForm, useFieldArray, useWatch, type Control, type FieldArray, type F
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
@@ -13,8 +14,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
 import { AddressEditor } from '@/components/settings/address-editor';
 import { useAuth } from '@/contexts/auth-context';
-import { useCompanySettings, useUpdateCompanySettings, type UpdateCompanySettingsInput } from '@/hooks/api/settings';
-import type { CompanyAddress } from '@/types/settings';
+import {
+    useCompanySettings,
+    useUpdateCompanySettings,
+    useCompanyAiSettings,
+    useUpdateCompanyAiSettings,
+    type UpdateCompanySettingsInput,
+} from '@/hooks/api/settings';
+import type { CompanyAddress, CompanySettings } from '@/types/settings';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
@@ -76,8 +83,8 @@ function toFormValues(settings?: CompanySettings): CompanyFormValues {
         displayName: settings?.displayName ?? '',
         registrationNumber: settings?.registrationNumber ?? '',
         taxId: settings?.taxId ?? '',
-        emails: (settings?.emails?.length ? settings.emails : ['']).map((value) => ({ value })),
-        phones: (settings?.phones?.length ? settings.phones : ['']).map((value) => ({ value })),
+        emails: (settings?.emails?.length ? settings.emails : ['']).map((value: string) => ({ value })),
+        phones: (settings?.phones?.length ? settings.phones : ['']).map((value: string) => ({ value })),
         billTo: { ...emptyAddress, ...settings?.billTo },
         shipFrom: { ...emptyAddress, ...settings?.shipFrom },
         logoUrl: settings?.logoUrl ?? '',
@@ -89,7 +96,7 @@ function toFormValues(settings?: CompanySettings): CompanyFormValues {
 
 function sanitizeContacts(values: Array<{ value?: string | null }>): string[] {
     return values
-    .map((entry) => entry.value?.trim() ?? '')
+        .map((entry) => entry.value?.trim() ?? '')
         .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
 }
 
@@ -129,6 +136,8 @@ export function CompanySettingsPage() {
     const { isAdmin } = useAuth();
     const companyQuery = useCompanySettings();
     const updateCompany = useUpdateCompanySettings();
+    const aiSettingsQuery = useCompanyAiSettings();
+    const updateAiSettings = useUpdateCompanyAiSettings();
 
     const form = useForm<CompanyFormValues>({
         resolver: zodResolver(companySchema),
@@ -152,6 +161,10 @@ export function CompanySettingsPage() {
 
     const [logoFilePreview, setLogoFilePreview] = useState<string | null>(null);
     const [markFilePreview, setMarkFilePreview] = useState<string | null>(null);
+
+    const aiSettings = aiSettingsQuery.data;
+    const aiSettingsLoading = aiSettingsQuery.isLoading && !aiSettings;
+    const aiToggleInFlight = updateAiSettings.isPending;
 
     useEffect(() => {
         if (!logoFile || !isFile(logoFile)) {
@@ -205,6 +218,32 @@ export function CompanySettingsPage() {
     const handleRemoveMark = (): void => {
         form.setValue('markFile', null, { shouldDirty: true });
         form.setValue('markUrl', '', { shouldDirty: true });
+    };
+
+    const handleToggleAiSettings = async (): Promise<void> => {
+        if (!aiSettings) {
+            return;
+        }
+
+        const nextValue = !aiSettings.llmAnswersEnabled;
+
+        try {
+            await updateAiSettings.mutateAsync({ llmAnswersEnabled: nextValue });
+            publishToast({
+                variant: 'success',
+                title: nextValue ? 'LLM answers enabled' : 'LLM answers disabled',
+                description: nextValue
+                    ? 'Copilot will call OpenAI with hashed safety identifiers and cite every source.'
+                    : 'Copilot will remain on deterministic summaries with no external LLM usage.',
+            });
+        } catch (error) {
+            void error;
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to update AI settings',
+                description: 'Please try again or contact support if the issue persists.',
+            });
+        }
     };
 
     const logoPreview = logoFilePreview ?? (logoUrl?.length ? logoUrl : '');
@@ -457,6 +496,51 @@ export function CompanySettingsPage() {
                                     <Button type="submit" disabled={updateCompany.isPending}>
                                         {updateCompany.isPending ? 'Saving…' : 'Save company profile'}
                                     </Button>
+                                </CardFooter>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div>
+                                        <CardTitle>Copilot answers</CardTitle>
+                                        <p className="text-sm text-muted-foreground">
+                                            Decide whether grounded answers can call OpenAI or stay on deterministic summaries.
+                                        </p>
+                                    </div>
+                                    {aiSettings && (
+                                        <Badge variant={aiSettings.llmAnswersEnabled ? 'default' : 'secondary'}>
+                                            {aiSettings.llmAnswersEnabled ? 'OpenAI live' : 'Deterministic only'}
+                                        </Badge>
+                                    )}
+                                </CardHeader>
+                                <CardContent>
+                                    {aiSettingsLoading ? (
+                                        <Skeleton className="h-16 w-full" />
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <p className="text-sm text-muted-foreground">
+                                                {aiSettings?.llmAnswersEnabled
+                                                    ? 'Copilot will send hashed safety identifiers to OpenAI, return schema-enforced answers, and log every call in AI events.'
+                                                    : 'Copilot will stay on deterministic summaries generated in-house, keeping all prompts within this workspace.'}
+                                            </p>
+                                            <Button
+                                                type="button"
+                                                variant={aiSettings?.llmAnswersEnabled ? 'outline' : 'default'}
+                                                disabled={!aiSettings || aiToggleInFlight}
+                                                onClick={handleToggleAiSettings}
+                                            >
+                                                {aiSettings
+                                                    ? aiSettings.llmAnswersEnabled
+                                                        ? 'Disable LLM answers'
+                                                        : 'Enable LLM answers'
+                                                    : 'Loading…'}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </CardContent>
+                                <CardFooter>
+                                    <p className="text-xs text-muted-foreground">
+                                        Every toggle is recorded in AI events so you can audit who changed provider access and when.
+                                    </p>
                                 </CardFooter>
                             </Card>
                         </div>

@@ -37,7 +37,11 @@ class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        $editableStatuses = ['pending', InvoiceStatus::Draft->value];
+        $editableStatuses = [
+            InvoiceStatus::Draft->value,
+            InvoiceStatus::BuyerReview->value,
+            InvoiceStatus::Rejected->value,
+        ];
 
         if (! in_array($invoice->status, $editableStatuses, true)) {
             return false;
@@ -52,7 +56,11 @@ class InvoicePolicy
 
     public function delete(User $user, Invoice $invoice): bool
     {
-        $editableStatuses = ['pending', InvoiceStatus::Draft->value];
+        $editableStatuses = [
+            InvoiceStatus::Draft->value,
+            InvoiceStatus::BuyerReview->value,
+            InvoiceStatus::Rejected->value,
+        ];
 
         if (! in_array($invoice->status, $editableStatuses, true)) {
             return false;

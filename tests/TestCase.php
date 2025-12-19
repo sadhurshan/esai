@@ -12,6 +12,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        \App\Support\CompanyContext::clear();
+        \App\Support\ActivePersonaContext::clear();
+
         $this->withoutMiddleware([
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
@@ -57,6 +60,7 @@ abstract class TestCase extends BaseTestCase
     protected function tearDown(): void
     {
         \App\Support\CompanyContext::clear();
+        \App\Support\ActivePersonaContext::clear();
 
         parent::tearDown();
     }

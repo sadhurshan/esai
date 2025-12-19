@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController as AdminApiKeyController;
 use App\Http\Controllers\Admin\AiEventController as AdminAiEventController;
+use App\Http\Controllers\Admin\AiModelMetricController as AdminAiModelMetricController;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyFeatureFlagController as AdminCompanyFeatureFlagController;
 use App\Http\Controllers\Admin\DigitalTwinCategoryController as AdminDigitalTwinCategoryController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\Api\FxRateController;
 use App\Http\Controllers\Api\Localization\LocaleSettingsController;
 use App\Http\Controllers\Api\Settings\CompanySettingsController;
 use App\Http\Controllers\Api\Settings\NumberingSettingsController;
+use App\Http\Controllers\Api\Settings\CompanyAiSettingsController;
 use App\Http\Controllers\Api\Localization\UomController;
 use App\Http\Controllers\Api\Localization\UomConversionController;
 use App\Http\Controllers\Api\CompanyDocumentController;
@@ -76,6 +78,8 @@ use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseOrderShipmentController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierQuoteController;
+use App\Http\Controllers\Api\Ai\AiDocumentIndexController;
+use App\Http\Controllers\Api\Ai\CopilotSearchController;
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
 use App\Http\Controllers\Api\SupplierDashboardController;
@@ -187,6 +191,7 @@ Route::middleware(['auth', 'admin.guard', \App\Http\Middleware\BypassCompanyCont
     Route::patch('roles/{roleTemplate}', [AdminRoleTemplateController::class, 'update']);
     Route::get('audit', [AdminAuditLogController::class, 'index']);
     Route::get('ai-events', [AdminAiEventController::class, 'index']);
+    Route::get('ai-model-metrics', [AdminAiModelMetricController::class, 'index']);
     Route::get('company-approvals', [CompanyApprovalController::class, 'index']);
     Route::post('company-approvals/{company}/approve', [CompanyApprovalController::class, 'approve']);
     Route::post('company-approvals/{company}/reject', [CompanyApprovalController::class, 'reject']);
@@ -233,6 +238,8 @@ Route::prefix('ai')
         'ensure.company.onboarded:strict',
         'ensure.company.approved',
         'ensure.subscribed',
+        'ai.ensure.available',
+        'ai.rate.limit',
     ])
     ->group(function (): void {
         Route::post('forecast', [AiController::class, 'forecast'])
@@ -241,6 +248,18 @@ Route::prefix('ai')
         Route::post('supplier-risk', [AiController::class, 'supplierRisk'])
             ->middleware(['ensure.risk.access']);
     });
+
+Route::prefix('v1')->group(function (): void {
+    Route::middleware([
+        'auth',
+        'ensure.company.onboarded:strict',
+        'ensure.company.approved',
+        'ensure.subscribed',
+        'buyer_admin_only',
+    ])->prefix('admin/ai')->group(function (): void {
+        Route::post('reindex-document', [AiDocumentIndexController::class, 'reindex']);
+    });
+});
 
 Route::middleware(['auth', 'ensure.subscribed', 'ensure.digital_twin.access', 'buyer_access'])
     ->prefix('library')
@@ -343,8 +362,7 @@ Route::prefix('rfqs')->group(function (): void {
             Route::get('/{clarification}/attachments/{attachment}', [RfqClarificationController::class, 'downloadAttachment'])
                 ->name('rfqs.clarifications.attachments.download');
             Route::post('/question', [RfqClarificationController::class, 'storeQuestion']);
-            Route::post('/answer', [RfqClarificationController::class, 'storeAnswer'])
-                ->middleware('sourcing_access:write');
+            Route::post('/answer', [RfqClarificationController::class, 'storeAnswer']);
             Route::post('/amendment', [RfqClarificationController::class, 'storeAmendment'])
                 ->middleware('sourcing_access:write');
         });
@@ -588,6 +606,9 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
             Route::get('company', [CompanySettingsController::class, 'show']);
             Route::patch('company', [CompanySettingsController::class, 'update']);
 
+            Route::get('ai', [CompanyAiSettingsController::class, 'show']);
+            Route::patch('ai', [CompanyAiSettingsController::class, 'update']);
+
             Route::middleware('ensure.localization.access')->group(function (): void {
                 Route::get('localization', [LocaleSettingsController::class, 'show']);
                 Route::patch('localization', [LocaleSettingsController::class, 'update']);
@@ -640,6 +661,21 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
         Route::get('overview', [AnalyticsController::class, 'overview']);
         Route::post('generate', [AnalyticsController::class, 'generate']);
     });
+
+    Route::prefix('copilot')
+        ->middleware([
+            'auth',
+            'ensure.company.onboarded:strict',
+            'ensure.company.approved',
+            'ensure.subscribed',
+            'buyer_access',
+            'ai.ensure.available',
+            'ai.rate.limit',
+        ])
+        ->group(function (): void {
+            Route::post('search', [CopilotSearchController::class, 'search']);
+            Route::post('answer', [CopilotSearchController::class, 'answer']);
+        });
 
     Route::post('copilot/analytics', [CopilotController::class, 'handle'])->middleware('ensure.analytics.access');
 

@@ -39,6 +39,7 @@ use App\Models\WebhookSubscription;
 use App\Models\WebhookDelivery;
 use App\Models\DigitalTwin;
 use App\Models\UsageSnapshot;
+use App\Models\CompanyAiSetting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -360,6 +361,11 @@ class Company extends Model
     public function featureFlags(): HasMany
     {
         return $this->hasMany(CompanyFeatureFlag::class);
+    }
+
+    public function aiSetting(): HasOne
+    {
+        return $this->hasOne(CompanyAiSetting::class);
     }
 
     public function apiKeys(): HasMany

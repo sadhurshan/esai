@@ -7,6 +7,7 @@ import math
 import os
 from typing import Any, Dict, Optional, Tuple
 
+import joblib
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -49,10 +50,19 @@ class AISupplyService:
         self._risk_model: Optional[Any] = None
         self._risk_model_type: Optional[str] = None
         self._risk_model_features: list[str] = []
+        self._risk_model_trained_at: Optional[str] = None
         self._risk_feature_stats: Dict[str, Dict[str, float]] = {}
         self._risk_thresholds = self._parse_risk_thresholds(os.getenv("AI_SERVICE_RISK_THRESHOLDS", "0.4,0.7"))
         self._risk_label_map = {"low": 0, "medium": 1, "high": 2}
         self._risk_label_inverse = {value: key for key, value in self._risk_label_map.items()}
+        self._model_store_path = os.getenv("AI_SERVICE_MODEL_PATH") or os.path.join(os.getcwd(), "storage", "ai_models.joblib")
+
+        artifact_path = self._resolve_model_file(self._model_store_path)
+        if os.path.exists(artifact_path):
+            try:
+                self.load_models(self._model_store_path)
+            except RuntimeError:
+                LOGGER.warning("Unable to load AI models from %s; continuing with fresh state", artifact_path, exc_info=True)
 
     def load_inventory_data(
         self,
@@ -254,8 +264,9 @@ class AISupplyService:
             horizon: Number of future days to include in the forecast window.
 
         Returns:
-            Dictionary containing the ``model`` used, ``demand_qty``, ``avg_daily_demand``, ``safety_stock``,
-            ``reorder_point`` and ``order_by_date`` (ISO string) fields used by the Laravel layer.
+            Dictionary containing the ``model_used`` (also exposed as ``model`` for backwards compatibility),
+            ``demand_qty``, ``avg_daily_demand``, ``safety_stock``, ``reorder_point`` and ``order_by_date`` (ISO string)
+            fields used by the Laravel layer.
 
         Raises:
             ValueError: If ``horizon`` is non-positive or ``history`` does not contain any observations.
@@ -306,6 +317,7 @@ class AISupplyService:
         order_by_date = (last_date + dt.timedelta(days=max(1, lead_time_days - 1))).isoformat()
 
         return {
+            "model_used": selected_model,
             "model": selected_model,
             "demand_qty": demand_qty,
             "avg_daily_demand": avg_daily_demand,
@@ -535,6 +547,7 @@ class AISupplyService:
         self._risk_model = model
         self._risk_model_type = label_mode
         self._risk_model_features = feature_columns
+        self._risk_model_trained_at = dt.datetime.now(dt.timezone.utc).isoformat()
         self._risk_feature_stats = {
             "impute_values": {col: float(impute_values.get(col, 0.0)) for col in feature_columns},
             "means": {col: float(feature_frame[col].mean()) for col in feature_columns},
@@ -735,6 +748,137 @@ class AISupplyService:
             series = pd.to_numeric(series, errors="coerce")
         series = series.dropna().astype(float)
         return series.to_numpy(dtype=float)
+
+    def readiness_snapshot(self) -> Dict[str, Any]:
+        """Return cached metadata for readiness probes without hitting external systems."""
+        timestamps: list[dt.datetime] = []
+        for entry in self._forecast_registry.values():
+            trained_at = entry.get("trained_at")
+            parsed = self._parse_iso_datetime(trained_at)
+            if parsed is not None:
+                timestamps.append(parsed)
+
+        risk_trained = self._parse_iso_datetime(self._risk_model_trained_at)
+        if risk_trained is not None:
+            timestamps.append(risk_trained)
+
+        latest = max(timestamps) if timestamps else None
+        return {
+            "models_loaded": bool(self._forecast_registry or self._risk_model),
+            "last_trained_at": latest.isoformat() if latest else None,
+        }
+
+    @staticmethod
+    def _parse_iso_datetime(value: Optional[str]) -> Optional[dt.datetime]:
+        if not value:
+            return None
+        try:
+            parsed = dt.datetime.fromisoformat(value)
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=dt.timezone.utc)
+        return parsed
+
+    def save_models(self, path: str) -> str:
+        """Persist trained models and metadata to disk using joblib.
+
+        Args:
+            path: Directory or file path for the serialized artifact. Directories will receive
+                an ``ai_models.joblib`` file by default.
+
+        Returns:
+            The absolute path to the saved artifact.
+
+        Raises:
+            RuntimeError: If the persistence operation fails.
+        """
+
+        artifact_path = os.path.abspath(self._resolve_model_file(path))
+        directory = os.path.dirname(artifact_path)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+
+        payload = {
+            "forecast_registry": self._forecast_registry,
+            "risk_model": self._risk_model,
+            "risk_model_type": self._risk_model_type,
+            "risk_model_features": self._risk_model_features,
+            "risk_feature_stats": self._risk_feature_stats,
+            "risk_thresholds": self._risk_thresholds,
+            "risk_label_map": self._risk_label_map,
+            "risk_label_inverse": self._risk_label_inverse,
+            "risk_model_trained_at": self._risk_model_trained_at,
+            "metadata": {
+                "saved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "last_trained_at": self.readiness_snapshot().get("last_trained_at"),
+                "forecast_registry_size": len(self._forecast_registry),
+            },
+        }
+
+        try:
+            joblib.dump(payload, artifact_path)
+        except Exception as exc:  # pragma: no cover - persistence errors are operational issues
+            LOGGER.exception("Failed to save AI models to %s", artifact_path)
+            raise RuntimeError(f"Failed to save AI models to {artifact_path}") from exc
+
+        LOGGER.info(
+            "Persisted AI models artifact path=%s forecast_models=%s risk_model=%s",
+            artifact_path,
+            len(self._forecast_registry),
+            bool(self._risk_model),
+        )
+        return artifact_path
+
+    def load_models(self, path: str) -> bool:
+        """Load serialized models from disk when artifacts are available."""
+
+        artifact_path = os.path.abspath(self._resolve_model_file(path))
+        if not os.path.exists(artifact_path):
+            LOGGER.info("AI model artifact %s not found; skipping load", artifact_path)
+            return False
+
+        try:
+            payload = joblib.load(artifact_path)
+        except Exception as exc:  # pragma: no cover - surfaced to operator
+            LOGGER.exception("Failed to load AI models from %s", artifact_path)
+            raise RuntimeError(f"Failed to load AI models from {artifact_path}") from exc
+
+        registry = payload.get("forecast_registry") or {}
+        if isinstance(registry, dict):
+            self._forecast_registry = {int(part_id): entry for part_id, entry in registry.items()}
+
+        self._risk_model = payload.get("risk_model")
+        self._risk_model_type = payload.get("risk_model_type")
+        self._risk_model_features = payload.get("risk_model_features", [])
+        self._risk_feature_stats = payload.get("risk_feature_stats", {})
+
+        thresholds = payload.get("risk_thresholds")
+        if isinstance(thresholds, (list, tuple)) and len(thresholds) >= 2:
+            self._risk_thresholds = (float(thresholds[0]), float(thresholds[1]))
+
+        self._risk_label_map = payload.get("risk_label_map", self._risk_label_map)
+        self._risk_label_inverse = payload.get("risk_label_inverse") or {
+            value: key for key, value in self._risk_label_map.items()
+        }
+        self._risk_model_trained_at = payload.get("risk_model_trained_at")
+
+        LOGGER.info(
+            "Loaded AI models artifact path=%s forecast_models=%s risk_model=%s",
+            artifact_path,
+            len(self._forecast_registry),
+            bool(self._risk_model),
+        )
+        return True
+
+    @staticmethod
+    def _resolve_model_file(path: str) -> str:
+        if not path:
+            raise ValueError("Model persistence path cannot be empty")
+        normalized = os.path.abspath(path)
+        if normalized.lower().endswith((".joblib", ".pkl", ".pickle")):
+            return normalized
+        return os.path.join(normalized, "ai_models.joblib")
 
     @staticmethod
     def _population_stability_index(

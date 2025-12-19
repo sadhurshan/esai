@@ -3,15 +3,28 @@
 namespace App\Services\Ai;
 
 use App\Exceptions\AiServiceUnavailableException;
+use App\Models\AiEvent;
+use App\Models\CompanyAiSetting;
+use App\Services\Ai\AiEventRecorder;
+use App\Support\CompanyContext;
+use Carbon\Carbon;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AiClient
 {
-    public function __construct(private readonly HttpFactory $http)
-    {
+    public function __construct(
+        private readonly HttpFactory $http,
+        private readonly CacheRepository $cache,
+        private readonly AiEventRecorder $recorder,
+        private readonly ?Request $request = null,
+    ) {
     }
 
     /**
@@ -20,7 +33,7 @@ class AiClient
      */
     public function forecast(array $payload): array
     {
-        return $this->send('forecast', $payload, 'Forecast generated.');
+        return $this->send('forecast', $payload, 'Forecast generated.', 'forecast');
     }
 
     /**
@@ -29,26 +42,249 @@ class AiClient
      */
     public function supplierRisk(array $payload): array
     {
-        return $this->send('supplier-risk', $payload, 'Supplier risk assessed.');
+        return $this->send('supplier-risk', $payload, 'Supplier risk assessed.', 'supplier_risk');
     }
 
     /**
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
-    private function send(string $endpoint, array $payload, string $successMessage): array
+    public function indexDocument(array $payload): array
+    {
+        return $this->send('index/document', $payload, 'Document indexed.', 'index_document');
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function search(array $payload): array
+    {
+        return $this->send('search', $payload, 'Search completed.', 'search');
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function answer(array $payload): array
+    {
+        return $this->send(
+            'answer',
+            $payload,
+            'Answer generated.',
+            'answer',
+            function (array $enrichedPayload): array {
+                return $this->applyLlmProviderControls($enrichedPayload);
+            }
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    /**
+     * @param array<string, mixed> $payload
+     * @param callable|null $payloadInterceptor
+     */
+    private function send(
+        string $endpoint,
+        array $payload,
+        string $successMessage,
+        string $feature,
+        ?callable $payloadInterceptor = null
+    ): array
     {
         if (! $this->isEnabled()) {
             return $this->disabledResponse();
         }
 
+        if ($this->isCircuitOpen()) {
+            $this->recordCircuitSkip($feature, $payload);
+
+            return $this->circuitUnavailableResponse();
+        }
+
+        $enrichedPayload = $this->enrichPayload($payload);
+
+        if ($payloadInterceptor !== null) {
+            $enrichedPayload = $payloadInterceptor($enrichedPayload);
+        }
+
         try {
-            $response = $this->pendingRequest()->post(ltrim($endpoint, '/'), $payload);
+            $response = $this->pendingRequest()->post(ltrim($endpoint, '/'), $enrichedPayload);
         } catch (ConnectionException $exception) {
+            $this->recordFailure($feature, $enrichedPayload, $exception->getMessage());
+
             throw new AiServiceUnavailableException('AI service is unavailable.', 0, $exception);
         }
 
-        return $this->formatResponse($response, $successMessage);
+        $result = $this->formatResponse($response, $successMessage);
+
+        if ($result['status'] === 'success') {
+            $this->resetFailureWindow();
+        } else {
+            $this->recordFailure($feature, $enrichedPayload, $result['message'] ?? null);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function enrichPayload(array $payload): array
+    {
+        $companyId = $this->currentCompanyId();
+        $user = $this->request?->user();
+
+        if ($user === null) {
+            $user = auth()->user();
+        }
+
+        $userId = $this->currentUserId();
+        $role = $this->resolveUserRole($user);
+        $safetyIdentifier = $this->resolveSafetyIdentifier($user);
+
+        $auditContext = array_filter([
+            'company_id' => $companyId,
+            'user_id' => $userId,
+            'role' => $role,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        if ($auditContext !== []) {
+            $payload['audit_context'] = $auditContext;
+        }
+
+        if ($safetyIdentifier !== null) {
+            $payload['safety_identifier'] = $safetyIdentifier;
+        }
+
+        if (! isset($payload['company_id']) && $companyId !== null) {
+            $payload['company_id'] = $companyId;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function applyLlmProviderControls(array $payload): array
+    {
+        $companyId = $this->extractCompanyId($payload);
+        $provider = $this->resolveLlmProviderForCompany($companyId);
+
+        $payload['llm_provider'] = $provider;
+        $payload['llm_answers_enabled'] = $provider === 'openai';
+
+        return $payload;
+    }
+
+    private function extractCompanyId(array $payload): ?int
+    {
+        $companyId = $payload['company_id'] ?? null;
+
+        if ($companyId === null) {
+            return null;
+        }
+
+        if (is_numeric($companyId)) {
+            $value = (int) $companyId;
+
+            return $value > 0 ? $value : null;
+        }
+
+        return null;
+    }
+
+    private function resolveLlmProviderForCompany(?int $companyId): string
+    {
+        if ($companyId === null) {
+            return 'dummy';
+        }
+
+        $setting = CompanyAiSetting::query()
+            ->select(['llm_answers_enabled', 'llm_provider'])
+            ->where('company_id', $companyId)
+            ->first();
+
+        if (! $setting instanceof CompanyAiSetting) {
+            return 'dummy';
+        }
+
+        return $setting->resolvedProvider();
+    }
+
+    private function resolveUserRole(?AuthenticatableContract $user): ?string
+    {
+        $role = $this->extractUserAttribute($user, 'role');
+
+        return is_string($role) && $role !== '' ? $role : null;
+    }
+
+    private function resolveSafetyIdentifier(?AuthenticatableContract $user = null): ?string
+    {
+        $identifier = $this->extractUserAttribute($user, 'email');
+
+        if (! is_string($identifier) || $identifier === '') {
+            $identifier = $this->extractAuthIdentifier($user);
+        }
+
+        if ($identifier === null) {
+            return null;
+        }
+
+        $appKey = (string) config('app.key');
+
+        return hash('sha256', sprintf('%s|%s', $appKey, $identifier));
+    }
+
+    private function extractUserAttribute(?AuthenticatableContract $user, string $attribute): mixed
+    {
+        $candidate = $user;
+
+        if ($candidate === null) {
+            $candidate = auth()->user();
+        }
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        if (method_exists($candidate, 'getAttribute')) {
+            return $candidate->getAttribute($attribute);
+        }
+
+        if (isset($candidate->{$attribute})) {
+            return $candidate->{$attribute};
+        }
+
+        return null;
+    }
+
+    private function extractAuthIdentifier(?AuthenticatableContract $user = null): ?string
+    {
+        $candidate = $user;
+
+        if ($candidate === null) {
+            $candidate = auth()->user();
+        }
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        $identifier = $candidate->getAuthIdentifier();
+
+        if (is_numeric($identifier)) {
+            return (string) $identifier;
+        }
+
+        return is_string($identifier) && $identifier !== '' ? $identifier : null;
     }
 
     private function pendingRequest(): PendingRequest
@@ -65,11 +301,35 @@ class AiClient
      */
     private function headers(): array
     {
+        $sharedSecret = $this->sharedSecret();
+
+        if ($sharedSecret === null || $sharedSecret === '') {
+            throw new AiServiceUnavailableException('AI shared secret is not configured.');
+        }
+
         $headers = [
-            'X-AI-Secret' => $this->sharedSecret(),
+            'X-AI-Secret' => $sharedSecret,
+            'X-Request-Id' => $this->resolveRequestId(),
         ];
 
         return array_filter($headers, static fn (?string $value): bool => $value !== null && $value !== '');
+    }
+
+    private function resolveRequestId(): string
+    {
+        $request = $this->request ?? request();
+
+        $headerId = $request?->headers->get('X-Request-Id');
+        if (is_string($headerId) && $headerId !== '') {
+            return $headerId;
+        }
+
+        $attributeId = $request?->attributes->get('request_id');
+        if (is_string($attributeId) && $attributeId !== '') {
+            return $attributeId;
+        }
+
+        return (string) Str::uuid();
     }
 
     private function formatResponse(Response $response, string $successMessage): array
@@ -162,7 +422,7 @@ class AiClient
     {
         $secret = config('ai.shared_secret');
 
-        return is_string($secret) ? $secret : null;
+        return is_string($secret) ? trim($secret) : null;
     }
 
     private function disabledResponse(): array
@@ -175,5 +435,222 @@ class AiClient
                 'service' => ['AI service is disabled.'],
             ],
         ];
+    }
+
+    private function circuitUnavailableResponse(): array
+    {
+        return [
+            'status' => 'error',
+            'message' => 'AI temporarily unavailable. Please retry shortly.',
+            'data' => null,
+            'errors' => [
+                'service' => ['AI circuit breaker is open.'],
+            ],
+        ];
+    }
+
+    private function isCircuitBreakerEnabled(): bool
+    {
+        return (bool) config('ai.circuit_breaker.enabled', true);
+    }
+
+    private function isCircuitOpen(): bool
+    {
+        if (! $this->isCircuitBreakerEnabled()) {
+            return false;
+        }
+
+        $openUntil = $this->cache->get($this->circuitOpenCacheKey());
+
+        if (! is_int($openUntil)) {
+            return false;
+        }
+
+        $now = Carbon::now()->timestamp;
+
+        if ($openUntil <= $now) {
+            $this->closeCircuit();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function recordFailure(string $feature, array $payload, ?string $errorMessage): void
+    {
+        if (! $this->isCircuitBreakerEnabled()) {
+            return;
+        }
+
+        $key = $this->failureCacheKey();
+        $windowSeconds = $this->circuitBreakerWindowSeconds();
+        $now = Carbon::now()->timestamp;
+        $windowStart = $now - $windowSeconds;
+
+        $failures = $this->cache->get($key, []);
+        $failures = is_array($failures) ? $failures : [];
+        $failures[] = $now;
+
+        $failures = array_values(array_filter($failures, static function ($timestamp) use ($windowStart): bool {
+            return is_int($timestamp) && $timestamp >= $windowStart;
+        }));
+
+        $this->cache->put($key, $failures, $windowSeconds);
+
+        if (count($failures) >= $this->circuitFailureThreshold()) {
+            $this->openCircuit($feature, $payload, $errorMessage);
+        }
+    }
+
+    private function resetFailureWindow(): void
+    {
+        if (! $this->isCircuitBreakerEnabled()) {
+            return;
+        }
+
+        $this->cache->forget($this->failureCacheKey());
+    }
+
+    private function openCircuit(string $feature, array $payload, ?string $errorMessage): void
+    {
+        if (! $this->isCircuitBreakerEnabled()) {
+            return;
+        }
+
+        $key = $this->circuitOpenCacheKey();
+        $previouslyOpenUntil = $this->cache->get($key);
+        $openSeconds = $this->circuitOpenSeconds();
+        $now = Carbon::now();
+        $openUntil = $now->copy()->addSeconds($openSeconds)->timestamp;
+        $nowTimestamp = $now->timestamp;
+
+        $this->cache->put($key, $openUntil, $openSeconds);
+        $this->cache->forget($this->failureCacheKey());
+
+        if (is_int($previouslyOpenUntil) && $previouslyOpenUntil > $nowTimestamp) {
+            return;
+        }
+
+        $this->recordCircuitEvent('circuit_open', $feature, $payload, $errorMessage);
+    }
+
+    private function closeCircuit(): void
+    {
+        $this->cache->forget($this->circuitOpenCacheKey());
+        $this->cache->forget($this->failureCacheKey());
+    }
+
+    private function recordCircuitSkip(string $feature, array $payload): void
+    {
+        if (! $this->isCircuitBreakerEnabled()) {
+            return;
+        }
+
+        $this->recordCircuitEvent('circuit_skip', $feature, $payload, 'AI circuit breaker open.');
+    }
+
+    private function recordCircuitEvent(string $action, string $feature, array $payload, ?string $errorMessage = null): void
+    {
+        $companyId = $this->currentCompanyId();
+
+        if ($companyId === null) {
+            return;
+        }
+
+        $this->recorder->record(
+            companyId: $companyId,
+            userId: $this->currentUserId(),
+            feature: 'ai_circuit_breaker',
+            requestPayload: [
+                'action' => $action,
+                'target_feature' => $feature,
+                'payload_fingerprint' => $this->payloadFingerprint($payload),
+                'threshold' => $this->circuitFailureThreshold(),
+                'window_seconds' => $this->circuitBreakerWindowSeconds(),
+                'open_seconds' => $this->circuitOpenSeconds(),
+            ],
+            responsePayload: null,
+            latencyMs: null,
+            status: AiEvent::STATUS_ERROR,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    private function circuitFailureThreshold(): int
+    {
+        $threshold = (int) config('ai.circuit_breaker.failure_threshold', 5);
+
+        return max(1, $threshold);
+    }
+
+    private function circuitBreakerWindowSeconds(): int
+    {
+        $window = (int) config('ai.circuit_breaker.window_seconds', 120);
+
+        return max(1, $window);
+    }
+
+    private function circuitOpenSeconds(): int
+    {
+        $open = (int) config('ai.circuit_breaker.open_seconds', 300);
+
+        return max(1, $open);
+    }
+
+    private function failureCacheKey(): string
+    {
+        $companyKey = $this->currentCompanyId() ?? 'global';
+
+        return sprintf('ai:circuit:%s:failures', $companyKey);
+    }
+
+    private function circuitOpenCacheKey(): string
+    {
+        $companyKey = $this->currentCompanyId() ?? 'global';
+
+        return sprintf('ai:circuit:%s:open', $companyKey);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{keys: array<int, int|string>, hash: string|null}
+     */
+    private function payloadFingerprint(array $payload): array
+    {
+        $encoded = json_encode($payload);
+
+        return [
+            'keys' => array_keys($payload),
+            'hash' => $encoded === false ? null : sha1($encoded),
+        ];
+    }
+
+    private function currentCompanyId(): ?int
+    {
+        $companyId = CompanyContext::get();
+
+        return $companyId !== null ? (int) $companyId : null;
+    }
+
+    private function currentUserId(): ?int
+    {
+        $user = $this->request?->user();
+
+        if ($user !== null) {
+            $identifier = $user->getAuthIdentifier();
+
+            return is_numeric($identifier) ? (int) $identifier : null;
+        }
+
+        $authUser = auth()->user();
+
+        if ($authUser !== null) {
+            $identifier = $authUser->getAuthIdentifier();
+
+            return is_numeric($identifier) ? (int) $identifier : null;
+        }
+
+        return null;
     }
 }

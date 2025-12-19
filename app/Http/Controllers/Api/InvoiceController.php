@@ -166,7 +166,7 @@ class InvoiceController extends ApiController
             $request->payload(),
             [
                 'company_id' => $companyId,
-                'status' => InvoiceStatus::Approved->value,
+                'status' => InvoiceStatus::Draft->value,
                 'created_by_type' => 'buyer',
                 'created_by_id' => $user->id,
             ]
@@ -220,7 +220,7 @@ class InvoiceController extends ApiController
             $payload,
             [
                 'company_id' => $companyId,
-                'status' => InvoiceStatus::Approved->value,
+                'status' => InvoiceStatus::Draft->value,
                 'created_by_type' => 'buyer',
                 'created_by_id' => $user->id,
             ]

@@ -628,3 +628,224 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/Invoice'
+  /api/invoices/{invoiceId}/review/approve:
+    post:
+      tags:
+        - Invoices
+      summary: Approve invoice review request
+      operationId: approveInvoiceReview
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Invoice approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invoices/{invoiceId}/review/reject:
+    post:
+      tags:
+        - Invoices
+      summary: Reject invoice during review
+      operationId: rejectInvoiceReview
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - note
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Invoice rejected with reviewer notes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invoices/{invoiceId}/review/request-changes:
+    post:
+      tags:
+        - Invoices
+      summary: Request changes from supplier invoice
+      operationId: requestInvoiceChanges
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - note
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Change request recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/invoices/{invoiceId}/mark-paid:
+    post:
+      tags:
+        - Invoices
+      summary: Mark invoice as paid
+      operationId: markInvoicePaid
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payment_reference:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Invoice marked as paid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier/purchase-orders/{purchaseOrderId}/invoices:
+    parameters:
+      - name: purchaseOrderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Invoices
+      summary: Supplier submits invoice for purchase order
+      operationId: supplierCreateInvoiceFromPurchaseOrder
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Supplier-authored invoice created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier/invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List supplier-authored invoices
+      operationId: listSupplierInvoices
+      responses:
+        '200':
+          description: Supplier invoice listing scoped to persona.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier/invoices/{invoiceId}:
+    parameters:
+      - name: invoiceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Invoices
+      summary: Show supplier-authored invoice
+      operationId: showSupplierInvoice
+      responses:
+        '200':
+          description: Supplier invoice details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+    put:
+      tags:
+        - Invoices
+      summary: Update supplier invoice draft
+      operationId: updateSupplierInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Supplier invoice updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/supplier/invoices/{invoiceId}/submit:
+    post:
+      tags:
+        - Invoices
+      summary: Submit supplier invoice for buyer review
+      operationId: submitSupplierInvoice
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Supplier invoice submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccessResponse'

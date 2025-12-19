@@ -71,6 +71,12 @@ const quickLinks = [
         href: '/app/admin/ai-events',
         icon: Sparkles,
     },
+    {
+        title: 'AI model health',
+        description: 'Review MAPE, MAE, and calibration drift signals.',
+        href: '/app/admin/ai-model-health',
+        icon: LineChart,
+    },
 ];
 
 export function AdminHomePage() {

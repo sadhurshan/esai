@@ -13,6 +13,9 @@ import type {
     AiEventFilters,
     AiEventResponse,
     AiEventEntry,
+    AiModelMetricFilters,
+    AiModelMetricResponse,
+    AiModelMetricEntry,
     CompanyApprovalFilters,
     CompanyApprovalItem,
     CompanyApprovalResponse,
@@ -158,6 +161,36 @@ export class AdminConsoleApi extends BaseAPI {
             items: data.items ?? [],
             meta: toCursorMeta(data.meta),
         } satisfies AiEventResponse;
+    }
+
+    async listAiModelMetrics(
+        filters: AiModelMetricFilters = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<AiModelMetricResponse> {
+        const headers: HTTPHeaders = {};
+        const response = await this.request(
+            {
+                path: '/api/admin/ai-model-metrics',
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    feature: filters.feature,
+                    metric_name: filters.metricName,
+                    from: filters.from,
+                    to: filters.to,
+                    cursor: filters.cursor,
+                    per_page: filters.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<AiModelMetricEntry>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toCursorMeta(data.meta),
+        } satisfies AiModelMetricResponse;
     }
 
     async listCompanyApprovals(

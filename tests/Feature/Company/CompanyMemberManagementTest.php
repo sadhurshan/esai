@@ -54,10 +54,10 @@ it('lists members for the current company', function (): void {
         ->assertJsonPath('meta.cursor.has_next', false)
         ->assertJsonPath('meta.cursor.has_prev', false);
 
-    $ids = collect($response->json('data.items'))->pluck('id');
+    $emails = collect($response->json('data.items'))->pluck('email');
 
-    expect($ids)->toContain($owner->id);
-    expect($ids)->toContain($member->id);
+    expect($emails)->toContain($owner->email);
+    expect($emails)->toContain($member->email);
 });
 
 it('detects cross-company role conflicts', function (): void {
@@ -94,8 +94,11 @@ it('detects cross-company role conflicts', function (): void {
 
     $response = getJson('/api/company-members')->assertOk();
 
+    dump($response->json('data.items'));
+    dump(DB::table('company_user')->get()->toArray());
+
     $memberData = collect($response->json('data.items'))
-        ->firstWhere('id', $member->id);
+        ->firstWhere('email', $member->email);
 
     expect($memberData)->not->toBeNull();
     expect($memberData['role_conflict']['has_conflict'] ?? false)->toBeTrue();

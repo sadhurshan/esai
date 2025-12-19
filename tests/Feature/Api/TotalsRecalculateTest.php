@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CreditNoteStatus;
+use App\Enums\InvoiceStatus;
 use App\Models\CreditNote;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
@@ -208,7 +209,7 @@ it('recalculates invoice totals and updates line taxes', function (): void {
         'subtotal' => '0.00',
         'tax_amount' => '0.00',
         'total' => '0.00',
-        'status' => 'pending',
+        'status' => InvoiceStatus::Draft->value,
     ]);
 
     $invoiceLine = InvoiceLine::create([
@@ -276,7 +277,7 @@ it('recalculates credit note amount from decimal value', function (): void {
         'subtotal' => '0.00',
         'tax_amount' => '0.00',
         'total' => '0.00',
-        'status' => 'pending',
+        'status' => InvoiceStatus::Draft->value,
     ]);
 
     $creditNote = CreditNote::create([

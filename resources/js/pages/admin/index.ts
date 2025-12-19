@@ -1,6 +1,7 @@
 export * from './admin-console-page';
 export * from './admin-home-page';
 export * from './admin-ai-activity-log-page';
+export * from './admin-ai-model-health-page';
 export * from './admin-api-keys-page';
 export * from './admin-plans-page';
 export * from './admin-roles-page';

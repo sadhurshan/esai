@@ -85,7 +85,7 @@ it('returns search results across suppliers, parts, rfqs, purchase orders, invoi
         'purchase_order_id' => $purchaseOrder->id,
         'supplier_id' => $supplier->id,
         'invoice_number' => 'INV-OMEGA-42',
-        'status' => 'pending',
+        'status' => 'submitted',
     ]);
 
     Document::create([

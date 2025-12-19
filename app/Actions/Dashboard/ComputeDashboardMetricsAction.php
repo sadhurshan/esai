@@ -2,6 +2,7 @@
 
 namespace App\Actions\Dashboard;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\ReorderStatus;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
@@ -51,9 +52,16 @@ class ComputeDashboardMetricsAction
 
     private function countUnpaidInvoices(int $companyId): int
     {
+        $unpaidStatuses = [
+            InvoiceStatus::Draft->value,
+            InvoiceStatus::Submitted->value,
+            InvoiceStatus::BuyerReview->value,
+            InvoiceStatus::Approved->value,
+        ];
+
         return Invoice::query()
             ->where('company_id', $companyId)
-            ->whereIn('status', ['pending', 'overdue', 'disputed'])
+            ->whereIn('status', $unpaidStatuses)
             ->count();
     }
 

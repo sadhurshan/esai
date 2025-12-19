@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\LineTax;
+use App\Support\CompanyContext;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,31 @@ class QuoteItem extends CompanyScopedModel
         'lead_time_days' => 'integer',
         'status' => 'string',
     ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::creating(function (QuoteItem $quoteItem): void {
+            if ($quoteItem->company_id !== null) {
+                return;
+            }
+
+            $quote = $quoteItem->relationLoaded('quote')
+                ? $quoteItem->getRelation('quote')
+                : null;
+
+            if (! $quote instanceof Quote && $quoteItem->quote_id !== null) {
+                $quote = CompanyContext::bypass(static fn () => Quote::query()
+                    ->select('id', 'company_id')
+                    ->find($quoteItem->quote_id));
+            }
+
+            if ($quote instanceof Quote) {
+                $quoteItem->company_id = $quote->company_id;
+            }
+        });
+    }
 
     public function quote(): BelongsTo
     {

@@ -321,6 +321,27 @@
                     }
                 }
             },
+            "AiSettings": {
+                "type": "object",
+                "required": [
+                    "llm_answers_enabled",
+                    "llm_provider"
+                ],
+                "properties": {
+                    "llm_answers_enabled": {
+                        "type": "boolean",
+                        "description": "Toggle that controls whether the tenant can receive LLM-composed assistant answers."
+                    },
+                    "llm_provider": {
+                        "type": "string",
+                        "description": "Active model provider backing the assistant (returns \"dummy\" when disabled).",
+                        "enum": [
+                            "dummy",
+                            "openai"
+                        ]
+                    }
+                }
+            },
             "ApiErrorResponse": {
                 "allOf": [
                     {
@@ -1192,6 +1213,217 @@
                         "type": "string",
                         "format": "uri",
                         "nullable": true
+                    }
+                }
+            },
+            "CopilotActionDraft": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "action_type": {
+                        "type": "string",
+                        "enum": [
+                            "rfq_draft",
+                            "supplier_message",
+                            "maintenance_checklist",
+                            "inventory_whatif"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "drafted",
+                            "approved",
+                            "rejected",
+                            "expired"
+                        ]
+                    },
+                    "summary": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Structured payload Copilot proposes applying to the workspace."
+                    },
+                    "citations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotCitation"
+                        }
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "needs_human_review": {
+                        "type": "boolean"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "output": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Raw Copilot response for auditing and debugging."
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "entity_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "CopilotActionFeedback": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "ai_action_draft_id": {
+                        "type": "integer"
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5
+                    },
+                    "comment": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "CopilotActionFeedbackRequest": {
+                "type": "object",
+                "required": [
+                    "rating"
+                ],
+                "properties": {
+                    "rating": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "description": "Rating on a five-point scale describing draft quality."
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true,
+                        "description": "Optional free-form feedback for the AI team."
+                    }
+                }
+            },
+            "CopilotActionPlanRequest": {
+                "type": "object",
+                "required": [
+                    "action_type",
+                    "query"
+                ],
+                "properties": {
+                    "action_type": {
+                        "type": "string",
+                        "description": "Type of Copilot action to execute.",
+                        "enum": [
+                            "rfq_draft",
+                            "supplier_message",
+                            "maintenance_checklist",
+                            "inventory_whatif"
+                        ]
+                    },
+                    "query": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "description": "Natural language instruction provided to Copilot."
+                    },
+                    "inputs": {
+                        "type": "object",
+                        "description": "Structured key/value pairs used to seed the draft payload.",
+                        "additionalProperties": true
+                    },
+                    "user_context": {
+                        "type": "object",
+                        "description": "Supplemental context about the acting user and company.",
+                        "additionalProperties": true
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 25,
+                        "default": 8,
+                        "description": "Number of semantic search chunks retrieved upstream."
+                    },
+                    "filters": {
+                        "type": "object",
+                        "description": "Optional semantic search filters.",
+                        "properties": {
+                            "source_type": {
+                                "type": "string",
+                                "maxLength": 128
+                            },
+                            "doc_id": {
+                                "type": "string",
+                                "maxLength": 255
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "maxLength": 64
+                                }
+                            }
+                        }
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true,
+                        "description": "Domain entity the draft references (e.g. `rfq`)."
+                    },
+                    "entity_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Identifier of the referenced entity when present."
+                    }
+                }
+            },
+            "CopilotActionRejectRequest": {
+                "type": "object",
+                "required": [
+                    "reason"
+                ],
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "description": "Human-readable explanation of why the draft was rejected."
                     }
                 }
             },
@@ -22566,6 +22798,94 @@
                 }
             }
         },
+        "/api/settings/ai": {
+            "get": {
+                "tags": [
+                    "Settings",
+                    "AI"
+                ],
+                "summary": "Retrieve AI assistant controls",
+                "operationId": "showCompanyAiSettings",
+                "responses": {
+                    "200": {
+                        "description": "Current AI assistant configuration for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Settings",
+                    "AI"
+                ],
+                "summary": "Update AI assistant controls",
+                "operationId": "updateCompanyAiSettings",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "llm_answers_enabled"
+                                ],
+                                "properties": {
+                                    "llm_answers_enabled": {
+                                        "type": "boolean",
+                                        "description": "Enable (true) or disable (false) LLM-generated responses."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated AI assistant configuration.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                }
+            }
+        },
         "/api/settings/company": {
             "get": {
                 "tags": [
@@ -23956,6 +24276,378 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/actions/plan": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Generate a Copilot action draft",
+                "description": "Invokes the AI planning service to produce a draft action payload scoped to the tenant context.",
+                "operationId": "copilotActionPlan",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotActionPlanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Copilot action draft generated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "draft"
+                                                    ],
+                                                    "properties": {
+                                                        "draft": {
+                                                            "$ref": "#/components/schemas/CopilotActionDraft"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to run the requested Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed for the supplied action payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Copilot failed to generate a draft from the upstream AI service.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/actions/{draft}/approve": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Approve a Copilot action draft",
+                "description": "Marks the draft as approved and converts it into the downstream entity defined by the draft payload.",
+                "operationId": "copilotActionApprove",
+                "parameters": [
+                    {
+                        "name": "draft",
+                        "in": "path",
+                        "required": true,
+                        "description": "Identifier of the draft to approve.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Draft approved and converted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "draft"
+                                                    ],
+                                                    "properties": {
+                                                        "draft": {
+                                                            "$ref": "#/components/schemas/CopilotActionDraft"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot approve this Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Draft is no longer in a state that can be approved or payload conversion failed validation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Copilot failed to finalize the draft due to an internal error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/actions/{draft}/feedback": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Record feedback for a Copilot action draft",
+                "operationId": "copilotActionFeedback",
+                "parameters": [
+                    {
+                        "name": "draft",
+                        "in": "path",
+                        "required": true,
+                        "description": "Identifier of the draft receiving feedback.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotActionFeedbackRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Feedback captured successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "feedback"
+                                                    ],
+                                                    "properties": {
+                                                        "feedback": {
+                                                            "$ref": "#/components/schemas/CopilotActionFeedback"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot review this Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Feedback payload invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/actions/{draft}/reject": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Reject a Copilot action draft",
+                "operationId": "copilotActionReject",
+                "parameters": [
+                    {
+                        "name": "draft",
+                        "in": "path",
+                        "required": true,
+                        "description": "Identifier of the draft to reject.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotActionRejectRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Draft rejected successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "draft"
+                                                    ],
+                                                    "properties": {
+                                                        "draft": {
+                                                            "$ref": "#/components/schemas/CopilotActionDraft"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot reject this Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Draft already resolved or validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
                                 }
                             }
                         }

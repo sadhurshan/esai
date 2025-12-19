@@ -100,3 +100,223 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/v1/ai/actions/plan:
+    post:
+      tags:
+        - Copilot
+      summary: Generate a Copilot action draft
+      description: Invokes the AI planning service to produce a draft action payload scoped to the tenant context.
+      operationId: copilotActionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotActionPlanRequest'
+      responses:
+        '200':
+          description: Copilot action draft generated successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - draft
+                        properties:
+                          draft:
+                            $ref: '#/components/schemas/CopilotActionDraft'
+        '403':
+          description: User is not authorized to run the requested Copilot action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Validation failed for the supplied action payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '502':
+          description: Copilot failed to generate a draft from the upstream AI service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '503':
+          description: AI service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/v1/ai/actions/{draft}/approve:
+    post:
+      tags:
+        - Copilot
+      summary: Approve a Copilot action draft
+      description: Marks the draft as approved and converts it into the downstream entity defined by the draft payload.
+      operationId: copilotActionApprove
+      parameters:
+        - name: draft
+          in: path
+          required: true
+          description: Identifier of the draft to approve.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Draft approved and converted successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - draft
+                        properties:
+                          draft:
+                            $ref: '#/components/schemas/CopilotActionDraft'
+        '403':
+          description: User cannot approve this Copilot action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Draft not found for the tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Draft is no longer in a state that can be approved or payload conversion failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '500':
+          description: Copilot failed to finalize the draft due to an internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/v1/ai/actions/{draft}/reject:
+    post:
+      tags:
+        - Copilot
+      summary: Reject a Copilot action draft
+      operationId: copilotActionReject
+      parameters:
+        - name: draft
+          in: path
+          required: true
+          description: Identifier of the draft to reject.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotActionRejectRequest'
+      responses:
+        '200':
+          description: Draft rejected successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - draft
+                        properties:
+                          draft:
+                            $ref: '#/components/schemas/CopilotActionDraft'
+        '403':
+          description: User cannot reject this Copilot action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Draft not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Draft already resolved or validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/v1/ai/actions/{draft}/feedback:
+    post:
+      tags:
+        - Copilot
+      summary: Record feedback for a Copilot action draft
+      operationId: copilotActionFeedback
+      parameters:
+        - name: draft
+          in: path
+          required: true
+          description: Identifier of the draft receiving feedback.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotActionFeedbackRequest'
+      responses:
+        '200':
+          description: Feedback captured successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - feedback
+                        properties:
+                          feedback:
+                            $ref: '#/components/schemas/CopilotActionFeedback'
+        '403':
+          description: User cannot review this Copilot action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Draft not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: Feedback payload invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'

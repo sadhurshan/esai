@@ -80,6 +80,7 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierQuoteController;
 use App\Http\Controllers\Api\Ai\AiDocumentIndexController;
 use App\Http\Controllers\Api\Ai\CopilotSearchController;
+use App\Http\Controllers\Api\V1\AiActionsController;
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
 use App\Http\Controllers\Api\SupplierDashboardController;
@@ -258,6 +259,28 @@ Route::prefix('v1')->group(function (): void {
         'buyer_admin_only',
     ])->prefix('admin/ai')->group(function (): void {
         Route::post('reindex-document', [AiDocumentIndexController::class, 'reindex']);
+    });
+
+    $copilotActionMiddleware = [
+        'auth',
+        'ensure.company.onboarded:strict',
+        'ensure.company.approved',
+        'ensure.subscribed',
+        'buyer_access',
+    ];
+
+    Route::prefix('ai/actions')->group(function () use ($copilotActionMiddleware): void {
+        Route::post('plan', [AiActionsController::class, 'plan'])
+            ->middleware(array_merge($copilotActionMiddleware, ['ai.ensure.available', 'ai.rate.limit']));
+
+        Route::post('{draft}/approve', [AiActionsController::class, 'approve'])
+            ->middleware($copilotActionMiddleware);
+
+        Route::post('{draft}/reject', [AiActionsController::class, 'reject'])
+            ->middleware($copilotActionMiddleware);
+
+        Route::post('{draft}/feedback', [AiActionsController::class, 'feedback'])
+            ->middleware($copilotActionMiddleware);
     });
 });
 

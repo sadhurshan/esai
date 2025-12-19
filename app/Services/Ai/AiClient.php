@@ -84,16 +84,35 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function planAction(array $payload): array
+    {
+        return $this->send(
+            'actions/plan',
+            $payload,
+            'Action draft generated.',
+            'copilot_action_plan',
+            function (array $enrichedPayload): array {
+                return $this->applyLlmProviderControls($enrichedPayload);
+            },
+            function (Response $response, string $successMessage): array {
+                return $this->formatActionPlanResponse($response, $successMessage);
+            }
+        );
+    }
+
     /**
      * @param array<string, mixed> $payload
      * @param callable|null $payloadInterceptor
+     * @param callable|null $responseFormatter
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
     private function send(
         string $endpoint,
         array $payload,
         string $successMessage,
         string $feature,
-        ?callable $payloadInterceptor = null
+        ?callable $payloadInterceptor = null,
+        ?callable $responseFormatter = null
     ): array
     {
         if (! $this->isEnabled()) {
@@ -120,7 +139,11 @@ class AiClient
             throw new AiServiceUnavailableException('AI service is unavailable.', 0, $exception);
         }
 
-        $result = $this->formatResponse($response, $successMessage);
+        if ($responseFormatter !== null) {
+            $result = $responseFormatter($response, $successMessage);
+        } else {
+            $result = $this->formatResponse($response, $successMessage);
+        }
 
         if ($result['status'] === 'success') {
             $this->resetFailureWindow();
@@ -343,6 +366,31 @@ class AiClient
             'message' => $this->resolveMessage($body, $successful, $successMessage),
             'data' => $this->resolveData($body),
             'errors' => $this->normalizeErrors($body, $successful),
+        ];
+    }
+
+    private function formatActionPlanResponse(Response $response, string $successMessage): array
+    {
+        $body = $response->json();
+        $body = is_array($body) ? $body : [];
+
+        if ($response->successful()) {
+            return [
+                'status' => 'success',
+                'message' => $successMessage,
+                'data' => $body,
+                'errors' => [],
+            ];
+        }
+
+        $message = $body['message'] ?? $body['detail'] ?? 'Failed to generate action draft.';
+        $message = is_string($message) && $message !== '' ? $message : 'Failed to generate action draft.';
+
+        return [
+            'status' => 'error',
+            'message' => $message,
+            'data' => null,
+            'errors' => $this->normalizeErrors($body, false),
         ];
     }
 

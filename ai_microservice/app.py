@@ -43,6 +43,12 @@ from ai_microservice.schemas import (
     RFQ_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
 )
+from ai_microservice.tools_contract import (
+    build_maintenance_checklist,
+    build_rfq_draft,
+    build_supplier_message,
+    run_inventory_whatif,
+)
 from ai_microservice.vector_store import InMemoryVectorStore, VectorStore
 from ai_service import AISupplyService
 
@@ -648,6 +654,9 @@ async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
         context_blocks = _build_context_blocks(hits)
         context_insufficient = not context_blocks
 
+        tool_payload = _invoke_tool_contract(payload.action_type, context_blocks, payload.inputs)
+        tool_response = _build_tool_response(payload, tool_payload, context_blocks)
+
         action_prompt = _build_action_prompt(payload)
         provider_name, provider_instance = resolve_llm_provider(payload.llm_provider)
         provider_used = provider_name
@@ -659,7 +668,7 @@ async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
                 payload.safety_identifier,
             )
         except LLMProviderError as exc:
-            warnings.append("LLM provider unavailable; deterministic fallback used")
+            warnings.append("LLM provider unavailable; deterministic tool result only")
             LOGGER.warning(
                 "action_plan_llm_failure",
                 extra=log_extra(
@@ -673,7 +682,7 @@ async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
             provider_used = f"{provider_name}_fallback"
 
         sanitized_response = _enforce_citation_integrity(ai_response or {}, context_blocks)
-        action_response = _coerce_action_response(payload, sanitized_response)
+        action_response = _merge_tool_and_llm(payload, tool_response, sanitized_response)
         if context_insufficient:
             action_response.setdefault("warnings", []).append("Insufficient grounded context for this action")
             action_response["needs_human_review"] = True
@@ -896,6 +905,91 @@ def _safe_json_dumps(value: Any) -> str:
         return json.dumps(value, default=_fallback_serializer, indent=2, ensure_ascii=True)
     except TypeError:
         return json.dumps(str(value), indent=2, ensure_ascii=True)
+
+
+def _invoke_tool_contract(
+    action_type: str,
+    context_blocks: Sequence[Dict[str, Any]],
+    inputs: Dict[str, Any],
+) -> Dict[str, Any]:
+    tool_mapping = {
+        "rfq_draft": build_rfq_draft,
+        "supplier_message": build_supplier_message,
+        "maintenance_checklist": build_maintenance_checklist,
+        "inventory_whatif": run_inventory_whatif,
+    }
+    tool = tool_mapping.get(action_type)
+    if not tool:
+        return {}
+
+    try:
+        return tool(context_blocks, inputs)
+    except Exception as exc:
+        LOGGER.warning(
+            "tool_contract_failure",
+            extra=log_extra(action_type=action_type, error=str(exc)),
+        )
+        return {}
+
+
+def _build_tool_response(
+    payload: ActionPlanRequest,
+    tool_payload: Dict[str, Any],
+    context_blocks: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    citations = _build_tool_citations(context_blocks)
+    payload_value = tool_payload if isinstance(tool_payload, dict) else {}
+    warnings: List[str] = []
+    if not payload_value:
+        warnings.append("Tool payload missing; verify inputs and retrieved context")
+    summary = f"{ACTION_TYPE_LABELS.get(payload.action_type, payload.action_type.title())} draft generated from retrieved sources"
+    return {
+        "action_type": payload.action_type,
+        "summary": summary,
+        "payload": payload_value,
+        "citations": citations,
+        "confidence": 0.55 if citations else 0.25,
+        "needs_human_review": True,
+        "warnings": warnings or ([] if citations else ["No citations captured for tool output"]),
+    }
+
+
+def _build_tool_citations(context_blocks: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    citations: List[Dict[str, Any]] = []
+    for block in context_blocks[:5]:
+        citations.append(
+            {
+                "doc_id": block.get("doc_id"),
+                "doc_version": block.get("doc_version"),
+                "chunk_id": block.get("chunk_id"),
+                "score": float(block.get("score") or 0.0),
+                "snippet": (block.get("snippet") or "")[:250],
+            }
+        )
+    return citations
+
+
+def _merge_tool_and_llm(
+    payload: ActionPlanRequest,
+    tool_response: Dict[str, Any],
+    llm_response: Dict[str, Any],
+) -> Dict[str, Any]:
+    merged = dict(tool_response)
+
+    if llm_response:
+        merged_payload = merged.get("payload")
+        llm_payload = llm_response.get("payload")
+        if isinstance(merged_payload, dict) and isinstance(llm_payload, dict):
+            merged_payload = {**merged_payload, **llm_payload}
+            merged["payload"] = merged_payload
+
+        merged["summary"] = llm_response.get("summary") or merged.get("summary")
+        merged["citations"] = llm_response.get("citations") or merged.get("citations")
+        merged["confidence"] = llm_response.get("confidence", merged.get("confidence"))
+        merged["warnings"] = llm_response.get("warnings") or merged.get("warnings")
+        merged["needs_human_review"] = llm_response.get("needs_human_review", merged.get("needs_human_review"))
+
+    return _coerce_action_response(payload, merged)
 
 
 def _coerce_action_response(

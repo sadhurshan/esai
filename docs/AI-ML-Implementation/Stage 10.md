@@ -28,7 +28,9 @@ Input: {company_id, user_context, action_type, query, inputs, top_k, filters}
 - If context insufficient, return needs_human_review=true + warnings
 Add request id logging + latency + safe error handling."
 
-3. Add a "tool contract" layer (no direct DB writes from LLM)
+3. ✅ Add a "tool contract" layer (no direct DB writes from LLM)
+
+Implemented ai_microservice/tools_contract.py with side-effect guard plus pure functions for RFQ drafts, supplier messages, maintenance checklists, and inventory what-if simulations; each returns schema-shaped payloads only.
 
 Prompt
 
@@ -43,7 +45,9 @@ Add a guard that prevents any network/DB calls from tool functions."
 
 (This keeps the microservice safe: LLM proposes, tools format/compute deterministically where possible.)
 
-4. Implement deterministic "what-if" simulation tool (no LLM needed)
+4. ✅ Implement deterministic "what-if" simulation tool (no LLM needed)
+
+run_inventory_whatif() inside ai_microservice/tools_contract.py now models service-level coverage vs. forecast snapshots and produces risk/holding-cost estimates deterministically.
 
 Prompt
 
@@ -57,7 +61,9 @@ Output payload:
 - assumptions (array)
 Ensure it’s deterministic and uses existing forecast outputs."
 
-5. Implement RFQ draft tool (structured draft, not sending)
+5. ✅ Implement RFQ draft tool (structured draft, not sending)
+
+build_rfq_draft() lives in ai_microservice/tools_contract.py and is now wired through /actions/plan so RFQ payloads come from the deterministic tool before LLM refinements.
 
 Prompt
 
@@ -72,7 +78,9 @@ Output payload:
 - evaluation_rubric[]
 Must include citations for any technical claims sourced from documents."
 
-6. Implement supplier message tool (email draft only)
+6. ✅ Implement supplier message tool (email draft only)
+
+build_supplier_message() produces professional drafts in ai_microservice/tools_contract.py; /actions/plan merges tool payloads with LLM suggestions.
 
 Prompt
 
@@ -85,7 +93,9 @@ Output payload:
 - fallback_options[]
 Keep message professional. Never claim facts not in citations."
 
-7. Implement maintenance checklist tool (grounded + safe)
+7. ✅ Implement maintenance checklist tool (grounded + safe)
+
+build_maintenance_checklist() is available via the tool contract and feeds the action router’s responses.
 
 Prompt
 
@@ -99,7 +109,9 @@ Output payload:
 - when_to_escalate[]
 Must be grounded in retrieved maintenance/manual chunks; if insufficient sources, set needs_human_review=true and explain."
 
-8. Add ai_action_drafts table (store drafts + approvals)
+8. ✅ Add ai_action_drafts table (store drafts + approvals)
+
+Created database/migrations/2025_12_19_010000_create_ai_action_drafts_table.php with tenant-scoped columns, approval metadata, JSON blobs, soft deletes, and indices on company/status/created_at plus entity lookups.
 
 Prompt
 
@@ -128,7 +140,9 @@ Prompt
 - POST /api/v1/ai/actions/{draft}/reject
 Enforce RBAC and record ai_events for plan/approve/reject."
 
-10. Add converters (draft → entity) as services (clean separation)
+10. ✅ Add converters (draft → entity) as services (clean separation)
+
+Implemented dedicated converters in app/Services/Ai/Converters/* (RFQ, supplier message, maintenance checklist, and inventory what-if) plus AiDraftConversionService, all invoked from AiActionsController@approve inside a DB transaction. Each converter validates its schema payloads, persists the correct domain record (RFQ via CreateRfqAction, SupplierMessageDraft, MaintenanceTask, InventoryWhatIfSnapshot), copies citations/confidence/warnings, and stamps AiActionDraft.entity_type/id after creation.
 
 Prompt
 
@@ -139,7 +153,9 @@ Prompt
 Each takes ai_action_drafts.output_json and writes to DB.
 Must validate required fields and reject if schema mismatch."
 
-11. Build "Copilot Actions" panel
+11. ✅ Build "Copilot Actions" panel
+
+Added resources/js/components/ai/CopilotActionsPanel.tsx with a card-based workflow that lets users pick a Copilot action type, fill tailored forms (RFQ line items, supplier negotiation context, maintenance safety notes, inventory policies), and submit `/v1/ai/actions/plan`. The component renders Copilot's structured payload (tables/lists per action), citations with document open buttons, confidence + status chips, and a guarded approval/rejection area wired to the new ai.ts helpers. Context filters (source type, doc id, tags) and form reset support were included per spec.
 
 Prompt
 
@@ -151,7 +167,9 @@ Prompt
 - Buttons: Approve / Reject
 Show status chips. Never auto-approve."
 
-12. Add "Draft Review" modal with diff/changes preview
+12. ✅ Add "Draft Review" modal with diff/changes preview
+
+Shipped resources/js/components/ai/AiDraftReviewModal.tsx and wired it into CopilotActionsPanel so approvals are blocked behind an explicit review flow. The modal mirrors the structured payload preview, citations, warnings, and shows per-action impact callouts (e.g., RFQ approval creates a Draft RFQ). Users must acknowledge a confirmation checkbox before the Approve action fires, and the dialog reuses the existing document opener for citation drill-downs.
 
 Prompt
 
@@ -161,7 +179,9 @@ Prompt
 - Highlights ‘will create’ effect (e.g., RFQ draft → RFQ record in Draft status)
 - Requires explicit confirmation checkbox before Approve."
 
-13. Add policy rules: never mutate without approval
+13. ✅ Add policy rules: never mutate without approval
+
+Strengthened AiDraftConversionService with a status gate so converters only execute when the draft row is already marked `approved`, and re-ordered the controller workflow so approval metadata is persisted before conversions run. Added AiActionDraftFactory plus new Pest coverage (tests/Feature/Api/Ai/AiActionsControllerTest.php) to prove planning writes drafts, unauthorized approvals fail, converters are blocked until status=approved, and approved runs invoke the conversion pipeline exactly once.
 
 Prompt
 
@@ -170,7 +190,9 @@ Prompt
 - Laravel must never create/update domain entities unless draft status = approved
 Add tests proving no approve → no entity creation."
 
-14. Add evaluation hooks (measure usefulness)
+14. ✅ Add evaluation hooks (measure usefulness)
+
+Introduced ai_action_feedback (migration + model + factory) plus AiActionFeedbackRequest/Resource and wired `POST /api/v1/ai/actions/{draft}/feedback` through AiActionsController. The endpoint enforces tenant scoping + role gates, stores rating/comment snapshots, records `copilot_action_feedback` AiEvents for metrics, and responds with the normalized resource. Coverage lives in tests/Feature/Api/Ai/AiActionsControllerTest.php to confirm success, validation, and authorization behaviour.
 
 Prompt
 
@@ -179,7 +201,9 @@ Prompt
 Store in ai_action_feedback table.
 Add to admin dashboard metrics."
 
-15. Write feature tests for action flow
+15. ✅ Write feature tests for action flow
+
+Extended tests/Feature/Api/Ai/AiActionsControllerTest.php with end-to-end coverage: planning now asserts AiEvents are recorded, RBAC blocking is verified for unauthorized roles, approvals exercise the real inventory what-if converter to persist snapshots, rejections leave drafts untouched, and feedback payload validation/RBAC rules are enforced. These feature tests run against the HTTP layer with mocked AiClient responses so the entire Copilot workflow is guarded per spec.
 
 Prompt
 

@@ -65,6 +65,57 @@ export interface AnswerQuestionResponse {
     meta?: Record<string, unknown>;
 }
 
+export const COPILOT_ACTION_TYPES = ['rfq_draft', 'supplier_message', 'maintenance_checklist', 'inventory_whatif'] as const;
+
+export type CopilotActionType = (typeof COPILOT_ACTION_TYPES)[number];
+
+export type CopilotActionStatus = 'drafted' | 'approved' | 'rejected' | 'expired';
+
+export interface CopilotCitation {
+    doc_id: string;
+    doc_version?: string | null;
+    chunk_id?: string | number | null;
+    score?: number | null;
+    snippet?: string | null;
+    metadata?: Record<string, unknown>;
+}
+
+export interface CopilotActionDraft {
+    id: number;
+    action_type: CopilotActionType;
+    status: CopilotActionStatus;
+    summary?: string | null;
+    payload: Record<string, unknown>;
+    citations: CopilotCitation[];
+    confidence?: number | null;
+    needs_human_review?: boolean;
+    warnings: string[];
+    output?: Record<string, unknown>;
+    entity_type?: string | null;
+    entity_id?: number | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface CopilotActionPlanPayload extends Record<string, unknown> {
+    action_type: CopilotActionType;
+    query: string;
+    inputs?: Record<string, unknown>;
+    user_context?: Record<string, unknown>;
+    top_k?: number;
+    filters?: SemanticSearchFilters;
+    entity_type?: string | null;
+    entity_id?: number | null;
+}
+
+export interface CopilotActionPlanResponse {
+    draft: CopilotActionDraft;
+}
+
+export interface CopilotActionRejectPayload extends Record<string, unknown> {
+    reason: string;
+}
+
 const normalizeError = (error: unknown): ApiError => {
     if (error instanceof ApiError) {
         return error;
@@ -120,4 +171,23 @@ export const answerQuestion = async <TData = AnswerQuestionResponse>(
     payload: AnswerQuestionPayload,
 ): Promise<AiResponse<TData>> => {
     return handleRequest<AnswerQuestionPayload, TData>('/copilot/answer', payload);
+};
+
+export const planCopilotAction = async (
+    payload: CopilotActionPlanPayload,
+): Promise<AiResponse<CopilotActionPlanResponse>> => {
+    return handleRequest<CopilotActionPlanPayload, CopilotActionPlanResponse>('/v1/ai/actions/plan', payload);
+};
+
+export const approveCopilotAction = async (
+    draftId: number,
+): Promise<AiResponse<CopilotActionPlanResponse>> => {
+    return handleRequest<Record<string, never>, CopilotActionPlanResponse>(`/v1/ai/actions/${draftId}/approve`, {});
+};
+
+export const rejectCopilotAction = async (
+    draftId: number,
+    payload: CopilotActionRejectPayload,
+): Promise<AiResponse<CopilotActionPlanResponse>> => {
+    return handleRequest<CopilotActionRejectPayload, CopilotActionPlanResponse>(`/v1/ai/actions/${draftId}/reject`, payload);
 };

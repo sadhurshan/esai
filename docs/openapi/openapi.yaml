@@ -440,6 +440,163 @@ components:
           items:
             $ref: '#/components/schemas/CopilotCitation'
           description: Source mapping each bullet point back to a document chunk.
+    CopilotActionPlanRequest:
+      type: object
+      required:
+        - action_type
+        - query
+      properties:
+        action_type:
+          type: string
+          description: Type of Copilot action to execute.
+          enum:
+            - rfq_draft
+            - supplier_message
+            - maintenance_checklist
+            - inventory_whatif
+        query:
+          type: string
+          maxLength: 2000
+          description: Natural language instruction provided to Copilot.
+        inputs:
+          type: object
+          description: Structured key/value pairs used to seed the draft payload.
+          additionalProperties: true
+        user_context:
+          type: object
+          description: Supplemental context about the acting user and company.
+          additionalProperties: true
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 25
+          default: 8
+          description: Number of semantic search chunks retrieved upstream.
+        filters:
+          type: object
+          description: Optional semantic search filters.
+          properties:
+            source_type:
+              type: string
+              maxLength: 128
+            doc_id:
+              type: string
+              maxLength: 255
+            tags:
+              type: array
+              items:
+                type: string
+                maxLength: 64
+        entity_type:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: Domain entity the draft references (e.g. `rfq`).
+        entity_id:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: Identifier of the referenced entity when present.
+    CopilotActionRejectRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          maxLength: 1000
+          description: Human-readable explanation of why the draft was rejected.
+    CopilotActionFeedbackRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating on a five-point scale describing draft quality.
+        comment:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: Optional free-form feedback for the AI team.
+    CopilotActionDraft:
+      type: object
+      properties:
+        id:
+          type: integer
+        action_type:
+          type: string
+          enum:
+            - rfq_draft
+            - supplier_message
+            - maintenance_checklist
+            - inventory_whatif
+        status:
+          type: string
+          enum:
+            - drafted
+            - approved
+            - rejected
+            - expired
+        summary:
+          type: string
+          nullable: true
+        payload:
+          type: object
+          additionalProperties: true
+          description: Structured payload Copilot proposes applying to the workspace.
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotCitation'
+        confidence:
+          type: number
+          format: float
+          nullable: true
+        needs_human_review:
+          type: boolean
+        warnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        output:
+          type: object
+          additionalProperties: true
+          description: Raw Copilot response for auditing and debugging.
+        entity_type:
+          type: string
+          nullable: true
+        entity_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CopilotActionFeedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        ai_action_draft_id:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          nullable: true
+        user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
     AiDocumentReindexRequest:
       type: object
       description: Payload required to queue an AI reindex for a document.

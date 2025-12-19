@@ -160,6 +160,19 @@ components:
           $ref: '#/components/schemas/NumberingRule'
         credit:
           $ref: '#/components/schemas/NumberingRule'
+    AiSettings:
+      type: object
+      required:
+        - llm_answers_enabled
+        - llm_provider
+      properties:
+        llm_answers_enabled:
+          type: boolean
+          description: Toggle that controls whether the tenant can receive LLM-composed assistant answers.
+        llm_provider:
+          type: string
+          description: Active model provider backing the assistant (returns "dummy" when disabled).
+          enum: [dummy, openai]
 paths:
   /api/settings/company:
     get:
@@ -333,5 +346,56 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/NumberingSettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/settings/ai:
+    get:
+      tags:
+        - Settings
+        - AI
+      summary: Retrieve AI assistant controls
+      operationId: showCompanyAiSettings
+      responses:
+        '200':
+          description: Current AI assistant configuration for the tenant.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiSettings'
+    patch:
+      tags:
+        - Settings
+        - AI
+      summary: Update AI assistant controls
+      operationId: updateCompanyAiSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - llm_answers_enabled
+              properties:
+                llm_answers_enabled:
+                  type: boolean
+                  description: Enable (true) or disable (false) LLM-generated responses.
+      responses:
+        '200':
+          description: Updated AI assistant configuration.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiSettings'
         '422':
           $ref: '#/components/responses/ValidationError'

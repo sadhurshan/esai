@@ -42,8 +42,10 @@ import {
     rejectCopilotAction,
 } from '@/services/ai';
 
+const SOURCE_TYPE_ALL = 'all';
+
 const SOURCE_TYPE_OPTIONS: Array<{ value: string; label: string }> = [
-    { value: '', label: 'All sources' },
+    { value: SOURCE_TYPE_ALL, label: 'All sources' },
     { value: 'document_control', label: 'Document Control Hub' },
     { value: 'maintenance_manual', label: 'Maintenance manuals' },
     { value: 'rfq', label: 'RFQ text' },
@@ -451,7 +453,7 @@ export function CopilotActionsPanel({ className }: CopilotActionsPanelProps) {
     const [lineItems, setLineItems] = useState<RfqLineItemDraft[]>([createDefaultLineItem(1)]);
     const [lineItemCounter, setLineItemCounter] = useState(2);
 
-    const [sourceType, setSourceType] = useState('');
+    const [sourceType, setSourceType] = useState<string>(SOURCE_TYPE_ALL);
     const [docFilterId, setDocFilterId] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
@@ -500,7 +502,7 @@ export function CopilotActionsPanel({ className }: CopilotActionsPanelProps) {
         }
 
         const filtersPayload = pruneEmpty({
-            source_type: sourceType,
+                source_type: sourceType === SOURCE_TYPE_ALL ? '' : sourceType,
             doc_id: docFilterId,
             tags,
         });
@@ -1577,7 +1579,7 @@ export function CopilotActionsPanel({ className }: CopilotActionsPanelProps) {
                 onOpenDocument={handleOpenDocument}
                 openingDocId={openingDocId}
             />
-            <Card className={cn('h-full', className)}>
+            <Card className={cn('', className)}>
             <CardHeader>
                 <div className="flex items-center gap-3">
                     <Sparkles className="size-5 text-primary" />
@@ -1639,7 +1641,7 @@ export function CopilotActionsPanel({ className }: CopilotActionsPanelProps) {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {SOURCE_TYPE_OPTIONS.map((option) => (
-                                                <SelectItem key={option.value || 'all'} value={option.value}>
+                                                <SelectItem key={option.value} value={option.value}>
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -1719,7 +1721,7 @@ export function CopilotActionsPanel({ className }: CopilotActionsPanelProps) {
                                 setInventoryInputs(createDefaultInventoryInputs());
                                 setLineItems([createDefaultLineItem(1)]);
                                 setLineItemCounter(2);
-                                setSourceType('');
+                                setSourceType(SOURCE_TYPE_ALL);
                                 setDocFilterId('');
                                 setTags([]);
                                 setTagInput('');

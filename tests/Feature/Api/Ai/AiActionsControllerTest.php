@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/helpers.php';
+
 use App\Models\AiActionDraft;
 use App\Models\AiActionFeedback;
 use App\Models\AiEvent;
@@ -292,33 +294,3 @@ it('prevents unauthorized users from submitting feedback', function (): void {
     $response->assertForbidden()
         ->assertJsonPath('status', 'error');
 });
-
-function provisionCopilotActionUser(string $role = 'buyer_admin'): array
-{
-    $plan = Plan::factory()->create([
-        'code' => 'community',
-        'price_usd' => null,
-    ]);
-
-    $company = Company::factory()
-        ->for($plan)
-        ->create([
-            'status' => 'active',
-        ]);
-
-    $user = User::factory()->for($company)->create([
-        'role' => $role,
-    ]);
-
-    return compact('user', 'company');
-}
-
-function createDraftForUser(User $user, array $attributes = []): AiActionDraft
-{
-    return AiActionDraft::factory()
-        ->state(array_merge([
-            'company_id' => $user->company_id,
-            'user_id' => $user->id,
-        ], $attributes))
-        ->create();
-}

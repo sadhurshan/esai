@@ -213,6 +213,8 @@ class AuthResponseFactory
             $flags[$column] = (bool) ($plan->{$column} ?? false);
         }
 
+        $flags['ai_workflows_enabled'] = $flags['approvals_enabled'] ?? (bool) ($plan->approvals_enabled ?? false);
+
         $planCode = $plan->code ?? $company->plan_code ?? null;
 
         if (is_string($planCode) && $planCode !== '') {

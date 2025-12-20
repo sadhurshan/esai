@@ -234,6 +234,20 @@ return [
                     'domain' => 'workspace',
                 ],
                 [
+                    'key' => 'ai.workflows.run',
+                    'label' => 'Run AI workflows',
+                    'description' => 'Start AI workflows and fetch pending Copilot steps.',
+                    'level' => 'write',
+                    'domain' => 'workspace',
+                ],
+                [
+                    'key' => 'ai.workflows.approve',
+                    'label' => 'Approve AI workflows',
+                    'description' => 'Approve or reject AI workflow outputs before publishing changes.',
+                    'level' => 'write',
+                    'domain' => 'workspace',
+                ],
+                [
                     'key' => 'exports.run',
                     'label' => 'Run exports',
                     'description' => 'Generate CSV/PDF exports and download archives.',

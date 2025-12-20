@@ -4,6 +4,8 @@ namespace App\Services\Admin;
 
 use App\Enums\CompanyStatus;
 use App\Enums\SupplierApplicationStatus;
+use App\Models\AiWorkflow;
+use App\Models\AiWorkflowStep;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\PurchaseOrder;
@@ -73,6 +75,8 @@ class AdminAnalyticsService
             ->limit(5)
             ->get();
 
+        $workflowMetrics = $this->workflowMetrics($now);
+
         return [
             'tenants' => [
                 'total' => $tenantsTotal,
@@ -108,9 +112,112 @@ class AdminAnalyticsService
                 'rfqs' => $this->monthlyCounts('rfqs', $trendStart, $now),
                 'tenants' => $this->monthlyCounts('companies', $trendStart, $now),
             ],
+            'workflows' => $workflowMetrics,
             'recent_companies' => $recentCompanies,
             'recent_audit_logs' => $recentAuditLogs,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function workflowMetrics(Carbon $now): array
+    {
+        $windowDays = 7;
+        $windowStart = $now->copy()->subDays($windowDays);
+
+        $baseQuery = AiWorkflow::query()->whereBetween('created_at', [$windowStart, $now]);
+
+        $total = (clone $baseQuery)->count();
+        $completed = (clone $baseQuery)->where('status', AiWorkflow::STATUS_COMPLETED)->count();
+        $inProgress = (clone $baseQuery)
+            ->whereIn('status', [AiWorkflow::STATUS_PENDING, AiWorkflow::STATUS_IN_PROGRESS])
+            ->count();
+        $failedStatuses = [
+            AiWorkflow::STATUS_FAILED,
+            AiWorkflow::STATUS_REJECTED,
+            AiWorkflow::STATUS_ABORTED,
+        ];
+        $failed = (clone $baseQuery)->whereIn('status', $failedStatuses)->count();
+
+        $completionRate = $total > 0 ? round(($completed / $total) * 100, 2) : 0.0;
+
+        return [
+            'window_days' => $windowDays,
+            'total_started' => $total,
+            'completed' => $completed,
+            'in_progress' => $inProgress,
+            'failed' => $failed,
+            'completion_rate' => $completionRate,
+            'avg_step_approval_minutes' => $this->averageApprovalMinutes($windowStart, $now),
+            'failed_alerts' => $this->failedWorkflowAlerts(),
+        ];
+    }
+
+    private function averageApprovalMinutes(Carbon $start, Carbon $end): ?float
+    {
+        $durations = AiWorkflowStep::query()
+            ->whereNotNull('approved_at')
+            ->whereBetween('approved_at', [$start, $end])
+            ->select(['created_at', 'approved_at'])
+            ->get()
+            ->map(function (AiWorkflowStep $step): ?int {
+                if ($step->approved_at === null || $step->created_at === null) {
+                    return null;
+                }
+
+                $seconds = $step->approved_at->diffInSeconds($step->created_at, false);
+
+                return abs($seconds);
+            })
+            ->filter(fn (?int $seconds): bool => $seconds !== null);
+
+        if ($durations->isEmpty()) {
+            return null;
+        }
+
+        return round(($durations->avg() ?? 0) / 60, 1);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function failedWorkflowAlerts(): array
+    {
+        return AiWorkflow::query()
+            ->with(['owner:id,name,email', 'company:id,name'])
+            ->whereIn('status', [
+                AiWorkflow::STATUS_FAILED,
+                AiWorkflow::STATUS_REJECTED,
+                AiWorkflow::STATUS_ABORTED,
+            ])
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->map(function (AiWorkflow $workflow): array {
+                return [
+                    'workflow_id' => $workflow->workflow_id,
+                    'workflow_type' => $workflow->workflow_type,
+                    'status' => $workflow->status,
+                    'company' => [
+                        'id' => $workflow->company_id,
+                        'name' => optional($workflow->company)->name,
+                    ],
+                    'owner' => $workflow->owner ? [
+                        'id' => $workflow->owner->id,
+                        'name' => $workflow->owner->name,
+                        'email' => $workflow->owner->email,
+                    ] : null,
+                    'current_step' => $workflow->current_step,
+                    'current_step_label' => $workflow->current_step !== null
+                        ? $workflow->stepName((int) $workflow->current_step)
+                        : null,
+                    'last_event_type' => $workflow->last_event_type,
+                    'last_event_time' => optional($workflow->last_event_time)->toIso8601String(),
+                    'updated_at' => optional($workflow->updated_at)->toIso8601String(),
+                ];
+            })
+            ->all();
     }
 
     /**

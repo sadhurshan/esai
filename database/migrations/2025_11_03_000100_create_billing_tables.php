@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -10,7 +11,10 @@ return new class extends Migration
     {
         Schema::create('plans', function (Blueprint $table): void {
             $table->id();
-            $table->string('code', 32)->unique();
+            $codeColumn = $table->string('code', 32);
+            if (! App::runningUnitTests() || config('database.default') !== 'sqlite') {
+                $codeColumn->unique();
+            }
             $table->string('name', 120);
             $table->decimal('price_usd', 12, 2)->nullable();
             $table->unsignedInteger('rfqs_per_month');

@@ -8,6 +8,37 @@ use App\Support\CompanyContext;
 class AiEventRecorder
 {
     private const FIELD_CHAR_LIMIT = 10000;
+    public const EVENT_WORKFLOW_START = 'workflow_start';
+    public const EVENT_WORKFLOW_STEP_APPROVED = 'workflow_step_approved';
+    public const EVENT_WORKFLOW_STEP_REJECTED = 'workflow_step_rejected';
+    public const EVENT_WORKFLOW_COMPLETED = 'workflow_completed';
+    public const EVENT_WORKFLOW_ABORTED = 'workflow_aborted';
+    public const EVENT_WORKFLOW_STEP_READY = 'workflow_step_ready';
+    public const EVENT_WORKFLOW_STEP_COMPLETE = 'workflow_step_complete';
+
+    /**
+     * @var list<string>
+     */
+    /**
+     * @var list<string>
+     */
+    private const WORKFLOW_EVENTS = [
+        self::EVENT_WORKFLOW_START,
+        self::EVENT_WORKFLOW_STEP_APPROVED,
+        self::EVENT_WORKFLOW_STEP_REJECTED,
+        self::EVENT_WORKFLOW_COMPLETED,
+        self::EVENT_WORKFLOW_ABORTED,
+        self::EVENT_WORKFLOW_STEP_READY,
+        self::EVENT_WORKFLOW_STEP_COMPLETE,
+    ];
+
+    /**
+     * @return list<string>
+     */
+    public static function workflowEventKeys(): array
+    {
+        return self::WORKFLOW_EVENTS;
+    }
 
     /**
      * @param array<string, mixed> $requestPayload
@@ -94,5 +125,204 @@ class AiEventRecorder
         }
 
         return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $workflowContext
+     * @param array<string, mixed> $payload
+     */
+    public function workflowStart(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_START,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowStepApproved(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_STEP_APPROVED,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowStepRejected(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_STEP_REJECTED,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowCompleted(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_COMPLETED,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowAborted(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_ABORTED,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowStepReady(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_STEP_READY,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowStepComplete(
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: self::EVENT_WORKFLOW_STEP_COMPLETE,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    public function workflowEvent(
+        string $event,
+        int $companyId,
+        ?int $userId,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        $feature = $this->normalizeWorkflowEventName($event);
+
+        return $this->record(
+            companyId: $companyId,
+            userId: $userId,
+            feature: $feature,
+            requestPayload: [
+                'event' => $feature,
+                'workflow' => $workflowContext,
+                'payload' => $payload,
+            ],
+            responsePayload: null,
+            latencyMs: null,
+            status: $status,
+            errorMessage: $errorMessage,
+            entityType: 'ai_workflow',
+            entityId: null,
+        );
+    }
+
+    public function recordWorkflowEvent(
+        int $companyId,
+        ?int $userId,
+        string $event,
+        array $workflowContext = [],
+        array $payload = [],
+        string $status = AiEvent::STATUS_SUCCESS,
+        ?string $errorMessage = null
+    ): AiEvent {
+        return $this->workflowEvent(
+            event: $event,
+            companyId: $companyId,
+            userId: $userId,
+            workflowContext: $workflowContext,
+            payload: $payload,
+            status: $status,
+            errorMessage: $errorMessage,
+        );
+    }
+
+    private function normalizeWorkflowEventName(string $event): string
+    {
+        $normalized = strtolower(trim($event));
+
+        if ($normalized === '') {
+            return 'workflow_event';
+        }
+
+        return in_array($normalized, self::WORKFLOW_EVENTS, true)
+            ? $normalized
+            : $normalized;
     }
 }

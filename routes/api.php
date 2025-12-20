@@ -82,6 +82,7 @@ use App\Http\Controllers\Api\Ai\AiDocumentIndexController;
 use App\Http\Controllers\Api\Ai\CopilotSearchController;
 use App\Http\Controllers\Api\V1\AiActionsController;
 use App\Http\Controllers\Api\V1\AiController;
+use App\Http\Controllers\Api\V1\AiWorkflowController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
 use App\Http\Controllers\Api\SupplierDashboardController;
 use App\Http\Controllers\Api\SupplierApplicationController;
@@ -281,6 +282,25 @@ Route::prefix('v1')->group(function (): void {
 
         Route::post('{draft}/feedback', [AiActionsController::class, 'feedback'])
             ->middleware($copilotActionMiddleware);
+    });
+
+    Route::prefix('ai/workflows')->group(function () use ($copilotActionMiddleware): void {
+        $workflowMiddleware = array_merge($copilotActionMiddleware, ['ensure.ai.workflows.access', 'ai.ensure.available', 'ai.rate.limit']);
+
+        Route::get('/', [AiWorkflowController::class, 'index'])
+            ->middleware($workflowMiddleware);
+
+        Route::post('start', [AiWorkflowController::class, 'start'])
+            ->middleware($workflowMiddleware);
+
+        Route::get('{workflow}/next', [AiWorkflowController::class, 'next'])
+            ->middleware($workflowMiddleware);
+
+        Route::get('{workflow}/events', [AiWorkflowController::class, 'events'])
+            ->middleware($workflowMiddleware);
+
+        Route::post('{workflow}/complete', [AiWorkflowController::class, 'complete'])
+            ->middleware($workflowMiddleware);
     });
 });
 

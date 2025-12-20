@@ -260,6 +260,134 @@ def run_inventory_whatif(
         }
 
 
+def compare_quotes(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Rank supplier quotes deterministically using price, lead time, quality, and risk."""
+
+    with _SideEffectGuard("compare_quotes"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        quotes = _normalize_quotes(normalized_inputs.get("quotes") or normalized_inputs.get("quote_options"))
+        if not quotes:
+            return {
+                "rankings": [],
+                "summary": ["No quotes provided for comparison."],
+                "recommendation": "",
+            }
+
+        risk_scores = _normalize_risk_scores(normalized_inputs.get("supplier_risk_scores"))
+        price_values = [quote["price"] for quote in quotes]
+        lead_values = [quote["lead_time_days"] for quote in quotes]
+        quality_values = [quote["quality_rating"] for quote in quotes]
+        risk_values = [risk_scores.get(quote["supplier_id"], quote["risk_score"]) for quote in quotes]
+        citations = _format_source_labels(normalized_context, limit=2)
+
+        rankings: List[Dict[str, Any]] = []
+        for quote in quotes:
+            supplier_id = quote["supplier_id"]
+            supplier_name = quote["supplier_name"]
+            price = quote["price"]
+            lead_time = quote["lead_time_days"]
+            quality = quote["quality_rating"]
+            risk = risk_scores.get(supplier_id, quote["risk_score"])
+
+            price_component = _score_lower_better(price, price_values)
+            lead_component = _score_lower_better(lead_time, lead_values)
+            quality_component = _score_higher_better(quality, quality_values)
+            risk_component = _score_lower_better(risk, risk_values)
+
+            normalized_score = round(
+                0.45 * price_component
+                + 0.20 * lead_component
+                + 0.25 * quality_component
+                + 0.10 * risk_component,
+                4,
+            )
+            total_score = round(normalized_score * 100, 2)
+            notes = (
+                f"{supplier_name}: ${price:,.2f}/unit, {lead_time:.1f}d lead, "
+                f"quality {(quality * 100):.0f}%, risk {(risk * 100):.0f}%"
+            )
+            if citations:
+                notes = f"{notes} ({' '.join(citations)})"
+            rankings.append(
+                {
+                    "supplier_id": supplier_id,
+                    "supplier_name": supplier_name,
+                    "score": total_score,
+                    "normalized_score": normalized_score,
+                    "notes": notes,
+                    "price": round(price, 2),
+                    "lead_time_days": round(lead_time, 2),
+                    "quality_rating": round(quality, 4),
+                    "risk_score": round(risk, 4),
+                }
+            )
+
+        rankings.sort(key=lambda item: item["normalized_score"], reverse=True)
+        recommendation = rankings[0]["supplier_id"]
+        summary = _build_quote_summary(rankings)
+        return {
+            "rankings": rankings,
+            "summary": summary,
+            "recommendation": recommendation,
+        }
+
+
+def draft_purchase_order(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a structured PO draft payload aligned to procurement workflows."""
+
+    with _SideEffectGuard("draft_purchase_order"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        supplier_block = _mapping(
+            normalized_inputs.get("selected_supplier")
+            or normalized_inputs.get("supplier")
+            or normalized_inputs.get("awardee")
+        )
+        rfq_details = _mapping(normalized_inputs.get("rfq") or normalized_inputs.get("rfq_details"))
+        rfq_id = _text(normalized_inputs.get("rfq_id")) or _text(rfq_details.get("rfq_id")) or _text(rfq_details.get("id"))
+        currency = _text(normalized_inputs.get("currency") or rfq_details.get("currency")) or "USD"
+
+        supplier_id = _text(supplier_block.get("supplier_id") or supplier_block.get("id")) or "supplier"
+        supplier_name = _text(supplier_block.get("name") or supplier_block.get("legal_name")) or supplier_id
+        supplier_contact = _text(supplier_block.get("contact")) or _text(supplier_block.get("contact_name"))
+
+        line_items = _build_po_line_items(
+            normalized_inputs.get("line_items") or rfq_details.get("line_items"),
+            currency,
+            normalized_context,
+        )
+        delivery_schedule = _build_delivery_schedule(
+            normalized_inputs.get("delivery_schedule"),
+            line_items,
+        )
+        terms = _build_po_terms(normalized_inputs, normalized_context)
+        total_value = round(sum(item["subtotal"] for item in line_items), 2)
+        po_number = _text(normalized_inputs.get("po_number")) or _generate_po_number(rfq_id or supplier_id)
+
+        return {
+            "po_number": po_number,
+            "rfq_id": rfq_id,
+            "supplier": {
+                "supplier_id": supplier_id,
+                "name": supplier_name,
+                "contact": supplier_contact,
+            },
+            "currency": currency,
+            "line_items": line_items,
+            "terms_and_conditions": terms,
+            "delivery_schedule": delivery_schedule,
+            "total_value": total_value,
+            "approver_notes": normalized_inputs.get("approver_notes") or "Human approval required before release.",
+        }
+
+
 def _normalize_context(context: Sequence[MutableMapping[str, Any]] | None) -> List[MutableMapping[str, Any]]:
     if not context:
         return []
@@ -499,10 +627,215 @@ def _clamp(value: float, minimum: float, maximum: float) -> float:
     return value
 
 
+def _normalize_quotes(raw_quotes: Any) -> List[Dict[str, Any]]:
+    normalized: List[Dict[str, Any]] = []
+    if isinstance(raw_quotes, Iterable) and not isinstance(raw_quotes, (str, bytes, dict)):
+        for idx, entry in enumerate(raw_quotes):
+            if not isinstance(entry, MutableMapping):
+                continue
+            supplier_id = _text(entry.get("supplier_id") or entry.get("supplier") or entry.get("id")) or f"supplier-{idx + 1}"
+            supplier_name = _text(entry.get("supplier_name") or entry.get("name")) or supplier_id
+            price = _safe_float(entry.get("price") or entry.get("unit_price"), default=0.0)
+            lead_time = _safe_float(entry.get("lead_time_days") or entry.get("lead_time") or entry.get("lead_time_weeks"), default=0.0)
+            quality_rating = _safe_float(entry.get("quality_rating") or entry.get("quality_score"), default=0.7)
+            quality_rating = quality_rating / 5.0 if quality_rating > 1 else quality_rating
+            quality_rating = _clamp(quality_rating, 0.0, 1.0)
+            risk_score = _safe_float(entry.get("risk_score") or entry.get("supplier_risk"), default=0.3)
+            risk_score = risk_score / 100.0 if risk_score > 1 else risk_score
+            risk_score = _clamp(risk_score, 0.0, 1.0)
+
+            normalized.append(
+                {
+                    "supplier_id": supplier_id,
+                    "supplier_name": supplier_name,
+                    "price": max(price, 0.0),
+                    "lead_time_days": max(lead_time, 0.0),
+                    "quality_rating": quality_rating,
+                    "risk_score": risk_score,
+                }
+            )
+    return normalized
+
+
+def _normalize_risk_scores(raw_scores: Any) -> Dict[str, float]:
+    result: Dict[str, float] = {}
+    if isinstance(raw_scores, MutableMapping):
+        for supplier_id, score in raw_scores.items():
+            value = _safe_float(score, default=0.3)
+            value = value / 100.0 if value > 1 else value
+            result[_text(supplier_id) or str(supplier_id)] = _clamp(value, 0.0, 1.0)
+    return result
+
+
+def _score_lower_better(value: float, values: List[float]) -> float:
+    finite_values = [val for val in values if not math.isnan(val)]
+    if not finite_values:
+        return 1.0
+    min_value = min(finite_values)
+    max_value = max(finite_values)
+    if max_value == min_value:
+        return 1.0
+    return 1.0 - (value - min_value) / (max_value - min_value)
+
+
+def _score_higher_better(value: float, values: List[float]) -> float:
+    finite_values = [val for val in values if not math.isnan(val)]
+    if not finite_values:
+        return 1.0
+    min_value = min(finite_values)
+    max_value = max(finite_values)
+    if max_value == min_value:
+        return 1.0
+    return (value - min_value) / (max_value - min_value)
+
+
+def _build_quote_summary(rankings: List[Dict[str, Any]]) -> List[str]:
+    summary: List[str] = []
+    if not rankings:
+        return ["No quote rankings computed."]
+
+    top = rankings[0]
+    summary.append(
+        f"Recommend {top['supplier_name']} (score {top['score']:.1f}) based on cost, lead time, and quality mix."
+    )
+    if len(rankings) > 1:
+        runner = rankings[1]
+        delta = round(top["score"] - runner["score"], 2)
+        summary.append(
+            f"{runner['supplier_name']} trails by {delta:.2f} points; consider if alternate schedule flexibility is needed."
+        )
+    lowest_price = min(rankings, key=lambda item: item.get("price", float("inf")))
+    summary.append(
+        f"Lowest unit cost from {lowest_price.get('supplier_name')} at ${lowest_price.get('price', 0):,.2f}/unit; confirm risk and quality trade-offs."
+    )
+    return summary
+
+
+def _build_po_line_items(
+    raw_items: Any,
+    currency: str,
+    context: List[MutableMapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    line_items: List[Dict[str, Any]] = []
+    if isinstance(raw_items, MutableMapping):
+        iterable: Iterable[Any] = raw_items.values()
+    elif isinstance(raw_items, Iterable) and not isinstance(raw_items, (str, bytes)):
+        iterable = raw_items
+    else:
+        iterable = []
+
+    for idx, entry in enumerate(iterable):
+            if not isinstance(entry, MutableMapping):
+                continue
+            quantity = _clamp(_safe_float(entry.get("quantity") or entry.get("qty"), default=1.0), 0.01, 9_999_999)
+            unit_price = _safe_float(entry.get("unit_price") or entry.get("price"), default=1.0)
+            delivery_date = _text(entry.get("delivery_date") or entry.get("need_by") or entry.get("target_date"))
+            line_items.append(
+                {
+                    "line_number": idx + 1,
+                    "item_code": _text(entry.get("item_code") or entry.get("part_id")) or f"ITEM-{idx + 1}",
+                    "description": _text(entry.get("description")) or "Pending description",
+                    "quantity": quantity,
+                    "unit_price": round(max(unit_price, 0.0), 2),
+                    "currency": currency,
+                    "subtotal": round(quantity * max(unit_price, 0.0), 2),
+                    "delivery_date": delivery_date or datetime.now(timezone.utc).date().isoformat(),
+                    "notes": _text(entry.get("notes")) or "Based on awarded RFQ line.",
+                }
+            )
+
+    if not line_items:
+        citation = _format_source_labels(context, limit=1)
+        line_items.append(
+            {
+                "line_number": 1,
+                "item_code": "TBD-1",
+                "description": "Awaiting finalized award details",
+                "quantity": 1.0,
+                "unit_price": 1.0,
+                "currency": currency,
+                "subtotal": 1.0,
+                "delivery_date": datetime.now(timezone.utc).date().isoformat(),
+                "notes": "Placeholder generated from workflow context" + (f" ({citation[0]})" if citation else ""),
+            }
+        )
+    return line_items[:25]
+
+
+def _build_delivery_schedule(
+    raw_schedule: Any,
+    line_items: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    schedule: List[Dict[str, Any]] = []
+    if isinstance(raw_schedule, Iterable) and not isinstance(raw_schedule, (str, bytes, dict)):
+        iterable = raw_schedule
+    elif isinstance(raw_schedule, MutableMapping):
+        iterable = raw_schedule.values()
+    else:
+        iterable = []
+
+    for entry in iterable:
+        if not isinstance(entry, MutableMapping):
+            continue
+        schedule.append(
+            {
+                "milestone": _text(entry.get("milestone")) or _text(entry.get("name")) or "Delivery",
+                "date": _text(entry.get("date")) or _text(entry.get("delivery_date")) or datetime.now(timezone.utc).date().isoformat(),
+                "quantity": _clamp(_safe_float(entry.get("quantity") or entry.get("qty"), default=0.0), 0.0, 9_999_999),
+                "notes": _text(entry.get("notes")) or "Align with logistics plan.",
+            }
+        )
+
+    if not schedule:
+        for item in line_items:
+            schedule.append(
+                {
+                    "milestone": f"Deliver line {item['line_number']}",
+                    "date": item["delivery_date"],
+                    "quantity": item["quantity"],
+                    "notes": f"Matches item_code {item['item_code']}",
+                }
+            )
+    return schedule[:25]
+
+
+def _build_po_terms(
+    inputs: MutableMapping[str, Any],
+    context: List[MutableMapping[str, Any]],
+) -> List[str]:
+    explicit_terms = _string_list(inputs.get("terms_and_conditions"))
+    negotiated_terms = _string_list(inputs.get("negotiated_terms"))
+    terms = explicit_terms or negotiated_terms
+    if not terms:
+        terms = [
+            "PO remains draft until digitally approved.",
+            "Payment terms Net 30 unless superseded by master agreement.",
+        ]
+    citations = _format_source_labels(context, limit=2)
+    if citations:
+        terms.append(f"Context references: {' '.join(citations)}")
+    return terms[:15]
+
+
+def _generate_po_number(seed: str) -> str:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    normalized_seed = (seed or "AI").strip().upper().replace(" ", "-")
+    return f"PO-DRAFT-{normalized_seed}-{timestamp}"
+
+
+def _safe_float(value: Any, *, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 __all__ = [
     "SideEffectBlockedError",
     "build_rfq_draft",
     "build_supplier_message",
     "build_maintenance_checklist",
     "run_inventory_whatif",
+    "compare_quotes",
+    "draft_purchase_order",
 ]

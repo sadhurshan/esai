@@ -19,6 +19,7 @@ connection and feature toggles via environment variables such as
 from __future__ import annotations
 
 import contextvars
+import copy
 import hashlib
 import json
 import logging
@@ -40,6 +41,8 @@ from ai_microservice.schemas import (
     ANSWER_SCHEMA,
     INVENTORY_WHATIF_SCHEMA,
     MAINTENANCE_CHECKLIST_SCHEMA,
+    PO_DRAFT_SCHEMA,
+    QUOTE_COMPARISON_SCHEMA,
     RFQ_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
 )
@@ -47,8 +50,11 @@ from ai_microservice.tools_contract import (
     build_maintenance_checklist,
     build_rfq_draft,
     build_supplier_message,
+    compare_quotes,
+    draft_purchase_order,
     run_inventory_whatif,
 )
+from ai_microservice.workflow_engine import WorkflowEngine, WorkflowEngineError, WorkflowNotFoundError
 from ai_microservice.vector_store import InMemoryVectorStore, VectorStore
 from ai_service import AISupplyService
 
@@ -151,6 +157,8 @@ vector_store: VectorStore = InMemoryVectorStore()
 DEFAULT_LLM_PROVIDER_NAME = os.getenv("AI_LLM_PROVIDER", "dummy").strip().lower()
 SUPPORTED_LLM_PROVIDERS = {"dummy", "openai"}
 
+workflow_engine = WorkflowEngine()
+
 ACTION_CONTEXT_MAX_CHARS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHARS", "9000"))
 ACTION_CONTEXT_MAX_CHUNKS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHUNKS", "12"))
 ACTION_CONTEXT_PER_DOC_LIMIT = int(os.getenv("AI_ACTION_CONTEXT_PER_DOC_LIMIT", "4"))
@@ -160,6 +168,8 @@ ACTION_TYPE_LABELS: Dict[str, str] = {
     "supplier_message": "Supplier Message",
     "maintenance_checklist": "Maintenance Checklist",
     "inventory_whatif": "Inventory What-If",
+    "compare_quotes": "Quote Comparison",
+    "po_draft": "Purchase Order Draft",
 }
 
 ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
@@ -167,6 +177,16 @@ ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
     "supplier_message": SUPPLIER_MESSAGE_SCHEMA,
     "maintenance_checklist": MAINTENANCE_CHECKLIST_SCHEMA,
     "inventory_whatif": INVENTORY_WHATIF_SCHEMA,
+    "compare_quotes": QUOTE_COMPARISON_SCHEMA,
+    "po_draft": PO_DRAFT_SCHEMA,
+}
+
+WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
+    "procurement": [
+        {"action_type": "rfq_draft", "name": "RFQ Draft", "metadata": {"input_key": "rfq"}},
+        {"action_type": "compare_quotes", "name": "Compare Quotes", "metadata": {"input_key": "quotes"}},
+        {"action_type": "po_draft", "name": "Purchase Order Draft", "metadata": {"input_key": "po"}},
+    ],
 }
 
 
@@ -320,6 +340,8 @@ class ActionPlanRequest(BaseModel):
         "supplier_message",
         "maintenance_checklist",
         "inventory_whatif",
+        "compare_quotes",
+        "po_draft",
     ]
     query: str = Field(..., min_length=1)
     inputs: Dict[str, Any] = Field(default_factory=dict)
@@ -358,6 +380,65 @@ class ActionPlanRequest(BaseModel):
         if normalized in SUPPORTED_LLM_PROVIDERS:
             return normalized
         return None
+
+
+class WorkflowPlanRequest(BaseModel):
+    company_id: int = Field(..., ge=1)
+    workflow_type: str = Field(..., min_length=1)
+    inputs: Dict[str, Any] = Field(default_factory=dict)
+    user_context: Dict[str, Any] = Field(default_factory=dict)
+    rfq_id: Optional[str] = Field(default=None)
+    goal: Optional[str] = Field(default=None)
+
+    @field_validator("workflow_type", mode="before")
+    @classmethod
+    def normalize_workflow_type(cls, value: Any) -> str:
+        if value is None:
+            raise ValueError("workflow_type is required")
+        normalized = str(value).strip().lower()
+        if not normalized:
+            raise ValueError("workflow_type cannot be empty")
+        return normalized
+
+    @field_validator("inputs", "user_context", mode="before")
+    @classmethod
+    def ensure_mapping(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("Value must be an object")
+        return value
+
+    @field_validator("goal", mode="before")
+    @classmethod
+    def normalize_goal(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        stripped = str(value).strip()
+        return stripped or None
+
+
+class WorkflowCompleteRequest(BaseModel):
+    output: Dict[str, Any] = Field(default_factory=dict)
+    approval: bool
+    approved_by: Optional[str] = Field(default=None)
+
+    @field_validator("output", mode="before")
+    @classmethod
+    def ensure_output(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("output must be an object")
+        return value
+
+    @field_validator("approved_by", mode="before")
+    @classmethod
+    def normalize_approver(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        stripped = str(value).strip()
+        return stripped or None
 def resolve_llm_provider(override: Optional[str]) -> tuple[str, "LLMProvider"]:
     requested = (override or DEFAULT_LLM_PROVIDER_NAME or "dummy").strip().lower()
     if requested not in SUPPORTED_LLM_PROVIDERS:
@@ -639,6 +720,10 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
 
 @app.post("/actions/plan")
 async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
+    return await _execute_action_plan(payload)
+
+
+async def _execute_action_plan(payload: ActionPlanRequest) -> Dict[str, Any]:
     started_at = time.perf_counter()
     action_schema = ACTION_SCHEMA_BY_TYPE[payload.action_type]
     filter_payload = payload.filters.model_dump(exclude_none=True) if payload.filters else {}
@@ -718,6 +803,130 @@ async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
             ),
         )
         raise HTTPException(status_code=500, detail="Failed to generate AI action plan") from exc
+
+
+@app.post("/workflows/plan")
+async def plan_workflow(payload: WorkflowPlanRequest) -> Dict[str, Any]:
+    try:
+        action_sequence = _build_workflow_plan(payload.workflow_type, payload.rfq_id, payload.inputs)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    workflow_goal = payload.goal or payload.inputs.get("goal")
+    query = workflow_goal or f"{payload.workflow_type} workflow"
+
+    try:
+        workflow = workflow_engine.plan_workflow(
+            query=query,
+            action_sequence=action_sequence,
+            company_id=payload.company_id,
+            user_context=payload.user_context,
+            workflow_type=payload.workflow_type,
+            metadata={
+                "rfq_id": payload.rfq_id,
+                "inputs": payload.inputs,
+                "goal": workflow_goal,
+            },
+        )
+    except WorkflowEngineError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    next_step = workflow["steps"][0] if workflow.get("steps") else None
+    LOGGER.info(
+        "workflow_plan_created",
+        extra=log_extra(
+            workflow_id=workflow["workflow_id"],
+            workflow_type=workflow["workflow_type"],
+            company_id=payload.company_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "data": {
+            "workflow_id": workflow["workflow_id"],
+            "workflow_type": workflow["workflow_type"],
+            "status": workflow["status"],
+            "next_step": _serialize_step(next_step),
+        },
+    }
+
+
+@app.get("/workflows/{workflow_id}/next")
+async def get_next_workflow_step(workflow_id: str) -> Dict[str, Any]:
+    try:
+        step = workflow_engine.get_next_step(workflow_id)
+    except WorkflowNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    workflow_snapshot = workflow_engine.get_workflow_snapshot(workflow_id)
+    if not step:
+        return {
+            "status": "ok",
+            "data": {
+                "workflow_id": workflow_id,
+                "workflow_status": workflow_snapshot["status"],
+                "step": None,
+            },
+        }
+
+    action_response = await _execute_workflow_step(workflow_snapshot, step)
+    updated_step = workflow_engine.update_step_draft(workflow_id, step.get("step_index", 0), action_response)
+    refreshed_workflow = workflow_engine.get_workflow_snapshot(workflow_id)
+    LOGGER.info(
+        "workflow_step_drafted",
+        extra=log_extra(
+            workflow_id=workflow_id,
+            step_index=step.get("step_index"),
+            action_type=step.get("action_type"),
+        ),
+    )
+    return {
+        "status": "ok",
+        "data": {
+            "workflow_id": workflow_id,
+            "workflow_status": refreshed_workflow["status"],
+            "step": _serialize_step(updated_step),
+        },
+    }
+
+
+@app.post("/workflows/{workflow_id}/complete")
+async def complete_workflow_step(workflow_id: str, payload: WorkflowCompleteRequest) -> Dict[str, Any]:
+    try:
+        workflow = workflow_engine.complete_step(
+            workflow_id,
+            payload.output,
+            payload.approval,
+            approved_by=payload.approved_by,
+        )
+    except WorkflowNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except WorkflowEngineError as exc:  # pragma: no cover - validation guard
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    next_step = None
+    current_index = workflow.get("current_step_index")
+    if current_index is not None:
+        steps = workflow.get("steps", [])
+        if 0 <= current_index < len(steps):
+            next_step = steps[current_index]
+
+    LOGGER.info(
+        "workflow_step_completed",
+        extra=log_extra(
+            workflow_id=workflow_id,
+            approval=payload.approval,
+            next_step=current_index,
+        ),
+    )
+    return {
+        "status": "ok",
+        "data": {
+            "workflow_id": workflow_id,
+            "workflow_status": workflow.get("status"),
+            "next_step": _serialize_step(next_step),
+        },
+    }
 
 
 def _build_context_blocks(hits: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -848,6 +1057,170 @@ def _run_action_semantic_search(
         )
         raise HTTPException(status_code=400, detail="Semantic search failed") from exc
 
+
+def _build_workflow_plan(workflow_type: str, rfq_id: Optional[str], inputs: Dict[str, Any]) -> List[Dict[str, Any]]:
+    template = WORKFLOW_STEP_TEMPLATES.get(workflow_type)
+    if not template:
+        raise ValueError(f"Unsupported workflow_type '{workflow_type}'")
+
+    steps: List[Dict[str, Any]] = []
+    for template_step in template:
+        action_type = template_step["action_type"]
+        snapshot = _extract_step_snapshot(action_type, inputs, rfq_id)
+        steps.append(
+            {
+                "action_type": action_type,
+                "name": template_step.get("name") or ACTION_TYPE_LABELS.get(action_type, action_type.title()),
+                "required_inputs": snapshot,
+                "metadata": template_step.get("metadata") or {},
+            }
+        )
+    return steps
+
+
+def _extract_step_snapshot(action_type: str, inputs: Dict[str, Any], rfq_id: Optional[str]) -> Dict[str, Any]:
+    snapshot: Dict[str, Any]
+    if action_type == "rfq_draft":
+        source = inputs.get("rfq") or inputs.get("rfq_inputs") or {}
+        snapshot = copy.deepcopy(source if isinstance(source, dict) else {})
+    elif action_type == "compare_quotes":
+        quotes_source = inputs.get("quotes") or []
+        risk_source = inputs.get("supplier_risk_scores") or inputs.get("risk_scores") or {}
+        snapshot = {
+            "rfq_id": rfq_id,
+            "quotes": copy.deepcopy(quotes_source if isinstance(quotes_source, list) else []),
+            "supplier_risk_scores": copy.deepcopy(risk_source if isinstance(risk_source, dict) else {}),
+        }
+    elif action_type == "po_draft":
+        source = inputs.get("po") or inputs.get("po_draft") or {}
+        snapshot = copy.deepcopy(source if isinstance(source, dict) else {})
+    else:
+        snapshot = copy.deepcopy(inputs)
+
+    if rfq_id and (not isinstance(snapshot.get("rfq_id"), str) or not snapshot.get("rfq_id")):
+        snapshot["rfq_id"] = rfq_id
+    return snapshot
+
+
+def _serialize_step(step: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not step:
+        return None
+    return {
+        "step_index": step.get("step_index"),
+        "name": step.get("name"),
+        "action_type": step.get("action_type"),
+        "approval_state": step.get("approval_state"),
+        "required_inputs": step.get("required_inputs"),
+        "draft_output": step.get("draft_output"),
+        "output": step.get("output"),
+        "approved_by": step.get("approved_by"),
+        "approved_at": step.get("approved_at"),
+        "metadata": step.get("metadata"),
+    }
+
+
+async def _execute_workflow_step(workflow: Dict[str, Any], step: Dict[str, Any]) -> Dict[str, Any]:
+    step_inputs = _prepare_step_inputs(workflow, step)
+    action_request = ActionPlanRequest(
+        company_id=int(workflow.get("company_id") or 0),
+        action_type=step.get("action_type"),
+        query=_workflow_step_query(workflow, step),
+        inputs=step_inputs,
+        user_context=workflow.get("user_context") or {},
+    )
+    return await _execute_action_plan(action_request)
+
+
+def _prepare_step_inputs(workflow: Dict[str, Any], step: Dict[str, Any]) -> Dict[str, Any]:
+    base_inputs = step.get("required_inputs")
+    if isinstance(base_inputs, dict):
+        prepared: Dict[str, Any] = copy.deepcopy(base_inputs)
+    elif isinstance(base_inputs, list):
+        prepared = {"items": copy.deepcopy(base_inputs)}
+    else:
+        prepared = {}
+
+    metadata = workflow.get("metadata") or {}
+    rfq_id = metadata.get("rfq_id")
+    if rfq_id and not prepared.get("rfq_id"):
+        prepared["rfq_id"] = rfq_id
+    prepared.setdefault("workflow_id", workflow.get("workflow_id"))
+    prepared["workflow_context"] = {
+        "workflow_id": workflow.get("workflow_id"),
+        "workflow_type": workflow.get("workflow_type"),
+        "company_id": workflow.get("company_id"),
+        "rfq_id": rfq_id,
+        "goal": metadata.get("goal"),
+    }
+
+    previous_outputs = _collect_previous_outputs(workflow, step.get("step_index", 0))
+    if previous_outputs:
+        prepared["previous_steps"] = previous_outputs
+
+    if step.get("action_type") == "po_draft":
+        recommendation = _extract_recommendation_from_steps(workflow)
+        if recommendation and "selected_supplier" not in prepared:
+            prepared["selected_supplier"] = recommendation
+    return prepared
+
+
+def _collect_previous_outputs(workflow: Dict[str, Any], current_index: int) -> List[Dict[str, Any]]:
+    outputs: List[Dict[str, Any]] = []
+    for step in workflow.get("steps", []):
+        step_idx = step.get("step_index")
+        if step_idx is None or step_idx >= current_index:
+            continue
+        outputs.append(
+            {
+                "step_index": step_idx,
+                "action_type": step.get("action_type"),
+                "approval_state": step.get("approval_state"),
+                "draft_output": step.get("draft_output"),
+                "output": step.get("output"),
+            }
+        )
+    return outputs
+
+
+def _workflow_step_query(workflow: Dict[str, Any], step: Dict[str, Any]) -> str:
+    action_label = ACTION_TYPE_LABELS.get(step.get("action_type"), step.get("action_type", "Workflow Step").title())
+    workflow_goal = (workflow.get("metadata") or {}).get("goal") or workflow.get("query") or action_label
+    return f"{action_label} for workflow {workflow.get('workflow_id')}: {workflow_goal}"
+
+
+def _extract_recommendation_from_steps(workflow: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    for step in workflow.get("steps", []):
+        if step.get("action_type") != "compare_quotes":
+            continue
+        payload_source: Optional[Dict[str, Any]] = None
+        for candidate in (step.get("output"), step.get("draft_output")):
+            if isinstance(candidate, dict):
+                payload = candidate.get("payload") if isinstance(candidate.get("payload"), dict) else candidate
+                if isinstance(payload, dict):
+                    payload_source = payload
+                    break
+        if payload_source:
+            recommendation = payload_source.get("recommendation")
+            rankings = payload_source.get("rankings")
+            if isinstance(recommendation, str) and isinstance(rankings, list):
+                supplier_details = next(
+                    (
+                        ranking
+                        for ranking in rankings
+                        if isinstance(ranking, dict) and ranking.get("supplier_id") == recommendation
+                    ),
+                    None,
+                )
+                if isinstance(supplier_details, dict):
+                    return {
+                        "supplier_id": supplier_details.get("supplier_id"),
+                        "supplier_name": supplier_details.get("supplier_name"),
+                        "score": supplier_details.get("score"),
+                    }
+            if isinstance(payload_source.get("selected_supplier"), dict):
+                return payload_source.get("selected_supplier")
+    return None
+
     response_hits: List[Dict[str, Any]] = []
     for hit in hits:
         snippet = (hit.snippet or "")[:250]
@@ -917,6 +1290,8 @@ def _invoke_tool_contract(
         "supplier_message": build_supplier_message,
         "maintenance_checklist": build_maintenance_checklist,
         "inventory_whatif": run_inventory_whatif,
+        "compare_quotes": compare_quotes,
+        "po_draft": draft_purchase_order,
     }
     tool = tool_mapping.get(action_type)
     if not tool:

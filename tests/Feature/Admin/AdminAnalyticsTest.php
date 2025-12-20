@@ -2,6 +2,8 @@
 
 use App\Enums\CompanyStatus;
 use App\Enums\SupplierApplicationStatus;
+use App\Models\AiWorkflow;
+use App\Models\AiWorkflowStep;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\PlatformAdmin;
@@ -85,6 +87,49 @@ it('returns analytics overview for platform super admins', function (): void {
         'user_agent' => 'test-suite',
     ]);
 
+    $completedWorkflow = AiWorkflow::factory()->create([
+        'company_id' => $activeCompany->id,
+        'user_id' => $user->id,
+        'workflow_type' => 'rfq_draft',
+        'status' => AiWorkflow::STATUS_COMPLETED,
+        'current_step' => 1,
+        'created_at' => now()->subDays(2),
+        'updated_at' => now()->subDay(),
+        'last_event_time' => now()->subDay(),
+        'steps_json' => [
+            'steps' => [
+                ['step_index' => 0, 'name' => 'RFQ draft'],
+                ['step_index' => 1, 'name' => 'Compare quotes'],
+            ],
+        ],
+    ]);
+
+    AiWorkflowStep::factory()->create([
+        'company_id' => $activeCompany->id,
+        'workflow_id' => $completedWorkflow->workflow_id,
+        'step_index' => 1,
+        'approval_status' => AiWorkflowStep::APPROVAL_APPROVED,
+        'created_at' => now()->subHours(3),
+        'approved_at' => now()->subHour(),
+    ]);
+
+    $failedWorkflow = AiWorkflow::factory()->create([
+        'company_id' => $activeCompany->id,
+        'user_id' => $user->id,
+        'workflow_type' => 'po_draft',
+        'status' => AiWorkflow::STATUS_FAILED,
+        'current_step' => 2,
+        'created_at' => now()->subHours(5),
+        'updated_at' => now()->subMinutes(30),
+        'last_event_type' => 'workflow_failed',
+        'last_event_time' => now()->subMinutes(30),
+        'steps_json' => [
+            'steps' => [
+                ['step_index' => 2, 'name' => 'PO draft'],
+            ],
+        ],
+    ]);
+
     actingAs($user);
 
     $response = getJson('/api/admin/analytics/overview');
@@ -109,10 +154,27 @@ it('returns analytics overview for platform super admins', function (): void {
                 ],
                 'people' => ['users_total', 'active_last_7_days', 'listed_suppliers'],
                 'approvals' => ['pending_companies', 'pending_supplier_applications'],
+                'workflows' => [
+                    'window_days',
+                    'total_started',
+                    'completed',
+                    'in_progress',
+                    'failed',
+                    'completion_rate',
+                    'avg_step_approval_minutes',
+                    'failed_alerts',
+                ],
                 'trends' => ['rfqs', 'tenants'],
                 'recent' => ['companies', 'audit_logs'],
             ],
         ]);
+
+    $response->assertJsonPath('data.workflows.total_started', 2);
+    $response->assertJsonPath('data.workflows.completed', 1);
+    $response->assertJsonPath('data.workflows.failed', 1);
+    $response->assertJsonPath('data.workflows.completion_rate', 50);
+    $response->assertJsonPath('data.workflows.avg_step_approval_minutes', 120);
+    $response->assertJsonPath('data.workflows.failed_alerts.0.workflow_id', $failedWorkflow->workflow_id);
 });
 
 it('requires admin guard for analytics overview', function (): void {

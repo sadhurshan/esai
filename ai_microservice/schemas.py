@@ -223,6 +223,111 @@ INVENTORY_WHATIF_PAYLOAD_SCHEMA = {
     },
 }
 
+QUOTE_RANKING_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["supplier_id", "score", "normalized_score", "notes"],
+    "properties": {
+        "supplier_id": {"type": "string", "minLength": 1},
+        "supplier_name": {"type": "string", "minLength": 1},
+        "score": {"type": "number"},
+        "normalized_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "notes": {"type": "string", "minLength": 1},
+        "price": {"type": "number", "minimum": 0},
+        "lead_time_days": {"type": "number", "minimum": 0},
+        "quality_rating": {"type": "number", "minimum": 0, "maximum": 1},
+        "risk_score": {"type": "number", "minimum": 0, "maximum": 1},
+    },
+}
+
+QUOTE_COMPARISON_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["rankings", "summary", "recommendation"],
+    "properties": {
+        "rankings": {
+            "type": "array",
+            "minItems": 1,
+            "items": QUOTE_RANKING_ITEM_SCHEMA,
+        },
+        "summary": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+        },
+        "recommendation": {"type": "string", "minLength": 1},
+    },
+}
+
+PO_SUPPLIER_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["supplier_id", "name"],
+    "properties": {
+        "supplier_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "contact": {"type": "string"},
+    },
+}
+
+PO_LINE_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["line_number", "item_code", "description", "quantity", "unit_price", "currency", "subtotal", "delivery_date"],
+    "properties": {
+        "line_number": {"type": "integer", "minimum": 1},
+        "item_code": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "quantity": {"type": "number", "exclusiveMinimum": 0},
+        "unit_price": {"type": "number", "minimum": 0},
+        "currency": {"type": "string", "minLength": 1},
+        "subtotal": {"type": "number", "minimum": 0},
+        "delivery_date": {"type": "string"},
+        "notes": {"type": "string"},
+    },
+}
+
+PO_DELIVERY_SCHEDULE_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["milestone", "date", "quantity", "notes"],
+    "properties": {
+        "milestone": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "minLength": 1},
+        "quantity": {"type": "number", "minimum": 0},
+        "notes": {"type": "string", "minLength": 1},
+    },
+}
+
+PO_DRAFT_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["po_number", "line_items", "terms_and_conditions", "delivery_schedule"],
+    "properties": {
+        "po_number": {"type": "string", "minLength": 1},
+        "rfq_id": {"type": "string"},
+        "supplier": PO_SUPPLIER_SCHEMA,
+        "currency": {"type": "string", "minLength": 1},
+        "line_items": {
+            "type": "array",
+            "minItems": 1,
+            "items": PO_LINE_ITEM_SCHEMA,
+        },
+        "terms_and_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+        },
+        "delivery_schedule": {
+            "type": "array",
+            "minItems": 1,
+            "items": PO_DELIVERY_SCHEDULE_ITEM_SCHEMA,
+        },
+        "total_value": {"type": "number", "minimum": 0},
+        "approver_notes": {"type": "string", "minLength": 1},
+    },
+}
+
 RFQ_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionRfqDraft", RFQ_DRAFT_PAYLOAD_SCHEMA
 )
@@ -239,10 +344,20 @@ INVENTORY_WHATIF_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionInventoryWhatIf", INVENTORY_WHATIF_PAYLOAD_SCHEMA
 )
 
+QUOTE_COMPARISON_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionQuoteComparison", QUOTE_COMPARISON_PAYLOAD_SCHEMA
+)
+
+PO_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionPurchaseOrderDraft", PO_DRAFT_PAYLOAD_SCHEMA
+)
+
 __all__ = [
     "ANSWER_SCHEMA",
     "RFQ_DRAFT_SCHEMA",
     "SUPPLIER_MESSAGE_SCHEMA",
     "MAINTENANCE_CHECKLIST_SCHEMA",
     "INVENTORY_WHATIF_SCHEMA",
+    "QUOTE_COMPARISON_SCHEMA",
+    "PO_DRAFT_SCHEMA",
 ]

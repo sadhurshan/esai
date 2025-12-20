@@ -343,6 +343,41 @@ export interface AdminAnalyticsTrendPoint {
     count: number;
 }
 
+export interface AdminWorkflowAlertCompany {
+    id: number;
+    name?: string | null;
+}
+
+export interface AdminWorkflowAlertOwner {
+    id: number;
+    name?: string | null;
+    email?: string | null;
+}
+
+export interface AdminWorkflowAlert {
+    workflow_id: string;
+    workflow_type?: string | null;
+    status: string;
+    company?: AdminWorkflowAlertCompany | null;
+    owner?: AdminWorkflowAlertOwner | null;
+    current_step?: number | null;
+    current_step_label?: string | null;
+    last_event_type?: string | null;
+    last_event_time?: string | null;
+    updated_at?: string | null;
+}
+
+export interface AdminWorkflowMetrics {
+    window_days: number;
+    total_started: number;
+    completed: number;
+    in_progress: number;
+    failed: number;
+    completion_rate: number;
+    avg_step_approval_minutes: number | null;
+    failed_alerts: AdminWorkflowAlert[];
+}
+
 export interface AdminAnalyticsRecentCompanyPlan {
     id: number;
     name: string;
@@ -401,6 +436,7 @@ export interface AdminAnalyticsOverview {
     usage: AdminAnalyticsUsageSummary;
     people: AdminAnalyticsPeopleSummary;
     approvals: AdminAnalyticsApprovalsSummary;
+    workflows: AdminWorkflowMetrics;
     trends: {
         rfqs: AdminAnalyticsTrendPoint[];
         tenants: AdminAnalyticsTrendPoint[];

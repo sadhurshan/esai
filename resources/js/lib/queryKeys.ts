@@ -1,4 +1,10 @@
 export const queryKeys = {
+    ai: {
+        workflows: {
+            list: (params?: Record<string, unknown>) => ['ai', 'workflows', 'list', params ?? {}] as const,
+            step: (workflowId: string) => ['ai', 'workflows', 'step', workflowId] as const,
+        },
+    },
     dashboard: {
         metrics: () => ['dashboard', 'buyer', 'metrics'] as const,
         supplierMetrics: () => ['dashboard', 'supplier', 'metrics'] as const,
@@ -174,6 +180,8 @@ export const queryKeys = {
 };
 
 export type QueryKey = ReturnType<
+    | (typeof queryKeys)['ai']['workflows']['list']
+    | (typeof queryKeys)['ai']['workflows']['step']
     | (typeof queryKeys)['suppliers']['list']
     | (typeof queryKeys)['suppliers']['detail']
     | (typeof queryKeys)['rfps']['root']

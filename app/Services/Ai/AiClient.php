@@ -102,6 +102,45 @@ class AiClient
 
     /**
      * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function planWorkflow(array $payload): array
+    {
+        return $this->send('workflows/plan', $payload, 'Workflow planned.', 'workflow_plan');
+    }
+
+    /**
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function nextWorkflowStep(string $workflowId): array
+    {
+        return $this->send(
+            sprintf('workflows/%s/next', $workflowId),
+            [],
+            'Workflow step fetched.',
+            'workflow_next',
+            null,
+            null,
+            'get'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function completeWorkflowStep(string $workflowId, array $payload): array
+    {
+        return $this->send(
+            sprintf('workflows/%s/complete', $workflowId),
+            $payload,
+            'Workflow step completed.',
+            'workflow_complete'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      * @param callable|null $payloadInterceptor
      * @param callable|null $responseFormatter
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
@@ -112,7 +151,8 @@ class AiClient
         string $successMessage,
         string $feature,
         ?callable $payloadInterceptor = null,
-        ?callable $responseFormatter = null
+        ?callable $responseFormatter = null,
+        string $method = 'post'
     ): array
     {
         if (! $this->isEnabled()) {
@@ -125,14 +165,19 @@ class AiClient
             return $this->circuitUnavailableResponse();
         }
 
-        $enrichedPayload = $this->enrichPayload($payload);
+        $httpMethod = strtolower($method);
+        $enrichedPayload = $httpMethod === 'get' ? $payload : $this->enrichPayload($payload);
 
         if ($payloadInterceptor !== null) {
             $enrichedPayload = $payloadInterceptor($enrichedPayload);
         }
 
         try {
-            $response = $this->pendingRequest()->post(ltrim($endpoint, '/'), $enrichedPayload);
+            $request = $this->pendingRequest();
+
+            $response = $httpMethod === 'get'
+                ? $request->get(ltrim($endpoint, '/'), $enrichedPayload)
+                : $request->post(ltrim($endpoint, '/'), $enrichedPayload);
         } catch (ConnectionException $exception) {
             $this->recordFailure($feature, $enrichedPayload, $exception->getMessage());
 

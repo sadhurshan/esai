@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, BadgeInfo, Building2, Database, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { Activity, AlertTriangle, BadgeInfo, Building2, Database, GaugeCircle, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useAdminAnalyticsOverview } from '@/hooks/api/admin/use-admin-analytics-overview';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint } from '@/types/admin';
+import type { AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint, AdminWorkflowAlert, AdminWorkflowMetrics } from '@/types/admin';
 import { cn } from '@/lib/utils';
 
 const quickLinks = [
@@ -195,6 +195,19 @@ export function AdminHomePage() {
                     formatNumber={formatNumber}
                     formatDate={formatDate}
                     isLoading={isLoading}
+                />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+                <WorkflowHealthCard
+                    metrics={analytics?.workflows}
+                    isLoading={isLoading}
+                    formatNumber={formatNumber}
+                />
+                <WorkflowAlertsCard
+                    alerts={analytics?.workflows?.failed_alerts ?? []}
+                    isLoading={isLoading}
+                    formatDate={formatDate}
                 />
             </div>
 
@@ -408,6 +421,179 @@ function TrendCard({
 function formatPeriodLabel(period: string, formatDate: ReturnType<typeof useFormatting>['formatDate']) {
     const safe = `${period}-01T00:00:00Z`;
     return formatDate(safe, { month: 'short', year: 'numeric' });
+}
+
+function WorkflowHealthCard({
+    metrics,
+    isLoading,
+    formatNumber,
+}: {
+    metrics?: AdminWorkflowMetrics;
+    isLoading: boolean;
+    formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
+}) {
+    const totalLabel = metrics ? formatNumber(metrics.total_started ?? null, { maximumFractionDigits: 0 }) : null;
+    const completionLabel = metrics ? `${formatNumber(metrics.completion_rate ?? null, { maximumFractionDigits: 1 })}%` : null;
+    const avgApprovalLabel =
+        metrics && metrics.avg_step_approval_minutes !== null && metrics.avg_step_approval_minutes !== undefined
+            ? `${formatNumber(metrics.avg_step_approval_minutes, { maximumFractionDigits: 1 })} min`
+            : 'Awaiting approvals';
+
+    return (
+        <Card className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div>
+                    <CardTitle>AI workflow health</CardTitle>
+                    <CardDescription>Completion signals across the past week.</CardDescription>
+                </div>
+                <div className="rounded-full bg-primary/10 p-2 text-primary">
+                    <GaugeCircle className="h-5 w-5" aria-hidden />
+                </div>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <Skeleton className="h-48 w-full" />
+                ) : metrics ? (
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <WorkflowMetricCallout
+                                label="Total started"
+                                value={totalLabel ?? 'N/A'}
+                                helper={`Past ${metrics.window_days} days`}
+                            />
+                            <WorkflowMetricCallout
+                                label="Completion rate"
+                                value={completionLabel ?? 'N/A'}
+                                helper={metrics.total_started ? `${metrics.completed} of ${metrics.total_started}` : 'No recent runs'}
+                                intent="success"
+                            />
+                            <WorkflowMetricCallout label="Avg approval time" value={avgApprovalLabel} helper="Step approvals" intent="warning" />
+                        </div>
+                        <dl className="grid gap-4 sm:grid-cols-3">
+                            <Stat value={metrics.completed} label="Completed" formatNumber={formatNumber} intent="success" />
+                            <Stat value={metrics.in_progress} label="In progress" formatNumber={formatNumber} intent="warning" />
+                            <Stat value={metrics.failed} label="Failed" formatNumber={formatNumber} intent="danger" />
+                        </dl>
+                    </div>
+                ) : (
+                    <EmptyState
+                        icon={<GaugeCircle className="h-8 w-8" aria-hidden />}
+                        title="No workflow data"
+                        description="Once companies run AI workflows, their metrics will appear here."
+                    />
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function WorkflowAlertsCard({
+    alerts,
+    isLoading,
+    formatDate,
+}: {
+    alerts: AdminWorkflowAlert[];
+    isLoading: boolean;
+    formatDate: ReturnType<typeof useFormatting>['formatDate'];
+}) {
+    return (
+        <Card className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div>
+                    <CardTitle>Workflow alerts</CardTitle>
+                    <CardDescription>Latest failures requiring operator attention.</CardDescription>
+                </div>
+                <div className="rounded-full bg-rose-100 p-2 text-rose-700">
+                    <AlertTriangle className="h-5 w-5" aria-hidden />
+                </div>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <Skeleton className="h-48 w-full" />
+                ) : alerts.length ? (
+                    <div className="space-y-3">
+                        {alerts.map((alert) => (
+                            <div key={alert.workflow_id} className="rounded-lg border bg-muted/20 p-3">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-foreground">{alert.company?.name ?? 'Unknown company'}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {alert.workflow_type ?? 'workflow'} · {alert.workflow_id}
+                                        </p>
+                                    </div>
+                                    <Badge variant="outline" className={cn('text-xs font-semibold uppercase', workflowStatusBadgeClass(alert.status))}>
+                                        {alert.status?.replaceAll('_', ' ') ?? 'unknown'}
+                                    </Badge>
+                                </div>
+                                <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                                    {alert.owner ? <p>Owner: {alert.owner.name ?? 'Unknown'} ({alert.owner.email ?? 'N/A'})</p> : null}
+                                    {alert.current_step_label ? <p>Step: {alert.current_step_label}</p> : null}
+                                    <p>Last event: {formatWorkflowTimestamp(alert, formatDate)}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyState
+                        icon={<Sparkles className="h-8 w-8" aria-hidden />}
+                        title="No failed workflows"
+                        description="Workflow-level alerts will populate here as issues arise."
+                    />
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function WorkflowMetricCallout({
+    label,
+    value,
+    helper,
+    intent,
+}: {
+    label: string;
+    value: string;
+    helper?: string;
+    intent?: 'success' | 'warning' | 'default';
+}) {
+    const accent =
+        intent === 'success'
+            ? 'text-emerald-600'
+            : intent === 'warning'
+              ? 'text-amber-600'
+              : 'text-foreground';
+
+    return (
+        <div className="rounded-lg border bg-background/80 p-4 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className={cn('mt-1 text-2xl font-semibold', accent)}>{value}</p>
+            {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}
+        </div>
+    );
+}
+
+function workflowStatusBadgeClass(status?: string | null) {
+    const normalized = status?.toLowerCase?.() ?? '';
+
+    if (normalized === 'failed') {
+        return 'border-rose-200 bg-rose-50 text-rose-700';
+    }
+
+    if (normalized === 'rejected') {
+        return 'border-amber-200 bg-amber-50 text-amber-700';
+    }
+
+    if (normalized === 'aborted') {
+        return 'border-slate-200 bg-slate-50 text-slate-700';
+    }
+
+    return 'border-border text-muted-foreground';
+}
+
+function formatWorkflowTimestamp(alert: AdminWorkflowAlert, formatDate: ReturnType<typeof useFormatting>['formatDate']) {
+    const timestamp = alert.last_event_time ?? alert.updated_at ?? null;
+
+    return timestamp ? formatDate(timestamp, { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown';
 }
 
 function RecentCompaniesTable({

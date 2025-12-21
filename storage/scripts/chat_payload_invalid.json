@@ -1,0 +1,15 @@
+{
+  "company_id": 1,
+  "thread_id": "test-thread",
+  "user_id_hash": "123456789abcdef",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello AI",
+      "content_json": null,
+      "created_at": null
+    }
+  ],
+  "context": [],
+  "thread_summary": null
+}

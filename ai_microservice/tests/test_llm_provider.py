@@ -55,3 +55,54 @@ def test_openai_provider_returns_refusal_payload(monkeypatch: pytest.MonkeyPatch
     assert result["needs_human_review"] is True
     assert result["confidence"] == 0.0
     assert any("refused" in warning for warning in result["warnings"])
+
+
+def test_openai_provider_payload_structure(monkeypatch: pytest.MonkeyPatch) -> None:
+    provider = OpenAILLMProvider(api_key="test-key", model="gpt-structure")
+    context_blocks = [
+        {
+            "doc_id": "doc-1",
+            "doc_version": "v1",
+            "chunk_id": 0,
+            "snippet": "alpha",
+            "score": 0.9,
+        }
+    ]
+
+    captured: Dict[str, Any] = {}
+    response_payload = {
+        "answer_markdown": "ok",
+        "citations": [],
+        "confidence": 0.9,
+        "needs_human_review": False,
+        "warnings": [],
+    }
+
+    def _fake_post(*_: Any, **kwargs: Any) -> _StubResponse:
+        captured.update(kwargs)
+        return _StubResponse(
+            {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": json.dumps(response_payload),
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("ai_microservice.llm_provider.httpx.post", _fake_post)
+
+    result = provider.generate_answer("question", context_blocks, ANSWER_SCHEMA, safety_identifier="safety-user")
+
+    assert result == response_payload
+    sent = captured.get("json")
+    assert sent is not None
+    assert sent["max_tokens"] == provider.max_output_tokens
+    assert "max_output_tokens" not in sent
+    response_format = sent["response_format"]["json_schema"]
+    assert response_format["name"] == ANSWER_SCHEMA["title"]
+    assert "metadata" not in sent
+    assert sent["user"] == "safety-user"

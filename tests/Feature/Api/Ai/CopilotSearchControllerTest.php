@@ -180,6 +180,43 @@ it('records ai events for successful copilot answers and returns allowed citatio
         ->and($event->request_json['user_role'])->toBe($user->role);
 });
 
+it('forwards allow_general flag to the ai service when requested', function (): void {
+    ['user' => $user, 'company' => $company] = provisionCopilotUser();
+
+    $client = \Mockery::mock(AiClient::class);
+    $client->shouldReceive('answer')
+        ->once()
+        ->withArgs(function (array $payload) use ($company): bool {
+            expect($payload['company_id'])->toBe($company->id);
+            expect($payload['allow_general'])->toBeTrue();
+
+            return true;
+        })
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Answer ready.',
+            'data' => [
+                'answer_markdown' => 'General context answer',
+                'citations' => [],
+                'warnings' => ['Ungrounded'],
+            ],
+            'errors' => [],
+        ]);
+
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($user);
+
+    $response = $this->postJson('/api/copilot/answer', [
+        'query' => 'What are the latest aerospace trends?',
+        'allow_general' => true,
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.warnings.0', 'Ungrounded');
+});
+
 function provisionCopilotUser(string $role = 'buyer_admin'): array
 {
     $plan = Plan::factory()->create([

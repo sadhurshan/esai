@@ -9,14 +9,17 @@ use App\Http\Requests\Api\Ai\AiWorkflowStartRequest;
 use App\Http\Resources\AiWorkflowEventResource;
 use App\Http\Resources\AiWorkflowResource;
 use App\Http\Resources\AiWorkflowStepResource;
+use App\Models\AiChatThread;
 use App\Models\AiEvent;
 use App\Models\AiWorkflow;
 use App\Models\AiWorkflowStep;
 use App\Models\User;
+use App\Services\Ai\ChatService;
 use App\Services\Ai\WorkflowService;
 use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use App\Exceptions\AiServiceUnavailableException;
 use App\Services\Ai\AiEventRecorder;
@@ -26,6 +29,7 @@ class AiWorkflowController extends ApiController
     public function __construct(
         private readonly WorkflowService $workflowService,
         private readonly PermissionRegistry $permissionRegistry,
+        private readonly ChatService $chatService,
     ) {
     }
 
@@ -97,6 +101,15 @@ class AiWorkflowController extends ApiController
             ]);
         }
 
+        $threadId = $request->threadId();
+        $thread = $this->resolveThread($threadId, $companyId);
+
+        if ($threadId !== null && ! $thread instanceof AiChatThread) {
+            return $this->fail('Chat thread not found.', Response::HTTP_NOT_FOUND, [
+                'code' => 'chat_thread_not_found',
+            ]);
+        }
+
         $payload = $request->startPayload();
         $payload['user_context'] = $this->buildUserContext($user, $payload['user_context'], $companyId);
 
@@ -109,6 +122,8 @@ class AiWorkflowController extends ApiController
         } catch (AiWorkflowException $exception) {
             return $this->fail($exception->getMessage(), Response::HTTP_BAD_GATEWAY);
         }
+
+        $this->appendThreadSystemMessage($thread, $user, $workflow);
 
         return $this->ok([
             'workflow_id' => $workflow->workflow_id,
@@ -332,6 +347,45 @@ class AiWorkflowController extends ApiController
         ], static fn ($value) => $value !== null && $value !== '');
 
         return $defaults + $clientContext;
+    }
+
+    private function resolveThread(?int $threadId, int $companyId): ?AiChatThread
+    {
+        if ($threadId === null) {
+            return null;
+        }
+
+        return AiChatThread::query()
+            ->forCompany($companyId)
+            ->whereKey($threadId)
+            ->first();
+    }
+
+    private function appendThreadSystemMessage(?AiChatThread $thread, User $user, AiWorkflow $workflow): void
+    {
+        if (! $thread instanceof AiChatThread) {
+            return;
+        }
+
+        $workflowLabel = $this->formatWorkflowLabel($workflow->workflow_type);
+        $message = sprintf('Started %s workflow (%s).', $workflowLabel, $workflow->workflow_id);
+
+        $payload = array_filter([
+            'workflow_id' => $workflow->workflow_id,
+            'workflow_type' => $workflow->workflow_type,
+            'status' => $workflow->status,
+            'current_step' => $workflow->current_step,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        $this->chatService->appendSystemMessage($thread, $user, $message, $payload);
+    }
+
+    private function formatWorkflowLabel(string $value): string
+    {
+        return Str::of($value)
+            ->replace(['_', '-'], ' ')
+            ->headline()
+            ->value();
     }
 
     /**

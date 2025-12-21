@@ -14,6 +14,7 @@ class CopilotQueryRequest extends ApiFormRequest
         return [
             'query' => ['required', 'string', 'max:2000'],
             'top_k' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'allow_general' => ['nullable', 'boolean'],
             'filters' => ['nullable', 'array'],
             'filters.source_type' => ['nullable', 'string', 'max:100'],
             'filters.doc_id' => ['nullable', 'string', 'max:100'],

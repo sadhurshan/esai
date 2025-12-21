@@ -84,6 +84,54 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function chatRespond(array $payload): array
+    {
+        return $this->send(
+            'chat/respond',
+            $payload,
+            'Chat response generated.',
+            'chat_respond',
+            function (array $enrichedPayload): array {
+                return $this->applyLlmProviderControls($enrichedPayload);
+            }
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param callable(array):void $listener
+     */
+    public function chatRespondStream(array $payload, callable $listener): void
+    {
+        $this->sendStream(
+            'chat/respond_stream',
+            $payload,
+            'chat_respond_stream',
+            $listener
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function chatContinue(array $payload): array
+    {
+        return $this->send(
+            'chat/continue',
+            $payload,
+            'Chat response continued.',
+            'chat_continue',
+            function (array $enrichedPayload): array {
+                return $this->applyLlmProviderControls($enrichedPayload);
+            }
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function planAction(array $payload): array
     {
         return $this->send(
@@ -197,6 +245,151 @@ class AiClient
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param callable(array):void $listener
+     */
+    private function sendStream(
+        string $endpoint,
+        array $payload,
+        string $feature,
+        callable $listener
+    ): void {
+        if (! $this->isEnabled()) {
+            throw new AiServiceUnavailableException('AI service is disabled.');
+        }
+
+        if ($this->isCircuitOpen()) {
+            $this->recordCircuitSkip($feature, $payload);
+
+            throw new AiServiceUnavailableException('AI circuit breaker is open.');
+        }
+
+        $enrichedPayload = $this->applyLlmProviderControls($this->enrichPayload($payload));
+
+        try {
+            $request = $this->pendingRequest()
+                ->accept('text/event-stream')
+                ->withOptions(['stream' => true]);
+
+            $response = $request->post(ltrim($endpoint, '/'), $enrichedPayload);
+        } catch (ConnectionException $exception) {
+            $this->recordFailure($feature, $enrichedPayload, $exception->getMessage());
+
+            throw new AiServiceUnavailableException('AI service is unavailable.', 0, $exception);
+        }
+
+        if ($response->failed()) {
+            $body = $response->body() ?: '';
+            $status = $response->status();
+            $reason = trim((string) ($response->reason() ?? ''));
+            $statusSummary = trim(sprintf('%s %s', $status, $reason));
+            $bodyPreview = $body === '' ? '' : Str::limit($body, 500);
+
+            $this->recordFailure($feature, $enrichedPayload, $body !== '' ? $body : null);
+
+            $details = $statusSummary;
+
+            if ($bodyPreview !== '') {
+                $details = $details === ''
+                    ? $bodyPreview
+                    : sprintf('%s - %s', $details, $bodyPreview);
+            }
+
+            throw new AiServiceUnavailableException(
+                $details === ''
+                    ? 'AI streaming request failed.'
+                    : sprintf('AI streaming request failed (%s).', $details)
+            );
+        }
+
+        $stream = $response->toPsrResponse()->getBody();
+        $this->streamResponseBody($stream, $listener);
+        $this->resetFailureWindow();
+    }
+
+    /**
+     * @param \Psr\Http\Message\StreamInterface $stream
+     * @param callable(array):void $listener
+     */
+    private function streamResponseBody($stream, callable $listener): void
+    {
+        $buffer = '';
+
+        while (! $stream->eof()) {
+            $chunk = $stream->read(1024);
+
+            if ($chunk === false || $chunk === '') {
+                usleep(50000);
+
+                continue;
+            }
+
+            $buffer .= str_replace("\r", '', $chunk);
+
+            while (($delimiterPosition = strpos($buffer, "\n\n")) !== false) {
+                $rawEvent = substr($buffer, 0, $delimiterPosition);
+                $buffer = substr($buffer, $delimiterPosition + 2) ?: '';
+                $event = $this->parseSseEvent($rawEvent);
+
+                if ($event !== null) {
+                    $listener($event);
+                }
+            }
+        }
+
+        $buffer = trim($buffer);
+
+        if ($buffer !== '') {
+            $event = $this->parseSseEvent($buffer);
+
+            if ($event !== null) {
+                $listener($event);
+            }
+        }
+    }
+
+    /**
+     * @return array{event:string,data:mixed,frame:string}|null
+     */
+    private function parseSseEvent(string $rawEvent): ?array
+    {
+        $normalized = trim($rawEvent);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $eventName = 'message';
+        $dataLines = [];
+
+        foreach (preg_split('/\n/', $normalized) as $line) {
+            if ($line === '' || str_starts_with($line, ':')) {
+                continue;
+            }
+
+            if (str_starts_with($line, 'event:')) {
+                $eventName = trim(substr($line, 6)) ?: 'message';
+
+                continue;
+            }
+
+            if (str_starts_with($line, 'data:')) {
+                $dataLines[] = ltrim(substr($line, 5));
+            }
+        }
+
+        $dataPayload = implode("\n", $dataLines);
+        $decoded = json_decode($dataPayload, true);
+        $data = json_last_error() === JSON_ERROR_NONE ? $decoded : $dataPayload;
+
+        return [
+            'event' => $eventName,
+            'data' => $data,
+            'frame' => $normalized . "\n\n",
+        ];
     }
 
     /**

@@ -4,6 +4,11 @@ export const queryKeys = {
             list: (params?: Record<string, unknown>) => ['ai', 'workflows', 'list', params ?? {}] as const,
             step: (workflowId: string) => ['ai', 'workflows', 'step', workflowId] as const,
         },
+        chat: {
+            root: () => ['ai', 'chat'] as const,
+            threads: (params?: Record<string, unknown>) => ['ai', 'chat', 'threads', params ?? {}] as const,
+            thread: (threadId: string | number) => ['ai', 'chat', 'threads', 'detail', String(threadId)] as const,
+        },
     },
     dashboard: {
         metrics: () => ['dashboard', 'buyer', 'metrics'] as const,
@@ -182,6 +187,9 @@ export const queryKeys = {
 export type QueryKey = ReturnType<
     | (typeof queryKeys)['ai']['workflows']['list']
     | (typeof queryKeys)['ai']['workflows']['step']
+    | (typeof queryKeys)['ai']['chat']['root']
+    | (typeof queryKeys)['ai']['chat']['threads']
+    | (typeof queryKeys)['ai']['chat']['thread']
     | (typeof queryKeys)['suppliers']['list']
     | (typeof queryKeys)['suppliers']['detail']
     | (typeof queryKeys)['rfps']['root']

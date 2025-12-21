@@ -65,9 +65,9 @@ vi.mock('@/contexts/auth-context', () => ({
     useAuth: () => mockAuth,
 }));
 
-vi.mock('@/components/ai/CopilotActionsPanel', () => ({
-    CopilotActionsPanel: ({ className }: { className?: string }) => (
-        <div data-testid="copilot-actions-panel" className={className}>
+vi.mock('@/components/ai/CopilotChatPanel', () => ({
+    CopilotChatPanel: ({ className }: { className?: string }) => (
+        <div data-testid="copilot-chat-panel" className={className}>
             Copilot content
         </div>
     ),
@@ -108,7 +108,7 @@ describe('CopilotChatWidget', () => {
         fireEvent.click(bubble);
 
         expect(screen.getByText('AI Copilot')).toBeInTheDocument();
-        expect(screen.getByTestId('copilot-actions-panel')).toBeInTheDocument();
+        expect(screen.getByTestId('copilot-chat-panel')).toBeInTheDocument();
 
         fireEvent.keyDown(document, { key: 'Escape' });
 

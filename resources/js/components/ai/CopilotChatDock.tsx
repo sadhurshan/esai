@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { XIcon } from 'lucide-react';
 
-import { CopilotActionsPanel } from '@/components/ai/CopilotActionsPanel';
+import { CopilotChatPanel } from '@/components/ai/CopilotChatPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useCopilotWidget } from '@/contexts/copilot-widget-context';
 import { cn } from '@/lib/utils';
@@ -47,7 +47,7 @@ export function CopilotChatDock() {
                     </SheetHeader>
                     <div className="flex-1 overflow-hidden">
                         <div className="h-full overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
-                            <CopilotActionsPanel className="h-full" />
+                            <CopilotChatPanel className="h-full" />
                         </div>
                     </div>
                 </div>

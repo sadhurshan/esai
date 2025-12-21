@@ -163,3 +163,29 @@ def test_answer_respects_llm_provider_override(
     )
 
     assert response.status_code == 200
+
+
+def test_answer_allows_general_mode_when_enabled(
+    client: TestClient,
+    answer_env: _StubVectorStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    answer_env.search_results = []
+    monkeypatch.setattr(app_module, "ALLOW_UNGROUNDED_ANSWERS", True)
+
+    response = client.post(
+        "/answer",
+        json={
+            "company_id": 1,
+            "query": "Summarize the Elements Supply AI assistant mission.",
+            "allow_general": True,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert payload["citations"] == []
+    assert payload["needs_human_review"] is True
+    warnings = " ".join(payload.get("warnings", [])).lower()
+    assert "general" in warnings or "workspace" in warnings

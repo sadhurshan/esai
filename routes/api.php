@@ -81,6 +81,7 @@ use App\Http\Controllers\Api\SupplierQuoteController;
 use App\Http\Controllers\Api\Ai\AiDocumentIndexController;
 use App\Http\Controllers\Api\Ai\CopilotSearchController;
 use App\Http\Controllers\Api\V1\AiActionsController;
+use App\Http\Controllers\Api\V1\AiChatController;
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\V1\AiWorkflowController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
@@ -270,6 +271,8 @@ Route::prefix('v1')->group(function (): void {
         'buyer_access',
     ];
 
+    $copilotChatMiddleware = array_merge($copilotActionMiddleware, ['ai.ensure.available', 'ai.rate.limit']);
+
     Route::prefix('ai/actions')->group(function () use ($copilotActionMiddleware): void {
         Route::post('plan', [AiActionsController::class, 'plan'])
             ->middleware(array_merge($copilotActionMiddleware, ['ai.ensure.available', 'ai.rate.limit']));
@@ -283,6 +286,24 @@ Route::prefix('v1')->group(function (): void {
         Route::post('{draft}/feedback', [AiActionsController::class, 'feedback'])
             ->middleware($copilotActionMiddleware);
     });
+
+    Route::prefix('ai/drafts')
+        ->middleware($copilotActionMiddleware)
+        ->group(function (): void {
+            Route::post('{draft}/approve', [AiActionsController::class, 'approve']);
+            Route::post('{draft}/reject', [AiActionsController::class, 'reject']);
+        });
+
+    Route::prefix('ai/chat')
+        ->middleware($copilotChatMiddleware)
+        ->group(function (): void {
+            Route::get('threads', [AiChatController::class, 'index']);
+            Route::post('threads', [AiChatController::class, 'store']);
+            Route::get('threads/{thread}', [AiChatController::class, 'show']);
+            Route::get('threads/{thread}/stream', [AiChatController::class, 'stream']);
+            Route::post('threads/{thread}/send', [AiChatController::class, 'send']);
+            Route::post('threads/{thread}/tools/resolve', [AiChatController::class, 'resolveTools']);
+        });
 
     Route::prefix('ai/workflows')->group(function () use ($copilotActionMiddleware): void {
         $workflowMiddleware = array_merge($copilotActionMiddleware, ['ensure.ai.workflows.access', 'ai.ensure.available', 'ai.rate.limit']);

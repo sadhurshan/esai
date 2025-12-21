@@ -17,6 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/empty-state';
+import { ForecastInsightCard, type ForecastHistoryPoint, type ForecastInsight } from '@/components/ai/ForecastInsightCard';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { FileDropzone } from '@/components/file-dropzone';
@@ -120,6 +121,50 @@ export function ItemDetailPage() {
         [form.formState.errors.minStock, form.formState.errors.reorderQty, form.formState.errors.leadTimeDays],
     );
 
+    const handleForecastApply = useCallback(
+        (insight: ForecastInsight) => {
+            const safetyStock = normalizeForecastMetric(insight.safety_stock);
+            const reorderQuantity = normalizeForecastMetric(insight.demand_qty ?? insight.reorder_point);
+
+            if (safetyStock !== null) {
+                form.setValue('minStock', Math.max(0, Math.round(safetyStock)), { shouldDirty: true });
+            }
+
+            if (reorderQuantity !== null) {
+                form.setValue('reorderQty', Math.max(0, Math.round(reorderQuantity)), { shouldDirty: true });
+            }
+        },
+        [form],
+    );
+
+    const forecastHistory = useMemo<ForecastHistoryPoint[]>(() => {
+        // TODO: replace line-count fallback with real consumption totals once the usage API exposes per-item quantities.
+        const items = movementQuery.data?.items ?? [];
+
+        return items
+            .map<ForecastHistoryPoint | null>((movement) => {
+                const quantity = typeof movement.lineCount === 'number'
+                    ? movement.lineCount
+                    : Number(movement.lineCount ?? 0);
+
+                if (!movement.movedAt) {
+                    return null;
+                }
+
+                const resolvedQuantity = Number.isFinite(quantity) ? quantity : 0;
+
+                if (resolvedQuantity <= 0) {
+                    return null;
+                }
+
+                return {
+                    date: movement.movedAt,
+                    quantity: resolvedQuantity,
+                };
+            })
+            .filter((entry): entry is ForecastHistoryPoint => entry !== null);
+    }, [movementQuery.data?.items]);
+
     const handleAttachmentsSelected = useCallback(
         async (files: File[]) => {
             if (!itemId || files.length === 0) {
@@ -206,6 +251,9 @@ export function ItemDetailPage() {
     const movements = movementQuery.data?.items ?? [];
     const locations = locationsQuery.data?.items ?? [];
     const canManageAttachments = inventoryEnabled;
+    const parsedItemId = Number.parseInt(item.id, 10);
+    const forecastPartId = Number.isNaN(parsedItemId) ? Number.parseInt(itemId ?? '', 10) || 0 : parsedItemId;
+    const canRunForecast = forecastPartId > 0;
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -356,15 +404,24 @@ export function ItemDetailPage() {
                             <CardHeader>
                                 <CardTitle>Safety stock</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <ReorderEditor
-                                    value={reorderValue}
-                                    onChange={(next) => {
-                                        form.setValue('minStock', next.minStock ?? null, { shouldDirty: true });
-                                        form.setValue('reorderQty', next.reorderQty ?? null, { shouldDirty: true });
-                                        form.setValue('leadTimeDays', next.leadTimeDays ?? null, { shouldDirty: true });
-                                    }}
-                                    errors={reorderErrors}
+                            <CardContent className="grid gap-6 lg:grid-cols-2">
+                                <div>
+                                    <ReorderEditor
+                                        value={reorderValue}
+                                        onChange={(next) => {
+                                            form.setValue('minStock', next.minStock ?? null, { shouldDirty: true });
+                                            form.setValue('reorderQty', next.reorderQty ?? null, { shouldDirty: true });
+                                            form.setValue('leadTimeDays', next.leadTimeDays ?? null, { shouldDirty: true });
+                                        }}
+                                        errors={reorderErrors}
+                                    />
+                                </div>
+                                <ForecastInsightCard
+                                    partId={forecastPartId}
+                                    history={forecastHistory}
+                                    horizon={item.reorderRule.leadTimeDays ?? undefined}
+                                    disabled={!canRunForecast}
+                                    onApply={handleForecastApply}
                                 />
                             </CardContent>
                         </Card>
@@ -518,5 +575,15 @@ function formatMovementType(type: string): string {
         .split('_')
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
         .join(' ');
+}
+
+function normalizeForecastMetric(value: unknown): number | null {
+    const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+
+    if (!Number.isFinite(numeric)) {
+        return null;
+    }
+
+    return numeric;
 }
 

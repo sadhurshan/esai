@@ -127,6 +127,7 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
             const payload: AnswerQuestionPayload = {
                 query: question.trim(),
                 top_k: DEFAULT_TOP_K,
+                allow_general: true,
             };
 
             if (sourceType || tags.length > 0) {

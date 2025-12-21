@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Exceptions\AiServiceUnavailableException;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\Ai\AiActionApproveRequest;
 use App\Http\Requests\Api\Ai\AiActionPlanRequest;
 use App\Http\Requests\Api\Ai\AiActionRejectRequest;
 use App\Http\Resources\AiActionDraftResource;
@@ -11,16 +12,19 @@ use App\Models\AiActionDraft;
 use App\Http\Requests\Api\Ai\AiActionFeedbackRequest;
 use App\Http\Resources\AiActionFeedbackResource;
 use App\Models\AiActionFeedback;
+use App\Models\AiChatThread;
 use App\Models\AiEvent;
 use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\AiEventRecorder;
 use App\Services\Ai\Converters\AiDraftConversionService;
+use App\Services\Ai\ChatService;
 use App\Support\Permissions\PermissionRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,6 +37,7 @@ class AiActionsController extends ApiController
         private readonly AiEventRecorder $recorder,
         private readonly PermissionRegistry $permissionRegistry,
         private readonly AiDraftConversionService $conversionService,
+        private readonly ChatService $chatService,
     ) {
     }
 
@@ -132,7 +137,7 @@ class AiActionsController extends ApiController
         ], 'Action draft generated.');
     }
 
-    public function approve(Request $request, int $draft): JsonResponse
+    public function approve(AiActionApproveRequest $request, int $draft): JsonResponse
     {
         $context = $this->requireCompanyContext($request);
 
@@ -160,6 +165,14 @@ class AiActionsController extends ApiController
             ]);
         }
 
+        $thread = $this->resolveThread($request->threadId(), $companyId);
+
+        if ($request->threadId() !== null && ! $thread instanceof AiChatThread) {
+            return $this->fail('Chat thread not found.', Response::HTTP_NOT_FOUND, [
+                'code' => 'chat_thread_not_found',
+            ]);
+        }
+
         try {
             DB::transaction(function () use ($model, $user): void {
                 $model->forceFill([
@@ -171,6 +184,7 @@ class AiActionsController extends ApiController
 
                 $this->conversionService->convert($model, $user);
             });
+            $model->refresh();
         } catch (ValidationException $exception) {
             return $this->fail('Draft payload is invalid.', Response::HTTP_UNPROCESSABLE_ENTITY, $exception->errors());
         } catch (Throwable $exception) {
@@ -181,21 +195,33 @@ class AiActionsController extends ApiController
             ]);
         }
 
+        $this->appendThreadSystemMessage($thread, $user, $model, AiActionDraft::STATUS_APPROVED);
+
+        $requestPayload = [
+            'draft_id' => $model->id,
+            'action_type' => $model->action_type,
+        ];
+
+        if ($thread instanceof AiChatThread) {
+            $requestPayload['thread_id'] = $thread->id;
+        }
+
         $this->recordEvent(
             companyId: $companyId,
             userId: $user->id,
             feature: 'copilot_action_approve',
-            requestPayload: ['draft_id' => $model->id, 'action_type' => $model->action_type],
+            requestPayload: $requestPayload,
             responsePayload: ['status' => $model->status, 'entity_type' => $model->entity_type, 'entity_id' => $model->entity_id],
             latencyMs: null,
             status: AiEvent::STATUS_SUCCESS,
             errorMessage: null,
             entityType: $model->entity_type,
             entityId: $model->entity_id,
+            thread: $thread,
         );
 
         return $this->ok([
-            'draft' => (new AiActionDraftResource($model->refresh()))->toArray($request),
+            'draft' => (new AiActionDraftResource($model))->toArray($request),
         ], 'Action draft approved.');
     }
 
@@ -227,6 +253,14 @@ class AiActionsController extends ApiController
             ]);
         }
 
+        $thread = $this->resolveThread($request->threadId(), $companyId);
+
+        if ($request->threadId() !== null && ! $thread instanceof AiChatThread) {
+            return $this->fail('Chat thread not found.', Response::HTTP_NOT_FOUND, [
+                'code' => 'chat_thread_not_found',
+            ]);
+        }
+
         $model->forceFill([
             'status' => AiActionDraft::STATUS_REJECTED,
             'approved_by' => null,
@@ -234,21 +268,36 @@ class AiActionsController extends ApiController
             'rejected_reason' => $request->reason(),
         ])->save();
 
+        $model->refresh();
+
+        $this->appendThreadSystemMessage($thread, $user, $model, AiActionDraft::STATUS_REJECTED, $request->reason());
+
+        $requestPayload = [
+            'draft_id' => $model->id,
+            'action_type' => $model->action_type,
+            'reason' => $request->reason(),
+        ];
+
+        if ($thread instanceof AiChatThread) {
+            $requestPayload['thread_id'] = $thread->id;
+        }
+
         $this->recordEvent(
             companyId: $companyId,
             userId: $user->id,
             feature: 'copilot_action_reject',
-            requestPayload: ['draft_id' => $model->id, 'action_type' => $model->action_type, 'reason' => $request->reason()],
+            requestPayload: $requestPayload,
             responsePayload: ['status' => $model->status],
             latencyMs: null,
             status: AiEvent::STATUS_SUCCESS,
             errorMessage: null,
             entityType: $model->entity_type,
             entityId: $model->entity_id,
+            thread: $thread,
         );
 
         return $this->ok([
-            'draft' => (new AiActionDraftResource($model->refresh()))->toArray($request),
+            'draft' => (new AiActionDraftResource($model))->toArray($request),
         ], 'Action draft rejected.');
     }
 
@@ -329,6 +378,83 @@ class AiActionsController extends ApiController
             ->first();
     }
 
+    private function resolveThread(?int $threadId, int $companyId): ?AiChatThread
+    {
+        if ($threadId === null) {
+            return null;
+        }
+
+        return AiChatThread::query()
+            ->forCompany($companyId)
+            ->whereKey($threadId)
+            ->first();
+    }
+
+    private function appendThreadSystemMessage(?AiChatThread $thread, User $user, AiActionDraft $draft, string $status, ?string $reason = null): void
+    {
+        if (! $thread instanceof AiChatThread) {
+            return;
+        }
+
+        $message = $this->formatDraftSystemMessage($draft, $status, $reason);
+
+        $payload = array_filter([
+            'draft_id' => $draft->id,
+            'action_type' => $draft->action_type,
+            'status' => $draft->status,
+            'reason' => $reason,
+            'entity_type' => $draft->entity_type,
+            'entity_id' => $draft->entity_id,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        $this->chatService->appendSystemMessage($thread, $user, $message, $payload);
+    }
+
+    private function formatDraftSystemMessage(AiActionDraft $draft, string $status, ?string $reason = null): string
+    {
+        $actionLabel = $this->formatActionLabel($draft->action_type);
+
+        if ($status === AiActionDraft::STATUS_APPROVED) {
+            $entityRef = $this->formatEntityReference($draft->entity_type, $draft->entity_id);
+
+            return $entityRef !== null
+                ? sprintf('Approved %s draft and created %s.', $actionLabel, $entityRef)
+                : sprintf('Approved %s draft.', $actionLabel);
+        }
+
+        if ($status === AiActionDraft::STATUS_REJECTED) {
+            $reasonText = $reason !== null ? Str::limit($reason, 140) : null;
+
+            return $reasonText === null
+                ? sprintf('Rejected %s draft.', $actionLabel)
+                : sprintf('Rejected %s draft: %s', $actionLabel, $reasonText);
+        }
+
+        return sprintf('%s draft updated.', $actionLabel);
+    }
+
+    private function formatActionLabel(string $value): string
+    {
+        return Str::of($value)
+            ->replace(['_', '-'], ' ')
+            ->headline()
+            ->value();
+    }
+
+    private function formatEntityReference(?string $entityType, ?int $entityId): ?string
+    {
+        if ($entityType === null || $entityId === null) {
+            return null;
+        }
+
+        $label = Str::of($entityType)
+            ->replace(['_', '-'], ' ')
+            ->headline()
+            ->value();
+
+        return sprintf('%s #%s', $label, $entityId);
+    }
+
     /**
      * @param array<string, mixed> $requestPayload
      * @param array<string, mixed>|null $responsePayload
@@ -343,8 +469,15 @@ class AiActionsController extends ApiController
         string $status,
         ?string $errorMessage,
         ?string $entityType,
-        ?int $entityId
+        ?int $entityId,
+        ?AiChatThread $thread = null
     ): void {
+        if ($thread instanceof AiChatThread) {
+            $requestPayload['thread_id'] = $thread->id;
+            $entityType = 'ai_chat_thread';
+            $entityId = $thread->id;
+        }
+
         $this->recorder->record(
             companyId: $companyId,
             userId: $userId,

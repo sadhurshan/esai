@@ -15,6 +15,7 @@ class AiWorkflowStartRequest extends ApiFormRequest
             'goal' => ['nullable', 'string', 'max:2000'],
             'inputs' => ['sometimes', 'array'],
             'user_context' => ['sometimes', 'array'],
+            'thread_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -48,6 +49,13 @@ class AiWorkflowStartRequest extends ApiFormRequest
         }
 
         return (string) $value;
+    }
+
+    public function threadId(): ?int
+    {
+        $value = $this->validated()['thread_id'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
     }
 
     /**

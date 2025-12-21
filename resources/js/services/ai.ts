@@ -53,7 +53,9 @@ export interface SemanticSearchResponse {
     meta?: Record<string, unknown>;
 }
 
-export interface AnswerQuestionPayload extends SemanticSearchPayload {}
+export interface AnswerQuestionPayload extends SemanticSearchPayload {
+    allow_general?: boolean;
+}
 
 export interface AnswerQuestionResponse {
     answer_markdown: string;

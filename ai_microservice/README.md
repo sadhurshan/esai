@@ -48,6 +48,7 @@ This publishes port `8000`, mounts a named volume at `/app/storage`, and wires t
 | `AI_SERVICE_DEFAULT_LEAD_TIME_DAYS` | Fallback lead time in days for reorder calculations. |
 | `AI_SERVICE_RISK_THRESHOLDS` | CSV list of threshold cutoffs for supplier risk bands (low, medium, high). |
 | `AI_CACHE_TTL_SECONDS` | TTL for in-memory response caching (defaults to 300 seconds). |
+| `AI_ALLOW_UNGROUNDED_ANSWERS` | When `true`, enables the optional general Q&A path. Clients must also set `allow_general=true` per request. |
 | `PORT` | HTTP port exposed by uvicorn (defaults to 8000). |
 
 ## Health and Readiness

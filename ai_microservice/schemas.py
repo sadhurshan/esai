@@ -24,6 +24,48 @@ WARNINGS_ARRAY_SCHEMA = {
     "items": {"type": "string"},
 }
 
+QUICK_REPLIES_ARRAY_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "string",
+        "minLength": 1,
+    },
+}
+
+WORKFLOW_SUGGESTION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["workflow_type", "steps", "payload"],
+    "properties": {
+        "workflow_type": {"type": "string", "minLength": 1},
+        "steps": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["title", "summary"],
+                "properties": {
+                    "title": {"type": "string", "minLength": 1},
+                    "summary": {"type": "string", "minLength": 1},
+                    "payload": {"type": "object"},
+                },
+            },
+        },
+        "payload": {"type": "object"},
+    },
+}
+
+WORKSPACE_TOOL_CALL_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["tool_name", "call_id", "arguments"],
+    "properties": {
+        "tool_name": {"type": "string", "minLength": 1},
+        "call_id": {"type": "string", "minLength": 1},
+        "arguments": {"type": "object"},
+    },
+}
+
 WRAPPER_REQUIRED_FIELDS = [
     "action_type",
     "summary",
@@ -352,6 +394,70 @@ PO_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionPurchaseOrderDraft", PO_DRAFT_PAYLOAD_SCHEMA
 )
 
+DRAFT_ACTION_SCHEMAS = [
+    RFQ_DRAFT_SCHEMA,
+    SUPPLIER_MESSAGE_SCHEMA,
+    MAINTENANCE_CHECKLIST_SCHEMA,
+    INVENTORY_WHATIF_SCHEMA,
+    QUOTE_COMPARISON_SCHEMA,
+    PO_DRAFT_SCHEMA,
+]
+
+CHAT_RESPONSE_TYPES = [
+    "answer",
+    "draft_action",
+    "workflow_suggestion",
+    "tool_request",
+    "error",
+]
+
+CHAT_RESPONSE_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "CopilotChatResponse",
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "type",
+        "assistant_message_markdown",
+        "citations",
+        "suggested_quick_replies",
+        "needs_human_review",
+        "confidence",
+        "warnings",
+    ],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": CHAT_RESPONSE_TYPES,
+        },
+        "assistant_message_markdown": {
+            "type": "string",
+            "description": "Primary assistant response rendered as Markdown.",
+        },
+        "citations": CITATIONS_ARRAY_SCHEMA,
+        "suggested_quick_replies": QUICK_REPLIES_ARRAY_SCHEMA,
+        "draft": {
+            "oneOf": DRAFT_ACTION_SCHEMAS + [{"type": "null"}],
+            "description": "Populated when type=draft_action using existing Copilot wrappers.",
+        },
+        "workflow": {
+            "oneOf": [WORKFLOW_SUGGESTION_SCHEMA, {"type": "null"}],
+        },
+        "tool_calls": {
+            "oneOf": [
+                {"type": "null"},
+                {
+                    "type": "array",
+                    "items": WORKSPACE_TOOL_CALL_SCHEMA,
+                },
+            ],
+        },
+        "needs_human_review": {"type": "boolean"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "warnings": WARNINGS_ARRAY_SCHEMA,
+    },
+}
+
 __all__ = [
     "ANSWER_SCHEMA",
     "RFQ_DRAFT_SCHEMA",
@@ -360,4 +466,5 @@ __all__ = [
     "INVENTORY_WHATIF_SCHEMA",
     "QUOTE_COMPARISON_SCHEMA",
     "PO_DRAFT_SCHEMA",
+    "CHAT_RESPONSE_SCHEMA",
 ]

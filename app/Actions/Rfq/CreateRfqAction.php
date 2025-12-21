@@ -33,9 +33,10 @@ class CreateRfqAction
             $rfq = RFQ::create([
                 'company_id' => $user->company_id,
                 'created_by' => $user->id,
+                'number' => $data['number'] ?? $this->generateNumber(),
                 'title' => $data['title'],
                 'type' => $data['type'],
-                'material' => $data['material'] ?? null,
+                'material' => $this->stringOrDefault($data['material'] ?? null, 'unspecified'),
                 'method' => $data['method'] ?? null,
                 'tolerance_finish' => $data['tolerance_finish'] ?? null,
                 'incoterm' => $data['incoterm'] ?? null,
@@ -82,5 +83,21 @@ class CreateRfqAction
 
             return $rfq->load(['items']);
         });
+    }
+
+    private function generateNumber(): string
+    {
+        do {
+            $number = sprintf('%05d', random_int(0, 99999));
+        } while (RFQ::where('number', $number)->exists());
+
+        return $number;
+    }
+
+    private function stringOrDefault(?string $value, string $default): string
+    {
+        $trimmed = is_string($value) ? trim($value) : '';
+
+        return $trimmed !== '' ? $trimmed : $default;
     }
 }

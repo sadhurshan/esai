@@ -101,7 +101,12 @@ class CopilotSearchController extends ApiController
 
         ['user' => $user, 'companyId' => $companyId] = $context;
 
-        $payload = $this->buildPayload($request->validated(), $companyId, self::ANSWER_DEFAULT_TOP_K);
+        $payload = $this->buildPayload(
+            $request->validated(),
+            $companyId,
+            self::ANSWER_DEFAULT_TOP_K,
+            includeGeneralFlag: true
+        );
         $startedAt = microtime(true);
 
         try {
@@ -184,18 +189,32 @@ class CopilotSearchController extends ApiController
      * @param array<string, mixed> $validated
      * @return array<string, mixed>
      */
-    private function buildPayload(array $validated, int $companyId, int $defaultTopK): array
+    private function buildPayload(
+        array $validated,
+        int $companyId,
+        int $defaultTopK,
+        bool $includeGeneralFlag = false,
+    ): array
     {
         $query = trim((string) ($validated['query'] ?? ''));
         $topK = (int) ($validated['top_k'] ?? $defaultTopK);
         $filters = $this->normalizeFilters($validated['filters'] ?? []);
-
-        return [
+        $allowGeneralValue = $validated['allow_general'] ?? false;
+        $allowGeneral = is_bool($allowGeneralValue)
+            ? $allowGeneralValue
+            : (filter_var($allowGeneralValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false);
+        $payload = [
             'company_id' => $companyId,
             'query' => $query,
             'top_k' => $topK,
             'filters' => $filters,
         ];
+
+        if ($includeGeneralFlag) {
+            $payload['allow_general'] = $allowGeneral;
+        }
+
+        return $payload;
     }
 
     /**
@@ -330,6 +349,7 @@ class CopilotSearchController extends ApiController
             'user_role' => $user->role,
             'query_preview' => Str::limit((string) ($payload['query'] ?? ''), 200, '...'),
             'top_k' => $payload['top_k'] ?? null,
+            'allow_general' => (bool) ($payload['allow_general'] ?? false),
             'filters' => [
                 'source_type' => $filters['source_type'] ?? null,
                 'doc_id' => $filters['doc_id'] ?? null,

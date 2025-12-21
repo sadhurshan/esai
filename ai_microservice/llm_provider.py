@@ -111,14 +111,19 @@ class OpenAILLMProvider(LLMProvider):
             raise ProviderConfigError("OPENAI_API_KEY is not configured")
 
         messages = build_answer_messages(query, context_blocks)
+        schema_name = "AnswerPayload"
+        schema_title = response_schema.get("title") if isinstance(response_schema, dict) else None
+        if isinstance(schema_title, str) and schema_title.strip():
+            schema_name = schema_title.strip()
         payload: Dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "temperature": self.temperature,
-            "max_output_tokens": self.max_output_tokens,
+            "max_tokens": self.max_output_tokens,
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
+                    "name": schema_name,
                     "strict": True,
                     "schema": response_schema,
                 },
@@ -126,7 +131,6 @@ class OpenAILLMProvider(LLMProvider):
         }
         if safety_identifier:
             payload["user"] = safety_identifier
-            payload.setdefault("metadata", {})["safety_identifier"] = safety_identifier
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",

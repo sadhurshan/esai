@@ -24,21 +24,26 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, Sequence
+from typing import Any, Callable, Dict, List, Literal, Optional, Sequence
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from jsonschema import Draft202012Validator, ValidationError
 from pydantic import BaseModel, Field, field_validator
 
+from ai_microservice import chat_router
 from ai_microservice.chunking import chunk_text
 from ai_microservice.context_packer import pack_context_hits
 from ai_microservice.embedding_provider import EmbeddingProvider, get_embedding_provider
 from ai_microservice.llm_provider import DummyLLMProvider, LLMProviderError, LLMProvider, build_llm_provider
 from ai_microservice.schemas import (
     ANSWER_SCHEMA,
+    CHAT_RESPONSE_SCHEMA,
     INVENTORY_WHATIF_SCHEMA,
     MAINTENANCE_CHECKLIST_SCHEMA,
     PO_DRAFT_SCHEMA,
@@ -82,6 +87,14 @@ def log_extra(**kwargs: Any) -> Dict[str, Any]:
     payload: Dict[str, Any] = {"request_id": current_request_id()}
     payload.update(kwargs)
     return payload
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    return normalized in {"1", "true", "yes", "on"}
 
 
 @app.middleware("http")
@@ -156,12 +169,19 @@ embedding_provider: EmbeddingProvider = get_embedding_provider()
 vector_store: VectorStore = InMemoryVectorStore()
 DEFAULT_LLM_PROVIDER_NAME = os.getenv("AI_LLM_PROVIDER", "dummy").strip().lower()
 SUPPORTED_LLM_PROVIDERS = {"dummy", "openai"}
+ALLOW_UNGROUNDED_ANSWERS = _env_flag("AI_ALLOW_UNGROUNDED_ANSWERS", False)
+GENERAL_ANSWER_WARNING = "Response used general model knowledge; no workspace sources were available."
 
 workflow_engine = WorkflowEngine()
 
 ACTION_CONTEXT_MAX_CHARS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHARS", "9000"))
 ACTION_CONTEXT_MAX_CHUNKS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHUNKS", "12"))
 ACTION_CONTEXT_PER_DOC_LIMIT = int(os.getenv("AI_ACTION_CONTEXT_PER_DOC_LIMIT", "4"))
+CHAT_HISTORY_LIMIT = int(os.getenv("AI_CHAT_HISTORY_LIMIT", "40"))
+CHAT_TOOL_RESULTS_LIMIT = int(os.getenv("AI_CHAT_TOOL_RESULTS_LIMIT", "5"))
+CHAT_SUMMARY_TRIGGER_TOKENS = int(os.getenv("AI_CHAT_SUMMARY_TRIGGER_TOKENS", "2800"))
+CHAT_SUMMARY_TARGET_CHARS = int(os.getenv("AI_CHAT_SUMMARY_TARGET_CHARS", "1800"))
+CHAT_TOOL_ROUND_LIMIT = int(os.getenv("AI_CHAT_TOOL_ROUND_LIMIT", "3"))
 
 ACTION_TYPE_LABELS: Dict[str, str] = {
     "rfq_draft": "RFQ Draft",
@@ -188,6 +208,25 @@ WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
         {"action_type": "po_draft", "name": "Purchase Order Draft", "metadata": {"input_key": "po"}},
     ],
 }
+
+INTENT_CLASSIFICATION_SCHEMA: Dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ChatIntentClassification",
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["intent", "reason"],
+    "properties": {
+        "intent": {
+            "type": "string",
+            "enum": list(chat_router.ACTION_INTENTS.keys())
+            + list(chat_router.WORKFLOW_INTENTS)
+            + ["workspace_qna", "general_qna"],
+        },
+        "reason": {"type": "string"},
+    },
+}
+
+CHAT_RESPONSE_VALIDATOR = Draft202012Validator(CHAT_RESPONSE_SCHEMA)
 
 
 def should_bypass_cache(request: Request) -> bool:
@@ -319,6 +358,7 @@ class SearchRequest(BaseModel):
 class AnswerRequest(SearchRequest):
     llm_provider: Optional[str] = Field(default=None)
     safety_identifier: Optional[str] = Field(default=None, max_length=256)
+    allow_general: bool = Field(default=False, description="Allow general (ungrounded) answers when enabled")
 
     @field_validator("llm_provider", mode="before")
     @classmethod
@@ -439,6 +479,99 @@ class WorkflowCompleteRequest(BaseModel):
             return None
         stripped = str(value).strip()
         return stripped or None
+
+
+class ChatMessagePayload(BaseModel):
+    role: Literal["user", "assistant", "system", "tool"]
+    content: str = Field(..., min_length=1)
+    content_json: Optional[Dict[str, Any]] = Field(default=None)
+    created_at: Optional[str] = Field(default=None)
+
+    @field_validator("content", mode="before")
+    @classmethod
+    def normalize_content(cls, value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValueError("content must be a string")
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("content cannot be empty")
+        return normalized
+
+
+class ChatRespondRequest(BaseModel):
+    company_id: int = Field(..., ge=1)
+    thread_id: str = Field(..., min_length=1)
+    user_id_hash: str = Field(..., min_length=8, max_length=128)
+    messages: List[ChatMessagePayload] = Field(..., min_length=1, max_length=100)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    thread_summary: Optional[str] = Field(default=None, max_length=5000)
+    allow_general: bool = Field(default=False)
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def ensure_context(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("context must be an object")
+        return value
+
+    @field_validator("thread_summary", mode="before")
+    @classmethod
+    def normalize_thread_summary(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("thread_summary must be a string")
+        sanitized = value.strip()
+        return sanitized or None
+
+
+class ToolResultPayload(BaseModel):
+    tool_name: str = Field(..., min_length=1)
+    call_id: str = Field(..., min_length=1)
+    result: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("result", mode="before")
+    @classmethod
+    def ensure_result(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("result must be an object")
+        return value
+
+
+class ChatContinueRequest(BaseModel):
+    company_id: int = Field(..., ge=1)
+    thread_id: str = Field(..., min_length=1)
+    user_id_hash: str = Field(..., min_length=8, max_length=128)
+    messages: List[ChatMessagePayload] = Field(..., min_length=1, max_length=100)
+    tool_results: List[ToolResultPayload] = Field(..., min_length=1, max_length=CHAT_TOOL_RESULTS_LIMIT)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    thread_summary: Optional[str] = Field(default=None, max_length=5000)
+    allow_general: bool = Field(default=False)
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def ensure_context(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("context must be an object")
+        return value
+
+    @field_validator("thread_summary", mode="before")
+    @classmethod
+    def normalize_thread_summary(cls, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("thread_summary must be a string")
+        sanitized = value.strip()
+        return sanitized or None
+
+
 def resolve_llm_provider(override: Optional[str]) -> tuple[str, "LLMProvider"]:
     requested = (override or DEFAULT_LLM_PROVIDER_NAME or "dummy").strip().lower()
     if requested not in SUPPORTED_LLM_PROVIDERS:
@@ -673,10 +806,16 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
     search_response = await semantic_search(payload)
     hits = pack_context_hits(search_response.get("hits", []))
     context_blocks = _build_context_blocks(hits)
+    general_allowed = ALLOW_UNGROUNDED_ANSWERS and bool(payload.allow_general)
+    used_general_mode = False
+
+    if not context_blocks and general_allowed:
+        context_blocks = _build_general_context_blocks(payload.query)
+        used_general_mode = True
 
     provider_used = "none"
     if not context_blocks:
-        answer_payload = _build_no_hits_answer()
+        answer_payload = _build_no_hits_answer(payload.query)
     else:
         provider_name, provider_instance = resolve_llm_provider(payload.llm_provider)
         provider_used = provider_name
@@ -704,6 +843,8 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
             provider_used = f"{provider_name}_fallback"
 
     answer_payload = _enforce_citation_integrity(answer_payload, context_blocks)
+    if used_general_mode:
+        answer_payload = _apply_general_answer_metadata(answer_payload)
 
     duration_ms = (time.perf_counter() - started_at) * 1000
     LOGGER.info(
@@ -712,6 +853,7 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
             company_id=payload.company_id,
             hit_count=len(context_blocks),
             provider=provider_used,
+            ungrounded=used_general_mode,
             duration_ms=round(duration_ms, 2),
         ),
     )
@@ -721,6 +863,235 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
 @app.post("/actions/plan")
 async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
     return await _execute_action_plan(payload)
+
+
+@app.post("/chat/respond")
+async def chat_respond(payload: ChatRespondRequest) -> Dict[str, Any]:
+    started_at = time.perf_counter()
+    router_response, memory_payload = await _chat_generate_router_response(payload)
+    duration_ms = (time.perf_counter() - started_at) * 1000
+    LOGGER.info(
+        "chat_respond_success",
+        extra=log_extra(
+            thread_id=payload.thread_id,
+            company_id=payload.company_id,
+            intent=router_response.get("type"),
+            duration_ms=round(duration_ms, 2),
+        ),
+    )
+    return {
+        "status": "ok",
+        "data": {
+            "response": router_response,
+            "memory": memory_payload,
+        },
+    }
+
+
+@app.post("/chat/respond_stream")
+async def chat_respond_stream(payload: ChatRespondRequest) -> StreamingResponse:
+    started_at = time.perf_counter()
+    router_response, memory_payload = await _chat_generate_router_response(payload)
+    duration_ms = (time.perf_counter() - started_at) * 1000
+    chunk_size = int(os.getenv("AI_CHAT_STREAM_CHUNK_SIZE", "280"))
+    chunks = _chat_chunk_markdown(router_response.get("assistant_message_markdown") or "", chunk_size)
+    tool_calls = router_response.get("tool_calls") or []
+
+    async def event_stream():
+        yield _sse_encode(
+            "start",
+            {
+                "thread_id": payload.thread_id,
+                "company_id": payload.company_id,
+                "response_type": router_response.get("type"),
+            },
+        )
+        if tool_calls:
+            yield _sse_encode("tool", {"tool_calls": tool_calls})
+        for chunk in chunks:
+            yield _sse_encode("delta", {"text": chunk})
+        yield _sse_encode(
+            "complete",
+            {
+                "response": router_response,
+                "memory": memory_payload,
+                "duration_ms": round(duration_ms, 2),
+            },
+        )
+
+    LOGGER.info(
+        "chat_respond_stream_ready",
+        extra=log_extra(
+            thread_id=payload.thread_id,
+            company_id=payload.company_id,
+            intent=router_response.get("type"),
+            chunk_count=len(chunks),
+        ),
+    )
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    }
+    return StreamingResponse(event_stream(), media_type="text/event-stream", headers=headers)
+
+
+@app.post("/chat/continue")
+async def chat_continue(payload: ChatContinueRequest) -> Dict[str, Any]:
+    started_at = time.perf_counter()
+    raw_messages = [message.model_dump() for message in payload.messages]
+    trimmed_messages, overflow_messages = _chat_trim_messages(raw_messages)
+    latest_user_text = _chat_latest_user_text(trimmed_messages)
+
+    if not latest_user_text:
+        raise HTTPException(status_code=400, detail="At least one user message is required")
+
+    _, memory_payload = await _chat_prepare_conversation(
+        trimmed_messages,
+        overflow_messages,
+        payload.thread_summary,
+    )
+
+    tool_results = [tool.model_dump() for tool in payload.tool_results]
+    if not tool_results:
+        raise HTTPException(status_code=400, detail="tool_results are required")
+
+    tool_context_blocks = _chat_tool_results_to_context_blocks(tool_results)
+    if not tool_context_blocks:
+        raise HTTPException(status_code=400, detail="tool_results must include result data")
+
+    try:
+        router_response = await _chat_build_answer_response(
+            company_id=payload.company_id,
+            query=latest_user_text,
+            safety_identifier=payload.user_id_hash,
+            intent="workspace_qna",
+            extra_context_blocks=tool_context_blocks,
+            allow_general_override=bool(payload.allow_general),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - defensive guard
+        LOGGER.exception(
+            "chat_continue_failure",
+            extra=log_extra(thread_id=payload.thread_id, error=str(exc)),
+        )
+        raise HTTPException(status_code=500, detail="Failed to continue chat") from exc
+
+    try:
+        _chat_validate_response(router_response)
+    except ValidationError as exc:  # pragma: no cover
+        LOGGER.error(
+            "chat_continue_validation_failed",
+            extra=log_extra(error=str(exc), thread_id=payload.thread_id),
+        )
+        raise HTTPException(status_code=500, detail="Chat response failed validation") from exc
+
+    duration_ms = (time.perf_counter() - started_at) * 1000
+    LOGGER.info(
+        "chat_continue_success",
+        extra=log_extra(
+            thread_id=payload.thread_id,
+            company_id=payload.company_id,
+            tool_count=len(tool_results),
+            duration_ms=round(duration_ms, 2),
+        ),
+    )
+
+    return {
+        "status": "ok",
+        "data": {
+            "response": router_response,
+            "memory": memory_payload,
+        },
+    }
+
+
+async def _chat_generate_router_response(payload: ChatRespondRequest) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    raw_messages = [message.model_dump() for message in payload.messages]
+    trimmed_messages, overflow_messages = _chat_trim_messages(raw_messages)
+    latest_user_text = _chat_latest_user_text(trimmed_messages)
+
+    if not latest_user_text:
+        raise HTTPException(status_code=400, detail="At least one user message is required")
+
+    context_payload = payload.context or {}
+    safety_identifier = payload.user_id_hash
+    conversation_messages, memory_payload = await _chat_prepare_conversation(
+        trimmed_messages,
+        overflow_messages,
+        payload.thread_summary,
+    )
+    tool_rounds = _chat_tool_round_count(trimmed_messages)
+    allow_general_override = bool(payload.allow_general)
+
+    async def answer_builder(intent: chat_router.ChatIntent) -> Dict[str, Any]:
+        return await _chat_build_answer_response(
+            company_id=payload.company_id,
+            query=latest_user_text,
+            safety_identifier=safety_identifier,
+            intent=intent,
+            allow_general_override=allow_general_override,
+        )
+
+    async def action_builder(intent: chat_router.ChatIntent) -> Dict[str, Any]:
+        action_type = chat_router.ACTION_INTENTS.get(intent)
+        if action_type is None:
+            raise HTTPException(status_code=400, detail=f"Unsupported action intent '{intent}'")
+        return await _chat_build_action_response(
+            company_id=payload.company_id,
+            query=latest_user_text,
+            action_type=action_type,
+            intent=intent,
+            context_payload=context_payload,
+            safety_identifier=safety_identifier,
+        )
+
+    async def workflow_builder(intent: chat_router.ChatIntent) -> Dict[str, Any]:
+        return await _chat_build_workflow_response(
+            company_id=payload.company_id,
+            query=latest_user_text,
+            context_payload=context_payload,
+            intent=intent,
+        )
+
+    def tool_request_builder(intent: chat_router.ChatIntent) -> Dict[str, Any]:
+        if CHAT_TOOL_ROUND_LIMIT > 0 and tool_rounds >= CHAT_TOOL_ROUND_LIMIT:
+            return _chat_build_tool_limit_response(intent=intent, query=latest_user_text)
+
+        return _chat_build_tool_request_response(intent=intent, query=latest_user_text)
+
+    async def llm_classifier(messages: Sequence[Dict[str, Any]], query: str) -> Optional[chat_router.ChatIntent]:
+        return await _chat_llm_intent_classifier(messages, query, safety_identifier)
+
+    dependencies: chat_router.ChatRouterDependencies = {
+        "answer_builder": answer_builder,
+        "action_builder": action_builder,
+        "workflow_builder": workflow_builder,
+        "tool_request_builder": tool_request_builder,
+        "llm_intent_classifier": llm_classifier,
+    }
+
+    try:
+        router_response = await chat_router.handle_chat_request(
+            messages=conversation_messages,
+            latest_user_text=latest_user_text,
+            context=context_payload,
+            dependencies=dependencies,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    try:
+        _chat_validate_response(router_response)
+    except ValidationError as exc:  # pragma: no cover - defensive validation
+        LOGGER.error(
+            "chat_response_validation_failed",
+            extra=log_extra(error=str(exc), thread_id=payload.thread_id),
+        )
+        raise HTTPException(status_code=500, detail="Chat response failed validation") from exc
+
+    return router_response, memory_payload
 
 
 async def _execute_action_plan(payload: ActionPlanRequest) -> Dict[str, Any]:
@@ -929,6 +1300,799 @@ async def complete_workflow_step(workflow_id: str, payload: WorkflowCompleteRequ
     }
 
 
+def _chat_chunk_markdown(markdown: str, chunk_size: int) -> List[str]:
+    safe_chunk_size = max(1, int(chunk_size))
+    sanitized = markdown or ""
+    if not sanitized:
+        return [""]
+    return [sanitized[index : index + safe_chunk_size] for index in range(0, len(sanitized), safe_chunk_size)]
+
+
+def _sse_encode(event: str, payload: Dict[str, Any]) -> bytes:
+    try:
+        serialized = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    except TypeError:
+        serialized = json.dumps(str(payload), ensure_ascii=True)
+    return f"event: {event}\ndata: {serialized}\n\n".encode("utf-8")
+
+
+def _chat_trim_messages(messages: Sequence[Dict[str, Any]]) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    sanitized: List[Dict[str, Any]] = []
+    for entry in messages:
+        role = str(entry.get("role") or "").lower()
+        content = entry.get("content")
+        if role not in {"user", "assistant", "system", "tool"}:
+            continue
+        if not isinstance(content, str):
+            continue
+        normalized = content.strip()
+        if not normalized:
+            continue
+        content_json = entry.get("content_json") if isinstance(entry.get("content_json"), dict) else None
+        sanitized.append({"role": role, "content": normalized, "content_json": content_json})
+
+    overflow: List[Dict[str, Any]] = []
+    if len(sanitized) > CHAT_HISTORY_LIMIT:
+        overflow = sanitized[:-CHAT_HISTORY_LIMIT]
+        sanitized = sanitized[-CHAT_HISTORY_LIMIT:]
+
+    return sanitized, overflow
+
+
+async def _chat_prepare_conversation(
+    trimmed_messages: List[Dict[str, Any]],
+    overflow_messages: List[Dict[str, Any]],
+    thread_summary: Optional[str],
+) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    summary_text = (thread_summary or "").strip() or None
+    summary_updated = False
+
+    if overflow_messages:
+        updated_summary = await _chat_generate_summary_text(overflow_messages, summary_text)
+        if updated_summary:
+            summary_updated = updated_summary != summary_text
+            summary_text = updated_summary
+
+    conversation = list(trimmed_messages)
+    memory_payload: Dict[str, Any] = {}
+
+    if summary_text:
+        truncated = _truncate_summary(summary_text)
+        conversation = [
+            {
+                "role": "system",
+                "content": f"Conversation summary (earlier turns):\n{truncated}",
+                "content_json": None,
+            },
+            *conversation,
+        ]
+
+        if summary_updated and truncated:
+            memory_payload["thread_summary"] = truncated
+
+    return conversation, memory_payload
+
+
+async def _chat_generate_summary_text(
+    overflow_messages: Sequence[Dict[str, Any]],
+    existing_summary: Optional[str],
+) -> Optional[str]:
+    transcript = _chat_messages_to_text(overflow_messages)
+    if not transcript:
+        return existing_summary
+
+    snippet = transcript[-CHAT_SUMMARY_TRIGGER_TOKENS:]
+    context_blocks = [
+        {
+            "doc_id": "conversation_history",
+            "doc_version": "overflow",
+            "chunk_id": 0,
+            "score": 1.0,
+            "snippet": snippet,
+        }
+    ]
+
+    if existing_summary:
+        context_blocks.append(
+            {
+                "doc_id": "existing_summary",
+                "doc_version": "1",
+                "chunk_id": 1,
+                "score": 0.9,
+                "snippet": existing_summary[-CHAT_SUMMARY_TARGET_CHARS:],
+            }
+        )
+
+    summary_prompt = (
+        "Summarize the earlier conversation so future AI responses stay grounded. "
+        "Provide up to four concise bullets covering goals, blockers, and decisions."
+    )
+    provider_name, provider = resolve_llm_provider(None)
+
+    try:
+        summary_payload = provider.generate_answer(
+            summary_prompt,
+            context_blocks,
+            ANSWER_SCHEMA,
+            None,
+        )
+        summary_text = summary_payload.get("answer_markdown", "").strip()
+    except LLMProviderError as exc:
+        LOGGER.warning("chat_summary_llm_failure", extra=log_extra(error=str(exc), provider=provider_name))
+        summary_text = _chat_fallback_summary(snippet)
+
+    if not summary_text:
+        return existing_summary
+
+    merged = summary_text if not existing_summary else f"{existing_summary}\n\nEarlier turns:\n{summary_text}"
+    return _truncate_summary(merged)
+
+
+def _chat_messages_to_text(messages: Sequence[Dict[str, Any]]) -> str:
+    lines: List[str] = []
+    for entry in messages:
+        role = entry.get("role", "assistant")
+        content = entry.get("content")
+        if isinstance(content, str) and content.strip():
+            lines.append(f"{role}: {content.strip()}")
+    return "\n".join(lines)
+
+
+def _chat_fallback_summary(transcript: str) -> str:
+    sentences = [segment.strip() for segment in transcript.split("\n") if segment.strip()]
+    if not sentences:
+        return ""
+
+    bullets = []
+    for sentence in sentences[:4]:
+        bullets.append(f"- {sentence[:200]}")
+    return "\n".join(bullets)
+
+
+def _truncate_summary(summary: str) -> str:
+    if len(summary) <= CHAT_SUMMARY_TARGET_CHARS:
+        return summary
+    return summary[-CHAT_SUMMARY_TARGET_CHARS:]
+
+
+def _chat_tool_round_count(messages: Sequence[Dict[str, Any]]) -> int:
+    rounds = 0
+    for entry in reversed(messages):
+        role = entry.get("role")
+        if role == "assistant":
+            content_json = entry.get("content_json")
+            if isinstance(content_json, dict) and content_json.get("type") == "tool_request":
+                rounds += 1
+            continue
+        if role == "tool":
+            continue
+        if role == "user":
+            break
+    return rounds
+
+
+def _chat_latest_user_text(messages: Sequence[Dict[str, Any]]) -> Optional[str]:
+    for entry in reversed(messages):
+        if entry.get("role") != "user":
+            continue
+        content = entry.get("content")
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+    return None
+
+
+async def _chat_build_answer_response(
+    *,
+    company_id: int,
+    query: str,
+    safety_identifier: Optional[str],
+    intent: chat_router.ChatIntent,
+    extra_context_blocks: Optional[List[Dict[str, Any]]] = None,
+    allow_general_override: bool = False,
+) -> Dict[str, Any]:
+    allow_general = ALLOW_UNGROUNDED_ANSWERS and (intent == "general_qna" or allow_general_override)
+    answer_payload, provider_used, used_general_mode = _chat_generate_answer(
+        company_id,
+        query,
+        safety_identifier,
+        extra_context_blocks=extra_context_blocks,
+        allow_general=allow_general,
+    )
+    response = {
+        "type": "answer",
+        "assistant_message_markdown": answer_payload.get("answer_markdown", ""),
+        "citations": answer_payload.get("citations", []),
+        "suggested_quick_replies": _chat_suggest_quick_replies(intent, "answer"),
+        "draft": None,
+        "workflow": None,
+        "tool_calls": None,
+        "needs_human_review": bool(answer_payload.get("needs_human_review", True)),
+        "confidence": _clamp_float(answer_payload.get("confidence", 0.0)),
+        "warnings": answer_payload.get("warnings", []),
+    }
+    LOGGER.info(
+        "chat_answer_response",
+        extra=log_extra(company_id=company_id, provider=provider_used, intent=intent, ungrounded=used_general_mode),
+    )
+    return response
+
+
+def _chat_generate_answer(
+    company_id: int,
+    query: str,
+    safety_identifier: Optional[str],
+    *,
+    extra_context_blocks: Optional[List[Dict[str, Any]]] = None,
+    allow_general: bool = False,
+) -> tuple[Dict[str, Any], str, bool]:
+    hits = _run_action_semantic_search(company_id, query, top_k=8)
+    context_blocks = _build_context_blocks(hits)
+    if extra_context_blocks:
+        context_blocks.extend(extra_context_blocks)
+    used_general_mode = False
+    if not context_blocks and allow_general:
+        context_blocks = _build_general_context_blocks(query)
+        used_general_mode = True
+    provider_name, provider_instance = resolve_llm_provider(None)
+    provider_used = provider_name
+    if not context_blocks:
+        answer_payload = _build_no_hits_answer(query)
+    else:
+        try:
+            answer_payload = provider_instance.generate_answer(
+                query,
+                context_blocks,
+                ANSWER_SCHEMA,
+                safety_identifier,
+            )
+        except LLMProviderError as exc:
+            LOGGER.warning(
+                "chat_answer_llm_failure",
+                extra=log_extra(company_id=company_id, provider=provider_name, error=str(exc)),
+            )
+            answer_payload = _fallback_deterministic_answer(
+                query,
+                context_blocks,
+                warning="LLM provider unavailable; deterministic output used",
+            )
+            provider_used = f"{provider_name}_fallback"
+
+    sanitized = _enforce_citation_integrity(answer_payload, context_blocks)
+    if used_general_mode:
+        sanitized = _apply_general_answer_metadata(sanitized)
+    return sanitized, provider_used, used_general_mode
+
+
+async def _chat_build_action_response(
+    *,
+    company_id: int,
+    query: str,
+    action_type: str,
+    intent: chat_router.ChatIntent,
+    context_payload: Dict[str, Any],
+    safety_identifier: Optional[str],
+) -> Dict[str, Any]:
+    inputs = _chat_coerce_action_inputs(context_payload)
+    user_context = _chat_get_user_context(context_payload)
+    action_request = ActionPlanRequest(
+        company_id=company_id,
+        action_type=action_type,
+        query=query,
+        inputs=inputs,
+        user_context=user_context,
+    )
+    action_response = await _execute_action_plan(action_request)
+    assistant_markdown = action_response.get("summary") or f"Draft ready for {action_type}"
+    return {
+        "type": "draft_action",
+        "assistant_message_markdown": assistant_markdown,
+        "citations": action_response.get("citations", []),
+        "suggested_quick_replies": _chat_suggest_quick_replies(intent, "draft_action"),
+        "draft": action_response,
+        "workflow": None,
+        "tool_calls": None,
+        "needs_human_review": bool(action_response.get("needs_human_review", True)),
+        "confidence": _clamp_float(action_response.get("confidence", 0.0)),
+        "warnings": action_response.get("warnings", []),
+    }
+
+
+def _chat_coerce_action_inputs(context_payload: Dict[str, Any]) -> Dict[str, Any]:
+    candidate = context_payload.get("context") or context_payload.get("inputs") or {}
+    return candidate if isinstance(candidate, dict) else {}
+
+
+def _chat_get_user_context(context_payload: Dict[str, Any]) -> Dict[str, Any]:
+    candidate = context_payload.get("user_context")
+    return candidate if isinstance(candidate, dict) else {}
+
+
+async def _chat_build_workflow_response(
+    *,
+    company_id: int,
+    query: str,
+    context_payload: Dict[str, Any],
+    intent: chat_router.ChatIntent,
+) -> Dict[str, Any]:
+    workflow_type = str(context_payload.get("workflow_type") or "procurement").lower()
+    template = WORKFLOW_STEP_TEMPLATES.get(workflow_type) or WORKFLOW_STEP_TEMPLATES.get("procurement", [])
+    steps: List[Dict[str, Any]] = []
+    for index, step in enumerate(template[:5]):
+        steps.append(
+            {
+                "title": step.get("name") or ACTION_TYPE_LABELS.get(step.get("action_type"), "Workflow Step"),
+                "summary": f"Draft {step.get('action_type')} task #{index + 1} based on Copilot plan.",
+                "payload": {"action_type": step.get("action_type"), "metadata": step.get("metadata", {})},
+            }
+        )
+
+    workflow_payload = {
+        "workflow_type": workflow_type,
+        "steps": steps,
+        "payload": {
+            "goal": query,
+            "company_id": company_id,
+        },
+    }
+    return {
+        "type": "workflow_suggestion",
+        "assistant_message_markdown": f"Suggested {workflow_type} workflow ready to review.",
+        "citations": [],
+        "suggested_quick_replies": _chat_suggest_quick_replies(intent, "workflow"),
+        "draft": None,
+        "workflow": workflow_payload,
+        "tool_calls": None,
+        "needs_human_review": True,
+        "confidence": 0.45,
+        "warnings": ["Workflow suggestions require approval before execution."],
+    }
+
+
+def _chat_build_tool_request_response(*, intent: chat_router.ChatIntent, query: str) -> Dict[str, Any]:
+    tool_name, arguments = _chat_detect_tool_call(query)
+    tool_call = {
+        "tool_name": tool_name,
+        "call_id": str(uuid.uuid4()),
+        "arguments": arguments,
+    }
+    return {
+        "type": "tool_request",
+        "assistant_message_markdown": "Fetching workspace information before responding...",
+        "citations": [],
+        "suggested_quick_replies": _chat_suggest_quick_replies(intent, "tool"),
+        "draft": None,
+        "workflow": None,
+        "tool_calls": [tool_call],
+        "needs_human_review": False,
+        "confidence": 0.35,
+        "warnings": [],
+    }
+
+
+def _chat_build_tool_limit_response(*, intent: chat_router.ChatIntent, query: str) -> Dict[str, Any]:  # noqa: ARG001
+    warning = "Reached the configured workspace lookup limit. Please refine the question or request help."
+    return {
+        "type": "answer",
+        "assistant_message_markdown": (
+            "I already reviewed multiple workspace sources for this question. "
+            "Let's adjust the request or involve a buyer to continue."
+        ),
+        "citations": [],
+        "suggested_quick_replies": _chat_suggest_quick_replies(intent, "answer"),
+        "draft": None,
+        "workflow": None,
+        "tool_calls": None,
+        "needs_human_review": True,
+        "confidence": 0.2,
+        "warnings": [warning],
+    }
+
+
+AGGREGATE_WORKSPACE_QUERY_PATTERNS: List[re.Pattern[str]] = [
+    re.compile(r"\bhow many\b", re.IGNORECASE),
+    re.compile(r"\bcount\b", re.IGNORECASE),
+    re.compile(r"\bnumber of\b", re.IGNORECASE),
+    re.compile(r"\btotal\b", re.IGNORECASE),
+]
+
+WORKSPACE_STATUS_KEYWORDS: Dict[str, List[re.Pattern[str]]] = {
+    "draft": [re.compile(r"\bdraft(s)?\b", re.IGNORECASE)],
+    "open": [re.compile(r"\bopen\b", re.IGNORECASE), re.compile(r"\bpublished\b", re.IGNORECASE)],
+    "closed": [re.compile(r"\bclosed\b", re.IGNORECASE), re.compile(r"\bcomplete(d)?\b", re.IGNORECASE)],
+    "awarded": [re.compile(r"\baward(ed)?\b", re.IGNORECASE)],
+    "cancelled": [re.compile(r"\bcancel(l)?ed\b", re.IGNORECASE), re.compile(r"\bvoid(ed)?\b", re.IGNORECASE)],
+}
+
+QUOTE_STATUS_KEYWORDS: Dict[str, List[re.Pattern[str]]] = {
+    "draft": [re.compile(r"\bdraft(s)?\b", re.IGNORECASE)],
+    "submitted": [re.compile(r"\bsubmitted\b", re.IGNORECASE), re.compile(r"\bnew quote(s)?\b", re.IGNORECASE)],
+    "withdrawn": [re.compile(r"\bwithdrawn\b", re.IGNORECASE)],
+    "rejected": [re.compile(r"\breject(ed)?\b", re.IGNORECASE)],
+    "awarded": [re.compile(r"\baward(ed)?\b", re.IGNORECASE), re.compile(r"\bwon\b", re.IGNORECASE)],
+}
+
+
+def _chat_detect_tool_call(query: str) -> tuple[str, Dict[str, Any]]:
+    patterns = [
+        (re.compile(r"rfq\s*(?:#|no\.?|id)?\s*(\d+)", re.IGNORECASE), "workspace.get_rfq", "rfq_id"),
+        (re.compile(r"quote\s*(?:#|no\.?|id)?\s*(\d+)", re.IGNORECASE), "workspace.get_quotes_for_rfq", "rfq_id"),
+        (re.compile(r"inventory\s+(?:item|sku)\s*([\w-]+)", re.IGNORECASE), "workspace.get_inventory_item", "sku"),
+    ]
+    for pattern, tool_name, argument_key in patterns:
+        match = pattern.search(query)
+        if match:
+            return tool_name, {argument_key: match.group(1), "limit": 1}
+    lowered = query.lower()
+    if "quote" in lowered:
+        arguments = {"limit": 5}
+        quote_statuses = _extract_quote_status_filters(query)
+        if quote_statuses:
+            arguments["statuses"] = quote_statuses
+        return "workspace.stats_quotes", arguments
+    if "supplier" in lowered:
+        return "workspace.list_suppliers", {"limit": 5}
+    if "inventory" in lowered or "stock" in lowered:
+        return "workspace.low_stock", {"limit": 5}
+
+    arguments: Dict[str, Any] = {"query": query.strip(), "limit": 5}
+    status_filters = _extract_workspace_status_filters(query)
+    if status_filters:
+        arguments["statuses"] = status_filters
+    if _is_aggregate_workspace_query(query):
+        arguments["query"] = ""
+    return "workspace.search_rfqs", arguments
+
+
+def _is_aggregate_workspace_query(query: str) -> bool:
+    normalized = query.strip().lower()
+    if not normalized:
+        return False
+    return any(pattern.search(normalized) for pattern in AGGREGATE_WORKSPACE_QUERY_PATTERNS)
+
+
+def _extract_workspace_status_filters(query: str) -> List[str]:
+    normalized = query.strip().lower()
+    if not normalized:
+        return []
+    statuses: List[str] = []
+    for status, patterns in WORKSPACE_STATUS_KEYWORDS.items():
+        if any(pattern.search(normalized) for pattern in patterns):
+            statuses.append(status)
+    # Preserve order but drop duplicates
+    seen: set[str] = set()
+    deduped: List[str] = []
+    for status in statuses:
+        if status in seen:
+            continue
+        seen.add(status)
+        deduped.append(status)
+    return deduped
+
+
+def _extract_quote_status_filters(query: str) -> List[str]:
+    normalized = query.strip().lower()
+    if not normalized:
+        return []
+    statuses: List[str] = []
+    for status, patterns in QUOTE_STATUS_KEYWORDS.items():
+        if any(pattern.search(normalized) for pattern in patterns):
+            statuses.append(status)
+    seen: set[str] = set()
+    deduped: List[str] = []
+    for status in statuses:
+        if status in seen:
+            continue
+        seen.add(status)
+        deduped.append(status)
+    return deduped
+
+
+def _chat_tool_results_to_context_blocks(tool_results: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    blocks: List[Dict[str, Any]] = []
+    for index, tool_result in enumerate(tool_results[:CHAT_TOOL_RESULTS_LIMIT]):
+        tool_name = str(tool_result.get("tool_name") or "workspace.tool")
+        call_id = str(tool_result.get("call_id") or index)
+        result_payload = tool_result.get("result")
+        snippet = _chat_render_tool_result_snippet(tool_name, result_payload)
+        blocks.append(
+            {
+                "doc_id": f"workspace_tool::{tool_name}",
+                "doc_version": call_id,
+                "chunk_id": index,
+                "score": 0.98,
+                "snippet": snippet,
+            }
+        )
+    return blocks
+
+
+def _chat_render_tool_result_snippet(tool_name: str, result_payload: Any) -> str:
+    if not result_payload:
+        return f"Tool {tool_name} returned no data."
+
+    if isinstance(result_payload, dict):
+        formatted = _format_tool_result_payload(tool_name, result_payload)
+        if formatted:
+            return formatted
+
+    try:
+        serialized = json.dumps(result_payload, ensure_ascii=True, separators=(",", ":"))
+    except TypeError:
+        serialized = str(result_payload)
+    snippet = f"{tool_name}: {serialized}"
+    return snippet[:2000]
+
+
+def _format_tool_result_payload(tool_name: str, payload: Dict[str, Any]) -> Optional[str]:
+    formatter_registry: Dict[str, Callable[[Dict[str, Any]], str]] = {
+        "workspace.search_rfqs": _format_workspace_search_rfqs_result,
+        "workspace.stats_quotes": _format_workspace_stats_quotes_result,
+    }
+    formatter = formatter_registry.get(tool_name)
+    if not formatter:
+        return None
+    try:
+        return formatter(payload)
+    except Exception as exc:  # pragma: no cover - defensive formatting guard
+        LOGGER.warning(
+            "tool_result_format_failed",
+            extra=log_extra(tool_name=tool_name, error=str(exc)),
+        )
+        return None
+
+
+def _format_workspace_search_rfqs_result(payload: Dict[str, Any]) -> str:
+    items = payload.get("items") if isinstance(payload.get("items"), list) else []
+    meta = payload.get("meta") if isinstance(payload.get("meta"), dict) else {}
+    query = str(meta.get("query") or "").strip()
+    total_count = _coerce_int(meta.get("total_count"), default=len(items))
+    status_filters = _normalize_status_filter_meta(meta.get("statuses"))
+    subject = _format_status_filter_subject(status_filters, "RFQs") or "RFQs"
+
+    qualifier_parts: List[str] = []
+    if status_filters:
+        qualifier_parts.append(subject)
+    else:
+        qualifier_parts.append("RFQs")
+    if query:
+        qualifier_parts.append(f"matching \"{query}\"")
+    qualifier_text = " ".join(part for part in qualifier_parts if part)
+
+    subject_text = qualifier_text or subject
+    if total_count <= 0:
+        headline = f"No {subject_text}."
+    elif total_count == 1:
+        headline = f"Found 1 {subject_text}."
+    else:
+        headline = f"Found {total_count} {subject_text}."
+
+    status_summary = _build_status_summary(meta.get("status_counts"))
+    details: List[str] = []
+    for entry in items[:3]:
+        if not isinstance(entry, dict):
+            continue
+        label = entry.get("number") or f"RFQ #{entry.get('rfq_id') or '?'}"
+        status_text = _format_status_label(entry.get("status"))
+        due_text = _format_iso_date(entry.get("due_at") or entry.get("close_at"))
+        snippet = f"{label} · {status_text}"
+        if due_text:
+            snippet = f"{snippet} · due {due_text}"
+        details.append(snippet)
+
+    parts = [headline]
+    if status_summary:
+        parts.append(f"Status mix: {status_summary}.")
+    if details:
+        parts.append(f"Top results: {'; '.join(details)}.")
+    return " ".join(parts)
+
+
+def _format_workspace_stats_quotes_result(payload: Dict[str, Any]) -> str:
+    items = payload.get("items") if isinstance(payload.get("items"), list) else []
+    meta = payload.get("meta") if isinstance(payload.get("meta"), dict) else {}
+    total_count = _coerce_int(meta.get("total_count"), default=len(items))
+    status_filters = _normalize_status_filter_meta(meta.get("statuses"))
+    subject = _format_status_filter_subject(status_filters, "Quotes") or "Quotes"
+    descriptor = subject.lower() if status_filters else "quotes"
+
+    descriptor_singular = descriptor[:-1] if descriptor.endswith("s") else descriptor
+    if total_count <= 0:
+        headline = f"No {descriptor} on file."
+    elif total_count == 1:
+        headline = f"1 {descriptor_singular} on file."
+    else:
+        headline = f"{total_count} {descriptor} on file."
+
+    status_summary = _build_status_summary(meta.get("status_counts"))
+    details: List[str] = []
+    for entry in items[:3]:
+        if not isinstance(entry, dict):
+            continue
+        label = entry.get("quote_id")
+        quote_label = f"Quote #{label}" if label is not None else "Quote"
+        status_text = _format_status_label(entry.get("status"))
+        total_text = _format_currency_value(entry.get("total_price"), entry.get("currency"))
+        submitted_text = _format_iso_date(entry.get("submitted_at"))
+        rfq_ref = entry.get("rfq_id")
+
+        snippet_parts = [quote_label, status_text]
+        if total_text:
+            snippet_parts.append(total_text)
+        if submitted_text:
+            snippet_parts.append(f"submitted {submitted_text}")
+        if rfq_ref:
+            snippet_parts.append(f"RFQ {rfq_ref}")
+        details.append(" · ".join(snippet_parts))
+
+    parts = [headline]
+    if status_summary:
+        parts.append(f"Status mix: {status_summary}.")
+    if details:
+        parts.append(f"Recent submissions: {'; '.join(details)}.")
+    return " ".join(parts)
+
+
+def _normalize_status_filter_meta(value: Any) -> List[str]:
+    if isinstance(value, list):
+        candidates = value
+    elif isinstance(value, str):
+        candidates = [segment.strip() for segment in value.split(",")]
+    else:
+        return []
+
+    normalized: List[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not isinstance(candidate, str):
+            continue
+        clean = candidate.strip().lower()
+        if not clean or clean in seen:
+            continue
+        seen.add(clean)
+        normalized.append(clean)
+    return normalized
+
+
+def _format_status_filter_subject(status_filters: Sequence[str], noun: str) -> str:
+    labels = [_format_status_label(status) for status in status_filters if status]
+    labels = [label for label in labels if label]
+    subject = noun.strip() or "Records"
+    if not labels:
+        return ""
+    if len(labels) == 1:
+        return f"{labels[0]} {subject}"
+    if len(labels) == 2:
+        return f"{labels[0]} and {labels[1]} {subject}"
+    return f"{', '.join(labels[:-1])}, and {labels[-1]} {subject}"
+
+
+def _build_status_summary(status_counts: Any) -> str:
+    if isinstance(status_counts, dict):
+        items = status_counts.items()
+    elif isinstance(status_counts, list):
+        items = []
+        for entry in status_counts:
+            if not isinstance(entry, dict):
+                continue
+            status = entry.get("status")
+            count = entry.get("count") or entry.get("aggregate")
+            items.append((status, count))
+    else:
+        return ""
+
+    summary_parts: List[str] = []
+    for status, count in items:
+        status_label = _format_status_label(status)
+        count_value = _coerce_int(count)
+        summary_parts.append(f"{status_label} {count_value}")
+    return ", ".join(summary_parts)
+
+
+def _format_status_label(value: Any) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return "Unspecified"
+    normalized = value.strip().replace("_", " ")
+    return normalized.title() or "Unspecified"
+
+
+def _format_iso_date(value: Any) -> Optional[str]:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    normalized = value.strip().replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return normalized[:10]
+    return parsed.strftime("%b %d")
+
+
+def _coerce_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _format_currency_value(amount: Any, currency: Any) -> Optional[str]:
+    try:
+        value = float(amount)
+    except (TypeError, ValueError):
+        return None
+    code = str(currency).upper().strip() if isinstance(currency, str) else ""
+    formatted_value = f"{value:,.2f}" if abs(value) < 1000 else f"{value:,.0f}"
+    if not code:
+        return formatted_value
+    return f"{code} {formatted_value}".strip()
+
+
+def _chat_suggest_quick_replies(intent: chat_router.ChatIntent, mode: str) -> List[str]:
+    mapping = {
+        "answer": ["Show citations", "Summarize again", "Draft an RFQ"],
+        "draft_action": ["Approve draft", "Revise inputs", "Share with team"],
+        "workflow": ["Start workflow", "Show next step"],
+        "tool": ["Use workspace data", "Never mind"],
+    }
+    return mapping.get(mode, ["Thanks", "Follow up later"])
+
+
+def _chat_validate_response(response: Dict[str, Any]) -> None:
+    CHAT_RESPONSE_VALIDATOR.validate(response)
+
+
+async def _chat_llm_intent_classifier(
+    messages: Sequence[Dict[str, Any]],
+    query: str,
+    safety_identifier: Optional[str],
+) -> Optional[chat_router.ChatIntent]:
+    provider_name, provider = resolve_llm_provider(None)
+    if isinstance(provider, DummyLLMProvider):
+        return None
+
+    conversation_text = _chat_conversation_text(messages)
+    classification_prompt = (
+        "Classify the user's latest request into one of these intents: workspace_qna, rfq_draft, "
+        "supplier_message, maintenance_checklist, inventory_whatif, quote_compare, start_workflow, general_qna. "
+        "Return a JSON object with keys intent and reason."
+    )
+    context_blocks = [
+        {
+            "doc_id": "conversation",
+            "doc_version": "1",
+            "chunk_id": 0,
+            "score": 1.0,
+            "snippet": conversation_text[-4000:],
+        }
+    ]
+    try:
+        result = provider.generate_answer(
+            f"{classification_prompt}\nLatest user request: {query}",
+            context_blocks,
+            INTENT_CLASSIFICATION_SCHEMA,
+            safety_identifier,
+        )
+    except LLMProviderError as exc:  # pragma: no cover - network guard
+        LOGGER.warning("chat_intent_llm_failure", extra=log_extra(error=str(exc), provider=provider_name))
+        return None
+
+    intent_value = result.get("intent")
+    if isinstance(intent_value, str):
+        normalized = intent_value.strip().lower()
+        allowed = set(chat_router.ACTION_INTENTS.keys()) | chat_router.WORKFLOW_INTENTS | {"workspace_qna", "general_qna"}
+        if normalized in allowed:
+            return normalized  # type: ignore[return-value]
+    return None
+
+
+def _chat_conversation_text(messages: Sequence[Dict[str, Any]]) -> str:
+    lines: List[str] = []
+    for entry in messages[-10:]:
+        role = entry.get("role", "assistant")
+        content = entry.get("content", "")
+        if isinstance(content, str):
+            lines.append(f"{role}: {content.strip()}")
+    return "\n".join(lines)
+
+
 def _build_context_blocks(hits: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     blocks: List[Dict[str, Any]] = []
     for hit in hits:
@@ -946,14 +2110,59 @@ def _build_context_blocks(hits: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]
     return blocks
 
 
-def _build_no_hits_answer() -> Dict[str, Any]:
+def _build_general_context_blocks(query: Optional[str]) -> List[Dict[str, Any]]:
+    prompt = (
+        "No workspace documents matched this request. Provide general procurement guidance and be explicit "
+        "that the answer is not grounded in tenant data."
+    )
+    if query:
+        prompt = f"{prompt} User question: {str(query)[:500]}"
+    return [
+        {
+            "doc_id": "general_knowledge",
+            "doc_version": "v1",
+            "chunk_id": 0,
+            "score": 0.0,
+            "title": "General Knowledge",
+            "snippet": prompt[:600],
+            "metadata": {"source_type": "general"},
+        }
+    ]
+
+
+def _build_no_hits_answer(query: Optional[str] = None) -> Dict[str, Any]:
     return {
-        "answer_markdown": "Not enough information in indexed sources.",
+        "answer_markdown": _friendly_default_message(query),
         "citations": [],
         "confidence": 0.0,
         "needs_human_review": True,
         "warnings": ["No relevant sources found"],
     }
+
+
+def _friendly_default_message(query: Optional[str]) -> str:
+    normalized = (query or "").strip().lower()
+    greeting_terms = [
+        "hi",
+        "hello",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "greetings",
+    ]
+    if normalized:
+        for term in greeting_terms:
+            if normalized == term or normalized.startswith(f"{term} "):
+                return "Hello! How can I help you today?"
+
+    if not normalized:
+        return "Hello! How can I help you today?"
+
+    return (
+        "Not enough information in workspace data for that yet, but I am ready to chat and help with RFQs, "
+        "quotes, suppliers, or general questions. What should we tackle?"
+    )
 
 
 def _fallback_deterministic_answer(
@@ -966,6 +2175,17 @@ def _fallback_deterministic_answer(
     answer_payload.setdefault("warnings", []).append(warning)
     answer_payload["needs_human_review"] = True
     return answer_payload
+
+
+def _apply_general_answer_metadata(answer_payload: Dict[str, Any]) -> Dict[str, Any]:
+    payload = dict(answer_payload)
+    payload["citations"] = []
+    warnings = list(payload.get("warnings") or [])
+    warnings.append(GENERAL_ANSWER_WARNING)
+    payload["warnings"] = list(dict.fromkeys(warnings))
+    payload["needs_human_review"] = True
+    payload["confidence"] = _clamp_float(payload.get("confidence", 0.35), maximum=0.55)
+    return payload
 
 
 def _enforce_citation_integrity(
@@ -1056,6 +2276,8 @@ def _run_action_semantic_search(
             ),
         )
         raise HTTPException(status_code=400, detail="Semantic search failed") from exc
+
+    return hits
 
 
 def _build_workflow_plan(workflow_type: str, rfq_id: Optional[str], inputs: Dict[str, Any]) -> List[Dict[str, Any]]:

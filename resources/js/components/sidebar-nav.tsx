@@ -83,6 +83,13 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Admin Dashboard', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true, matchExact: true },
     { label: 'Company Approvals', to: '/app/admin/company-approvals', icon: Building2, requiresAdminConsole: true },
     { label: 'Supplier Applications', to: '/app/admin/supplier-applications', icon: Users, requiresAdminConsole: true },
+    {
+        label: 'Supplier Scrapes',
+        to: '/app/admin/supplier-scrapes',
+        icon: Sparkles,
+        requiresAdminConsole: true,
+        roles: ['platform_super'],
+    },
     { label: 'Plans & Features', to: '/app/admin/plans', icon: Layers2, requiresAdminConsole: true },
     { label: 'Digital Twins', to: '/app/admin/digital-twins', icon: Factory, requiresAdminConsole: true },
     { label: 'Twin Categories', to: '/app/admin/digital-twins/categories', icon: FolderTree, requiresAdminConsole: true },

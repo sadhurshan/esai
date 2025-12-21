@@ -394,6 +394,55 @@ PO_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionPurchaseOrderDraft", PO_DRAFT_PAYLOAD_SCHEMA
 )
 
+SCRAPED_SUPPLIER_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ScrapedSupplierRecord",
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "name",
+        "website",
+        "description",
+        "industry_tags",
+        "address",
+        "city",
+        "state",
+        "country",
+        "phone",
+        "email",
+        "contact_person",
+        "certifications",
+        "product_summary",
+        "source_url",
+        "confidence",
+        "metadata_json",
+    ],
+    "properties": {
+        "name": {"type": ["string", "null"], "minLength": 1},
+        "website": {"type": ["string", "null"], "minLength": 1},
+        "description": {"type": ["string", "null"]},
+        "industry_tags": {
+            "type": ["array", "null"],
+            "items": {"type": "string", "minLength": 1},
+        },
+        "address": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "state": {"type": ["string", "null"]},
+        "country": {"type": ["string", "null"]},
+        "phone": {"type": ["string", "null"]},
+        "email": {"type": ["string", "null"]},
+        "contact_person": {"type": ["string", "null"]},
+        "certifications": {
+            "type": ["array", "null"],
+            "items": {"type": "string", "minLength": 1},
+        },
+        "product_summary": {"type": ["string", "null"]},
+        "source_url": {"type": ["string", "null"], "minLength": 1},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "metadata_json": {"type": ["object", "null"]},
+    },
+}
+
 DRAFT_ACTION_SCHEMAS = [
     RFQ_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
@@ -466,5 +515,6 @@ __all__ = [
     "INVENTORY_WHATIF_SCHEMA",
     "QUOTE_COMPARISON_SCHEMA",
     "PO_DRAFT_SCHEMA",
+    "SCRAPED_SUPPLIER_SCHEMA",
     "CHAT_RESPONSE_SCHEMA",
 ]

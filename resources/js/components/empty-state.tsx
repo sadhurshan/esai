@@ -9,6 +9,7 @@ interface EmptyStateProps {
     className?: string;
     ctaLabel?: string;
     ctaProps?: ComponentProps<typeof Button>;
+    dense?: boolean;
 }
 
 export function EmptyState({
@@ -18,11 +19,13 @@ export function EmptyState({
     className,
     ctaLabel,
     ctaProps,
+    dense = false,
 }: EmptyStateProps) {
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted-foreground/40 bg-muted/10 p-8 text-center',
+                'flex flex-col items-center justify-center rounded-xl border border-dashed border-muted-foreground/40 bg-muted/10 text-center',
+                dense ? 'gap-2 p-4 text-sm' : 'gap-3 p-8',
                 className,
             )}
         >

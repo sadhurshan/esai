@@ -1,11 +1,12 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, BarChart2, Brain, Gauge, ShieldAlert, TrendingUp } from 'lucide-react';
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Activity, AlertTriangle, BarChart2, Brain, Gauge, History, ShieldAlert, TrendingUp } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,8 +15,9 @@ import { EmptyState } from '@/components/empty-state';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useAiModelMetrics } from '@/hooks/api/admin/use-ai-model-metrics';
+import { useAiTrainingJobs } from '@/hooks/api/admin/use-ai-training-jobs';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { AiModelMetricEntry, AiModelMetricFilters } from '@/types/admin';
+import type { AiModelMetricEntry, AiModelMetricFilters, ModelTrainingJob } from '@/types/admin';
 import { cn } from '@/lib/utils';
 
 const DEFAULT_LOOKBACK_DAYS = 45;
@@ -46,6 +48,13 @@ const RISK_BUCKET_DISPLAY: Record<string, string> = {
     low: 'Low risk',
 };
 
+type TrainingFeature = 'forecast' | 'risk';
+
+const TRAINING_FEATURE_LABELS: Record<TrainingFeature, string> = {
+    forecast: 'Forecasting',
+    risk: 'Supplier risk',
+};
+
 type FeatureValue = (typeof FEATURE_OPTIONS)[number]['value'];
 
 type MetricsFormValues = {
@@ -69,6 +78,16 @@ export function AdminAiModelHealthPage() {
     const [selectedMetric, setSelectedMetric] = useState<string>('mape');
 
     const { data, isLoading, isFetching, refetch } = useAiModelMetrics(filters, { enabled: isAdmin });
+    const normalizedFeature = normalizeFeatureValue(filters.feature);
+    const trainingFeature = mapMetricsFeatureToTraining(normalizedFeature);
+    const trainingJobFilters = useMemo(() => ({ feature: trainingFeature, perPage: 1 }), [trainingFeature]);
+    const {
+        data: trainingJobsData,
+        isLoading: isTrainingLoading,
+        isFetching: isTrainingFetching,
+        refetch: refetchTrainingJobs,
+    } = useAiTrainingJobs(trainingJobFilters, { enabled: isAdmin });
+    const latestTrainingJob = trainingJobsData?.items?.[0] ?? null;
 
     useEffect(() => {
         if (!isAdmin) {
@@ -94,8 +113,11 @@ export function AdminAiModelHealthPage() {
     const metricOptions = deriveMetricNames(entries);
 
     const trendPoints = useMemo(() => buildTrendSeries(entries, selectedMetric), [entries, selectedMetric]);
-    const warnings = buildWarningList(latestByMetric);
+    const metricWarnings = buildWarningList(latestByMetric);
+    const trainingWarnings = buildTrainingWarnings(latestTrainingJob);
+    const warnings = [...metricWarnings, ...trainingWarnings];
     const supplierInsights = buildSupplierRiskInsights(entries);
+    const trainingFeatureLabel = TRAINING_FEATURE_LABELS[trainingFeature];
 
     const applyFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -120,6 +142,7 @@ export function AdminAiModelHealthPage() {
 
     const refresh = () => {
         void refetch();
+        void refetchTrainingJobs();
     };
 
     return (
@@ -210,6 +233,14 @@ export function AdminAiModelHealthPage() {
                     </AlertDescription>
                 </Alert>
             ) : null}
+
+            <TrainingTelemetrySection
+                job={latestTrainingJob}
+                featureLabel={trainingFeatureLabel}
+                isLoading={isTrainingLoading || isTrainingFetching}
+                formatDate={formatDate}
+                formatNumber={formatNumber}
+            />
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {SUMMARY_METRICS.map((metric) => (
@@ -313,6 +344,146 @@ export function AdminAiModelHealthPage() {
             ) : null}
         </div>
     );
+}
+
+function TrainingTelemetrySection({
+    job,
+    featureLabel,
+    isLoading,
+    formatDate,
+    formatNumber,
+}: {
+    job: ModelTrainingJob | null;
+    featureLabel: string;
+    isLoading: boolean;
+    formatDate: ReturnType<typeof useFormatting>['formatDate'];
+    formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
+}) {
+    return (
+        <section className="grid gap-4 lg:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <History className="h-5 w-5 text-muted-foreground" aria-hidden />
+                        <div>
+                            <CardTitle>Latest training run</CardTitle>
+                            <CardDescription>{featureLabel} models</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <Skeleton className="h-32 w-full" />
+                    ) : job ? (
+                        <div className="space-y-4">
+                            {job.error_message ? (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Job failed</AlertTitle>
+                                    <AlertDescription>{job.error_message}</AlertDescription>
+                                </Alert>
+                            ) : null}
+                            <dl className="grid gap-3 sm:grid-cols-2">
+                                <TrainingInfoStat label="Status" value={<TrainingStatusBadge status={job.status} />} />
+                                <TrainingInfoStat label="Company" value={`#${job.company_id}`} />
+                                <TrainingInfoStat label="Job" value={`#${job.id}`} />
+                                <TrainingInfoStat
+                                    label="Remote job"
+                                    value={job.microservice_job_id ? job.microservice_job_id : '—'}
+                                />
+                                <TrainingInfoStat
+                                    label="Started"
+                                    value={formatDate(job.started_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                                />
+                                <TrainingInfoStat
+                                    label="Finished"
+                                    value={formatDate(job.finished_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                                />
+                                <TrainingInfoStat label="Duration" value={formatTrainingDuration(job)} />
+                                <TrainingInfoStat
+                                    label="Dataset"
+                                    value={(job.parameters?.['dataset_upload_id'] as string | undefined) ?? '—'}
+                                />
+                            </dl>
+                        </div>
+                    ) : (
+                        <EmptyState
+                            icon={<History className="h-6 w-6" aria-hidden />}
+                            title="No training runs yet"
+                            description="Kick off a job from the console to populate telemetry."
+                        />
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <Button asChild variant="outline" size="sm">
+                        <Link to="/app/admin/ai-training">Open training console</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Result metrics</CardTitle>
+                    <CardDescription>Highlights from the latest training artifact.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <Skeleton className="h-32 w-full" />
+                    ) : job?.result ? (
+                        <dl className="grid gap-3">
+                            {extractTrainingMetricEntries(job).map(([key, value]) => (
+                                <div key={key} className="flex items-center justify-between gap-3 rounded-md border bg-muted/30 px-3 py-2">
+                                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                                        {formatMetricLabel(key)}
+                                    </dt>
+                                    <dd className="text-sm font-semibold text-foreground">
+                                        {typeof value === 'number'
+                                            ? formatMetricValue(key, value, formatNumber)
+                                            : typeof value === 'string'
+                                                ? value
+                                                : '—'}
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+                    ) : (
+                        <EmptyState
+                            icon={<Activity className="h-6 w-6" aria-hidden />}
+                            title="Awaiting metrics"
+                            description="Run a training job to capture calibration stats."
+                        />
+                    )}
+                </CardContent>
+            </Card>
+        </section>
+    );
+}
+
+function TrainingInfoStat({ label, value }: { label: string; value: ReactNode }) {
+    return (
+        <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
+            <dd className="text-sm font-semibold text-foreground">{value}</dd>
+        </div>
+    );
+}
+
+function TrainingStatusBadge({ status }: { status?: string | null }) {
+    if (!status) {
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+
+    if (status === 'running') {
+        return <Badge variant="secondary">Running</Badge>;
+    }
+
+    if (status === 'failed') {
+        return <Badge variant="destructive">Failed</Badge>;
+    }
+
+    if (status === 'completed') {
+        return <Badge variant="outline" className="border-emerald-500/70 text-emerald-600">Completed</Badge>;
+    }
+
+    return <Badge variant="outline">{status}</Badge>;
 }
 
 function SummaryMetricCard({
@@ -602,6 +773,75 @@ function buildWarningList(latestByMetric: Map<string, AiModelMetricEntry>): stri
     });
 
     return warnings;
+}
+
+function buildTrainingWarnings(job: ModelTrainingJob | null): string[] {
+    if (!job?.result) {
+        return [];
+    }
+
+    const warnings: string[] = [];
+    Object.entries(job.result).forEach(([key, rawValue]) => {
+        const value = typeof rawValue === 'number' ? rawValue : null;
+        if (value === null) {
+            return;
+        }
+
+        const config = METRIC_THRESHOLDS[key];
+        if (!config) {
+            return;
+        }
+
+        if (config.warnAbove !== undefined && value > config.warnAbove) {
+            warnings.push(`${formatMetricLabel(key)} (training) breached ${formatPercentMaybe(key, value)}`);
+        }
+
+        if (config.warnBelow !== undefined && value < config.warnBelow) {
+            warnings.push(`${formatMetricLabel(key)} (training) dropped to ${formatPercentMaybe(key, value)}`);
+        }
+    });
+
+    return warnings;
+}
+
+function extractTrainingMetricEntries(job: ModelTrainingJob | null): Array<[string, unknown]> {
+    if (!job?.result) {
+        return [];
+    }
+
+    return Object.entries(job.result).slice(0, 6);
+}
+
+function formatTrainingDuration(job: ModelTrainingJob): string {
+    if (!job.started_at || !job.finished_at) {
+        return '—';
+    }
+
+    const start = new Date(job.started_at).getTime();
+    const end = new Date(job.finished_at).getTime();
+    const minutes = Math.max(0, (end - start) / 60000);
+
+    if (minutes < 1) {
+        return `${Math.round(minutes * 60)}s`;
+    }
+
+    if (minutes < 60) {
+        return `${minutes.toFixed(1)}m`;
+    }
+
+    return `${(minutes / 60).toFixed(1)}h`;
+}
+
+function normalizeFeatureValue(value?: string | null): FeatureValue {
+    return isFeatureValue(value) ? value : DEFAULT_FORM.feature;
+}
+
+function isFeatureValue(value: unknown): value is FeatureValue {
+    return FEATURE_OPTIONS.some((option) => option.value === value);
+}
+
+function mapMetricsFeatureToTraining(feature: FeatureValue): TrainingFeature {
+    return feature === 'supplier_risk' ? 'risk' : 'forecast';
 }
 
 function formatMetricLabel(metric: string): string {

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController as AdminApiKeyController;
 use App\Http\Controllers\Admin\AiEventController as AdminAiEventController;
 use App\Http\Controllers\Admin\AiModelMetricController as AdminAiModelMetricController;
+use App\Http\Controllers\Admin\AiTrainingController as AdminAiTrainingController;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyFeatureFlagController as AdminCompanyFeatureFlagController;
 use App\Http\Controllers\Admin\DigitalTwinCategoryController as AdminDigitalTwinCategoryController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Admin\HealthController as AdminHealthController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Admin\RoleTemplateController as AdminRoleTemplateController;
 use App\Http\Controllers\Admin\RateLimitController as AdminRateLimitController;
+use App\Http\Controllers\Admin\SupplierScrapeController as AdminSupplierScrapeController;
 use App\Http\Controllers\Admin\WebhookDeliveryController as AdminWebhookDeliveryController;
 use App\Http\Controllers\Admin\WebhookSubscriptionController as AdminWebhookSubscriptionController;
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
@@ -322,6 +324,31 @@ Route::prefix('v1')->group(function (): void {
 
         Route::post('{workflow}/complete', [AiWorkflowController::class, 'complete'])
             ->middleware($workflowMiddleware);
+    });
+
+    Route::middleware([
+        'auth',
+        'can:canTrainAi',
+        'admin.guard:super',
+        \App\Http\Middleware\BypassCompanyContext::class,
+        'ensure.ai.training.enabled',
+    ])->prefix('admin/ai-training')->group(function (): void {
+        Route::get('jobs', [AdminAiTrainingController::class, 'index']);
+        Route::post('start', [AdminAiTrainingController::class, 'start']);
+        Route::get('jobs/{model_training_job}', [AdminAiTrainingController::class, 'show']);
+        Route::post('jobs/{model_training_job}/refresh', [AdminAiTrainingController::class, 'refresh']);
+    });
+
+    Route::middleware([
+        'auth',
+        'admin.guard:super',
+        \App\Http\Middleware\BypassCompanyContext::class,
+    ])->prefix('admin')->group(function (): void {
+        Route::get('supplier-scrapes', [AdminSupplierScrapeController::class, 'index']);
+        Route::post('supplier-scrapes/start', [AdminSupplierScrapeController::class, 'start']);
+        Route::get('supplier-scrapes/{supplier_scrape_job}/results', [AdminSupplierScrapeController::class, 'results']);
+        Route::post('scraped-suppliers/{scraped_supplier}/approve', [AdminSupplierScrapeController::class, 'approve']);
+        Route::delete('scraped-suppliers/{scraped_supplier}', [AdminSupplierScrapeController::class, 'discard']);
     });
 });
 

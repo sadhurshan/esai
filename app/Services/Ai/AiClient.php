@@ -189,6 +189,180 @@ class AiClient
 
     /**
      * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainForecast(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/forecast',
+            payload: $payload,
+            feature: 'train_forecast',
+            successMessage: 'Forecast training job accepted.',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainRisk(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/risk',
+            payload: $payload,
+            feature: 'train_risk',
+            successMessage: 'Supplier risk training job accepted.',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainRag(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/rag',
+            payload: $payload,
+            feature: 'train_rag',
+            successMessage: 'RAG reindex job accepted.',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainActions(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/actions',
+            payload: $payload,
+            feature: 'train_actions',
+            successMessage: 'Deterministic actions update queued.',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainWorkflows(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/workflows',
+            payload: $payload,
+            feature: 'train_workflows',
+            successMessage: 'Workflow template refresh queued.',
+        );
+    }
+
+    /**
+     * @return array{job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainingStatus(string $jobId): array
+    {
+        $response = $this->send(
+            sprintf('train/%s/status', $jobId),
+            [],
+            'Training job status retrieved.',
+            'training_status',
+            null,
+            function (Response $response, string $message): array {
+                return $this->formatTrainingStatusResponse($response, $message);
+            },
+            'get'
+        );
+
+        $data = $response['data'] ?? [];
+        $job = $data['job'] ?? null;
+
+        return [
+            'job' => is_array($job) ? $job : null,
+            'response' => $response,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function scrapeSuppliers(array $payload): array
+    {
+        $response = $this->send(
+            'scrape/suppliers',
+            $payload,
+            'Supplier scrape job queued.',
+            'supplier_scrape_dispatch'
+        );
+
+        $data = $response['data'] ?? [];
+        $job = $data['job'] ?? null;
+
+        return [
+            'job_id' => $this->normalizeTrainingJobId($data['job_id'] ?? null),
+            'job' => is_array($job) ? $job : null,
+            'response' => $response,
+        ];
+    }
+
+    /**
+     * @return array{job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function getScrapeJob(string $jobId): array
+    {
+        $response = $this->send(
+            sprintf('scrape/jobs/%s', $jobId),
+            [],
+            'Supplier scrape job retrieved.',
+            'supplier_scrape_status',
+            null,
+            null,
+            'get'
+        );
+
+        $data = $response['data'] ?? [];
+        $job = $data['job'] ?? null;
+
+        return [
+            'job' => is_array($job) ? $job : null,
+            'response' => $response,
+        ];
+    }
+
+    /**
+     * @return array{items:array<int, array<string, mixed>>,meta:array<string,mixed>,response:array<string,mixed>}
+     */
+    public function getScrapeJobResults(string $jobId, int $offset = 0, int $limit = 50): array
+    {
+        $query = [
+            'offset' => max(0, $offset),
+            'limit' => max(1, min($limit, 100)),
+        ];
+
+        $response = $this->send(
+            sprintf('scrape/jobs/%s/results', $jobId),
+            $query,
+            'Supplier scrape results retrieved.',
+            'supplier_scrape_results',
+            null,
+            null,
+            'get'
+        );
+
+        $data = $response['data'] ?? [];
+        $items = $data['items'] ?? [];
+        $meta = $data['meta'] ?? [];
+
+        return [
+            'items' => is_array($items) ? $items : [],
+            'meta' => is_array($meta) ? $meta : [],
+            'response' => $response,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      * @param callable|null $payloadInterceptor
      * @param callable|null $responseFormatter
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
@@ -683,6 +857,96 @@ class AiClient
             'error', 'failed', 'fail' => 'error',
             default => $successful ? 'success' : 'error',
         };
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    private function dispatchTrainingRequest(string $endpoint, array $payload, string $feature, string $successMessage): array
+    {
+        $response = $this->send(
+            $endpoint,
+            $payload,
+            $successMessage,
+            $feature,
+            null,
+            function (Response $response, string $message): array {
+                return $this->formatTrainingDispatchResponse($response, $message);
+            }
+        );
+
+        $data = $response['data'] ?? [];
+        $jobId = $this->normalizeTrainingJobId($data['job_id'] ?? null);
+        $job = $data['job'] ?? null;
+
+        return [
+            'job_id' => $jobId,
+            'job' => is_array($job) ? $job : null,
+            'response' => $response,
+        ];
+    }
+
+    private function formatTrainingDispatchResponse(Response $response, string $successMessage): array
+    {
+        $body = $response->json();
+        $body = is_array($body) ? $body : [];
+        $jobId = $this->normalizeTrainingJobId($body['job_id'] ?? null);
+
+        if ($response->successful() && $jobId !== null) {
+            $jobPayload = $body['job'] ?? null;
+
+            return [
+                'status' => 'success',
+                'message' => $successMessage,
+                'data' => [
+                    'job_id' => $jobId,
+                    'job' => is_array($jobPayload) ? $jobPayload : null,
+                    'raw' => $body,
+                ],
+                'errors' => [],
+            ];
+        }
+
+        return $this->formatResponse($response, $successMessage);
+    }
+
+    private function formatTrainingStatusResponse(Response $response, string $successMessage): array
+    {
+        $body = $response->json();
+        $body = is_array($body) ? $body : [];
+        $jobPayload = $body['job'] ?? null;
+
+        if ($response->successful() && is_array($jobPayload)) {
+            return [
+                'status' => 'success',
+                'message' => $successMessage,
+                'data' => [
+                    'job' => $jobPayload,
+                    'raw' => $body,
+                ],
+                'errors' => [],
+            ];
+        }
+
+        return $this->formatResponse($response, $successMessage);
+    }
+
+    private function normalizeTrainingJobId(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $normalized = trim($value);
+
+            return $normalized !== '' ? $normalized : null;
+        }
+
+        if (is_numeric($value)) {
+            $normalized = trim((string) $value);
+
+            return $normalized !== '' ? $normalized : null;
+        }
+
+        return null;
     }
 
     private function isEnabled(): bool

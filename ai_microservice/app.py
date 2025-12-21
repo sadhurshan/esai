@@ -25,12 +25,16 @@ import json
 import logging
 import os
 import re
+import threading
 import time
 import uuid
+from collections import Counter
 from datetime import datetime, timezone
+from pathlib import Path
+from statistics import StatisticsError, fmean
 from typing import Any, Callable, Dict, List, Literal, Optional, Sequence
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from jsonschema import Draft202012Validator, ValidationError
@@ -51,6 +55,7 @@ from ai_microservice.schemas import (
     RFQ_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
 )
+from ai_microservice.supplier_scraper import SupplierScraper
 from ai_microservice.tools_contract import (
     build_maintenance_checklist,
     build_rfq_draft,
@@ -172,7 +177,221 @@ SUPPORTED_LLM_PROVIDERS = {"dummy", "openai"}
 ALLOW_UNGROUNDED_ANSWERS = _env_flag("AI_ALLOW_UNGROUNDED_ANSWERS", False)
 GENERAL_ANSWER_WARNING = "Response used general model knowledge; no workspace sources were available."
 
+TRAINING_JOBS_STATE_PATH = os.getenv(
+    "AI_TRAINING_STATE_PATH",
+    str(Path(os.getcwd()) / "storage" / "ai_training_jobs.json"),
+)
+DEFAULT_FORECAST_TRAINING_HORIZON = int(os.getenv("AI_TRAINING_FORECAST_HORIZON_DAYS", "30"))
+
+
+class TrainingJobStore:
+    """Persists lightweight job metadata for async training requests."""
+
+    def __init__(self, path: str) -> None:
+        self._path = Path(path)
+        self._lock = threading.Lock()
+        self._jobs: Dict[str, Dict[str, Any]] = {}
+        self._load()
+
+    def create_job(self, feature: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        job_id = str(uuid.uuid4())
+        job = {
+            "id": job_id,
+            "feature": feature,
+            "status": "pending",
+            "parameters": copy.deepcopy(parameters),
+            "result": None,
+            "error_message": None,
+            "created_at": now,
+            "updated_at": now,
+            "started_at": None,
+            "finished_at": None,
+        }
+        with self._lock:
+            self._jobs[job_id] = job
+            self._persist()
+            return copy.deepcopy(job)
+
+    def mark_running(self, job_id: str) -> Optional[Dict[str, Any]]:
+        return self._update_job(job_id, status="running", started_at=datetime.now(timezone.utc).isoformat())
+
+    def mark_completed(self, job_id: str, result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        return self._update_job(
+            job_id,
+            status="completed",
+            result=result,
+            error_message=None,
+            finished_at=timestamp,
+        )
+
+    def mark_failed(self, job_id: str, message: str) -> Optional[Dict[str, Any]]:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        return self._update_job(
+            job_id,
+            status="failed",
+            error_message=message,
+            finished_at=timestamp,
+        )
+
+    def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            return copy.deepcopy(job) if job else None
+
+    def summary(self, recent_limit: int = 5) -> Dict[str, Any]:
+        with self._lock:
+            jobs = list(self._jobs.values())
+            status_counts = Counter(job["status"] for job in jobs)
+            recent_jobs = sorted(
+                jobs,
+                key=lambda item: item.get("updated_at") or item.get("created_at") or "",
+                reverse=True,
+            )[:recent_limit]
+
+        return {
+            "total": len(jobs),
+            "by_status": dict(status_counts),
+            "recent": [copy.deepcopy(job) for job in recent_jobs],
+        }
+
+    def _update_job(self, job_id: str, **fields: Any) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return None
+            job.update(fields)
+            job["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._persist()
+            return copy.deepcopy(job)
+
+    def _load(self) -> None:
+        if not self._path.exists():
+            return
+        try:
+            raw = self._path.read_text(encoding="utf-8")
+            data = json.loads(raw)
+            if isinstance(data, dict):
+                self._jobs = data
+        except Exception:  # pragma: no cover - defensive load
+            LOGGER.warning("training_job_store_load_failed", exc_info=True)
+            self._jobs = {}
+
+    def _persist(self) -> None:
+        try:
+            if self._path.parent:
+                self._path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = self._path.with_suffix(".tmp")
+            tmp_path.write_text(json.dumps(self._jobs, indent=2), encoding="utf-8")
+            tmp_path.replace(self._path)
+        except Exception:  # pragma: no cover - persistence errors logged upstream
+            LOGGER.warning("training_job_store_persist_failed", exc_info=True)
+
+
+training_job_store = TrainingJobStore(TRAINING_JOBS_STATE_PATH)
+
 workflow_engine = WorkflowEngine()
+
+
+class ScrapeJobStore:
+    """Lightweight in-memory store for supplier scrape jobs/results."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._jobs: Dict[str, Dict[str, Any]] = {}
+        self._results: Dict[str, List[Dict[str, Any]]] = {}
+
+    def create_job(self, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        job_id = str(uuid.uuid4())
+        timestamp = datetime.now(timezone.utc).isoformat()
+        job = {
+            "id": job_id,
+            "status": "pending",
+            "parameters": copy.deepcopy(parameters),
+            "result_count": 0,
+            "error_message": None,
+            "created_at": timestamp,
+            "updated_at": timestamp,
+            "started_at": None,
+            "finished_at": None,
+        }
+        with self._lock:
+            self._jobs[job_id] = job
+            self._results[job_id] = []
+        return copy.deepcopy(job)
+
+    def mark_running(self, job_id: str) -> Optional[Dict[str, Any]]:
+        return self._update_job(job_id, status="running", started_at=datetime.now(timezone.utc).isoformat())
+
+    def mark_completed(self, job_id: str, results: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return None
+            job.update(
+                {
+                    "status": "completed",
+                    "result_count": len(results),
+                    "error_message": None,
+                    "finished_at": timestamp,
+                    "updated_at": timestamp,
+                }
+            )
+            self._results[job_id] = copy.deepcopy(results)
+            return copy.deepcopy(job)
+
+    def mark_failed(self, job_id: str, message: str) -> Optional[Dict[str, Any]]:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        return self._update_job(
+            job_id,
+            status="failed",
+            error_message=message,
+            finished_at=timestamp,
+        )
+
+    def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            return copy.deepcopy(job) if job else None
+
+    def get_results(self, job_id: str, offset: int, limit: int) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            if job_id not in self._jobs:
+                return None
+            results = self._results.get(job_id, [])
+            bounded_limit = max(1, limit)
+            start = max(0, offset)
+            end = min(len(results), start + bounded_limit)
+            items = copy.deepcopy(results[start:end])
+            next_offset = end if end < len(results) else None
+            prev_offset = start - bounded_limit
+            if prev_offset < 0:
+                prev_offset = None
+        return {
+            "items": items,
+            "meta": {
+                "total": len(results),
+                "offset": start,
+                "limit": bounded_limit,
+                "next_offset": next_offset,
+                "prev_offset": prev_offset,
+            },
+        }
+
+    def _update_job(self, job_id: str, **fields: Any) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return None
+            job.update(fields)
+            job["updated_at"] = datetime.now(timezone.utc).isoformat()
+            return copy.deepcopy(job)
+
+
+scrape_job_store = ScrapeJobStore()
+supplier_scraper = SupplierScraper(llm_provider=build_llm_provider(DEFAULT_LLM_PROVIDER_NAME))
 
 ACTION_CONTEXT_MAX_CHARS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHARS", "9000"))
 ACTION_CONTEXT_MAX_CHUNKS = int(os.getenv("AI_ACTION_CONTEXT_MAX_CHUNKS", "12"))
@@ -321,6 +540,30 @@ class SupplierRiskRequest(BaseModel):
         return value
 
 
+class ScrapeSuppliersRequest(BaseModel):
+    query: str = Field(..., min_length=3, max_length=240)
+    region: Optional[str] = Field(default=None, max_length=160)
+    max_results: int = Field(default=10, ge=1, le=25)
+
+    @field_validator("query", mode="before")
+    @classmethod
+    def normalize_query(cls, value: Any) -> str:  # noqa: D417
+        if value is None:
+            raise ValueError("query is required")
+        normalized = str(value).strip()
+        if not normalized:
+            raise ValueError("query cannot be empty")
+        return normalized
+
+    @field_validator("region", mode="before")
+    @classmethod
+    def normalize_region(cls, value: Any) -> Optional[str]:  # noqa: D417
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized or None
+
+
 class IndexDocumentRequest(BaseModel):
     company_id: int = Field(..., ge=1)
     doc_id: str = Field(..., min_length=1)
@@ -400,6 +643,29 @@ class ActionPlanRequest(BaseModel):
         if normalized not in ACTION_SCHEMA_BY_TYPE:
             raise ValueError("Unsupported action_type")
         return normalized
+
+
+class ForecastTrainingRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    start_date: Optional[str] = Field(default=None)
+    end_date: Optional[str] = Field(default=None)
+    horizon: Optional[int] = Field(default=None, ge=1, le=365)
+
+
+class RiskTrainingRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    start_date: Optional[str] = Field(default=None)
+    end_date: Optional[str] = Field(default=None)
+
+
+class RagTrainingRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    reindex_all: bool = Field(default=False)
+
+
+class DeterministicTrainingRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    parameters: Dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("inputs", "user_context", mode="before")
     @classmethod
@@ -582,6 +848,221 @@ def resolve_llm_provider(override: Optional[str]) -> tuple[str, "LLMProvider"]:
     return requested, provider
 
 
+TrainingJobRunner = Callable[[str, Dict[str, Any]], None]
+
+
+def _start_training_job(
+    feature: str,
+    parameters: Dict[str, Any],
+    background_tasks: BackgroundTasks,
+    runner: TrainingJobRunner,
+) -> Dict[str, Any]:
+    job = training_job_store.create_job(feature, {k: v for k, v in parameters.items() if v is not None})
+    background_tasks.add_task(runner, job["id"], copy.deepcopy(job["parameters"]))
+    LOGGER.info("training_job_enqueued", extra=log_extra(feature=feature, job_id=job["id"]))
+    return job
+
+
+def _coerce_forecast_horizon(parameters: Dict[str, Any]) -> int:
+    horizon = parameters.get("horizon") or DEFAULT_FORECAST_TRAINING_HORIZON
+    try:
+        return max(1, int(horizon))
+    except (TypeError, ValueError):  # pragma: no cover - sanitized upstream
+        return DEFAULT_FORECAST_TRAINING_HORIZON
+
+
+def _summarize_forecast_training(results: Dict[int, Dict[str, Any]], horizon: int) -> Dict[str, Any]:
+    best_counts: Dict[str, int] = {}
+    mape_values: List[float] = []
+    mae_values: List[float] = []
+    for part_data in results.values():
+        best_model = part_data.get("best_model")
+        if best_model:
+            best_counts[best_model] = best_counts.get(best_model, 0) + 1
+        metrics = (part_data.get("metrics") or {}).get(best_model or "", {})
+        mape_value = metrics.get("mape")
+        mae_value = metrics.get("mae")
+        try:
+            if mape_value is not None:
+                mape_values.append(float(mape_value))
+        except (TypeError, ValueError):  # pragma: no cover - defensive cast
+            pass
+        try:
+            if mae_value is not None:
+                mae_values.append(float(mae_value))
+        except (TypeError, ValueError):  # pragma: no cover
+            pass
+
+    avg_mape: Optional[float] = None
+    avg_mae: Optional[float] = None
+    if mape_values:
+        try:
+            avg_mape = round(fmean(mape_values), 6)
+        except StatisticsError:  # pragma: no cover
+            avg_mape = None
+    if mae_values:
+        try:
+            avg_mae = round(fmean(mae_values), 6)
+        except StatisticsError:  # pragma: no cover
+            avg_mae = None
+
+    return {
+        "feature": "forecast",
+        "parts_trained": len(results),
+        "horizon": horizon,
+        "avg_mape": avg_mape,
+        "avg_mae": avg_mae,
+        "best_model_distribution": best_counts,
+    }
+
+
+def _simulate_rag_reindex(parameters: Dict[str, Any]) -> Dict[str, Any]:
+    company_id = parameters.get("company_id")
+    reindex_all = bool(parameters.get("reindex_all", False))
+    stats = {
+        "feature": "rag",
+        "company_id": company_id,
+        "reindex_all": reindex_all,
+        "chunks_scanned": 0,
+        "documents_scanned": 0,
+        "tenants_touched": [],
+        # TODO: clarify re-index orchestration strategy once document pipeline spec lands.
+    }
+
+    store = getattr(vector_store, "_store", None)
+    if isinstance(store, dict):
+        target_company_ids: List[int]
+        if company_id is not None and not reindex_all:
+            target_company_ids = [company_id]
+        else:
+            target_company_ids = list(store.keys())
+
+        seen_tenants: set[int] = set()
+        for tenant_id in target_company_ids:
+            chunks = store.get(tenant_id, [])
+            if not chunks:
+                continue
+            docs = {(chunk.doc_id, chunk.doc_version) for chunk in chunks}
+            stats["chunks_scanned"] += len(chunks)
+            stats["documents_scanned"] += len(docs)
+            seen_tenants.add(int(tenant_id))
+
+        stats["tenants_touched"] = sorted(seen_tenants)
+
+    return stats
+
+
+def _run_forecast_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    training_job_store.mark_running(job_id)
+    started_at = time.perf_counter()
+    try:
+        horizon = _coerce_forecast_horizon(parameters)
+        dataset = service.load_inventory_data(
+            start_date=parameters.get("start_date"),
+            end_date=parameters.get("end_date"),
+            company_id=parameters.get("company_id"),
+        )
+        results = service.train_forecasting_models(dataset, horizon)
+        summary = _summarize_forecast_training(results, horizon)
+        summary["rows_processed"] = int(len(dataset)) if hasattr(dataset, "__len__") else 0
+        summary["duration_ms"] = round((time.perf_counter() - started_at) * 1000, 2)
+        training_job_store.mark_completed(job_id, summary)
+        LOGGER.info(
+            "training_forecast_complete",
+            extra=log_extra(job_id=job_id, parts_trained=summary["parts_trained"], horizon=horizon),
+        )
+    except Exception as exc:  # pragma: no cover - surfaced to Laravel orchestrator
+        training_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("training_forecast_failed", extra=log_extra(job_id=job_id))
+
+
+def _run_risk_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    training_job_store.mark_running(job_id)
+    started_at = time.perf_counter()
+    try:
+        supplier_df = service.load_supplier_data(
+            start_date=parameters.get("start_date"),
+            end_date=parameters.get("end_date"),
+            company_id=parameters.get("company_id"),
+        )
+        sample_count = int(len(supplier_df)) if hasattr(supplier_df, "__len__") else 0
+        if sample_count == 0:
+            raise ValueError("No supplier data available for risk training")
+
+        _, metrics = service.train_risk_model(supplier_df)
+        summary = {
+            "feature": "risk",
+            "samples": sample_count,
+            "metrics": metrics,
+            "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+        }
+        training_job_store.mark_completed(job_id, summary)
+        LOGGER.info("training_risk_complete", extra=log_extra(job_id=job_id, samples=sample_count))
+    except Exception as exc:  # pragma: no cover
+        training_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("training_risk_failed", extra=log_extra(job_id=job_id))
+
+
+def _run_rag_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    training_job_store.mark_running(job_id)
+    started_at = time.perf_counter()
+    try:
+        summary = _simulate_rag_reindex(parameters)
+        summary["duration_ms"] = round((time.perf_counter() - started_at) * 1000, 2)
+        training_job_store.mark_completed(job_id, summary)
+        LOGGER.info(
+            "training_rag_complete",
+            extra=log_extra(job_id=job_id, chunks=summary.get("chunks_scanned", 0)),
+        )
+    except Exception as exc:  # pragma: no cover
+        training_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("training_rag_failed", extra=log_extra(job_id=job_id))
+
+
+def _run_future_training(job_id: str, feature: str, parameters: Dict[str, Any]) -> None:
+    training_job_store.mark_running(job_id)
+    started_at = time.perf_counter()
+    try:
+        summary = {
+            "feature": feature,
+            "message": "Training hook placeholder executed.",
+            "parameters": parameters,
+            "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+        }
+        # TODO: replace placeholder logic with deterministic heuristics/workflow training once spec is finalized.
+        training_job_store.mark_completed(job_id, summary)
+        LOGGER.info("training_%s_complete", feature, extra=log_extra(job_id=job_id))
+    except Exception as exc:  # pragma: no cover
+        training_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("training_%s_failed", feature, extra=log_extra(job_id=job_id))
+
+
+def _run_actions_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    _run_future_training(job_id, "actions", parameters)
+
+
+def _run_workflows_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    _run_future_training(job_id, "workflows", parameters)
+
+
+
+def _execute_supplier_scrape_job(job_id: str, parameters: Dict[str, Any]) -> None:
+    scrape_job_store.mark_running(job_id)
+    try:
+        results = supplier_scraper.scrape_suppliers(
+            parameters.get("query", ""),
+            parameters.get("region"),
+            parameters.get("max_results", 10),
+        )
+        scrape_job_store.mark_completed(job_id, results or [])
+        LOGGER.info(
+            "supplier_scrape_completed",
+            extra=log_extra(job_id=job_id, result_count=len(results or [])),
+        )
+    except Exception as exc:  # pragma: no cover - unexpected failures logged for operators
+        scrape_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("supplier_scrape_failed", extra=log_extra(job_id=job_id))
+
 
 @app.get("/healthz")
 async def healthz() -> Dict[str, Any]:
@@ -598,9 +1079,102 @@ async def readyz() -> Dict[str, Any]:
         "status": "ok",
         "models_loaded": bool(snapshot.get("models_loaded")),
         "last_trained_at": snapshot.get("last_trained_at"),
+        "training_jobs": training_job_store.summary(),
     }
     LOGGER.info("readyz_probe", extra=log_extra(**snapshot))
     return payload
+
+
+@app.post("/train/forecast", status_code=202)
+async def train_forecast_job(payload: ForecastTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("forecast", parameters, background_tasks, _run_forecast_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
+@app.post("/train/risk", status_code=202)
+async def train_risk_job(payload: RiskTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("risk", parameters, background_tasks, _run_risk_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
+@app.post("/train/rag", status_code=202)
+async def train_rag_job(payload: RagTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("rag", parameters, background_tasks, _run_rag_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
+@app.post("/train/actions", status_code=202)
+async def train_actions_job(payload: DeterministicTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("actions", parameters, background_tasks, _run_actions_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
+@app.post("/train/workflows", status_code=202)
+async def train_workflows_job(payload: DeterministicTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("workflows", parameters, background_tasks, _run_workflows_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
+@app.get("/train/{job_id}/status")
+async def training_job_status(job_id: str) -> Dict[str, Any]:
+    job = training_job_store.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"status": "ok", "job": job}
+
+
+@app.post("/scrape/suppliers", status_code=202)
+async def start_supplier_scrape_job(payload: ScrapeSuppliersRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = scrape_job_store.create_job(parameters)
+    background_tasks.add_task(_execute_supplier_scrape_job, job["id"], copy.deepcopy(parameters))
+    LOGGER.info(
+        "supplier_scrape_enqueued",
+        extra=log_extra(job_id=job["id"], query=parameters.get("query")),
+    )
+    return {
+        "status": "success",
+        "message": "Supplier scrape job enqueued.",
+        "data": {
+            "job_id": job["id"],
+            "job": job,
+        },
+        "errors": [],
+    }
+
+
+@app.get("/scrape/jobs/{job_id}")
+async def fetch_supplier_scrape_job(job_id: str) -> Dict[str, Any]:
+    job = scrape_job_store.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {
+        "status": "success",
+        "message": "Supplier scrape job retrieved.",
+        "data": {"job": job},
+        "errors": [],
+    }
+
+
+@app.get("/scrape/jobs/{job_id}/results")
+async def fetch_supplier_scrape_results(job_id: str, offset: int = 0, limit: int = 20) -> Dict[str, Any]:
+    page = scrape_job_store.get_results(job_id, offset, limit)
+    if page is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {
+        "status": "success",
+        "message": "Supplier scrape results retrieved.",
+        "data": {
+            "items": page["items"],
+            "meta": page["meta"],
+        },
+        "errors": [],
+    }
 
 
 @app.post("/forecast")

@@ -16,6 +16,19 @@ import type {
     AiModelMetricFilters,
     AiModelMetricResponse,
     AiModelMetricEntry,
+    ModelTrainingJob,
+    ModelTrainingJobFilters,
+    ModelTrainingJobListResponse,
+    StartAiTrainingPayload,
+    SupplierScrapeJob,
+    SupplierScrapeJobFilters,
+    SupplierScrapeJobListResponse,
+    StartSupplierScrapePayload,
+    ScrapedSupplier,
+    ScrapedSupplierFilters,
+    ScrapedSupplierListResponse,
+    ApproveScrapedSupplierPayload,
+    DiscardScrapedSupplierPayload,
     CompanyApprovalFilters,
     CompanyApprovalItem,
     CompanyApprovalResponse,
@@ -191,6 +204,245 @@ export class AdminConsoleApi extends BaseAPI {
             items: data.items ?? [],
             meta: toCursorMeta(data.meta),
         } satisfies AiModelMetricResponse;
+    }
+
+    async listAiTrainingJobs(
+        filters: ModelTrainingJobFilters = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ModelTrainingJobListResponse> {
+        const headers: HTTPHeaders = {};
+        const response = await this.request(
+            {
+                path: '/api/admin/ai-training/jobs',
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    feature: filters.feature,
+                    status: filters.status,
+                    company_id: filters.companyId,
+                    started_from: filters.startedFrom,
+                    started_to: filters.startedTo,
+                    created_from: filters.createdFrom,
+                    created_to: filters.createdTo,
+                    microservice_job_id: filters.microserviceJobId,
+                    cursor: filters.cursor,
+                    per_page: filters.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<ModelTrainingJob>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toCursorMeta(data.meta),
+        } satisfies ModelTrainingJobListResponse;
+    }
+
+    async startAiTraining(
+        payload: StartAiTrainingPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ModelTrainingJob> {
+        const headers: HTTPHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        const body = this.normalizeTrainingPayload(payload);
+
+        const response = await this.request(
+            {
+                path: '/api/admin/ai-training/start',
+                method: 'POST',
+                headers,
+                body,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ job: ModelTrainingJob }>(response);
+
+        return data.job;
+    }
+
+    async getAiTrainingJob(
+        jobId: string | number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ModelTrainingJob> {
+        const headers: HTTPHeaders = {};
+        const response = await this.request(
+            {
+                path: `/api/admin/ai-training/jobs/${jobId}`,
+                method: 'GET',
+                headers,
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope<ModelTrainingJob>(response);
+    }
+
+    async refreshAiTrainingJob(
+        jobId: string | number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ModelTrainingJob> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/ai-training/jobs/${jobId}/refresh`,
+                method: 'POST',
+                headers,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ job: ModelTrainingJob }>(response);
+
+        return data.job;
+    }
+
+    async listSupplierScrapeJobs(
+        filters: SupplierScrapeJobFilters,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierScrapeJobListResponse> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: '/api/admin/supplier-scrapes',
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    company_id: filters.companyId,
+                    status: filters.status,
+                    query: filters.query,
+                    region: filters.region,
+                    created_from: filters.createdFrom,
+                    created_to: filters.createdTo,
+                    cursor: filters.cursor,
+                    per_page: filters.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<SupplierScrapeJob>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toCursorMeta(data.meta),
+        } satisfies SupplierScrapeJobListResponse;
+    }
+
+    async startSupplierScrape(
+        payload: StartSupplierScrapePayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<SupplierScrapeJob> {
+        const headers: HTTPHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        const response = await this.request(
+            {
+                path: '/api/admin/supplier-scrapes/start',
+                method: 'POST',
+                headers,
+                body: {
+                    company_id: payload.companyId,
+                    query: payload.query,
+                    region: payload.region,
+                    max_results: payload.maxResults,
+                },
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ job: SupplierScrapeJob }>(response);
+
+        return data.job;
+    }
+
+    async listScrapedSuppliers(
+        jobId: string | number,
+        filters: ScrapedSupplierFilters = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ScrapedSupplierListResponse> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/supplier-scrapes/${jobId}/results`,
+                method: 'GET',
+                headers,
+                query: sanitizeQuery({
+                    search: filters.search,
+                    status: filters.status,
+                    min_confidence: filters.minConfidence,
+                    max_confidence: filters.maxConfidence,
+                    cursor: filters.cursor,
+                    per_page: filters.perPage,
+                }),
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<PaginatedEnvelope<ScrapedSupplier>>(response);
+
+        return {
+            items: data.items ?? [],
+            meta: toCursorMeta(data.meta),
+        } satisfies ScrapedSupplierListResponse;
+    }
+
+    async approveScrapedSupplier(
+        scrapedSupplierId: string | number,
+        payload: ApproveScrapedSupplierPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ScrapedSupplier> {
+        const headers: HTTPHeaders = {};
+        const body = this.buildApproveScrapedSupplierFormData(payload);
+
+        const response = await this.request(
+            {
+                path: `/api/admin/scraped-suppliers/${scrapedSupplierId}/approve`,
+                method: 'POST',
+                headers,
+                body,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(response);
+
+        return data.scraped_supplier;
+    }
+
+    async discardScrapedSupplier(
+        scrapedSupplierId: string | number,
+        payload: DiscardScrapedSupplierPayload = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<ScrapedSupplier> {
+        const hasNotes = typeof payload.notes === 'string' && payload.notes.trim() !== '';
+        const headers: HTTPHeaders = hasNotes
+            ? {
+                  'Content-Type': 'application/json',
+              }
+            : {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/scraped-suppliers/${scrapedSupplierId}`,
+                method: 'DELETE',
+                headers,
+                body: hasNotes ? { notes: payload.notes } : undefined,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(response);
+
+        return data.scraped_supplier;
     }
 
     async listCompanyApprovals(
@@ -516,6 +768,119 @@ export class AdminConsoleApi extends BaseAPI {
         );
 
         await parseEnvelope(response);
+    }
+
+    private normalizeTrainingPayload(payload: StartAiTrainingPayload): Record<string, unknown> {
+        const rawBody = {
+            feature: payload.feature,
+            company_id: payload.companyId,
+            start_date: payload.startDate,
+            end_date: payload.endDate,
+            horizon: payload.horizon,
+            reindex_all: payload.reindexAll,
+            dataset_upload_id: payload.datasetUploadId,
+            parameters: payload.parameters,
+        } satisfies Record<string, unknown>;
+
+        return Object.entries(rawBody).reduce<Record<string, unknown>>((acc, [key, value]) => {
+            if (value === undefined || value === null) {
+                return acc;
+            }
+
+            if (typeof value === 'string' && value.trim() === '') {
+                return acc;
+            }
+
+            acc[key] = value;
+            return acc;
+        }, {});
+    }
+
+    private buildApproveScrapedSupplierFormData(payload: ApproveScrapedSupplierPayload): FormData {
+        const formData = new FormData();
+        formData.set('name', payload.name);
+
+        this.appendScalarField(formData, 'website', payload.website);
+        this.appendScalarField(formData, 'email', payload.email);
+        this.appendScalarField(formData, 'phone', payload.phone);
+        this.appendScalarField(formData, 'address', payload.address);
+        this.appendScalarField(formData, 'city', payload.city);
+        this.appendScalarField(formData, 'state', payload.state);
+        this.appendScalarField(formData, 'country', payload.country);
+        this.appendScalarField(formData, 'product_summary', payload.productSummary);
+        this.appendScalarField(formData, 'notes', payload.notes);
+        this.appendScalarField(formData, 'lead_time_days', payload.leadTimeDays);
+        this.appendScalarField(formData, 'moq', payload.moq);
+
+        if (payload.attachment) {
+            formData.set('attachment', payload.attachment);
+        }
+
+        if (payload.attachmentType) {
+            formData.set('attachment_type', payload.attachmentType);
+        }
+
+        this.appendArrayField(formData, 'certifications[]', payload.certifications);
+
+        const capabilities = payload.capabilities;
+        if (capabilities) {
+            this.appendArrayField(formData, 'capabilities[methods][]', capabilities.methods);
+            this.appendArrayField(formData, 'capabilities[materials][]', capabilities.materials);
+            this.appendArrayField(formData, 'capabilities[finishes][]', capabilities.finishes);
+            this.appendArrayField(formData, 'capabilities[industries][]', capabilities.industries);
+            this.appendArrayField(formData, 'capabilities[tolerances][]', capabilities.tolerances);
+            this.appendScalarField(formData, 'capabilities[price_band]', capabilities.priceBand);
+            this.appendScalarField(formData, 'capabilities[summary]', capabilities.summary);
+        }
+
+        return formData;
+    }
+
+    private appendScalarField(formData: FormData, key: string, value: unknown): void {
+        if (value === undefined || value === null) {
+            return;
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed === '') {
+                return;
+            }
+            formData.set(key, trimmed);
+            return;
+        }
+
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            formData.set(key, String(value));
+            return;
+        }
+
+        if (typeof value === 'boolean') {
+            formData.set(key, value ? '1' : '0');
+        }
+    }
+
+    private appendArrayField(
+        formData: FormData,
+        key: string,
+        values?: Array<string | number | null | undefined>,
+    ): void {
+        if (!Array.isArray(values)) {
+            return;
+        }
+
+        values.forEach((value) => {
+            if (value === undefined || value === null) {
+                return;
+            }
+
+            const stringValue = typeof value === 'string' ? value.trim() : String(value);
+            if (stringValue === '') {
+                return;
+            }
+
+            formData.append(key, stringValue);
+        });
     }
 }
 

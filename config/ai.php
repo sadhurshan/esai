@@ -16,4 +16,8 @@ return [
         'requests_per_minute' => (int) env('AI_RATE_LIMIT_PER_MINUTE', 30),
         'window_seconds' => (int) env('AI_RATE_LIMIT_WINDOW_SECONDS', 60),
     ],
+    'scraper' => [
+        'poll_interval_seconds' => (int) env('AI_SCRAPER_POLL_INTERVAL_SECONDS', 30),
+        'max_duration_seconds' => (int) env('AI_SCRAPER_MAX_DURATION_SECONDS', 900),
+    ],
 ];

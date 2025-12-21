@@ -17,6 +17,7 @@ use App\Http\Middleware\EnsureBuyerAccess;
 use App\Http\Middleware\EnsureBillingAccess;
 use App\Http\Middleware\EnsureRiskAccess;
 use App\Http\Middleware\EnsureAiWorkflowAccess;
+use App\Http\Middleware\EnsureAiTrainingEnabled;
 use App\Http\Middleware\EnsureCompanyApproved;
 use App\Http\Middleware\EnsureApprovalsAccess;
 use App\Http\Middleware\EnsureRmaAccess;
@@ -89,6 +90,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'ensure.analytics.access' => EnsureAnalyticsAccess::class,
             'ensure.risk.access' => EnsureRiskAccess::class,
             'ensure.ai.workflows.access' => EnsureAiWorkflowAccess::class,
+            'ensure.ai.training.enabled' => EnsureAiTrainingEnabled::class,
             'ensure.approvals.access' => EnsureApprovalsAccess::class,
             'ensure.rma.access' => EnsureRmaAccess::class,
             'ensure.credit_notes.access' => EnsureCreditNotesAccess::class,

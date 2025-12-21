@@ -285,6 +285,518 @@
                     }
                 }
             },
+            "AiChatAttachment": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Arbitrary attachment metadata captured by the client."
+            },
+            "AiChatCreateThreadRequest": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    }
+                }
+            },
+            "AiChatDraftAction": {
+                "type": "object",
+                "required": [
+                    "action_type",
+                    "summary",
+                    "payload",
+                    "citations",
+                    "confidence",
+                    "needs_human_review",
+                    "warnings"
+                ],
+                "properties": {
+                    "action_type": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "citations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotCitation"
+                        }
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "needs_human_review": {
+                        "type": "boolean"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "draft_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "AiChatMessage": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "thread_id",
+                    "role",
+                    "status",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "thread_id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "user",
+                            "assistant",
+                            "system",
+                            "tool"
+                        ]
+                    },
+                    "content_text": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "content": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    },
+                    "citations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotCitation"
+                        }
+                    },
+                    "tool_calls": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatToolCall"
+                        }
+                    },
+                    "tool_results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatToolResult"
+                        }
+                    },
+                    "latency_ms": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "completed",
+                            "failed"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "AiChatMessageContext": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Domain-specific context supplied by the UI."
+                    },
+                    "ui_mode": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatAttachment"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
+            "AiChatResolveToolsRequest": {
+                "type": "object",
+                "required": [
+                    "tool_calls"
+                ],
+                "properties": {
+                    "tool_calls": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatToolCall"
+                        }
+                    },
+                    "context": {
+                        "$ref": "#/components/schemas/AiChatMessageContext"
+                    }
+                }
+            },
+            "AiChatResponse": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "assistant_message_markdown",
+                    "citations",
+                    "suggested_quick_replies",
+                    "needs_human_review",
+                    "confidence",
+                    "warnings"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "answer",
+                            "draft_action",
+                            "workflow_suggestion",
+                            "tool_request",
+                            "error"
+                        ]
+                    },
+                    "assistant_message_markdown": {
+                        "type": "string"
+                    },
+                    "citations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CopilotCitation"
+                        }
+                    },
+                    "suggested_quick_replies": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "draft": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AiChatDraftAction"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "workflow": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AiChatWorkflowSuggestion"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "tool_calls": {
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatToolCall"
+                        }
+                    },
+                    "tool_results": {
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatToolResult"
+                        }
+                    },
+                    "needs_human_review": {
+                        "type": "boolean"
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "AiChatSendMessageRequest": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "maxLength": 4000
+                    },
+                    "context": {
+                        "$ref": "#/components/schemas/AiChatMessageContext"
+                    },
+                    "ui_mode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatAttachment"
+                        }
+                    },
+                    "stream": {
+                        "type": "boolean",
+                        "description": "When true, the endpoint returns a stream token for SSE consumption."
+                    }
+                }
+            },
+            "AiChatSendMessageResult": {
+                "type": "object",
+                "required": [
+                    "user_message",
+                    "assistant_message",
+                    "response"
+                ],
+                "properties": {
+                    "user_message": {
+                        "$ref": "#/components/schemas/AiChatMessage"
+                    },
+                    "assistant_message": {
+                        "$ref": "#/components/schemas/AiChatMessage"
+                    },
+                    "response": {
+                        "$ref": "#/components/schemas/AiChatResponse"
+                    }
+                }
+            },
+            "AiChatStreamSession": {
+                "type": "object",
+                "required": [
+                    "user_message",
+                    "stream_token",
+                    "expires_in"
+                ],
+                "properties": {
+                    "user_message": {
+                        "$ref": "#/components/schemas/AiChatMessage"
+                    },
+                    "stream_token": {
+                        "type": "string"
+                    },
+                    "expires_in": {
+                        "type": "integer",
+                        "description": "Lifetime of the stream token in seconds."
+                    }
+                }
+            },
+            "AiChatThread": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "status",
+                    "user_id",
+                    "metadata",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/AiChatThreadStatus"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "last_message_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "thread_summary": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "messages": {
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatMessage"
+                        }
+                    }
+                }
+            },
+            "AiChatThreadStatus": {
+                "type": "string",
+                "enum": [
+                    "open",
+                    "closed"
+                ]
+            },
+            "AiChatToolCall": {
+                "type": "object",
+                "required": [
+                    "tool_name",
+                    "call_id"
+                ],
+                "properties": {
+                    "tool_name": {
+                        "type": "string",
+                        "enum": [
+                            "workspace.search_rfqs",
+                            "workspace.get_rfq",
+                            "workspace.list_suppliers",
+                            "workspace.get_quotes_for_rfq",
+                            "workspace.get_inventory_item",
+                            "workspace.low_stock",
+                            "workspace.get_awards"
+                        ]
+                    },
+                    "call_id": {
+                        "type": "string",
+                        "maxLength": 128
+                    },
+                    "arguments": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    }
+                }
+            },
+            "AiChatToolResolveResult": {
+                "type": "object",
+                "required": [
+                    "tool_message",
+                    "assistant_message",
+                    "response"
+                ],
+                "properties": {
+                    "tool_message": {
+                        "$ref": "#/components/schemas/AiChatMessage"
+                    },
+                    "assistant_message": {
+                        "$ref": "#/components/schemas/AiChatMessage"
+                    },
+                    "response": {
+                        "$ref": "#/components/schemas/AiChatResponse"
+                    }
+                }
+            },
+            "AiChatToolResult": {
+                "type": "object",
+                "required": [
+                    "tool_name",
+                    "call_id"
+                ],
+                "properties": {
+                    "tool_name": {
+                        "type": "string"
+                    },
+                    "call_id": {
+                        "type": "string"
+                    },
+                    "result": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    }
+                }
+            },
+            "AiChatWorkflowStep": {
+                "type": "object",
+                "required": [
+                    "title",
+                    "summary"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Structured metadata describing how to execute the step."
+                    }
+                }
+            },
+            "AiChatWorkflowSuggestion": {
+                "type": "object",
+                "required": [
+                    "workflow_type",
+                    "steps",
+                    "payload"
+                ],
+                "properties": {
+                    "workflow_type": {
+                        "type": "string"
+                    },
+                    "steps": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiChatWorkflowStep"
+                        }
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            },
             "AiDocumentReindexRequest": {
                 "type": "object",
                 "description": "Payload required to queue an AI reindex for a document.",
@@ -339,6 +851,331 @@
                             "dummy",
                             "openai"
                         ]
+                    }
+                }
+            },
+            "AiTrainingJob": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "company_id",
+                    "feature",
+                    "status",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "company_id": {
+                        "type": "integer"
+                    },
+                    "feature": {
+                        "type": "string",
+                        "enum": [
+                            "forecast",
+                            "risk",
+                            "rag",
+                            "actions",
+                            "workflows",
+                            "chat"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "running",
+                            "completed",
+                            "failed"
+                        ]
+                    },
+                    "microservice_job_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    },
+                    "result": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    },
+                    "started_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "finished_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "error_message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "AiWorkflow": {
+                "type": "object",
+                "required": [
+                    "workflow_id",
+                    "workflow_type",
+                    "status",
+                    "steps"
+                ],
+                "properties": {
+                    "workflow_id": {
+                        "type": "string"
+                    },
+                    "workflow_type": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/AiWorkflowStatus"
+                    },
+                    "current_step": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "last_event_type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "last_event_time": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "steps": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AiWorkflowStepSummary"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "AiWorkflowCompleteRequest": {
+                "type": "object",
+                "required": [
+                    "step_index",
+                    "approval"
+                ],
+                "properties": {
+                    "step_index": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "approval": {
+                        "type": "boolean"
+                    },
+                    "output": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                }
+            },
+            "AiWorkflowEvent": {
+                "type": "object",
+                "required": [
+                    "event",
+                    "status",
+                    "timestamp"
+                ],
+                "properties": {
+                    "event": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "latency_ms": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "workflow": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "payload": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    },
+                    "user": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "nullable": true
+                            },
+                            "name": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "email": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    }
+                }
+            },
+            "AiWorkflowStartRequest": {
+                "type": "object",
+                "required": [
+                    "workflow_type"
+                ],
+                "properties": {
+                    "workflow_type": {
+                        "type": "string"
+                    },
+                    "rfq_id": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    },
+                    "goal": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    },
+                    "inputs": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "user_context": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "thread_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    }
+                }
+            },
+            "AiWorkflowStatus": {
+                "type": "string",
+                "enum": [
+                    "pending",
+                    "in_progress",
+                    "completed",
+                    "failed",
+                    "rejected",
+                    "aborted"
+                ]
+            },
+            "AiWorkflowStep": {
+                "type": "object",
+                "required": [
+                    "workflow_id",
+                    "step_index",
+                    "action_type",
+                    "approval_status"
+                ],
+                "properties": {
+                    "workflow_id": {
+                        "type": "string"
+                    },
+                    "step_index": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "action_type": {
+                        "type": "string"
+                    },
+                    "inputs": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "draft": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "output": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "approval_status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "approved",
+                            "rejected"
+                        ]
+                    },
+                    "approved_by": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "AiWorkflowStepSummary": {
+                "type": "object",
+                "properties": {
+                    "step_index": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "action_type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "approval_status": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -7076,6 +7913,58 @@
                     "delivered",
                     "cancelled"
                 ]
+            },
+            "StartAiTrainingRequest": {
+                "type": "object",
+                "required": [
+                    "feature",
+                    "company_id"
+                ],
+                "properties": {
+                    "feature": {
+                        "type": "string",
+                        "enum": [
+                            "forecast",
+                            "risk",
+                            "rag",
+                            "actions",
+                            "workflows",
+                            "chat"
+                        ]
+                    },
+                    "company_id": {
+                        "type": "integer"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "horizon": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 365,
+                        "nullable": true
+                    },
+                    "reindex_all": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "dataset_upload_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true
+                    }
+                }
             },
             "SuccessEnvelope": {
                 "type": "object",
@@ -24240,6 +25129,284 @@
                 }
             }
         },
+        "/api/v1/admin/ai-training/jobs": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List AI training jobs",
+                "operationId": "adminListAiTrainingJobs",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "name": "feature",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "forecast",
+                                "risk",
+                                "rag",
+                                "actions",
+                                "workflows",
+                                "chat"
+                            ]
+                        },
+                        "description": "Filter jobs by feature key."
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "running",
+                                "completed",
+                                "failed"
+                            ]
+                        },
+                        "description": "Filter jobs by status."
+                    },
+                    {
+                        "name": "company_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Restrict results to a specific tenant."
+                    },
+                    {
+                        "name": "microservice_job_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs by the upstream microservice job identifier."
+                    },
+                    {
+                        "name": "started_from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "ISO date to filter jobs started on/after the supplied date."
+                    },
+                    {
+                        "name": "started_to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "ISO date to filter jobs started on/before the supplied date."
+                    },
+                    {
+                        "name": "created_from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "ISO date to filter jobs created on/after the supplied date."
+                    },
+                    {
+                        "name": "created_to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "ISO date to filter jobs created on/before the supplied date."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor paginated AI training jobs.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/AiTrainingJob"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "cursor": {
+                                                            "$ref": "#/components/schemas/CursorMeta"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/ai-training/jobs/{job}": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Show an AI training job",
+                "operationId": "adminShowAiTrainingJob",
+                "responses": {
+                    "200": {
+                        "description": "AI training job status.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiTrainingJob"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "job",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/v1/admin/ai-training/jobs/{job}/refresh": {
+            "parameters": [
+                {
+                    "name": "job",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Refresh AI training job status from the microservice",
+                "operationId": "adminRefreshAiTrainingJob",
+                "responses": {
+                    "200": {
+                        "description": "Job refreshed and status returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "job": {
+                                                            "$ref": "#/components/schemas/AiTrainingJob"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/ai-training/start": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Start an AI training job",
+                "operationId": "adminStartAiTrainingJob",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StartAiTrainingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "AI training job queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "job": {
+                                                            "$ref": "#/components/schemas/AiTrainingJob"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/ai/reindex-document": {
             "post": {
                 "tags": [
@@ -24644,6 +25811,1187 @@
                     },
                     "422": {
                         "description": "Draft already resolved or validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/chat/threads": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "List Copilot chat threads",
+                "operationId": "listAiChatThreads",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "description": "Optional filter accepting comma-separated values or repeated query keys. Supported values are `open` and `closed`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/AiChatThreadStatus"
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor-paginated list of chat threads ordered by activity.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/AiChatThread"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Create a new Copilot chat thread",
+                "operationId": "createAiChatThread",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiChatCreateThreadRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Chat thread created successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "thread"
+                                                    ],
+                                                    "properties": {
+                                                        "thread": {
+                                                            "$ref": "#/components/schemas/AiChatThread"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/chat/threads/{thread}": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Fetch a chat thread with recent messages",
+                "operationId": "showAiChatThread",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "description": "Maximum number of recent messages to include (1-100).",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thread details plus the latest conversation history.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "thread"
+                                                    ],
+                                                    "properties": {
+                                                        "thread": {
+                                                            "$ref": "#/components/schemas/AiChatThread"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Thread not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/chat/threads/{thread}/send": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Send a message to Copilot chat",
+                "operationId": "sendAiChatMessage",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiChatSendMessageRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Message accepted. When `stream=true` the response contains a stream token; otherwise the final assistant message and response payload are returned immediately.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "oneOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/AiChatSendMessageResult"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/AiChatStreamSession"
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Thread not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed for the chat payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream AI service returned an error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/chat/threads/{thread}/stream": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Stream Copilot chat responses via Server-Sent Events",
+                "operationId": "streamAiChatThread",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "description": "Stream token issued by the `send` endpoint when `stream=true`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE channel emitting `start`, `delta`, `tool`, `complete`, and `final` events.",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "examples": {
+                                    "delta": {
+                                        "summary": "Streaming delta frame",
+                                        "value": "event: delta\ndata: {\"text\":\"Answer chunk\"}"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Stream token missing or invalid.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Thread not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/chat/threads/{thread}/tools/resolve": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Resolve workspace tool calls requested by Copilot",
+                "operationId": "resolveAiChatTools",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiChatResolveToolsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tool results stored and final assistant response generated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiChatToolResolveResult"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Chat access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Thread not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed for the requested tool calls.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream AI service returned an error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/drafts/{draft}/approve": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Approve a Copilot action draft (alias)",
+                "description": "Alias for `/api/v1/ai/actions/{draft}/approve` to support legacy clients.",
+                "operationId": "copilotActionApproveAlias",
+                "parameters": [
+                    {
+                        "name": "draft",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Draft approved and converted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "draft"
+                                                    ],
+                                                    "properties": {
+                                                        "draft": {
+                                                            "$ref": "#/components/schemas/CopilotActionDraft"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot approve this Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Draft is no longer in a state that can be approved or payload conversion failed validation.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Copilot failed to finalize the draft due to an internal error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/drafts/{draft}/reject": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Reject a Copilot action draft (alias)",
+                "description": "Alias for `/api/v1/ai/actions/{draft}/reject` to support legacy clients.",
+                "operationId": "copilotActionRejectAlias",
+                "parameters": [
+                    {
+                        "name": "draft",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CopilotActionRejectRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Draft rejected successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "draft"
+                                                    ],
+                                                    "properties": {
+                                                        "draft": {
+                                                            "$ref": "#/components/schemas/CopilotActionDraft"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot reject this Copilot action.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Draft already resolved or validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/workflows": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "List AI workflows for the tenant",
+                "operationId": "listAiWorkflows",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "description": "Filter workflows by status. Accepts comma-separated values or repeated query keys.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/AiWorkflowStatus"
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "workflow_type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Optional workflow template identifier."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor-paginated workflow collection.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/AiWorkflow"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Workflow access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/workflows/start": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Start a Copilot workflow from a chat thread or workspace context",
+                "operationId": "startAiWorkflow",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiWorkflowStartRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Workflow planned successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "workflow_id"
+                                                    ],
+                                                    "properties": {
+                                                        "workflow_id": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Workflow access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Referenced chat thread not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed for the workflow payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream AI service returned an error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/workflows/{workflow}/complete": {
+            "post": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Approve or reject the current workflow step",
+                "operationId": "completeAiWorkflowStep",
+                "parameters": [
+                    {
+                        "name": "workflow",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiWorkflowCompleteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Workflow step resolved and optionally advanced.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "workflow": {
+                                                            "$ref": "#/components/schemas/AiWorkflow"
+                                                        },
+                                                        "step": {
+                                                            "$ref": "#/components/schemas/AiWorkflowStep"
+                                                        },
+                                                        "next_step": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "$ref": "#/components/schemas/AiWorkflowStep"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User cannot resolve the workflow step.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow or step not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Workflow step already resolved.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream AI service returned an error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/workflows/{workflow}/events": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "List workflow audit events",
+                "operationId": "listAiWorkflowEvents",
+                "parameters": [
+                    {
+                        "name": "workflow",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/CursorQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPageQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cursor-paginated workflow event feed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "items"
+                                                    ],
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/AiWorkflowEvent"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Workflow access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ai/workflows/{workflow}/next": {
+            "get": {
+                "tags": [
+                    "Copilot"
+                ],
+                "summary": "Draft the next step for a workflow",
+                "operationId": "nextAiWorkflowStep",
+                "parameters": [
+                    {
+                        "name": "workflow",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the workflow and the drafted step when available.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "workflow": {
+                                                            "$ref": "#/components/schemas/AiWorkflow"
+                                                        },
+                                                        "step": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "$ref": "#/components/schemas/AiWorkflowStep"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Workflow access is disabled for this user or plan.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Workflow not found for the tenant.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream AI service returned an error.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service temporarily unavailable.",
                         "content": {
                             "application/json": {
                                 "schema": {

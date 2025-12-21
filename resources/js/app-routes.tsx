@@ -62,6 +62,7 @@ import {
     AdminApiKeysPage,
     AdminAiActivityLogPage,
     AdminAiModelHealthPage,
+    AdminAiTrainingPage,
     AdminAuditLogPage,
     AdminCompanyApprovalsPage,
     AdminDigitalTwinCategoriesPage,
@@ -72,6 +73,7 @@ import {
     AdminPlansPage,
     AdminRateLimitsPage,
     AdminRolesPage,
+    AdminSupplierScrapePage,
     AdminSupplierApplicationsPage,
     AdminWebhooksPage,
 } from '@/pages/admin';
@@ -200,9 +202,11 @@ export function AppRoutes(): ReactElement {
                             <Route path="admin/rate-limits" element={<AdminRateLimitsPage />} />
                             <Route path="admin/audit" element={<AdminAuditLogPage />} />
                             <Route path="admin/ai-model-health" element={<AdminAiModelHealthPage />} />
+                            <Route path="admin/ai-training" element={<AdminAiTrainingPage />} />
                             <Route path="admin/ai-events" element={<AdminAiActivityLogPage />} />
                             <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />
                             <Route path="admin/supplier-applications" element={<AdminSupplierApplicationsPage />} />
+                            <Route path="admin/supplier-scrapes" element={<AdminSupplierScrapePage />} />
                             <Route path="admin/digital-twins" element={<AdminDigitalTwinListPage />} />
                             <Route path="admin/digital-twins/categories" element={<AdminDigitalTwinCategoriesPage />} />
                             <Route path="admin/digital-twins/new" element={<AdminDigitalTwinCreatePage />} />

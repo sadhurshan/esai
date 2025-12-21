@@ -174,6 +174,10 @@ export const queryKeys = {
         auditLog: (filters?: Record<string, unknown>) => ['admin', 'audit-log', filters ?? {}] as const,
         aiEvents: (filters?: Record<string, unknown>) => ['admin', 'ai-events', filters ?? {}] as const,
         aiModelMetrics: (filters?: Record<string, unknown>) => ['admin', 'ai-model-metrics', filters ?? {}] as const,
+        aiTrainingJobs: (filters?: Record<string, unknown>) => ['admin', 'ai-training', 'jobs', filters ?? {}] as const,
+        supplierScrapeJobs: () => ['admin', 'supplier-scrapes'] as const,
+        scrapedSuppliers: (jobId: string | number) =>
+            ['admin', 'supplier-scrapes', String(jobId), 'results'] as const,
     },
     me: {
         supplierStatus: () => ['me', 'supplier', 'status'] as const,
@@ -294,6 +298,9 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['admin']['auditLog']
     | (typeof queryKeys)['admin']['aiEvents']
     | (typeof queryKeys)['admin']['aiModelMetrics']
+    | (typeof queryKeys)['admin']['aiTrainingJobs']
+    | (typeof queryKeys)['admin']['supplierScrapeJobs']
+    | (typeof queryKeys)['admin']['scrapedSuppliers']
     | (typeof queryKeys)['me']['supplierStatus']
     | (typeof queryKeys)['me']['profile']
     | (typeof queryKeys)['me']['companies']

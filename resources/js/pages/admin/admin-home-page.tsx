@@ -16,7 +16,16 @@ import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import type { AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint, AdminWorkflowAlert, AdminWorkflowMetrics } from '@/types/admin';
 import { cn } from '@/lib/utils';
 
-const quickLinks = [
+type QuickLink = {
+    title: string;
+    description: string;
+    href: string;
+    icon: ComponentType<{ className?: string }>;
+    requiresCanTrainAi?: boolean;
+    requiresSuperAdmin?: boolean;
+};
+
+const quickLinks: QuickLink[] = [
     {
         title: 'Company approvals',
         description: 'Review pending tenants and approve or reject onboarding.',
@@ -28,6 +37,13 @@ const quickLinks = [
         description: 'Verify KYC documents and activate supplier access.',
         href: '/app/admin/supplier-applications',
         icon: Users,
+    },
+    {
+        title: 'Supplier scrapes',
+        description: 'Launch AI-powered supplier discovery jobs and onboard vetted leads.',
+        href: '/app/admin/supplier-scrapes',
+        icon: Sparkles,
+        requiresSuperAdmin: true,
     },
     {
         title: 'Plans & features',
@@ -72,6 +88,13 @@ const quickLinks = [
         icon: Sparkles,
     },
     {
+        title: 'AI training console',
+        description: 'Trigger retraining jobs and monitor workload telemetry.',
+        href: '/app/admin/ai-training',
+        icon: GaugeCircle,
+        requiresCanTrainAi: true,
+    },
+    {
         title: 'AI model health',
         description: 'Review MAPE, MAE, and calibration drift signals.',
         href: '/app/admin/ai-model-health',
@@ -79,10 +102,13 @@ const quickLinks = [
     },
 ];
 
+const SUPER_ADMIN_ROLE = 'platform_super';
+
 export function AdminHomePage() {
-    const { isAdmin, canAccessAdminConsole } = useAuth();
+    const { isAdmin, canAccessAdminConsole, canTrainAi, state } = useAuth();
     const { data: analytics, isLoading, isError, error, refetch, isRefetching } = useAdminAnalyticsOverview();
     const { formatNumber, formatDate } = useFormatting();
+    const isSuperAdmin = state.user?.role === SUPER_ADMIN_ROLE;
 
     if (!isAdmin) {
         return <AccessDeniedPage />;
@@ -230,7 +256,9 @@ export function AdminHomePage() {
                     </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {quickLinks.map(({ title, description, href, icon: Icon }) => (
+                    {quickLinks
+                        .filter((link) => (!link.requiresCanTrainAi || canTrainAi) && (!link.requiresSuperAdmin || isSuperAdmin))
+                        .map(({ title, description, href, icon: Icon }) => (
                         <Link key={href} to={href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                             <Card className="h-full transition hover:border-primary/50">
                                 <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -245,7 +273,7 @@ export function AdminHomePage() {
                                 <CardFooter className="text-sm text-primary">Open module →</CardFooter>
                             </Card>
                         </Link>
-                    ))}
+                        ))}
                 </div>
             </section>
         </div>

@@ -13,6 +13,366 @@ components:
           type: boolean
         pending_webhook_deliveries:
           type: integer
+    AiTrainingJob:
+      type: object
+      required:
+        - id
+        - company_id
+        - feature
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        feature:
+          type: string
+          enum: [forecast, risk, rag, actions, workflows, chat]
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        microservice_job_id:
+          type: string
+          nullable: true
+        parameters:
+          type: object
+          nullable: true
+          additionalProperties: true
+        result:
+          type: object
+          nullable: true
+          additionalProperties: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SupplierScrapeJob:
+      type: object
+      required:
+        - id
+        - company_id
+        - query
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        company_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        query:
+          type: string
+        region:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        result_count:
+          type: integer
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+        parameters:
+          type: object
+          nullable: true
+          additionalProperties: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ScrapedSupplier:
+      type: object
+      required:
+        - id
+        - scrape_job_id
+        - company_id
+        - name
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        scrape_job_id:
+          type: integer
+        company_id:
+          type: integer
+        name:
+          type: string
+        website:
+          type: string
+          format: uri
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        industry_tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        contact_person:
+          type: string
+          nullable: true
+        certifications:
+          type: array
+          items:
+            type: string
+          nullable: true
+        product_summary:
+          type: string
+          nullable: true
+        source_url:
+          type: string
+          format: uri
+          nullable: true
+        confidence:
+          type: number
+          format: double
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+        status:
+          type: string
+          enum: [pending, approved, discarded]
+        approved_supplier_id:
+          type: integer
+          nullable: true
+        reviewed_by:
+          type: integer
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        review_notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    StartSupplierScrapeRequest:
+      type: object
+      required:
+        - company_id
+        - query
+        - max_results
+      properties:
+        company_id:
+          type: integer
+        query:
+          type: string
+          maxLength: 255
+        region:
+          type: string
+          maxLength: 255
+          nullable: true
+        max_results:
+          type: integer
+          minimum: 1
+          maximum: 25
+    ApproveScrapedSupplierRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 191
+          nullable: true
+        phone:
+          type: string
+          maxLength: 40
+          nullable: true
+        address:
+          type: string
+          maxLength: 255
+          nullable: true
+        city:
+          type: string
+          maxLength: 120
+          nullable: true
+        state:
+          type: string
+          maxLength: 120
+          nullable: true
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          nullable: true
+        product_summary:
+          type: string
+          nullable: true
+        certifications:
+          type: array
+          items:
+            type: string
+            maxLength: 160
+          nullable: true
+        capabilities:
+          type: object
+          nullable: true
+          additionalProperties: false
+          properties:
+            methods:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            materials:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            finishes:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            industries:
+              type: array
+              items:
+                type: string
+                maxLength: 160
+            tolerances:
+              type: array
+              items:
+                type: string
+                maxLength: 120
+            price_band:
+              type: string
+              maxLength: 120
+              nullable: true
+            summary:
+              type: string
+              nullable: true
+        notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+        lead_time_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          nullable: true
+        moq:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          nullable: true
+        attachment_type:
+          type: string
+          nullable: true
+          enum: [iso9001, iso14001, as9100, itar, reach, rohs, insurance, nda, other]
+        attachment:
+          type: string
+          format: binary
+          nullable: true
+    DiscardScrapedSupplierRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+    StartAiTrainingRequest:
+      type: object
+      required:
+        - feature
+        - company_id
+      properties:
+        feature:
+          type: string
+          enum: [forecast, risk, rag, actions, workflows, chat]
+        company_id:
+          type: integer
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        horizon:
+          type: integer
+          minimum: 1
+          maximum: 365
+          nullable: true
+        reindex_all:
+          type: boolean
+          nullable: true
+        dataset_upload_id:
+          type: string
+          nullable: true
+        parameters:
+          type: object
+          nullable: true
+          additionalProperties: true
 paths:
   /api/admin/health:
     get:
@@ -138,3 +498,382 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/AiDocumentReindexStatus'
+  /api/v1/admin/ai-training/jobs:
+    get:
+      tags:
+        - Admin
+      summary: List AI training jobs
+      operationId: adminListAiTrainingJobs
+      parameters:
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
+        - name: feature
+          in: query
+          schema:
+            type: string
+            enum: [forecast, risk, rag, actions, workflows, chat]
+          description: Filter jobs by feature key.
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, running, completed, failed]
+          description: Filter jobs by status.
+        - name: company_id
+          in: query
+          schema:
+            type: integer
+          description: Restrict results to a specific tenant.
+        - name: microservice_job_id
+          in: query
+          schema:
+            type: string
+          description: Filter jobs by the upstream microservice job identifier.
+        - name: started_from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: ISO date to filter jobs started on/after the supplied date.
+        - name: started_to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: ISO date to filter jobs started on/before the supplied date.
+        - name: created_from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: ISO date to filter jobs created on/after the supplied date.
+        - name: created_to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: ISO date to filter jobs created on/before the supplied date.
+      responses:
+        '200':
+          description: Cursor paginated AI training jobs.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AiTrainingJob'
+                      meta:
+                        type: object
+                        properties:
+                          cursor:
+                            $ref: '#/components/schemas/CursorMeta'
+  /api/v1/admin/ai-training/start:
+    post:
+      tags:
+        - Admin
+      summary: Start an AI training job
+      operationId: adminStartAiTrainingJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartAiTrainingRequest'
+      responses:
+        '200':
+          description: AI training job queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          job:
+                            $ref: '#/components/schemas/AiTrainingJob'
+  /api/v1/admin/ai-training/jobs/{job}:
+    parameters:
+      - name: job
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Admin
+      summary: Show an AI training job
+      operationId: adminShowAiTrainingJob
+      responses:
+        '200':
+          description: AI training job status.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiTrainingJob'
+  /api/v1/admin/ai-training/jobs/{job}/refresh:
+    parameters:
+      - name: job
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Admin
+      summary: Refresh AI training job status from the microservice
+      operationId: adminRefreshAiTrainingJob
+      responses:
+        '200':
+          description: Job refreshed and status returned.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          job:
+                            $ref: '#/components/schemas/AiTrainingJob'
+  /api/v1/admin/supplier-scrapes:
+    get:
+      tags:
+        - Admin
+      summary: List supplier scrape jobs
+      operationId: adminListSupplierScrapeJobs
+      parameters:
+        - name: company_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Tenant to scope scrape jobs to.
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, running, completed, failed]
+          description: Filter jobs by lifecycle status.
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Filter jobs whose query contains the provided term.
+        - name: region
+          in: query
+          schema:
+            type: string
+          description: Filter jobs that targeted a specific region.
+        - name: created_from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Only return jobs created on or after this date.
+        - name: created_to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Only return jobs created on or before this date.
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
+      responses:
+        '200':
+          description: Cursor paginated supplier scrape jobs.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/SupplierScrapeJob'
+                      meta:
+                        type: object
+                        properties:
+                          cursor:
+                            $ref: '#/components/schemas/CursorMeta'
+  /api/v1/admin/supplier-scrapes/start:
+    post:
+      tags:
+        - Admin
+      summary: Start a supplier scrape job
+      operationId: adminStartSupplierScrape
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSupplierScrapeRequest'
+      responses:
+        '200':
+          description: Supplier scrape job queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          job:
+                            $ref: '#/components/schemas/SupplierScrapeJob'
+  /api/v1/admin/supplier-scrapes/{supplier_scrape_job}/results:
+    parameters:
+      - name: supplier_scrape_job
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Admin
+      summary: List scraped suppliers for a job
+      operationId: adminListScrapedSuppliers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Full-text search over scraped supplier name, website, or description.
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, discarded]
+          description: Filter results by review status.
+        - name: min_confidence
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+          description: Minimum confidence score (0-1).
+        - name: max_confidence
+          in: query
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+          description: Maximum confidence score (0-1).
+        - $ref: '#/components/parameters/PerPageQuery'
+        - $ref: '#/components/parameters/CursorQuery'
+      responses:
+        '200':
+          description: Cursor paginated scraped suppliers.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ScrapedSupplier'
+                      meta:
+                        type: object
+                        properties:
+                          cursor:
+                            $ref: '#/components/schemas/CursorMeta'
+  /api/v1/admin/scraped-suppliers/{scraped_supplier}/approve:
+    parameters:
+      - name: scraped_supplier
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Admin
+      summary: Approve a scraped supplier into production
+      operationId: adminApproveScrapedSupplier
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApproveScrapedSupplierRequest'
+      responses:
+        '200':
+          description: Scraped supplier approved and supplier record created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          scraped_supplier:
+                            $ref: '#/components/schemas/ScrapedSupplier'
+                          supplier:
+                            $ref: '#/components/schemas/Supplier'
+  /api/v1/admin/scraped-suppliers/{scraped_supplier}:
+    parameters:
+      - name: scraped_supplier
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Admin
+      summary: Discard a scraped supplier
+      operationId: adminDiscardScrapedSupplier
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscardScrapedSupplierRequest'
+      responses:
+        '200':
+          description: Scraped supplier discarded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          scraped_supplier:
+                            $ref: '#/components/schemas/ScrapedSupplier'

@@ -226,10 +226,54 @@ class AuthResponseFactory
 
                 $flags[$flag] = $existingValue || $planAllowsFlag;
             }
+
+            $flags = array_merge($flags, $this->planConfigFeatureFlags($normalizedCode));
         }
 
         if ($plan->rfqs_per_month !== null) {
             foreach (self::RFQ_FEATURE_FLAGS as $flag) {
+                $flags[$flag] = true;
+            }
+        }
+
+        return $flags;
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    private function planConfigFeatureFlags(string $planCode): array
+    {
+        $features = config('plans.features', []);
+
+        if (! is_array($features) || $features === []) {
+            return [];
+        }
+
+        $flags = [];
+
+        foreach ($features as $flag => $options) {
+            if (! is_array($options)) {
+                continue;
+            }
+
+            $allowedPlanCodes = $options['plan_codes'] ?? [];
+            $enabledByDefault = (bool) ($options['default'] ?? false);
+
+            if (! is_array($allowedPlanCodes) || $allowedPlanCodes === []) {
+                if ($enabledByDefault) {
+                    $flags[$flag] = true;
+                }
+
+                continue;
+            }
+
+            $normalizedPlans = array_values(array_filter(array_map(
+                static fn ($code): string => is_string($code) ? strtolower(trim($code)) : '',
+                $allowedPlanCodes,
+            ), static fn (string $code): bool => $code !== ''));
+
+            if (in_array($planCode, $normalizedPlans, true)) {
                 $flags[$flag] = true;
             }
         }

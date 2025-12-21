@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Supplier;
 
 use App\Http\Requests\ApiFormRequest;
+use App\Models\SupplierDocument;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -12,7 +13,7 @@ class StoreSupplierDocumentRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'string', Rule::in(['iso9001', 'iso14001', 'as9100', 'itar', 'reach', 'rohs', 'insurance', 'nda', 'other'])],
+            'type' => ['required', 'string', Rule::in(SupplierDocument::DOCUMENT_TYPES)],
             'document' => ['required', 'file', 'max:51200', 'mimetypes:application/pdf,image/jpeg,image/png'],
             'issued_at' => ['nullable', 'date', 'before_or_equal:today'],
             'expires_at' => [

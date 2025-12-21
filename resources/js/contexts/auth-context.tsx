@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, createContext, use
 const STORAGE_KEY = 'esai.auth.state';
 const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
 const ADMIN_ROLES = new Set(['owner', 'buyer_admin', 'platform_super', 'platform_support']);
+const PLATFORM_SUPER_ROLES = new Set(['platform_super']);
 const ADMIN_CONSOLE_FEATURE_KEY = 'admin_console_enabled';
 
 interface AuthenticatedUser {
@@ -112,6 +113,7 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     isLoading: boolean;
     isAdmin: boolean;
+    canTrainAi: boolean;
     canAccessAdminConsole: boolean;
     requiresEmailVerification: boolean;
     personas: Persona[];
@@ -969,6 +971,16 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         return isAdmin && state.featureFlags[ADMIN_CONSOLE_FEATURE_KEY] === true;
     }, [isAdmin, state.featureFlags, userRole]);
 
+    const canTrainAi = useMemo(() => {
+        const role = userRole;
+
+        if (!role || !PLATFORM_SUPER_ROLES.has(role)) {
+            return false;
+        }
+
+        return state.featureFlags.ai_training_enabled === true;
+    }, [state.featureFlags, userRole]);
+
     const personas = state.personas;
 
     const activePersona = useMemo(() => {
@@ -1034,6 +1046,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             isAuthenticated: state.status === 'authenticated' && Boolean(state.token),
             isLoading: state.status === 'loading',
             isAdmin,
+            canTrainAi,
             canAccessAdminConsole,
             requiresEmailVerification: state.requiresEmailVerification,
             personas,
@@ -1052,6 +1065,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         [
             state,
             isAdmin,
+            canTrainAi,
             canAccessAdminConsole,
             personas,
             activePersona,

@@ -13,6 +13,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SupplierDocument extends CompanyScopedModel
 {
+    /**
+     * @var list<string>
+     */
+    public const DOCUMENT_TYPES = [
+        'iso9001',
+        'iso14001',
+        'as9100',
+        'itar',
+        'reach',
+        'rohs',
+        'insurance',
+        'nda',
+        'other',
+    ];
+
     use HasFactory;
     use SoftDeletes;
 

@@ -66,7 +66,7 @@ it('sends a chat message and persists the assistant response', function (): void
     $client->shouldReceive('chatRespond')
         ->once()
         ->withArgs(function (array $payload) use ($thread): bool {
-            expect($payload['thread_id'])->toBe($thread->id);
+            expect((int) $payload['thread_id'])->toBe($thread->id);
             expect($payload['company_id'])->toBe($thread->company_id);
             expect($payload['messages'])->toHaveCount(1);
             expect($payload['messages'][0]['role'])->toBe('user');
@@ -114,7 +114,7 @@ it('enables general answers for non workspace prompts', function (): void {
     $client->shouldReceive('chatRespond')
         ->once()
         ->withArgs(function (array $payload) use ($thread): bool {
-            expect($payload['thread_id'])->toBe($thread->id);
+            expect((int) $payload['thread_id'])->toBe($thread->id);
             expect($payload['allow_general'])->toBeTrue();
 
             return true;
@@ -212,7 +212,7 @@ it('resolves workspace tool calls and continues the conversation', function (): 
     $client->shouldReceive('chatContinue')
         ->once()
         ->withArgs(function (array $payload) use ($toolResults, $thread): bool {
-            expect($payload['thread_id'])->toBe($thread->id);
+            expect((int) $payload['thread_id'])->toBe($thread->id);
             expect($payload['tool_results'])->toMatchArray($toolResults);
 
             return true;

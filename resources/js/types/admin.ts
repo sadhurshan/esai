@@ -1,5 +1,6 @@
 import type { CursorPaginationMeta, OffsetPaginationMeta } from '@/lib/pagination';
 import type { ApiKey, RateLimitRule, WebhookDelivery, WebhookSubscription } from '@/sdk';
+import type { SupplierDocumentType } from '@/types/sourcing';
 
 export type PermissionLevel = 'read' | 'write' | 'admin';
 
@@ -155,6 +156,171 @@ export interface AiModelMetricFilters extends Record<string, unknown> {
 export interface AiModelMetricResponse {
     items: AiModelMetricEntry[];
     meta?: CursorPaginationMeta;
+}
+
+export type AiTrainingFeature = 'forecast' | 'risk' | 'rag' | 'actions' | 'workflows' | 'chat';
+
+export type AiTrainingStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export interface ModelTrainingJob {
+    id: string;
+    company_id: number;
+    feature: AiTrainingFeature | string;
+    status: AiTrainingStatus | string;
+    microservice_job_id?: string | null;
+    parameters?: Record<string, unknown> | null;
+    result?: Record<string, unknown> | null;
+    error_message?: string | null;
+    started_at?: string | null;
+    finished_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface ModelTrainingJobFilters extends Record<string, unknown> {
+    feature?: AiTrainingFeature | string;
+    status?: AiTrainingStatus | string;
+    companyId?: number;
+    startedFrom?: string;
+    startedTo?: string;
+    createdFrom?: string;
+    createdTo?: string;
+    microserviceJobId?: string;
+    cursor?: string | null;
+    perPage?: number;
+}
+
+export interface ModelTrainingJobListResponse {
+    items: ModelTrainingJob[];
+    meta?: CursorPaginationMeta;
+}
+
+export interface StartAiTrainingPayload {
+    feature: AiTrainingFeature | string;
+    companyId: number;
+    startDate?: string;
+    endDate?: string;
+    horizon?: number;
+    reindexAll?: boolean;
+    datasetUploadId?: string;
+    parameters?: Record<string, unknown>;
+}
+
+export type SupplierScrapeJobStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export interface SupplierScrapeJob {
+    id: string;
+    company_id: number;
+    user_id?: number | null;
+    query: string;
+    region?: string | null;
+    status?: SupplierScrapeJobStatus | string;
+    result_count?: number | null;
+    error_message?: string | null;
+    parameters?: Record<string, unknown> | null;
+    started_at?: string | null;
+    finished_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface SupplierScrapeJobFilters extends Record<string, unknown> {
+    companyId: number;
+    status?: SupplierScrapeJobStatus | string;
+    query?: string;
+    region?: string;
+    createdFrom?: string;
+    createdTo?: string;
+    cursor?: string | null;
+    perPage?: number;
+}
+
+export interface SupplierScrapeJobListResponse {
+    items: SupplierScrapeJob[];
+    meta?: CursorPaginationMeta;
+}
+
+export interface StartSupplierScrapePayload {
+    companyId: number;
+    query: string;
+    region?: string | null;
+    maxResults: number;
+}
+
+export type ScrapedSupplierStatus = 'pending' | 'approved' | 'discarded';
+
+export interface ScrapedSupplier {
+    id: string;
+    scrape_job_id: number;
+    company_id: number;
+    name: string;
+    website?: string | null;
+    description?: string | null;
+    industry_tags?: string[];
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    country?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    contact_person?: string | null;
+    certifications?: string[];
+    product_summary?: string | null;
+    source_url?: string | null;
+    confidence?: number | null;
+    metadata?: Record<string, unknown> | null;
+    status?: ScrapedSupplierStatus | string | null;
+    approved_supplier_id?: number | null;
+    reviewed_by?: number | null;
+    reviewed_at?: string | null;
+    review_notes?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+export interface ScrapedSupplierFilters extends Record<string, unknown> {
+    search?: string;
+    status?: ScrapedSupplierStatus | string;
+    minConfidence?: number;
+    maxConfidence?: number;
+    cursor?: string | null;
+    perPage?: number;
+}
+
+export interface ScrapedSupplierListResponse {
+    items: ScrapedSupplier[];
+    meta?: CursorPaginationMeta;
+}
+
+export interface ApproveScrapedSupplierPayload {
+    name: string;
+    website?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    country?: string | null;
+    capabilities?: {
+        methods?: string[];
+        materials?: string[];
+        finishes?: string[];
+        industries?: string[];
+        tolerances?: string[];
+        priceBand?: string | null;
+        summary?: string | null;
+    };
+    productSummary?: string | null;
+    certifications?: string[];
+    notes?: string | null;
+    leadTimeDays?: number | null;
+    moq?: number | null;
+    attachment?: File | null;
+    attachmentType?: SupplierDocumentType;
+}
+
+export interface DiscardScrapedSupplierPayload {
+    notes?: string | null;
 }
 
 export interface SupplierApplicationAuditLogResponse {

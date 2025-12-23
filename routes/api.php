@@ -86,6 +86,7 @@ use App\Http\Controllers\Api\V1\AiActionsController;
 use App\Http\Controllers\Api\V1\AiChatController;
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\V1\AiWorkflowController;
+use App\Http\Controllers\Api\V1\AnalyticsController as V1AnalyticsController;
 use App\Http\Controllers\Api\SupplierRfqInboxController;
 use App\Http\Controllers\Api\SupplierDashboardController;
 use App\Http\Controllers\Api\SupplierApplicationController;
@@ -325,6 +326,19 @@ Route::prefix('v1')->group(function (): void {
         Route::post('{workflow}/complete', [AiWorkflowController::class, 'complete'])
             ->middleware($workflowMiddleware);
     });
+
+    Route::prefix('analytics')
+        ->middleware([
+            'auth',
+            'ensure.company.onboarded:strict',
+            'ensure.company.approved',
+            'ensure.subscribed',
+            'ensure.analytics.access',
+        ])->group(function (): void {
+            Route::get('supplier-options', [V1AnalyticsController::class, 'supplierOptions']);
+            Route::post('forecast-report', [V1AnalyticsController::class, 'forecastReport']);
+            Route::post('supplier-performance-report', [V1AnalyticsController::class, 'supplierPerformanceReport']);
+        });
 
     Route::middleware([
         'auth',

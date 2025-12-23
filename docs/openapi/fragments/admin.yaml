@@ -662,10 +662,10 @@ paths:
       parameters:
         - name: company_id
           in: query
-          required: true
+          required: false
           schema:
             type: integer
-          description: Tenant to scope scrape jobs to.
+          description: Optional tenant ID to scope scrape jobs to.
         - name: status
           in: query
           schema:
@@ -723,12 +723,12 @@ paths:
       tags:
         - Admin
       summary: Start a supplier scrape job
-      operationId: adminStartSupplierScrape
       requestBody:
         required: true
         content:
           application/json:
             schema:
+             nullable: true
               $ref: '#/components/schemas/StartSupplierScrapeRequest'
       responses:
         '200':

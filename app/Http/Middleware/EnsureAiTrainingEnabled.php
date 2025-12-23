@@ -29,6 +29,10 @@ class EnsureAiTrainingEnabled
             return ApiResponse::error('Authentication required.', Response::HTTP_UNAUTHORIZED);
         }
 
+        if ($user->isPlatformSuper()) {
+            return $next($request);
+        }
+
         $company = $this->resolveTargetCompany($request, $user);
 
         if (! $company instanceof Company) {

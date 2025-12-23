@@ -124,18 +124,23 @@ function formatMoneyValue(
     defaultCurrency: string,
     options?: FormatMoneyOptions,
 ) {
-    const { currency, fallback, ...intlOptions } = options ?? {};
+    const { currency, fallback, minimumFractionDigits, maximumFractionDigits, ...intlOptions } = options ?? {};
     const numeric = normalizeNumeric(value);
 
     if (numeric === null) {
         return fallback ?? '—';
     }
 
+    const resolvedMin = typeof minimumFractionDigits === 'number' ? minimumFractionDigits : 2;
+    const resolvedMax = typeof maximumFractionDigits === 'number' ? maximumFractionDigits : Math.max(resolvedMin, 2);
+    const safeMax = clampFractionDigits(resolvedMax);
+    const safeMin = clampFractionDigits(Math.min(resolvedMin, safeMax));
+
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: currency ?? defaultCurrency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: safeMin,
+        maximumFractionDigits: safeMax,
         ...intlOptions,
     }).format(numeric);
 }
@@ -226,4 +231,22 @@ function convertToTimezone(date: Date, timezone: string) {
         void error;
         return date;
     }
+}
+
+function clampFractionDigits(value: number): number {
+    if (!Number.isFinite(value)) {
+        return 0;
+    }
+
+    const integer = Math.trunc(value);
+
+    if (integer < 0) {
+        return 0;
+    }
+
+    if (integer > 20) {
+        return 20;
+    }
+
+    return integer;
 }

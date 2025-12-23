@@ -32,6 +32,7 @@ import type {
     ScrapedSupplierStatus,
     SupplierScrapeJob,
     SupplierScrapeJobFilters,
+    StartSupplierScrapePayload,
 } from '@/types/admin';
 import type { SupplierDocumentType } from '@/types/sourcing';
 import { cn } from '@/lib/utils';
@@ -76,7 +77,6 @@ const ATTACHMENT_TYPES: Array<{ label: string; value: SupplierDocumentType }> = 
 ];
 
 interface JobFilterFormState {
-    companyId: string;
     status: string;
     query: string;
     region: string;
@@ -85,7 +85,6 @@ interface JobFilterFormState {
 }
 
 interface StartFormState {
-    companyId: string;
     query: string;
     region: string;
     maxResults: string;
@@ -117,7 +116,6 @@ interface ReviewFormState {
 }
 
 const DEFAULT_FILTER_FORM: JobFilterFormState = {
-    companyId: '',
     status: 'all',
     query: '',
     region: '',
@@ -125,8 +123,11 @@ const DEFAULT_FILTER_FORM: JobFilterFormState = {
     createdTo: '',
 };
 
+const BASE_JOB_FILTERS: SupplierScrapeJobFilters = {
+    perPage: JOBS_PAGE_SIZE,
+};
+
 const DEFAULT_START_FORM: StartFormState = {
-    companyId: '',
     query: '',
     region: '',
     maxResults: '10',
@@ -164,7 +165,7 @@ export function AdminSupplierScrapePage() {
 
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [filterForm, setFilterForm] = useState<JobFilterFormState>(DEFAULT_FILTER_FORM);
-    const [jobFilters, setJobFilters] = useState<SupplierScrapeJobFilters | null>(null);
+    const [jobFilters, setJobFilters] = useState<SupplierScrapeJobFilters>(() => ({ ...BASE_JOB_FILTERS }));
     const [startForm, setStartForm] = useState<StartFormState>(DEFAULT_START_FORM);
     const [selectedJob, setSelectedJob] = useState<SupplierScrapeJob | null>(null);
     const [resultFilterForm, setResultFilterForm] = useState<ResultFilterFormState>(DEFAULT_RESULT_FILTER_FORM);
@@ -173,7 +174,7 @@ export function AdminSupplierScrapePage() {
     const [reviewSupplier, setReviewSupplier] = useState<ScrapedSupplier | null>(null);
 
     const jobsQuery = useSupplierScrapeJobs(jobFilters, {
-        enabled: isSuperAdmin && Boolean(jobFilters?.companyId),
+        enabled: isSuperAdmin,
         refetchInterval: isSuperAdmin && autoRefresh ? 15_000 : false,
     });
     const startMutation = useStartSupplierScrape();
@@ -190,6 +191,7 @@ export function AdminSupplierScrapePage() {
     const resultsMeta = resultsQuery.data?.meta;
 
     const selectedJobStatus = selectedJob?.status ?? null;
+    const selectedJobScope = selectedJob?.company_id ? `Queued via company #${selectedJob.company_id}` : 'Queued without tenant scope';
     const emptyStateIcon = <Search className="h-10 w-10" aria-hidden />;
     const resultContext = useMemo(
         () => ({
@@ -238,22 +240,11 @@ export function AdminSupplierScrapePage() {
 
     const applyJobFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const companyId = normalizeNumber(filterForm.companyId);
-        if (!companyId) {
-            publishToast({
-                title: 'Company required',
-                description: 'Enter a valid company ID to load jobs.',
-                variant: 'destructive',
-            });
-            return;
-        }
-
         const createdFrom = filterForm.createdFrom.trim();
         const createdTo = filterForm.createdTo.trim();
 
         setJobFilters({
-            companyId,
-            perPage: JOBS_PAGE_SIZE,
+            ...BASE_JOB_FILTERS,
             cursor: null,
             status: filterForm.status !== 'all' ? filterForm.status : undefined,
             query: filterForm.query.trim() || undefined,
@@ -261,26 +252,16 @@ export function AdminSupplierScrapePage() {
             createdFrom: createdFrom || undefined,
             createdTo: createdTo || undefined,
         });
-
-        if (!startForm.companyId) {
-            setStartForm((prev) => ({ ...prev, companyId: String(companyId) }));
-        }
     };
 
     const resetJobFilters = () => {
         setFilterForm(DEFAULT_FILTER_FORM);
-        setJobFilters(null);
+        setJobFilters({ ...BASE_JOB_FILTERS });
     };
 
     const handleStartSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const companyId = normalizeNumber(startForm.companyId);
         const maxResults = normalizeNumber(startForm.maxResults);
-
-        if (!companyId) {
-            publishToast({ title: 'Company required', description: 'Enter a company ID.', variant: 'destructive' });
-            return;
-        }
 
         if (!startForm.query.trim()) {
             publishToast({ title: 'Search keywords required', description: 'Provide a query.', variant: 'destructive' });
@@ -296,12 +277,13 @@ export function AdminSupplierScrapePage() {
             return;
         }
 
-        startMutation.mutate({
-            companyId,
+        const payload: StartSupplierScrapePayload = {
             query: startForm.query.trim(),
             region: startForm.region.trim() || undefined,
             maxResults,
-        });
+        };
+
+        startMutation.mutate(payload);
     };
 
     const openJobDetails = (job: SupplierScrapeJob) => {
@@ -420,7 +402,7 @@ export function AdminSupplierScrapePage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <Heading
                     title="Supplier discovery"
-                    description="Launch scrape jobs per tenant and triage AI-enriched supplier leads."
+                    description="Launch scrape jobs across tenants or globally, then triage AI-enriched supplier leads."
                 />
                 <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline" className="uppercase tracking-wide">
@@ -442,29 +424,18 @@ export function AdminSupplierScrapePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Start supplier scrape</CardTitle>
-                        <CardDescription>Define the tenant scope and keywords to queue a new job.</CardDescription>
+                        <CardDescription>Provide the keywords to queue a new discovery job.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form className="grid gap-4" onSubmit={handleStartSubmit}>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="start-company">Company ID</Label>
-                                    <Input
-                                        id="start-company"
-                                        placeholder="123"
-                                        value={startForm.companyId}
-                                        onChange={(event) => setStartForm((prev) => ({ ...prev, companyId: event.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="start-region">Region</Label>
-                                    <Input
-                                        id="start-region"
-                                        placeholder="North America"
-                                        value={startForm.region}
-                                        onChange={(event) => setStartForm((prev) => ({ ...prev, region: event.target.value }))}
-                                    />
-                                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="start-region">Region</Label>
+                                <Input
+                                    id="start-region"
+                                    placeholder="North America"
+                                    value={startForm.region}
+                                    onChange={(event) => setStartForm((prev) => ({ ...prev, region: event.target.value }))}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="start-query">Search keywords</Label>
@@ -506,20 +477,11 @@ export function AdminSupplierScrapePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Job filters</CardTitle>
-                        <CardDescription>Scope job history for a tenant, keyword, or date range.</CardDescription>
+                        <CardDescription>Scope job history by keyword, region, or date range.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form className="grid gap-4" onSubmit={applyJobFilters}>
                             <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="filter-company">Company ID</Label>
-                                    <Input
-                                        id="filter-company"
-                                        placeholder="Tenant"
-                                        value={filterForm.companyId}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, companyId: event.target.value }))}
-                                    />
-                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="filter-status">Status</Label>
                                     <Select
@@ -598,7 +560,7 @@ export function AdminSupplierScrapePage() {
                         <div className="flex justify-center py-12">
                             <Spinner />
                         </div>
-                    ) : jobFilters?.companyId ? (
+                    ) : jobFilters ? (
                         jobs.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <Table>
@@ -658,15 +620,15 @@ export function AdminSupplierScrapePage() {
                         ) : (
                             <EmptyState
                                 icon={emptyStateIcon}
-                                title="No jobs yet"
-                                description="Apply different filters or start a new scrape for this tenant."
+                                title="No jobs found"
+                                description="Adjust your filters or start a new scrape."
                             />
                         )
                     ) : (
                         <EmptyState
                             icon={emptyStateIcon}
-                            title="Select a tenant"
-                            description="Enter a company ID above to inspect its scrape jobs."
+                            title="Apply filters"
+                            description="Set optional filters above to load scrape jobs."
                         />
                     )}
                 </CardContent>
@@ -677,7 +639,7 @@ export function AdminSupplierScrapePage() {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                                setJobFilters((prev) => (prev ? { ...prev, cursor: jobsMeta.prevCursor ?? null } : prev))
+                                setJobFilters((prev) => ({ ...prev, cursor: jobsMeta.prevCursor ?? null }))
                             }
                             disabled={!jobsMeta.prevCursor || jobsQuery.isFetching}
                         >
@@ -688,7 +650,7 @@ export function AdminSupplierScrapePage() {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                                setJobFilters((prev) => (prev ? { ...prev, cursor: jobsMeta.nextCursor ?? null } : prev))
+                                setJobFilters((prev) => ({ ...prev, cursor: jobsMeta.nextCursor ?? null }))
                             }
                             disabled={!jobsMeta.nextCursor || jobsQuery.isFetching}
                         >
@@ -711,7 +673,7 @@ export function AdminSupplierScrapePage() {
                             <Card>
                                 <CardHeader className="space-y-1">
                                     <CardTitle>Job summary</CardTitle>
-                                    <CardDescription>Queued via company #{selectedJob.company_id}</CardDescription>
+                                    <CardDescription>{selectedJobScope}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-2 text-sm">
                                     <div className="flex flex-wrap items-center gap-2">

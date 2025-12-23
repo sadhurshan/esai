@@ -210,7 +210,7 @@ export type SupplierScrapeJobStatus = 'pending' | 'running' | 'completed' | 'fai
 
 export interface SupplierScrapeJob {
     id: string;
-    company_id: number;
+    company_id: number | null;
     user_id?: number | null;
     query: string;
     region?: string | null;
@@ -225,7 +225,7 @@ export interface SupplierScrapeJob {
 }
 
 export interface SupplierScrapeJobFilters extends Record<string, unknown> {
-    companyId: number;
+    companyId?: number;
     status?: SupplierScrapeJobStatus | string;
     query?: string;
     region?: string;
@@ -241,7 +241,7 @@ export interface SupplierScrapeJobListResponse {
 }
 
 export interface StartSupplierScrapePayload {
-    companyId: number;
+    companyId?: number;
     query: string;
     region?: string | null;
     maxResults: number;
@@ -252,7 +252,7 @@ export type ScrapedSupplierStatus = 'pending' | 'approved' | 'discarded';
 export interface ScrapedSupplier {
     id: string;
     scrape_job_id: number;
-    company_id: number;
+    company_id: number | null;
     name: string;
     website?: string | null;
     description?: string | null;

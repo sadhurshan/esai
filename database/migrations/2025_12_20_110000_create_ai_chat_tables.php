@@ -12,7 +12,7 @@ return new class extends Migration
             Schema::create('ai_chat_threads', function (Blueprint $table): void {
                 $table->id();
                 $table->foreignId('company_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-                $table->foreignId('user_id')->constrained()->nullOnDelete()->cascadeOnUpdate();
+                $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete()->cascadeOnUpdate();
                 $table->string('title')->nullable();
                 $table->enum('status', ['open', 'closed'])->default('open');
                 $table->timestamp('last_message_at')->nullable();

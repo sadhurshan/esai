@@ -213,7 +213,7 @@ export class AdminConsoleApi extends BaseAPI {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
-                path: '/api/admin/ai-training/jobs',
+                path: '/api/v1/admin/ai-training/jobs',
                 method: 'GET',
                 headers,
                 query: sanitizeQuery({
@@ -252,7 +252,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: '/api/admin/ai-training/start',
+                path: '/api/v1/admin/ai-training/start',
                 method: 'POST',
                 headers,
                 body,
@@ -272,7 +272,7 @@ export class AdminConsoleApi extends BaseAPI {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
-                path: `/api/admin/ai-training/jobs/${jobId}`,
+                path: `/api/v1/admin/ai-training/jobs/${jobId}`,
                 method: 'GET',
                 headers,
             },
@@ -290,7 +290,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: `/api/admin/ai-training/jobs/${jobId}/refresh`,
+                path: `/api/v1/admin/ai-training/jobs/${jobId}/refresh`,
                 method: 'POST',
                 headers,
             },
@@ -310,7 +310,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: '/api/admin/supplier-scrapes',
+                path: '/api/v1/admin/supplier-scrapes',
                 method: 'GET',
                 headers,
                 query: sanitizeQuery({
@@ -343,17 +343,22 @@ export class AdminConsoleApi extends BaseAPI {
             'Content-Type': 'application/json',
         };
 
+        const body: Record<string, unknown> = {
+            query: payload.query,
+            region: payload.region,
+            max_results: payload.maxResults,
+        };
+
+        if (payload.companyId != null) {
+            body.company_id = payload.companyId;
+        }
+
         const response = await this.request(
             {
-                path: '/api/admin/supplier-scrapes/start',
+                path: '/api/v1/admin/supplier-scrapes/start',
                 method: 'POST',
                 headers,
-                body: {
-                    company_id: payload.companyId,
-                    query: payload.query,
-                    region: payload.region,
-                    max_results: payload.maxResults,
-                },
+                body,
             },
             initOverrides,
         );
@@ -372,7 +377,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: `/api/admin/supplier-scrapes/${jobId}/results`,
+                path: `/api/v1/admin/supplier-scrapes/${jobId}/results`,
                 method: 'GET',
                 headers,
                 query: sanitizeQuery({
@@ -405,7 +410,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: `/api/admin/scraped-suppliers/${scrapedSupplierId}/approve`,
+                path: `/api/v1/admin/scraped-suppliers/${scrapedSupplierId}/approve`,
                 method: 'POST',
                 headers,
                 body,
@@ -432,7 +437,7 @@ export class AdminConsoleApi extends BaseAPI {
 
         const response = await this.request(
             {
-                path: `/api/admin/scraped-suppliers/${scrapedSupplierId}`,
+                path: `/api/v1/admin/scraped-suppliers/${scrapedSupplierId}`,
                 method: 'DELETE',
                 headers,
                 body: hasNotes ? { notes: payload.notes } : undefined,

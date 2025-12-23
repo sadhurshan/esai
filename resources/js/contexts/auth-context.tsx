@@ -974,11 +974,15 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
     const canTrainAi = useMemo(() => {
         const role = userRole;
 
-        if (!role || !PLATFORM_SUPER_ROLES.has(role)) {
+        if (!role) {
             return false;
         }
 
-        return state.featureFlags.ai_training_enabled === true;
+        if (PLATFORM_SUPER_ROLES.has(role)) {
+            return true;
+        }
+
+        return PLATFORM_ROLES.has(role) && state.featureFlags.ai_training_enabled === true;
     }, [state.featureFlags, userRole]);
 
     const personas = state.personas;

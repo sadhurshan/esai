@@ -16,8 +16,9 @@ import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import type { AiEventEntry, AiEventFilters } from '@/types/admin';
 
 const DEFAULT_PAGE_SIZE = 25;
+const STATUS_ANY_VALUE = '__any';
 const STATUS_OPTIONS = [
-    { label: 'Any status', value: '' },
+    { label: 'Any status', value: STATUS_ANY_VALUE },
     { label: 'Success', value: 'success' },
     { label: 'Error', value: 'error' },
 ];
@@ -28,7 +29,7 @@ export function AdminAiActivityLogPage() {
     const [filters, setFilters] = useState<AiEventFilters>({ perPage: DEFAULT_PAGE_SIZE });
     const [formValues, setFormValues] = useState({
         feature: '',
-        status: '',
+        status: STATUS_ANY_VALUE,
         entity: '',
         from: '',
         to: '',
@@ -142,11 +143,13 @@ export function AdminAiActivityLogPage() {
 
     const applyFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const normalizedStatus = formValues.status === STATUS_ANY_VALUE ? '' : formValues.status;
+
         setFilters((prev) => ({
             ...prev,
             cursor: null,
             feature: normalizeFilter(formValues.feature),
-            status: normalizeFilter(formValues.status),
+            status: normalizeFilter(normalizedStatus),
             entity: normalizeFilter(formValues.entity),
             from: normalizeFilter(formValues.from),
             to: normalizeFilter(formValues.to),
@@ -154,7 +157,7 @@ export function AdminAiActivityLogPage() {
     };
 
     const clearFilters = () => {
-        setFormValues({ feature: '', status: '', entity: '', from: '', to: '' });
+        setFormValues({ feature: '', status: STATUS_ANY_VALUE, entity: '', from: '', to: '' });
         setFilters({ perPage: DEFAULT_PAGE_SIZE });
     };
 
@@ -229,7 +232,7 @@ export function AdminAiActivityLogPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {STATUS_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value || 'any'} value={option.value}>
+                                        <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
                                     ))}

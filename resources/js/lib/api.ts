@@ -303,3 +303,35 @@ export function buildQuery(params: Record<string, unknown> = {}): string {
 
     return query ? `?${query}` : '';
 }
+
+export function extractErrorCode(error?: ApiError | null): string | null {
+    if (!error?.errors) {
+        return null;
+    }
+
+    const bag = error.errors as Record<string, unknown>;
+    const candidate = (bag.code ?? null) as unknown;
+
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+        return candidate;
+    }
+
+    if (Array.isArray(candidate)) {
+        const match = candidate.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+        return match ?? null;
+    }
+
+    return null;
+}
+
+export function isForbiddenError(error?: ApiError | null, expectedCode?: string): boolean {
+    if (!error || error.status !== 403) {
+        return false;
+    }
+
+    if (!expectedCode) {
+        return true;
+    }
+
+    return extractErrorCode(error) === expectedCode;
+}

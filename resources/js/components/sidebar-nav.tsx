@@ -35,6 +35,7 @@ import {
     FolderTree,
     DownloadCloud,
     Sparkles,
+    TrendingUp,
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
@@ -75,6 +76,8 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
     { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
     { label: 'Analytics', to: '/app/analytics', icon: LineChart, featureKey: 'analytics.access' },
+    { label: 'Inventory Forecast', to: '/app/analytics/forecast', icon: TrendingUp, featureKey: 'analytics.access' },
+    { label: 'Supplier Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
     { label: 'Settings', to: '/app/settings', icon: Settings },
     { label: 'Admin Console', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true },
 ];
@@ -99,6 +102,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Rate Limits', to: '/app/admin/rate-limits', icon: Activity, requiresAdminConsole: true },
     { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
     { label: 'AI Activity', to: '/app/admin/ai-events', icon: Sparkles, requiresAdminConsole: true },
+    { label: 'AI Training', to: '/app/admin/ai-training', icon: Sparkles, requiresAdminConsole: true },
 ];
 
 const SUPPLIER_NAV_ITEMS: NavItem[] = [
@@ -108,6 +112,7 @@ const SUPPLIER_NAV_ITEMS: NavItem[] = [
     { label: 'Orders', to: '/app/supplier/orders', icon: PackageSearch },
     { label: 'Invoices', to: '/app/supplier/invoices', icon: Wallet, featureKey: 'supplier_invoicing_enabled' },
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
+    { label: 'Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
     { label: 'Supplier Profile', to: '/app/supplier/company-profile', icon: Factory, matchExact: true },
 ];
 

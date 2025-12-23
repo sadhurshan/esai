@@ -17,7 +17,8 @@ export function useStartSupplierScrape(): UseMutationResult<
     return useMutation<SupplierScrapeJob, unknown, StartSupplierScrapePayload>({
         mutationFn: (payload) => adminConsoleApi.startSupplierScrape(payload),
         onSuccess: (job) => {
-            successToast('Scrape started', `Job #${job.id} queued for company ${job.company_id}.`);
+            const scope = job.company_id ? `company ${job.company_id}` : 'the global discovery queue';
+            successToast('Scrape started', `Job #${job.id} queued for ${scope}.`);
             queryClient.invalidateQueries({ queryKey: queryKeys.admin.supplierScrapeJobs(), exact: false });
         },
         onError: (error) => {

@@ -7,6 +7,7 @@ use App\Enums\SupplierScrapeJobStatus;
 use App\Jobs\PollSupplierScrapeJob;
 use App\Models\AiEvent;
 use App\Models\SupplierScrapeJob;
+use App\Support\CompanyContext;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -23,7 +24,7 @@ class SupplierScrapeService
     ) {
     }
 
-    public function startScrape(string $query, ?string $region, int $maxResults): SupplierScrapeJob
+    public function startScrape(?int $companyId, string $query, ?string $region, int $maxResults): SupplierScrapeJob
     {
         $normalizedQuery = $this->sanitizeString($query);
         if ($normalizedQuery === null) {
@@ -34,64 +35,67 @@ class SupplierScrapeService
         $maxResults = $this->normalizeMaxResults($maxResults);
         $userId = auth()->id();
 
-        $job = SupplierScrapeJob::query()->create([
-            'user_id' => $userId,
-            'query' => $normalizedQuery,
-            'region' => $normalizedRegion,
-            'status' => SupplierScrapeJobStatus::Pending,
-            'parameters_json' => [
+        return CompanyContext::forCompany($companyId, function () use ($companyId, $normalizedQuery, $normalizedRegion, $maxResults, $userId): SupplierScrapeJob {
+            $job = SupplierScrapeJob::query()->create([
+                'company_id' => $companyId,
+                'user_id' => $userId,
+                'query' => $normalizedQuery,
+                'region' => $normalizedRegion,
+                'status' => SupplierScrapeJobStatus::Pending,
+                'parameters_json' => [
+                    'max_results' => $maxResults,
+                ],
+            ]);
+
+            $payload = array_filter([
+                'query' => $normalizedQuery,
+                'region' => $normalizedRegion,
                 'max_results' => $maxResults,
-            ],
-        ]);
+            ], static fn ($value) => $value !== null && $value !== '');
 
-        $payload = array_filter([
-            'query' => $normalizedQuery,
-            'region' => $normalizedRegion,
-            'max_results' => $maxResults,
-        ], static fn ($value) => $value !== null && $value !== '');
+            try {
+                $response = $this->client->scrapeSuppliers($payload);
+                $remoteJobId = $response['job_id'] ?? null;
 
-        try {
-            $response = $this->client->scrapeSuppliers($payload);
-            $remoteJobId = $response['job_id'] ?? null;
+                if ($remoteJobId === null) {
+                    throw new RuntimeException('AI service did not return a scrape job identifier.');
+                }
 
-            if ($remoteJobId === null) {
-                throw new RuntimeException('AI service did not return a scrape job identifier.');
+                $this->updateJobParameters($job, [
+                    'remote_job_id' => $remoteJobId,
+                    'max_results' => $maxResults,
+                ]);
+
+                $this->recordEvent(
+                    job: $job,
+                    feature: 'supplier_scrape_start',
+                    requestPayload: $payload,
+                    responsePayload: $response['response'] ?? null,
+                );
+
+                $job->refresh();
+                PollSupplierScrapeJob::dispatch($job);
+
+                return $job;
+            } catch (Throwable $exception) {
+                $job->update([
+                    'status' => SupplierScrapeJobStatus::Failed,
+                    'error_message' => $exception->getMessage(),
+                    'finished_at' => now(),
+                ]);
+
+                $this->recordEvent(
+                    job: $job,
+                    feature: 'supplier_scrape_start',
+                    requestPayload: $payload,
+                    responsePayload: null,
+                    status: AiEvent::STATUS_ERROR,
+                    errorMessage: $exception->getMessage(),
+                );
+
+                throw $exception;
             }
-
-            $this->updateJobParameters($job, [
-                'remote_job_id' => $remoteJobId,
-                'max_results' => $maxResults,
-            ]);
-
-            $this->recordEvent(
-                job: $job,
-                feature: 'supplier_scrape_start',
-                requestPayload: $payload,
-                responsePayload: $response['response'] ?? null,
-            );
-
-            $job->refresh();
-            PollSupplierScrapeJob::dispatch($job);
-
-            return $job;
-        } catch (Throwable $exception) {
-            $job->update([
-                'status' => SupplierScrapeJobStatus::Failed,
-                'error_message' => $exception->getMessage(),
-                'finished_at' => now(),
-            ]);
-
-            $this->recordEvent(
-                job: $job,
-                feature: 'supplier_scrape_start',
-                requestPayload: $payload,
-                responsePayload: null,
-                status: AiEvent::STATUS_ERROR,
-                errorMessage: $exception->getMessage(),
-            );
-
-            throw $exception;
-        }
+        });
     }
 
     public function refreshScrapeStatus(SupplierScrapeJob $job): void
@@ -217,36 +221,38 @@ class SupplierScrapeService
      */
     private function persistScrapedSuppliers(SupplierScrapeJob $job, array $records): void
     {
-        DB::transaction(function () use ($job, $records): void {
-            $job->scrapedSuppliers()->delete();
+        CompanyContext::forCompany($job->company_id, function () use ($job, $records): void {
+            DB::transaction(function () use ($job, $records): void {
+                $job->scrapedSuppliers()->delete();
 
-            foreach ($records as $index => $record) {
-                $job->scrapedSuppliers()->create([
-                    'company_id' => $job->company_id,
-                    'scrape_job_id' => $job->id,
-                    'name' => $this->sanitizeString($record['name'] ?? null) ?? sprintf('Supplier %d', $index + 1),
-                    'website' => $this->sanitizeString($record['website'] ?? null),
-                    'description' => $this->sanitizeString($record['description'] ?? null, allowEmpty: true),
-                    'industry_tags' => $this->normalizeArray($record['industry_tags'] ?? null),
-                    'address' => $this->sanitizeString($record['address'] ?? null, allowEmpty: true),
-                    'city' => $this->sanitizeString($record['city'] ?? null, allowEmpty: true),
-                    'state' => $this->sanitizeString($record['state'] ?? null, allowEmpty: true),
-                    'country' => $this->sanitizeString($record['country'] ?? null, allowEmpty: true),
-                    'phone' => $this->sanitizeString($record['phone'] ?? null, allowEmpty: true),
-                    'email' => $this->sanitizeString($record['email'] ?? null, allowEmpty: true),
-                    'contact_person' => $this->sanitizeString($record['contact_person'] ?? null, allowEmpty: true),
-                    'certifications' => $this->normalizeArray($record['certifications'] ?? null),
-                    'product_summary' => $this->sanitizeString($record['product_summary'] ?? null, allowEmpty: true),
-                    'source_url' => $this->sanitizeString($record['source_url'] ?? null),
-                    'confidence' => $this->normalizeConfidence($record['confidence'] ?? null),
-                    'metadata_json' => $this->normalizeMetadata($record['metadata_json'] ?? null),
-                    'status' => ScrapedSupplierStatus::Pending,
-                ]);
-            }
+                foreach ($records as $index => $record) {
+                    $job->scrapedSuppliers()->create([
+                        'company_id' => $job->company_id,
+                        'scrape_job_id' => $job->id,
+                        'name' => $this->sanitizeString($record['name'] ?? null) ?? sprintf('Supplier %d', $index + 1),
+                        'website' => $this->sanitizeString($record['website'] ?? null),
+                        'description' => $this->sanitizeString($record['description'] ?? null, allowEmpty: true),
+                        'industry_tags' => $this->normalizeArray($record['industry_tags'] ?? null),
+                        'address' => $this->sanitizeString($record['address'] ?? null, allowEmpty: true),
+                        'city' => $this->sanitizeString($record['city'] ?? null, allowEmpty: true),
+                        'state' => $this->sanitizeString($record['state'] ?? null, allowEmpty: true),
+                        'country' => $this->sanitizeString($record['country'] ?? null, allowEmpty: true),
+                        'phone' => $this->sanitizeString($record['phone'] ?? null, allowEmpty: true),
+                        'email' => $this->sanitizeString($record['email'] ?? null, allowEmpty: true),
+                        'contact_person' => $this->sanitizeString($record['contact_person'] ?? null, allowEmpty: true),
+                        'certifications' => $this->normalizeArray($record['certifications'] ?? null),
+                        'product_summary' => $this->sanitizeString($record['product_summary'] ?? null, allowEmpty: true),
+                        'source_url' => $this->sanitizeString($record['source_url'] ?? null),
+                        'confidence' => $this->normalizeConfidence($record['confidence'] ?? null),
+                        'metadata_json' => $this->normalizeMetadata($record['metadata_json'] ?? null),
+                        'status' => ScrapedSupplierStatus::Pending,
+                    ]);
+                }
+            });
+
+            $job->result_count = count($records);
+            $job->save();
         });
-
-        $job->result_count = count($records);
-        $job->save();
     }
 
     private function normalizeConfidence(mixed $value): ?float
@@ -369,7 +375,7 @@ class SupplierScrapeService
         ?string $errorMessage = null
     ): void {
         $this->recorder->record(
-            companyId: (int) $job->company_id,
+            companyId: $job->company_id,
             userId: $job->user_id,
             feature: $feature,
             requestPayload: array_merge($requestPayload, [

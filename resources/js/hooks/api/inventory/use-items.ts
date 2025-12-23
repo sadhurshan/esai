@@ -22,6 +22,7 @@ export interface UseItemsParams {
     status?: 'active' | 'inactive';
     siteId?: string;
     belowMin?: boolean;
+    enabled?: boolean;
 }
 
 export interface UseItemsResult {
@@ -31,39 +32,41 @@ export interface UseItemsResult {
 
 export function useItems(params: UseItemsParams = {}): UseQueryResult<UseItemsResult, HttpError | Error> {
     const inventoryApi = useSdkClient(InventoryModuleApi);
+    const { enabled = true, ...queryParams } = params;
 
     return useQuery<InventoryCollectionResponse, HttpError | Error, UseItemsResult>({
         queryKey: queryKeys.inventory.items({
-            cursor: params.cursor,
-            perPage: params.perPage,
-            sku: params.sku,
-            name: params.name,
-            category: params.category,
-            status: params.status,
-            siteId: params.siteId,
-            belowMin: params.belowMin,
+            cursor: queryParams.cursor,
+            perPage: queryParams.perPage,
+            sku: queryParams.sku,
+            name: queryParams.name,
+            category: queryParams.category,
+            status: queryParams.status,
+            siteId: queryParams.siteId,
+            belowMin: queryParams.belowMin,
         }),
+        enabled,
         placeholderData: keepPreviousData,
         staleTime: 15_000,
         queryFn: async () =>
             (await inventoryApi.listItems({
-                cursor: params.cursor,
-                perPage: params.perPage,
-                sku: params.sku,
-                name: params.name,
-                category: params.category,
-                status: params.status,
-                siteId: params.siteId,
-                belowMin: params.belowMin,
+                cursor: queryParams.cursor,
+                perPage: queryParams.perPage,
+                sku: queryParams.sku,
+                name: queryParams.name,
+                category: queryParams.category,
+                status: queryParams.status,
+                siteId: queryParams.siteId,
+                belowMin: queryParams.belowMin,
             })) as InventoryCollectionResponse,
-                select: (response) => {
-                        const rawItems = Array.isArray(response.items)
-                                ? response.items
-                                : Array.isArray(response.data)
-                                    ? (response.data as unknown[])
-                                    : Array.isArray((response.data as Record<string, unknown> | undefined)?.items)
-                                        ? (((response.data as Record<string, unknown>).items as unknown[]) ?? [])
-                                        : [];
+        select: (response) => {
+            const rawItems = Array.isArray(response.items)
+                ? response.items
+                : Array.isArray(response.data)
+                    ? (response.data as unknown[])
+                    : Array.isArray((response.data as Record<string, unknown> | undefined)?.items)
+                        ? (((response.data as Record<string, unknown>).items as unknown[]) ?? [])
+                        : [];
 
             return {
                 items: rawItems

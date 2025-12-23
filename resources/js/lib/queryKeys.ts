@@ -92,6 +92,10 @@ export const queryKeys = {
     },
     analytics: {
         overview: () => ['analytics', 'overview'] as const,
+        forecastReport: (params?: Record<string, unknown>) => ['analytics', 'forecast-report', params ?? {}] as const,
+        supplierPerformanceReport: (params?: Record<string, unknown>) =>
+            ['analytics', 'supplier-performance-report', params ?? {}] as const,
+        supplierOptions: (params?: Record<string, unknown>) => ['analytics', 'supplier-options', params ?? {}] as const,
     },
     purchaseOrders: {
         root: () => ['purchase-orders'] as const,
@@ -224,6 +228,9 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['downloads']['root']
     | (typeof queryKeys)['downloads']['list']
     | (typeof queryKeys)['analytics']['overview']
+    | (typeof queryKeys)['analytics']['forecastReport']
+    | (typeof queryKeys)['analytics']['supplierPerformanceReport']
+    | (typeof queryKeys)['analytics']['supplierOptions']
     | (typeof queryKeys)['rfqs']['invitations']
     | (typeof queryKeys)['rfqs']['lines']
     | (typeof queryKeys)['rfqs']['suppliers']

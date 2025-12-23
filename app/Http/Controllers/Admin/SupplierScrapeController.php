@@ -34,11 +34,14 @@ class SupplierScrapeController extends ApiController
         $this->authorize('viewAny', SupplierScrapeJob::class);
 
         $perPage = $this->perPage($request, 50, 200);
-        $companyId = $request->integer('company_id');
+        $companyId = $request->filled('company_id') ? (int) $request->input('company_id') : null;
 
         /** @var CursorPaginator $jobs */
-        $jobs = CompanyContext::forCompany($companyId, function () use ($request, $perPage): CursorPaginator {
+        $jobs = CompanyContext::bypass(function () use ($request, $perPage, $companyId): CursorPaginator {
             return SupplierScrapeJob::query()
+                ->when($companyId !== null, function (Builder $query) use ($companyId): void {
+                    $query->where('company_id', $companyId);
+                })
                 ->when($request->filled('status'), function (Builder $query) use ($request): void {
                     $query->where('status', $request->string('status')->toString());
                 })
@@ -73,15 +76,13 @@ class SupplierScrapeController extends ApiController
     {
         $this->authorize('create', SupplierScrapeJob::class);
 
-        $companyId = $request->integer('company_id');
+        $companyId = $request->filled('company_id') ? (int) $request->input('company_id') : null;
         $query = $request->string('query')->toString();
         $region = $request->filled('region') ? $request->string('region')->toString() : null;
         $maxResults = $request->integer('max_results');
 
         /** @var SupplierScrapeJob $job */
-        $job = CompanyContext::forCompany($companyId, function () use ($query, $region, $maxResults): SupplierScrapeJob {
-            return $this->scrapeService->startScrape($query, $region, $maxResults);
-        });
+        $job = $this->scrapeService->startScrape($companyId, $query, $region, $maxResults);
 
         return $this->ok([
             'job' => new SupplierScrapeJobResource($job),

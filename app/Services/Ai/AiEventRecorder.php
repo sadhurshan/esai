@@ -45,7 +45,7 @@ class AiEventRecorder
      * @param array<string, mixed>|null $responsePayload
      */
     public function record(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         string $feature,
         array $requestPayload,
@@ -132,7 +132,7 @@ class AiEventRecorder
      * @param array<string, mixed> $payload
      */
     public function workflowStart(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],
@@ -151,7 +151,7 @@ class AiEventRecorder
     }
 
     public function workflowStepApproved(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],
@@ -170,7 +170,7 @@ class AiEventRecorder
     }
 
     public function workflowStepRejected(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],
@@ -189,7 +189,7 @@ class AiEventRecorder
     }
 
     public function workflowCompleted(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],
@@ -208,7 +208,7 @@ class AiEventRecorder
     }
 
     public function workflowAborted(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],
@@ -227,7 +227,7 @@ class AiEventRecorder
     }
 
     public function workflowStepReady(
-        int $companyId,
+        ?int $companyId,
         ?int $userId,
         array $workflowContext = [],
         array $payload = [],

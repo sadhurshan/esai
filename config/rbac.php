@@ -205,6 +205,27 @@ return [
                     'level' => 'write',
                     'domain' => 'analytics',
                 ],
+                [
+                    'key' => 'view_forecast_report',
+                    'label' => 'View forecast reports',
+                    'description' => 'Access demand forecast accuracy reports and AI recommendations.',
+                    'level' => 'read',
+                    'domain' => 'analytics',
+                ],
+                [
+                    'key' => 'view_supplier_performance',
+                    'label' => 'View supplier performance reports',
+                    'description' => 'Inspect supplier KPI scorecards and corrective actions.',
+                    'level' => 'read',
+                    'domain' => 'analytics',
+                ],
+                [
+                    'key' => 'summarize_reports',
+                    'label' => 'Summarize analytics reports',
+                    'description' => 'Trigger Copilot-powered analytics summaries.',
+                    'level' => 'write',
+                    'domain' => 'analytics',
+                ],
             ],
         ],
         [

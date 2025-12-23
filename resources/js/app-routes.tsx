@@ -45,7 +45,7 @@ import {
     SupplierOrderListPage,
 } from '@/pages/orders';
 import { RiskPage } from '@/pages/risk';
-import { AnalyticsPage } from '@/pages/analytics';
+import { AnalyticsPage, ForecastReportPage, SupplierPerformancePage } from '@/pages/analytics';
 import {
     SettingsPage,
     CompanySettingsPage,
@@ -183,6 +183,8 @@ export function AppRoutes(): ReactElement {
                         <Route path="orders/:soId" element={<BuyerOrderDetailPage />} />
                         <Route path="risk" element={<RiskPage />} />
                         <Route path="analytics" element={<AnalyticsPage />} />
+                        <Route path="analytics/forecast" element={<ForecastReportPage />} />
+                        <Route path="analytics/supplier-performance" element={<SupplierPerformancePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="settings/profile" element={<ProfileSettingsPage />} />
                         <Route path="settings/notifications" element={<NotificationSettingsPage />} />

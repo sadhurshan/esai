@@ -441,3 +441,119 @@ def test_answer_endpoint_enforces_citation_integrity(
     assert body["citations"][0]["chunk_id"] == 0
     assert body["needs_human_review"] is True
     assert any("citation" in warning.lower() for warning in body["warnings"])
+
+
+def test_report_summary_endpoint_returns_ai_summary(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_response = {
+        "summary_markdown": "AI summary of forecast trends.",
+        "bullets": ["Demand up 12 %", "Safety stock raised"],
+        "source": "ai",
+        "provider": "mock-llm",
+    }
+    stub_provider = _StubLLMProvider(stub_response)
+
+    def fake_resolver(override: str | None):  # type: ignore[override]
+        return "mock-llm", stub_provider
+
+    monkeypatch.setattr(app_module, "resolve_llm_provider", fake_resolver)
+
+    payload = {
+        "company_id": 99,
+        "report_type": "forecast",
+        "report_data": {
+            "aggregates": {
+                "total_actual": 150.0,
+                "total_forecast": 120.0,
+                "mape": 0.08,
+                "mae": 5.0,
+                "avg_daily_demand": 4.5,
+                "recommended_reorder_point": 52.0,
+                "recommended_safety_stock": 18.0,
+            },
+            "table": [
+                {
+                    "part_id": 101,
+                    "part_name": "HX-101",
+                    "total_actual": 80.0,
+                    "total_forecast": 60.0,
+                }
+            ],
+        },
+        "filters_used": {
+            "start_date": "2025-01-01",
+            "end_date": "2025-01-31",
+            "part_ids": [101],
+        },
+        "user_id_hash": "hash-123",
+    }
+
+    response = client.post("/reports/summarize", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    data = body["data"]
+    assert data["summary_markdown"] == stub_response["summary_markdown"]
+    assert data["bullets"] == stub_response["bullets"]
+    assert stub_provider.calls and stub_provider.calls[0]["schema"] == app_module.REPORT_SUMMARY_SCHEMA
+    assert "Summarize forecast" in stub_provider.calls[0]["query"]
+
+
+def test_report_summary_endpoint_falls_back_when_llm_fails(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class _ErrorProvider:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        def generate_answer(self, query: str, context_blocks, response_schema, safety_identifier=None):  # noqa: D401
+            self.calls.append({"query": query})
+            raise app_module.LLMProviderError("LLM disabled")
+
+    error_provider = _ErrorProvider()
+
+    def failing_resolver(override: str | None):  # type: ignore[override]
+        return "mock-llm", error_provider
+
+    monkeypatch.setattr(app_module, "resolve_llm_provider", failing_resolver)
+
+    payload = {
+        "company_id": 77,
+        "report_type": "supplier_performance",
+        "report_data": {
+            "aggregates": {
+                "on_time_delivery_rate": 0.93,
+                "defect_rate": 0.02,
+                "lead_time_variance": 1.4,
+                "price_volatility": 0.05,
+                "service_responsiveness": 6.5,
+            },
+            "table": [
+                {
+                    "supplier_name": "Acme Co",
+                    "supplier_id": 301,
+                    "risk_category": "medium",
+                    "risk_score": 0.42,
+                    "on_time_delivery_rate": 0.93,
+                    "defect_rate": 0.02,
+                    "lead_time_variance": 1.4,
+                    "price_volatility": 0.05,
+                    "service_responsiveness": 6.5,
+                }
+            ],
+        },
+        "filters_used": {
+            "start_date": "2025-05-01",
+            "end_date": "2025-05-31",
+            "supplier_id": 301,
+        },
+    }
+
+    response = client.post("/reports/summarize", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    data = body["data"]
+    assert data["provider"] == "deterministic"
+    assert data["source"] == "fallback"
+    assert "2025-05-01" in data["summary_markdown"] and "2025-05-31" in data["summary_markdown"]
+    assert any("risk" in bullet.lower() for bullet in data["bullets"])

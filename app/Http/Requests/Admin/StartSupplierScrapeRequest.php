@@ -18,7 +18,7 @@ class StartSupplierScrapeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'integer', 'exists:companies,id'],
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
             'query' => ['required', 'string', 'max:255'],
             'region' => ['nullable', 'string', 'max:255'],
             'max_results' => ['required', 'integer', 'min:1', 'max:25'],

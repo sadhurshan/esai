@@ -4,8 +4,8 @@ Prompt
 
 "Create migrations:
 
-- supplier_scrape_jobs with fields: id, company_id, user_id, query (string), region (string nullable), status (pending|running|completed|failed), parameters_json, result_count, error_message (nullable), started_at, finished_at, created_at, updated_at.
-- scraped_suppliers with fields: id, company_id, scrape_job_id, name, website, description, industry_tags (JSON array), address, city, state, country, phone, email, contact_person, certifications (JSON), product_summary, source_url, confidence (decimal), metadata_json, created_at, updated_at.
+- supplier_scrape_jobs with fields: id, company_id (nullable), user_id, query (string), region (string nullable), status (pending|running|completed|failed), parameters_json, result_count, error_message (nullable), started_at, finished_at, created_at, updated_at.
+- scraped_suppliers with fields: id, company_id (nullable), scrape_job_id, name, website, description, industry_tags (JSON array), address, city, state, country, phone, email, contact_person, certifications (JSON), product_summary, source_url, confidence (decimal), metadata_json, created_at, updated_at.
 - Add indexes on (company_id, scrape_job_id) and (status, created_at).
 Add corresponding Eloquent models: SupplierScrapeJob and ScrapedSupplier, including casts for JSON fields."
 
@@ -69,7 +69,7 @@ Also add DELETE /api/v1/admin/scraped-suppliers/{id} to discard a record without
 Prompt
 
 "Create app/Http/Controllers/Admin/SupplierScrapeController.php with endpoints:
-• GET /api/v1/admin/supplier-scrapes – list all scrape jobs for the tenant.
+• GET /api/v1/admin/supplier-scrapes – list all scrape jobs, optionally scoped to a tenant.
 • POST /api/v1/admin/supplier-scrapes/start – calls SupplierScrapeService::startScrape().
 • GET /api/v1/admin/supplier-scrapes/{job}/results – paginate through ScrapedSupplier records for a job.
 • POST /api/v1/admin/scraped-suppliers/{scraped}/approve – finalize onboarding (see previous prompt).

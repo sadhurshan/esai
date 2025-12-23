@@ -88,9 +88,11 @@ const STATUS_VARIANTS: Record<string, string> = {
     failed: 'border-rose-500 text-rose-600',
 };
 
+const FILTER_ANY_VALUE = '__any';
+
 const DEFAULT_FILTER_FORM = {
-    feature: '',
-    status: '',
+    feature: FILTER_ANY_VALUE,
+    status: FILTER_ANY_VALUE,
     companyId: '',
     startedFrom: '',
     startedTo: '',
@@ -142,7 +144,7 @@ type ScheduleFormState = {
 };
 
 export function AdminAiTrainingPage() {
-    const { canTrainAi, hasFeature } = useAuth();
+    const { canTrainAi } = useAuth();
     const { formatDate, formatNumber } = useFormatting();
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
     const [autoRefresh, setAutoRefresh] = useState(true);
@@ -153,11 +155,9 @@ export function AdminAiTrainingPage() {
     const [scheduleForm, setScheduleForm] = useState<ScheduleFormState>(DEFAULT_SCHEDULE_FORM);
     const [savedSchedules, setSavedSchedules] = useState<ScheduleFormState[]>([]);
 
-    const aiTrainingEnabled = hasFeature('ai_training_enabled');
-
     const { data, isLoading, isFetching, refetch } = useAiTrainingJobs(filters, {
-        enabled: canTrainAi && aiTrainingEnabled,
-        refetchInterval: canTrainAi && aiTrainingEnabled && autoRefresh ? 10_000 : false,
+        enabled: canTrainAi,
+        refetchInterval: canTrainAi && autoRefresh ? 10_000 : false,
     });
 
     const jobs = data?.items ?? [];
@@ -200,17 +200,20 @@ export function AdminAiTrainingPage() {
         },
     });
 
-    if (!canTrainAi || !aiTrainingEnabled) {
+    if (!canTrainAi) {
         return <AccessDeniedPage />;
     }
 
     const applyFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const normalizedFeature = filterForm.feature === FILTER_ANY_VALUE ? '' : filterForm.feature;
+        const normalizedStatus = filterForm.status === FILTER_ANY_VALUE ? '' : filterForm.status;
+
         setFilters({
             perPage: filters.perPage ?? 50,
             cursor: null,
-            feature: normalizeFilter(filterForm.feature),
-            status: normalizeFilter(filterForm.status),
+            feature: normalizeFilter(normalizedFeature),
+            status: normalizeFilter(normalizedStatus),
             companyId: normalizeNumber(filterForm.companyId),
             startedFrom: normalizeFilter(filterForm.startedFrom),
             startedTo: normalizeFilter(filterForm.startedTo),
@@ -221,7 +224,7 @@ export function AdminAiTrainingPage() {
     };
 
     const clearFilters = () => {
-        setFilterForm(DEFAULT_FILTER_FORM);
+        setFilterForm({ ...DEFAULT_FILTER_FORM });
         setFilters({ perPage: filters.perPage ?? 50 });
     };
 
@@ -347,7 +350,7 @@ export function AdminAiTrainingPage() {
                                             <SelectValue placeholder="Any" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Any</SelectItem>
+                                            <SelectItem value={FILTER_ANY_VALUE}>Any</SelectItem>
                                             {FEATURE_CARDS.map((card) => (
                                                 <SelectItem key={card.key} value={card.key}>
                                                     {card.label}
@@ -366,7 +369,7 @@ export function AdminAiTrainingPage() {
                                             <SelectValue placeholder="Any" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Any</SelectItem>
+                                            <SelectItem value={FILTER_ANY_VALUE}>Any</SelectItem>
                                             <SelectItem value="pending">Pending</SelectItem>
                                             <SelectItem value="running">Running</SelectItem>
                                             <SelectItem value="completed">Completed</SelectItem>

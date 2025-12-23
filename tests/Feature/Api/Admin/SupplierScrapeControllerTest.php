@@ -77,6 +77,34 @@ it('starts supplier scrape job and dispatches poller', function (): void {
     });
 });
 
+it('allows super admins to start supplier scrapes without a tenant scope', function (): void {
+    $admin = createPlatformSuperAdmin();
+    actingAs($admin);
+
+    Queue::fake();
+
+    $this->mock(AiClient::class, static function (MockInterface $mock): void {
+        $mock->shouldReceive('scrapeSuppliers')
+            ->once()
+            ->andReturn([
+                'job_id' => 'remote-job-55',
+                'job' => ['status' => 'pending'],
+            ]);
+    });
+
+    $response = postJson('/api/v1/admin/supplier-scrapes/start', [
+        'query' => 'aerospace machining',
+        'max_results' => 5,
+    ]);
+
+    $response->assertOk();
+
+    $this->assertDatabaseHas('supplier_scrape_jobs', [
+        'query' => 'aerospace machining',
+        'company_id' => null,
+    ]);
+});
+
 it('persists scraped suppliers when remote job completes', function (): void {
     $company = createSubscribedCompany();
     $admin = createPlatformSuperAdmin();

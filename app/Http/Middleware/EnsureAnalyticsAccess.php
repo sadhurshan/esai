@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Middleware\Concerns\RespondsWithPlanUpgrade;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\ActivePersonaContext;
 use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
 use Closure;
@@ -42,11 +43,14 @@ class EnsureAnalyticsAccess
             return ApiResponse::error('Analytics role required.', Response::HTTP_FORBIDDEN);
         }
 
-        $user->loadMissing('company.plan');
-        $company = $user->company;
+        $company = $this->resolveCompanyForAnalytics($user);
 
         if (! $company instanceof Company) {
             return ApiResponse::error('Company context required.', Response::HTTP_FORBIDDEN);
+        }
+
+        if (! $company->relationLoaded('plan')) {
+            $company->load('plan');
         }
 
         $plan = $company->plan;
@@ -75,8 +79,36 @@ class EnsureAnalyticsAccess
             return true;
         }
 
-        $companyId = $user->company_id ? (int) $user->company_id : null;
+        $personaCompanyId = ActivePersonaContext::get()?->companyId();
+        $companyId = $personaCompanyId ?? ($user->company_id ? (int) $user->company_id : null);
 
         return $this->permissions->userHasAny($user, self::REQUIRED_PERMISSIONS, $companyId);
+    }
+
+    private function resolveCompanyForAnalytics(User $user): ?Company
+    {
+        $persona = ActivePersonaContext::get();
+
+        if ($persona !== null) {
+            $companyId = $persona->companyId();
+
+            if ($companyId !== null) {
+                $company = $user->company;
+
+                if ($company instanceof Company && (int) $company->id === $companyId) {
+                    if (! $company->relationLoaded('plan')) {
+                        $company->load('plan');
+                    }
+
+                    return $company;
+                }
+
+                return Company::query()->with('plan')->find($companyId);
+            }
+        }
+
+        $user->loadMissing('company.plan');
+
+        return $user->company;
     }
 }

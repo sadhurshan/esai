@@ -16,7 +16,7 @@ export function useSupplierScrapeJobs(
 ): UseQueryResult<SupplierScrapeJobListResponse> {
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
     const baseKey = queryKeys.admin.supplierScrapeJobs();
-    const enabled = options.enabled ?? Boolean(filters?.companyId);
+    const enabled = options.enabled ?? Boolean(filters);
     const queryFilters = filters ?? ({} as SupplierScrapeJobFilters);
 
     return useQuery<SupplierScrapeJobListResponse>({
@@ -25,8 +25,8 @@ export function useSupplierScrapeJobs(
         placeholderData: keepPreviousData,
         refetchInterval: options.refetchInterval,
         queryFn: async () => {
-            if (!filters?.companyId) {
-                throw new Error('companyId is required to list supplier scrape jobs.');
+            if (!filters) {
+                throw new Error('Filters must be provided to list supplier scrape jobs.');
             }
             return adminConsoleApi.listSupplierScrapeJobs(filters);
         },

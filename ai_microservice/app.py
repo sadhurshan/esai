@@ -51,6 +51,7 @@ from ai_microservice.schemas import (
     INVENTORY_WHATIF_SCHEMA,
     MAINTENANCE_CHECKLIST_SCHEMA,
     PO_DRAFT_SCHEMA,
+    REPORT_SUMMARY_SCHEMA,
     QUOTE_COMPARISON_SCHEMA,
     RFQ_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
@@ -616,6 +617,36 @@ class AnswerRequest(SearchRequest):
         return None
 
 
+class ReportSummaryRequest(BaseModel):
+    company_id: int = Field(..., ge=1)
+    report_type: Literal["forecast", "supplier_performance"]
+    report_data: Dict[str, Any] = Field(default_factory=dict)
+    filters_used: Dict[str, Any] = Field(default_factory=dict)
+    user_id_hash: Optional[str] = Field(default=None, max_length=256)
+    llm_provider: Optional[str] = Field(default=None)
+
+    @field_validator("report_data", "filters_used", mode="before")
+    @classmethod
+    def ensure_mapping(cls, value: Any) -> Dict[str, Any]:  # noqa: D417
+        if value is None:
+            return {}
+        if isinstance(value, dict):
+            return value
+        raise ValueError("Value must be an object")
+
+    @field_validator("llm_provider", mode="before")
+    @classmethod
+    def normalize_llm_provider(cls, value: Optional[str]) -> Optional[str]:  # noqa: D417
+        if value is None:
+            return None
+
+        normalized = str(value).strip().lower()
+        if normalized in SUPPORTED_LLM_PROVIDERS:
+            return normalized
+
+        return None
+
+
 class ActionPlanRequest(BaseModel):
     company_id: int = Field(..., ge=1)
     action_type: Literal[
@@ -667,25 +698,14 @@ class DeterministicTrainingRequest(BaseModel):
     company_id: Optional[int] = Field(default=None, ge=1)
     parameters: Dict[str, Any] = Field(default_factory=dict)
 
-    @field_validator("inputs", "user_context", mode="before")
+    @field_validator("parameters", mode="before")
     @classmethod
-    def ensure_object(cls, value: Any) -> Dict[str, Any]:  # noqa: D417
+    def ensure_parameters(cls, value: Any) -> Dict[str, Any]:  # noqa: D417
         if value is None:
             return {}
         if not isinstance(value, dict):
-            raise ValueError("Value must be an object")
+            raise ValueError("parameters must be an object")
         return value
-
-    @field_validator("llm_provider", mode="before")
-    @classmethod
-    def normalize_llm_provider(cls, value: Optional[str]) -> Optional[str]:  # noqa: D417
-        if value is None:
-            return None
-
-        normalized = str(value).strip().lower()
-        if normalized in SUPPORTED_LLM_PROVIDERS:
-            return normalized
-        return None
 
 
 class WorkflowPlanRequest(BaseModel):
@@ -1432,6 +1452,71 @@ async def answer(payload: AnswerRequest) -> Dict[str, Any]:
         ),
     )
     return {"status": "ok", **answer_payload}
+
+
+@app.post("/reports/summarize")
+async def summarize_report(payload: ReportSummaryRequest) -> Dict[str, Any]:
+    started_at = time.perf_counter()
+    context_blocks = _build_report_summary_context_blocks(payload)
+    provider_used = "deterministic"
+    fallback_used = False
+    summary_payload: Dict[str, Any]
+
+    if not context_blocks:
+        summary_payload = _fallback_report_summary(payload.report_type, payload.report_data, payload.filters_used)
+        fallback_used = True
+    else:
+        query = _build_report_summary_query(payload.report_type, payload.filters_used)
+        try:
+            provider_name, provider = resolve_llm_provider(payload.llm_provider)
+            provider_used = provider_name
+            summary_payload = provider.generate_answer(
+                query,
+                context_blocks,
+                REPORT_SUMMARY_SCHEMA,
+                payload.user_id_hash,
+            )
+            summary_payload = _sanitize_report_summary(summary_payload)
+        except LLMProviderError as exc:
+            LOGGER.warning(
+                "report_summary_llm_failed",
+                extra=log_extra(
+                    company_id=payload.company_id,
+                    report_type=payload.report_type,
+                    provider=provider_used,
+                    error=str(exc),
+                ),
+            )
+            summary_payload = _fallback_report_summary(payload.report_type, payload.report_data, payload.filters_used)
+            provider_used = f"{provider_used}_fallback"
+            fallback_used = True
+        except Exception as exc:  # pragma: no cover - defensive guard
+            LOGGER.exception(
+                "report_summary_unexpected_failure",
+                extra=log_extra(
+                    company_id=payload.company_id,
+                    report_type=payload.report_type,
+                    error=str(exc),
+                ),
+            )
+            raise HTTPException(status_code=500, detail="Failed to summarize report") from exc
+
+    duration_ms = (time.perf_counter() - started_at) * 1000
+    LOGGER.info(
+        "report_summary_generated",
+        extra=log_extra(
+            company_id=payload.company_id,
+            report_type=payload.report_type,
+            provider=provider_used,
+            fallback=fallback_used,
+            duration_ms=round(duration_ms, 2),
+        ),
+    )
+
+    return {
+        "status": "ok",
+        "data": summary_payload,
+    }
 
 
 @app.post("/actions/plan")
@@ -2751,6 +2836,288 @@ def _fallback_deterministic_answer(
     return answer_payload
 
 
+def _build_report_summary_query(report_type: str, filters: Dict[str, Any]) -> str:
+    range_label = _report_filters_label(filters)
+    if report_type == "forecast":
+        focus = (
+            "Summarize forecast accuracy, demand deltas, and reorder recommendations. "
+            "Highlight parts driving variance and actionable adjustments. "
+        )
+    else:
+        focus = (
+            "Summarize supplier service levels covering on-time delivery, defects, lead-time variance, "
+            "price volatility, responsiveness, and risk posture. "
+        )
+
+    return (
+        f"{focus}Data covers {range_label}. "
+        "Return JSON with summary_markdown (2 focused sentences) and bullets (3-6 concise highlights). "
+        "Call out anomalies, improvements, or risks."
+    )
+
+
+def _build_report_summary_context_blocks(payload: ReportSummaryRequest) -> List[Dict[str, Any]]:
+    lines: List[str] = []
+    range_label = _report_filters_label(payload.filters_used)
+    if range_label:
+        lines.append(f"Date range: {range_label}")
+
+    filter_line = _report_filter_details(payload.filters_used)
+    if filter_line:
+        lines.append(filter_line)
+
+    if payload.report_type == "forecast":
+        lines.extend(_forecast_context_lines(payload.report_data))
+    else:
+        lines.extend(_supplier_context_lines(payload.report_data))
+
+    snippet = "\n".join(line for line in lines if line).strip()
+    if not snippet:
+        snippet = "No analytics data supplied."
+
+    snippet = snippet[:1600]
+    return [
+        {
+            "doc_id": f"{payload.report_type}_report",
+            "doc_version": "summary_v1",
+            "chunk_id": 0,
+            "score": 1.0,
+            "title": f"{payload.report_type.replace('_', ' ').title()} analytics",
+            "snippet": snippet,
+            "metadata": {
+                "report_type": payload.report_type,
+                "company_id": payload.company_id,
+            },
+        }
+    ]
+
+
+def _forecast_context_lines(report_data: Dict[str, Any]) -> List[str]:
+    lines: List[str] = []
+    aggregates = report_data.get("aggregates") if isinstance(report_data, dict) else {}
+    if isinstance(aggregates, dict) and aggregates:
+        total_actual = _format_number(aggregates.get("total_actual"), 1)
+        total_forecast = _format_number(aggregates.get("total_forecast"), 1)
+        variance = _format_number(_safe_number(aggregates.get("total_actual")) - _safe_number(aggregates.get("total_forecast")), 1)
+        lines.append(
+            "Aggregates: "
+            f"actual={total_actual}, forecast={total_forecast}, variance={variance}, "
+            f"MAPE={_format_percent(aggregates.get('mape'))}, MAE={_format_number(aggregates.get('mae'), 2)}, "
+            f"avg_daily_demand={_format_number(aggregates.get('avg_daily_demand'), 2)}, "
+            f"recommended_reorder={_format_number(aggregates.get('recommended_reorder_point'), 2)}, "
+            f"recommended_safety_stock={_format_number(aggregates.get('recommended_safety_stock'), 2)}"
+        )
+
+    table = report_data.get("table") if isinstance(report_data, dict) else None
+    if isinstance(table, list) and table:
+        ranked_rows = sorted(
+            table,
+            key=lambda row: _safe_number((row or {}).get("total_actual")),
+            reverse=True,
+        )[:3]
+        for row in ranked_rows:
+            if not isinstance(row, dict):
+                continue
+            part_name = _normalize_string(row.get("part_name"), f"Part {row.get('part_id') or '?'}") or "Part"
+            actual = _format_number(row.get("total_actual"), 1)
+            forecast = _format_number(row.get("total_forecast"), 1)
+            delta = _format_number(_safe_number(row.get("total_actual")) - _safe_number(row.get("total_forecast")), 1)
+            lines.append(
+                f"{part_name}: actual={actual}, forecast={forecast}, variance={delta}, "
+                f"reorder_point={_format_number(row.get('reorder_point'), 2)}, safety_stock={_format_number(row.get('safety_stock'), 2)}"
+            )
+
+    return lines
+
+
+def _supplier_context_lines(report_data: Dict[str, Any]) -> List[str]:
+    lines: List[str] = []
+    aggregates = report_data.get("aggregates") if isinstance(report_data, dict) else {}
+    if isinstance(aggregates, dict) and aggregates:
+        lines.append(
+            "Aggregates: "
+            f"on_time={_format_percent(aggregates.get('on_time_delivery_rate'))}, "
+            f"defect_rate={_format_percent(aggregates.get('defect_rate'))}, "
+            f"lead_time_std={_format_number(aggregates.get('lead_time_variance'), 2)} days, "
+            f"price_volatility={_format_number(aggregates.get('price_volatility'), 3)}, "
+            f"responsiveness={_format_number(aggregates.get('service_responsiveness'), 2)} hours"
+        )
+
+    table = report_data.get("table") if isinstance(report_data, dict) else None
+    if isinstance(table, list) and table:
+        row = table[0] if isinstance(table[0], dict) else {}
+        if isinstance(row, dict):
+            supplier_name = _normalize_string(row.get("supplier_name"), "Supplier") or "Supplier"
+            risk_category = _normalize_string(row.get("risk_category"), "unknown") or "unknown"
+            risk_score = _format_number(row.get("risk_score"), 2)
+            lines.append(
+                f"Supplier {supplier_name}: risk_category={risk_category}, risk_score={risk_score}, "
+                f"on_time={_format_percent(row.get('on_time_delivery_rate'))}, defect_rate={_format_percent(row.get('defect_rate'))}"
+            )
+
+    series = report_data.get("series") if isinstance(report_data, dict) else None
+    if isinstance(series, list):
+        for entry in series[:3]:
+            trend = _supplier_metric_trend(entry)
+            if trend:
+                lines.append(trend)
+
+    return lines
+
+
+def _supplier_metric_trend(entry: Any) -> Optional[str]:
+    if not isinstance(entry, dict):
+        return None
+    data = entry.get("data")
+    if not isinstance(data, list) or len(data) < 2:
+        return None
+    first = data[0]
+    last = data[-1]
+    if not isinstance(first, dict) or not isinstance(last, dict):
+        return None
+    start_value = _safe_number(first.get("value"))
+    end_value = _safe_number(last.get("value"))
+    if start_value == end_value == 0:
+        return None
+    metric_label = _normalize_string(entry.get("label") or entry.get("metric_name"), "Metric") or "Metric"
+    delta = end_value - start_value
+    return f"{metric_label}: {start_value:.3f} -> {end_value:.3f} (Δ {delta:.3f})"
+
+
+def _sanitize_report_summary(payload: Dict[str, Any]) -> Dict[str, Any]:
+    summary_markdown = _normalize_string(payload.get("summary_markdown"), "")
+    if not summary_markdown:
+        summary_markdown = "Summary unavailable."
+
+    bullets: List[str] = []
+    raw_bullets = payload.get("bullets")
+    if isinstance(raw_bullets, list):
+        for entry in raw_bullets:
+            text = _normalize_string(entry, "")
+            if text:
+                bullets.append(text)
+    if not bullets:
+        bullets = ["No additional highlights were provided."]
+
+    source = _normalize_string(payload.get("source"), "ai") or "ai"
+    provider = _normalize_string(payload.get("provider"), "llm") or "llm"
+
+    return {
+        "summary_markdown": summary_markdown,
+        "bullets": bullets,
+        "source": source,
+        "provider": provider,
+    }
+
+
+def _fallback_report_summary(report_type: str, report_data: Dict[str, Any], filters: Dict[str, Any]) -> Dict[str, Any]:
+    if report_type == "forecast":
+        return _fallback_forecast_summary(report_data, filters)
+    return _fallback_supplier_summary(report_data, filters)
+
+
+def _fallback_forecast_summary(report_data: Dict[str, Any], filters: Dict[str, Any]) -> Dict[str, Any]:
+    aggregates = report_data.get("aggregates") if isinstance(report_data, dict) else {}
+    total_forecast = _safe_number((aggregates or {}).get("total_forecast"))
+    total_actual = _safe_number((aggregates or {}).get("total_actual"))
+    variance = total_actual - total_forecast
+    range_label = _report_filters_label(filters)
+
+    summary_markdown = (
+        f"Between {range_label} we recorded **{_format_number(total_actual, 1)}** units of actual consumption "
+        f"versus **{_format_number(total_forecast, 1)}** forecasted units (Δ {_format_number(variance, 1)})."
+    )
+
+    bullets = [
+        f"MAPE {_format_percent((aggregates or {}).get('mape'))} and MAE {_format_number((aggregates or {}).get('mae'), 2)} units.",
+        f"Average daily demand is ~{_format_number((aggregates or {}).get('avg_daily_demand'), 2)} units.",
+        (
+            "Recommended reorder point "
+            f"{_format_number((aggregates or {}).get('recommended_reorder_point'), 2)} with safety stock "
+            f"{_format_number((aggregates or {}).get('recommended_safety_stock'), 2)}."
+        ),
+    ]
+
+    table = report_data.get("table") if isinstance(report_data, dict) else None
+    if isinstance(table, list) and table:
+        top_row = max(table, key=lambda row: _safe_number((row or {}).get("total_actual")))
+        if isinstance(top_row, dict):
+            part_name = _normalize_string(top_row.get("part_name"), f"Part {top_row.get('part_id') or '?'}") or "Top part"
+            part_delta = _safe_number(top_row.get("total_actual")) - _safe_number(top_row.get("total_forecast"))
+            bullets.append(
+                f"{part_name}: actual {_format_number(top_row.get('total_actual'), 1)} vs forecast "
+                f"{_format_number(top_row.get('total_forecast'), 1)} (Δ {_format_number(part_delta, 1)})."
+            )
+
+    return {
+        "summary_markdown": summary_markdown,
+        "bullets": bullets,
+        "source": "fallback",
+        "provider": "deterministic",
+    }
+
+
+def _fallback_supplier_summary(report_data: Dict[str, Any], filters: Dict[str, Any]) -> Dict[str, Any]:
+    aggregates = report_data.get("aggregates") if isinstance(report_data, dict) else {}
+    table = report_data.get("table") if isinstance(report_data, dict) else None
+    table_row = (table[0] if isinstance(table, list) and table else {}) if table else {}
+    on_time = _format_percent((aggregates or {}).get("on_time_delivery_rate") or table_row.get("on_time_delivery_rate"))
+    defect = _format_percent((aggregates or {}).get("defect_rate") or table_row.get("defect_rate"))
+    range_label = _report_filters_label(filters)
+
+    summary_markdown = (
+        f"Performance from {range_label} shows an on-time delivery rate of **{on_time}** with **{defect}** defects."
+    )
+
+    lead_variance = _format_number((aggregates or {}).get("lead_time_variance") or table_row.get("lead_time_variance"), 2)
+    responsiveness = _format_number((aggregates or {}).get("service_responsiveness") or table_row.get("service_responsiveness"), 2)
+    price_volatility = _format_number((aggregates or {}).get("price_volatility") or table_row.get("price_volatility"), 3)
+    risk_category = _normalize_string(table_row.get("risk_category"), "unknown") or "unknown"
+    risk_score = _format_number(table_row.get("risk_score"), 2)
+
+    bullets = [
+        f"Lead-time volatility ~{lead_variance} days; responsiveness around {responsiveness} hours.",
+        f"Price volatility index {price_volatility}; current risk category {risk_category} (score {risk_score}).",
+        "Monitor defect spikes alongside lead-time swings to protect service levels.",
+    ]
+
+    return {
+        "summary_markdown": summary_markdown,
+        "bullets": bullets,
+        "source": "fallback",
+        "provider": "deterministic",
+    }
+
+
+def _report_filters_label(filters: Dict[str, Any]) -> str:
+    start = _normalize_string(filters.get("start_date"), "") if isinstance(filters, dict) else ""
+    end = _normalize_string(filters.get("end_date"), "") if isinstance(filters, dict) else ""
+    if start and end:
+        return f"{start} to {end}"
+    if start:
+        return f"{start} onward"
+    if end:
+        return f"up to {end}"
+    return "the selected period"
+
+
+def _report_filter_details(filters: Dict[str, Any]) -> str:
+    if not isinstance(filters, dict) or not filters:
+        return ""
+    bits: List[str] = []
+    for key in ("part_ids", "category_ids", "location_ids"):
+        value = filters.get(key)
+        if isinstance(value, list) and value:
+            bits.append(f"{key}={len(value)} selected")
+    bucket = filters.get("bucket")
+    if bucket:
+        bits.append(f"bucket={bucket}")
+    supplier_id = filters.get("supplier_id")
+    if supplier_id:
+        bits.append(f"supplier_id={supplier_id}")
+    return f"Filters: {', '.join(bits)}" if bits else ""
+
+
 def _apply_general_answer_metadata(answer_payload: Dict[str, Any]) -> Dict[str, Any]:
     payload = dict(answer_payload)
     payload["citations"] = []
@@ -3434,6 +3801,21 @@ def _normalize_string(value: Any, fallback: str) -> str:
     if isinstance(value, str) and value.strip():
         return value.strip()
     return fallback
+
+
+def _safe_number(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _format_number(value: Any, decimals: int = 2) -> str:
+    return f"{_safe_number(value):.{decimals}f}"
+
+
+def _format_percent(value: Any, decimals: int = 1) -> str:
+    return f"{_safe_number(value) * 100:.{decimals}f}%"
 
 
 def _safe_positive_number(value: Any) -> float:

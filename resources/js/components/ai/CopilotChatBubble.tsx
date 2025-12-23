@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { Bot, MessageCircle } from 'lucide-react';
 
 import { useCopilotWidget } from '@/contexts/copilot-widget-context';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -37,7 +37,7 @@ export function CopilotChatBubble({ showIndicator = false, className }: CopilotC
                     onClick={toggle}
                     onKeyDown={handleKeyDown}
                 >
-                    <MessageCircle className="size-6" />
+                    <Bot className="size-6" />
                     {showIndicator && !isOpen ? (
                         <span
                             aria-hidden="true"

@@ -54,7 +54,7 @@ class ScrapedSupplierReviewService
                 $scrapedSupplier->save();
 
                 $this->eventRecorder->record(
-                    companyId: (int) $scrapedSupplier->company_id,
+                    companyId: $scrapedSupplier->company_id,
                     userId: $reviewer->id,
                     feature: 'supplier_scrape_approve',
                     requestPayload: [
@@ -88,7 +88,7 @@ class ScrapedSupplierReviewService
                 $scrapedSupplier->save();
 
                 $this->eventRecorder->record(
-                    companyId: (int) $scrapedSupplier->company_id,
+                    companyId: $scrapedSupplier->company_id,
                     userId: $reviewer->id,
                     feature: 'supplier_scrape_discard',
                     requestPayload: [

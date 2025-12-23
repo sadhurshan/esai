@@ -1,7 +1,8 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { AnalyticsApi, type ApiSuccessResponse } from '@/sdk';
 import { queryKeys } from '@/lib/queryKeys';
+import { api, buildQuery, type ApiError } from '@/lib/api';
 
 export interface AnalyticsKpis {
     openRfqs: number;
@@ -46,6 +47,140 @@ export interface AnalyticsOverviewResult {
     };
 }
 
+export interface ReportSummary {
+    summaryMarkdown: string;
+    bullets: string[];
+    source: string;
+    provider: string;
+}
+
+export interface ForecastReportSeriesPoint {
+    date: string;
+    actual: number;
+    forecast: number;
+}
+
+export interface ForecastReportSeries {
+    partId: number;
+    partName: string;
+    data: ForecastReportSeriesPoint[];
+}
+
+export interface ForecastReportRow {
+    partId: number;
+    partName: string;
+    totalForecast: number;
+    totalActual: number;
+    mape: number;
+    mae: number;
+    reorderPoint: number;
+    safetyStock: number;
+}
+
+export interface ForecastReportAggregates {
+    totalForecast: number;
+    totalActual: number;
+    mape: number;
+    mae: number;
+    avgDailyDemand: number;
+    recommendedReorderPoint: number;
+    recommendedSafetyStock: number;
+}
+
+export interface ForecastReportFiltersUsed {
+    startDate: string | null;
+    endDate: string | null;
+    bucket: string;
+    partIds: number[];
+    categoryIds: string[];
+    locationIds: number[];
+}
+
+export interface ForecastReport {
+    series: ForecastReportSeries[];
+    table: ForecastReportRow[];
+    aggregates: ForecastReportAggregates;
+    filtersUsed: ForecastReportFiltersUsed;
+}
+
+export interface ForecastReportResult {
+    report: ForecastReport;
+    summary: ReportSummary;
+}
+
+export interface SupplierMetricPoint {
+    date: string;
+    value: number;
+}
+
+export interface SupplierPerformanceMetricSeries {
+    metricName: string;
+    label: string;
+    data: SupplierMetricPoint[];
+}
+
+export interface SupplierPerformanceTableRow {
+    supplierId: number | null;
+    supplierName: string | null;
+    onTimeDeliveryRate: number;
+    defectRate: number;
+    leadTimeVariance: number;
+    priceVolatility: number;
+    serviceResponsiveness: number;
+    riskScore: number | null;
+    riskCategory: string | null;
+}
+
+export interface SupplierPerformanceFiltersUsed {
+    startDate: string | null;
+    endDate: string | null;
+    bucket: string;
+    supplierId: number | null;
+}
+
+export interface SupplierPerformanceReport {
+    series: SupplierPerformanceMetricSeries[];
+    table: SupplierPerformanceTableRow[];
+    filtersUsed: SupplierPerformanceFiltersUsed;
+}
+
+export interface SupplierPerformanceReportResult {
+    report: SupplierPerformanceReport;
+    summary: ReportSummary;
+}
+
+export interface AnalyticsSupplierOption {
+    id: number;
+    name: string;
+}
+
+interface SupplierOptionApiPayload {
+    id?: number | string | null;
+    name?: string | null;
+}
+
+interface SupplierOptionResponse {
+    items?: SupplierOptionApiPayload[];
+}
+
+export interface ForecastReportParams {
+    startDate?: string | null;
+    endDate?: string | null;
+    partIds?: Array<number | string>;
+    categoryIds?: string[];
+    locationIds?: Array<number | string>;
+}
+
+export interface SupplierPerformanceParams {
+    supplierId?: number | string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+}
+
+interface ReportHookOptions {
+    enabled?: boolean;
+}
+
 interface SnapshotPayload {
     type?: string | null;
     period_start?: string | null;
@@ -70,6 +205,39 @@ const PLACEHOLDER_OVERVIEW: AnalyticsOverviewResult = Object.freeze({
     meta: {},
 });
 
+const DEFAULT_REPORT_SUMMARY: ReportSummary = {
+    summaryMarkdown: '',
+    bullets: [],
+    source: 'fallback',
+    provider: 'deterministic',
+};
+
+const DEFAULT_FORECAST_AGGREGATES: ForecastReportAggregates = {
+    totalForecast: 0,
+    totalActual: 0,
+    mape: 0,
+    mae: 0,
+    avgDailyDemand: 0,
+    recommendedReorderPoint: 0,
+    recommendedSafetyStock: 0,
+};
+
+const DEFAULT_FORECAST_FILTERS: ForecastReportFiltersUsed = {
+    startDate: null,
+    endDate: null,
+    bucket: 'daily',
+    partIds: [],
+    categoryIds: [],
+    locationIds: [],
+};
+
+const DEFAULT_SUPPLIER_FILTERS: SupplierPerformanceFiltersUsed = {
+    startDate: null,
+    endDate: null,
+    bucket: 'weekly',
+    supplierId: null,
+};
+
 export function useAnalyticsOverview(enabled: boolean): UseQueryResult<AnalyticsOverviewResult, unknown> {
     const analyticsApi = useSdkClient(AnalyticsApi);
 
@@ -82,6 +250,81 @@ export function useAnalyticsOverview(enabled: boolean): UseQueryResult<Analytics
             return normalizeOverviewResponse(response);
         },
         placeholderData: PLACEHOLDER_OVERVIEW,
+        staleTime: 60_000,
+    });
+}
+
+export function useForecastReport(
+    params: ForecastReportParams = {},
+    options?: ReportHookOptions,
+): UseQueryResult<ForecastReportResult, ApiError> {
+    const queryParams = buildForecastReportQueryParams(params);
+
+    return useQuery<ForecastReportResult, ApiError>({
+        queryKey: queryKeys.analytics.forecastReport(queryParams),
+        enabled: options?.enabled ?? true,
+        placeholderData: keepPreviousData,
+        queryFn: async () => {
+            const query = buildQuery(queryParams);
+            const response = (await api.post(`/v1/analytics/forecast-report${query}`)) as unknown;
+
+            return normalizeForecastReportResponse(response);
+        },
+        staleTime: 60_000,
+    });
+}
+
+export function useSupplierPerformanceReport(
+    params: SupplierPerformanceParams = {},
+    options?: ReportHookOptions,
+): UseQueryResult<SupplierPerformanceReportResult, ApiError> {
+    const queryParams = buildSupplierPerformanceQueryParams(params);
+
+    return useQuery<SupplierPerformanceReportResult, ApiError>({
+        queryKey: queryKeys.analytics.supplierPerformanceReport(queryParams),
+        enabled: options?.enabled ?? true,
+        placeholderData: keepPreviousData,
+        queryFn: async () => {
+            const query = buildQuery(queryParams);
+            const response = (await api.post(`/v1/analytics/supplier-performance-report${query}`)) as unknown;
+
+            return normalizeSupplierReportResponse(response);
+        },
+        staleTime: 60_000,
+    });
+}
+
+interface SupplierOptionsParams {
+    search?: string;
+    selectedId?: string | number | null;
+    perPage?: number;
+    enabled?: boolean;
+}
+
+export function useAnalyticsSupplierOptions(
+    params: SupplierOptionsParams = {},
+): UseQueryResult<AnalyticsSupplierOption[], ApiError> {
+    const queryParams = {
+        q: params.search || undefined,
+        selected_id: params.selectedId ?? undefined,
+        per_page: params.perPage ?? undefined,
+    } satisfies Record<string, unknown>;
+
+    const enabled = params.enabled ?? true;
+
+    return useQuery<AnalyticsSupplierOption[], ApiError>({
+        queryKey: queryKeys.analytics.supplierOptions(queryParams),
+        enabled,
+        placeholderData: keepPreviousData,
+        queryFn: async () => {
+            const query = buildQuery(queryParams);
+            const response = (await api.get(`/v1/analytics/supplier-options${query}`)) as SupplierOptionResponse | null;
+            const rawItems = Array.isArray(response?.items) ? response?.items : [];
+
+            return rawItems
+                .map((item) => normalizeSupplierOption(item))
+                .filter((item): item is AnalyticsSupplierOption => item !== null);
+        },
         staleTime: 60_000,
     });
 }
@@ -176,6 +419,25 @@ function normalizeSnapshot(entry: unknown): SnapshotPayload | null {
     };
 }
 
+function normalizeSupplierOption(payload: SupplierOptionApiPayload | null | undefined): AnalyticsSupplierOption | null {
+    if (!payload) {
+        return null;
+    }
+
+    const numericId = typeof payload.id === 'string' || typeof payload.id === 'number' ? Number(payload.id) : NaN;
+
+    if (!Number.isFinite(numericId) || numericId <= 0) {
+        return null;
+    }
+
+    const name = typeof payload.name === 'string' && payload.name.trim().length > 0 ? payload.name.trim() : `Supplier #${numericId}`;
+
+    return {
+        id: numericId,
+        name,
+    };
+}
+
 function getLastSnapshot(list: SnapshotPayload[]): SnapshotPayload | null {
     if (list.length === 0) {
         return null;
@@ -257,4 +519,423 @@ function normalizeSupplierId(value: unknown): number | null {
     const parsed = Number(value);
 
     return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildForecastReportQueryParams(params: ForecastReportParams = {}): Record<string, unknown> {
+    const query: Record<string, unknown> = {};
+    const start = sanitizeDateInput(params.startDate);
+    const end = sanitizeDateInput(params.endDate);
+    const partIds = normalizeNumberArray(params.partIds);
+    const categoryIds = normalizeStringArray(params.categoryIds);
+    const locationIds = normalizeNumberArray(params.locationIds);
+
+    if (start) {
+        query.start_date = start;
+    }
+
+    if (end) {
+        query.end_date = end;
+    }
+
+    if (partIds.length > 0) {
+        query.part_ids = partIds;
+    }
+
+    if (categoryIds.length > 0) {
+        query.category_ids = categoryIds;
+    }
+
+    if (locationIds.length > 0) {
+        query.location_ids = locationIds;
+    }
+
+    return query;
+}
+
+function buildSupplierPerformanceQueryParams(params: SupplierPerformanceParams = {}): Record<string, unknown> {
+    const query: Record<string, unknown> = {};
+    const start = sanitizeDateInput(params.startDate);
+    const end = sanitizeDateInput(params.endDate);
+    const supplierId = normalizeSupplierId(params.supplierId ?? null);
+
+    if (start) {
+        query.start_date = start;
+    }
+
+    if (end) {
+        query.end_date = end;
+    }
+
+    if (supplierId !== null) {
+        query.supplier_id = supplierId;
+    }
+
+    return query;
+}
+
+function normalizeForecastReportResponse(payload: unknown): ForecastReportResult {
+    if (!payload || typeof payload !== 'object') {
+        return createEmptyForecastReportResult();
+    }
+
+    const record = payload as Record<string, unknown>;
+
+    return {
+        report: normalizeForecastReport(record.report),
+        summary: normalizeReportSummary(record.summary),
+    };
+}
+
+function normalizeSupplierReportResponse(payload: unknown): SupplierPerformanceReportResult {
+    if (!payload || typeof payload !== 'object') {
+        return createEmptySupplierReportResult();
+    }
+
+    const record = payload as Record<string, unknown>;
+
+    return {
+        report: normalizeSupplierReport(record.report),
+        summary: normalizeReportSummary(record.summary),
+    };
+}
+
+function normalizeForecastReport(value: unknown): ForecastReport {
+    if (!value || typeof value !== 'object') {
+        return createEmptyForecastReportResult().report;
+    }
+
+    const record = value as Record<string, unknown>;
+
+    return {
+        series: normalizeForecastSeries(record.series),
+        table: normalizeForecastTable(record.table),
+        aggregates: normalizeForecastAggregates(record.aggregates),
+        filtersUsed: normalizeForecastFilters(record.filters_used ?? record.filtersUsed),
+    };
+}
+
+function normalizeSupplierReport(value: unknown): SupplierPerformanceReport {
+    if (!value || typeof value !== 'object') {
+        return createEmptySupplierReportResult().report;
+    }
+
+    const record = value as Record<string, unknown>;
+
+    return {
+        series: normalizeSupplierSeries(record.series),
+        table: normalizeSupplierTable(record.table),
+        filtersUsed: normalizeSupplierFilters(record.filters_used ?? record.filtersUsed),
+    };
+}
+
+function normalizeForecastSeries(value: unknown): ForecastReportSeries[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return null;
+            }
+
+            const record = entry as Record<string, unknown>;
+            const dataPoints = Array.isArray(record.data)
+                ? record.data
+                      .map((point) => normalizeForecastSeriesPoint(point))
+                      .filter((point): point is ForecastReportSeriesPoint => point !== null)
+                : [];
+
+            const partId = normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
+            const partName =
+                readStringField(record, 'part_name', 'partName') ?? `Part ${partId > 0 ? partId : ''}`.trim();
+
+            return {
+                partId,
+                partName: partName || 'Part',
+                data: dataPoints,
+            } satisfies ForecastReportSeries;
+        })
+        .filter((entry): entry is ForecastReportSeries => entry !== null);
+}
+
+function normalizeForecastSeriesPoint(entry: unknown): ForecastReportSeriesPoint | null {
+    if (!entry || typeof entry !== 'object') {
+        return null;
+    }
+
+    const record = entry as Record<string, unknown>;
+    const date = readStringField(record, 'date');
+
+    if (!date) {
+        return null;
+    }
+
+    return {
+        date,
+        actual: toNumber(record.actual),
+        forecast: toNumber(record.forecast),
+    };
+}
+
+function normalizeForecastTable(value: unknown): ForecastReportRow[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return null;
+            }
+
+            const record = entry as Record<string, unknown>;
+            const partId = normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
+            const partName =
+                readStringField(record, 'part_name', 'partName') ?? `Part ${partId > 0 ? partId : ''}`.trim();
+
+            return {
+                partId,
+                partName: partName || 'Part',
+                totalForecast: toNumber(record.total_forecast ?? record.totalForecast),
+                totalActual: toNumber(record.total_actual ?? record.totalActual),
+                mape: toNumber(record.mape),
+                mae: toNumber(record.mae),
+                reorderPoint: toNumber(record.reorder_point ?? record.reorderPoint),
+                safetyStock: toNumber(record.safety_stock ?? record.safetyStock),
+            } satisfies ForecastReportRow;
+        })
+        .filter((row): row is ForecastReportRow => row !== null);
+}
+
+function normalizeForecastAggregates(value: unknown): ForecastReportAggregates {
+    if (!value || typeof value !== 'object') {
+        return { ...DEFAULT_FORECAST_AGGREGATES };
+    }
+
+    const record = value as Record<string, unknown>;
+
+    return {
+        totalForecast: toNumber(record.total_forecast ?? record.totalForecast),
+        totalActual: toNumber(record.total_actual ?? record.totalActual),
+        mape: toNumber(record.mape),
+        mae: toNumber(record.mae),
+        avgDailyDemand: toNumber(record.avg_daily_demand ?? record.avgDailyDemand),
+        recommendedReorderPoint: toNumber(record.recommended_reorder_point ?? record.recommendedReorderPoint),
+        recommendedSafetyStock: toNumber(record.recommended_safety_stock ?? record.recommendedSafetyStock),
+    } satisfies ForecastReportAggregates;
+}
+
+function normalizeForecastFilters(value: unknown): ForecastReportFiltersUsed {
+    if (!value || typeof value !== 'object') {
+        return { ...DEFAULT_FORECAST_FILTERS };
+    }
+
+    const record = value as Record<string, unknown>;
+
+    return {
+        startDate: readStringField(record, 'start_date', 'startDate'),
+        endDate: readStringField(record, 'end_date', 'endDate'),
+        bucket: readStringField(record, 'bucket') ?? DEFAULT_FORECAST_FILTERS.bucket,
+        partIds: normalizeNumberArray(record.part_ids ?? record.partIds),
+        categoryIds: normalizeStringArray(record.category_ids ?? record.categoryIds),
+        locationIds: normalizeNumberArray(record.location_ids ?? record.locationIds),
+    } satisfies ForecastReportFiltersUsed;
+}
+
+function normalizeSupplierSeries(value: unknown): SupplierPerformanceMetricSeries[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return null;
+            }
+
+            const record = entry as Record<string, unknown>;
+            const metricName = readStringField(record, 'metric_name', 'metricName');
+            if (!metricName) {
+                return null;
+            }
+
+            const dataPoints = Array.isArray(record.data)
+                ? record.data
+                      .map((point) => normalizeSupplierMetricPoint(point))
+                      .filter((point): point is SupplierMetricPoint => point !== null)
+                : [];
+
+            return {
+                metricName,
+                label: readStringField(record, 'label') ?? metricName,
+                data: dataPoints,
+            } satisfies SupplierPerformanceMetricSeries;
+        })
+        .filter((entry): entry is SupplierPerformanceMetricSeries => entry !== null);
+}
+
+function normalizeSupplierMetricPoint(entry: unknown): SupplierMetricPoint | null {
+    if (!entry || typeof entry !== 'object') {
+        return null;
+    }
+
+    const record = entry as Record<string, unknown>;
+    const date = readStringField(record, 'date');
+
+    if (!date) {
+        return null;
+    }
+
+    return {
+        date,
+        value: toNumber(record.value),
+    };
+}
+
+function normalizeSupplierTable(value: unknown): SupplierPerformanceTableRow[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return null;
+            }
+
+            const record = entry as Record<string, unknown>;
+
+            return {
+                supplierId: normalizeSupplierId(record.supplier_id ?? record.supplierId),
+                supplierName: readStringField(record, 'supplier_name', 'supplierName'),
+                onTimeDeliveryRate: toNumber(record.on_time_delivery_rate ?? record.onTimeDeliveryRate),
+                defectRate: toNumber(record.defect_rate ?? record.defectRate),
+                leadTimeVariance: toNumber(record.lead_time_variance ?? record.leadTimeVariance),
+                priceVolatility: toNumber(record.price_volatility ?? record.priceVolatility),
+                serviceResponsiveness: toNumber(record.service_responsiveness ?? record.serviceResponsiveness),
+                riskScore: (() => {
+                    const numeric = Number(record.risk_score ?? record.riskScore);
+                    return Number.isFinite(numeric) ? numeric : null;
+                })(),
+                riskCategory: readStringField(record, 'risk_category', 'riskCategory'),
+            } satisfies SupplierPerformanceTableRow;
+        })
+        .filter((row): row is SupplierPerformanceTableRow => row !== null);
+}
+
+function normalizeSupplierFilters(value: unknown): SupplierPerformanceFiltersUsed {
+    if (!value || typeof value !== 'object') {
+        return { ...DEFAULT_SUPPLIER_FILTERS };
+    }
+
+    const record = value as Record<string, unknown>;
+
+    return {
+        startDate: readStringField(record, 'start_date', 'startDate'),
+        endDate: readStringField(record, 'end_date', 'endDate'),
+        bucket: readStringField(record, 'bucket') ?? DEFAULT_SUPPLIER_FILTERS.bucket,
+        supplierId: normalizeSupplierId(record.supplier_id ?? record.supplierId),
+    } satisfies SupplierPerformanceFiltersUsed;
+}
+
+function normalizeReportSummary(payload: unknown): ReportSummary {
+    if (!payload || typeof payload !== 'object') {
+        return { ...DEFAULT_REPORT_SUMMARY };
+    }
+
+    const record = payload as Record<string, unknown>;
+    const bullets = Array.isArray(record.bullets)
+        ? record.bullets
+              .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+              .filter((entry) => entry.length > 0)
+        : [];
+
+    return {
+        summaryMarkdown: readStringField(record, 'summary_markdown', 'summaryMarkdown') ?? '',
+        bullets,
+        source: readStringField(record, 'source') ?? DEFAULT_REPORT_SUMMARY.source,
+        provider: readStringField(record, 'provider') ?? DEFAULT_REPORT_SUMMARY.provider,
+    } satisfies ReportSummary;
+}
+
+function sanitizeDateInput(value?: string | null): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeNumberArray(value: unknown): number[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (typeof entry === 'number') {
+                return Number.isFinite(entry) ? entry : null;
+            }
+
+            if (typeof entry === 'string') {
+                const trimmed = entry.trim();
+                if (trimmed === '') {
+                    return null;
+                }
+                const parsed = Number(trimmed);
+                return Number.isFinite(parsed) ? parsed : null;
+            }
+
+            return null;
+        })
+        .filter((entry): entry is number => entry !== null);
+}
+
+function normalizeStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+        .filter((entry) => entry.length > 0);
+}
+
+function readStringField(record: Record<string, unknown>, ...keys: string[]): string | null {
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.length > 0) {
+                return trimmed;
+            }
+        }
+    }
+
+    return null;
+}
+
+function createEmptyForecastReportResult(): ForecastReportResult {
+    return {
+        report: {
+            series: [],
+            table: [],
+            aggregates: { ...DEFAULT_FORECAST_AGGREGATES },
+            filtersUsed: { ...DEFAULT_FORECAST_FILTERS },
+        },
+        summary: { ...DEFAULT_REPORT_SUMMARY },
+    };
+}
+
+function createEmptySupplierReportResult(): SupplierPerformanceReportResult {
+    return {
+        report: {
+            series: [],
+            table: [],
+            filtersUsed: { ...DEFAULT_SUPPLIER_FILTERS },
+        },
+        summary: { ...DEFAULT_REPORT_SUMMARY },
+    };
 }

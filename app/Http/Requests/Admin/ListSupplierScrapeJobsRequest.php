@@ -20,7 +20,7 @@ class ListSupplierScrapeJobsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'integer', 'exists:companies,id'],
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
             'status' => ['nullable', 'string', Rule::in(SupplierScrapeJobStatus::values())],
             'query' => ['nullable', 'string', 'max:191'],
             'region' => ['nullable', 'string', 'max:191'],

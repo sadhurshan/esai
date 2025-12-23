@@ -215,6 +215,11 @@ class AuthResponseFactory
 
         $flags['ai_workflows_enabled'] = $flags['approvals_enabled'] ?? (bool) ($plan->approvals_enabled ?? false);
 
+        if (($flags['analytics_enabled'] ?? false) === true) {
+            // Frontend gates inventory forecast and supplier scorecards behind analytics.access.
+            $flags['analytics.access'] = true;
+        }
+
         $planCode = $plan->code ?? $company->plan_code ?? null;
 
         if (is_string($planCode) && $planCode !== '') {

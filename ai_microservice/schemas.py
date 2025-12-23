@@ -123,6 +123,44 @@ ANSWER_SCHEMA = {
     },
 }
 
+REPORT_SUMMARY_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ReportSummaryResponse",
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "summary_markdown",
+        "bullets",
+        "source",
+        "provider",
+    ],
+    "properties": {
+        "summary_markdown": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Short narrative in Markdown summarizing the report.",
+        },
+        "bullets": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "minLength": 1,
+            },
+        },
+        "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Indicates whether the summary originated from the LLM or fallback logic.",
+        },
+        "provider": {
+            "type": "string",
+            "minLength": 1,
+            "description": "LLM provider or fallback implementation used to produce the summary.",
+        },
+    },
+}
+
 RFQ_LINE_ITEM_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -509,6 +547,7 @@ CHAT_RESPONSE_SCHEMA = {
 
 __all__ = [
     "ANSWER_SCHEMA",
+    "REPORT_SUMMARY_SCHEMA",
     "RFQ_DRAFT_SCHEMA",
     "SUPPLIER_MESSAGE_SCHEMA",
     "MAINTENANCE_CHECKLIST_SCHEMA",

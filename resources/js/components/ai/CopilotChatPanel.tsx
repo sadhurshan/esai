@@ -97,7 +97,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
             return;
         }
 
-        if (threadsQuery.isLoading || threadsQuery.isFetching || createThread.isPending) {
+        if (threadsQuery.isLoading || threadsQuery.isFetching || createThread.isPending || threadsQuery.isError) {
             return;
         }
 
@@ -108,7 +108,6 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
         bootstrapAttempted.current = true;
         createThread.mutate(undefined, {
             onError: (error) => {
-                bootstrapAttempted.current = false;
                 publishToast({
                     variant: 'destructive',
                     title: 'Unable to start Copilot chat',
@@ -116,7 +115,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                 });
             },
         });
-    }, [threadsQuery.isLoading, threadsQuery.isFetching, threadsQuery.data, createThread]);
+    }, [threadsQuery.isLoading, threadsQuery.isFetching, threadsQuery.isError, threadsQuery.data, createThread]);
 
     useEffect(() => {
         const node = scrollRef.current;

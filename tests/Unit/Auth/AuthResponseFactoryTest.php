@@ -28,8 +28,35 @@ it('includes plan feature toggles in auth payloads', function (): void {
         ->toHaveKey('maintenance_enabled', true)
         ->toHaveKey('inventory_enabled', true)
         ->toHaveKey('analytics_enabled', true)
+        ->toHaveKey('analytics.access', true)
         ->toHaveKey('quotes_enabled', true)
         ->toHaveKey('supplier_invoicing_enabled', true);
+});
+
+it('enables analytics access when the plan includes analytics', function (): void {
+    $growthPlan = Plan::factory()->create([
+        'code' => 'growth',
+        'analytics_enabled' => true,
+    ]);
+
+    $growthCompany = Company::factory()->for($growthPlan, 'plan')->create();
+    $growthUser = User::factory()->for($growthCompany)->create();
+
+    $growthPayload = app(AuthResponseFactory::class)->make($growthUser);
+
+    expect($growthPayload['feature_flags'] ?? [])->toHaveKey('analytics.access', true);
+
+    $starterPlan = Plan::factory()->create([
+        'code' => 'starter',
+        'analytics_enabled' => false,
+    ]);
+
+    $starterCompany = Company::factory()->for($starterPlan, 'plan')->create();
+    $starterUser = User::factory()->for($starterCompany)->create();
+
+    $starterPayload = app(AuthResponseFactory::class)->make($starterUser);
+
+    expect($starterPayload['feature_flags'] ?? [])->not->toHaveKey('analytics.access');
 });
 
 it('allows company specific feature flags to override plan defaults', function (): void {

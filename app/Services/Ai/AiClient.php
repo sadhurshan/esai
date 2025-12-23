@@ -49,6 +49,15 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function summarizeReport(array $payload): array
+    {
+        return $this->send('reports/summarize', $payload, 'Report summary generated.', 'report_summary');
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function indexDocument(array $payload): array
     {
         return $this->send('index/document', $payload, 'Document indexed.', 'index_document');

@@ -21,5 +21,12 @@ return [
                 'approval_permissions' => ['orders.write'],
             ],
         ],
+        'receiving_quality' => [
+            [
+                'action_type' => 'receiving_quality',
+                'name' => 'Receiving & Quality Review',
+                'approval_permissions' => ['receiving.write'],
+            ],
+        ],
     ],
 ];

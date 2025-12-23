@@ -8,6 +8,7 @@ use App\Models\AiWorkflowStep;
 use App\Models\User;
 use App\Services\Ai\Workflow\PurchaseOrderDraftConverter;
 use App\Services\Ai\Workflow\QuoteComparisonDraftConverter;
+use App\Services\Ai\Workflow\ReceivingQualityDraftConverter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +20,7 @@ class WorkflowService
         private readonly AiEventRecorder $recorder,
         private readonly QuoteComparisonDraftConverter $quoteConverter,
         private readonly PurchaseOrderDraftConverter $purchaseOrderConverter,
+        private readonly ReceivingQualityDraftConverter $receivingQualityConverter,
     ) {
     }
 
@@ -368,6 +370,10 @@ class WorkflowService
 
         if ($step->action_type === 'po_draft') {
             $this->purchaseOrderConverter->convert($step);
+        }
+
+        if ($step->action_type === 'receiving_quality') {
+            $this->receivingQualityConverter->convert($step);
         }
     }
 

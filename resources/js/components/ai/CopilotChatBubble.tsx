@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react';
-import { Bot, MessageCircle } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 import { useCopilotWidget } from '@/contexts/copilot-widget-context';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -11,7 +11,7 @@ interface CopilotChatBubbleProps {
 }
 
 export function CopilotChatBubble({ showIndicator = false, className }: CopilotChatBubbleProps) {
-    const { toggle, isOpen } = useCopilotWidget();
+    const { toggle, isOpen, errorCount } = useCopilotWidget();
 
     const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
         if (event.key === ' ') {
@@ -38,7 +38,12 @@ export function CopilotChatBubble({ showIndicator = false, className }: CopilotC
                     onKeyDown={handleKeyDown}
                 >
                     <Bot className="size-6" />
-                    {showIndicator && !isOpen ? (
+                    {errorCount > 0 && !isOpen ? (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-semibold text-white shadow-lg">
+                            {Math.min(errorCount, 99)}
+                        </span>
+                    ) : null}
+                    {showIndicator && errorCount === 0 && !isOpen ? (
                         <span
                             aria-hidden="true"
                             className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive shadow-lg"

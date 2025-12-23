@@ -209,10 +209,12 @@ class AiChatController extends ApiController
         try {
             $result = $this->chatService->sendMessage($model, $user, $request->message(), $request->messageContext());
         } catch (AiServiceUnavailableException $exception) {
+            $this->incrementToolErrorCount($request);
             return $this->fail('AI service is unavailable.', Response::HTTP_SERVICE_UNAVAILABLE, [
                 'service' => [$exception->getMessage()],
             ]);
         } catch (AiChatException $exception) {
+            $this->incrementToolErrorCount($request);
             return $this->fail($exception->getMessage(), Response::HTTP_BAD_GATEWAY, $exception->errors());
         }
 
@@ -311,10 +313,12 @@ class AiChatController extends ApiController
         try {
             $result = $this->chatService->resolveTools($model, $user, $request->toolCalls(), $request->messageContext());
         } catch (AiServiceUnavailableException $exception) {
+            $this->incrementToolErrorCount($request);
             return $this->fail('AI service is unavailable.', Response::HTTP_SERVICE_UNAVAILABLE, [
                 'service' => [$exception->getMessage()],
             ]);
         } catch (AiChatException $exception) {
+            $this->incrementToolErrorCount($request);
             return $this->fail($exception->getMessage(), Response::HTTP_BAD_GATEWAY, $exception->errors());
         }
 
@@ -362,5 +366,14 @@ class AiChatController extends ApiController
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function incrementToolErrorCount(Request $request): void
+    {
+        try {
+            $request->session()->increment('tool_error_count');
+        } catch (\Throwable) {
+            // Session may not be available for stateless clients; ignore silently.
+        }
     }
 }

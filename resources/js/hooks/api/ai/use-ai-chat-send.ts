@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
 import { api, ApiError } from '@/lib/api';
+import { emitCopilotToolError } from '@/lib/copilot-events';
 import { queryKeys } from '@/lib/queryKeys';
 import type {
     AiChatAssistantResponse,
@@ -566,10 +567,17 @@ async function executeToolLoop(
             payload.context = contextPayload;
         }
 
-        const toolResponse = await api.post<AiChatResolveToolsResponse>(
-            `/v1/ai/chat/threads/${threadId}/tools/resolve`,
-            payload,
-        );
+        let toolResponse: AiChatResolveToolsResponse | { data: AiChatResolveToolsResponse };
+
+        try {
+            toolResponse = await api.post<AiChatResolveToolsResponse>(
+                `/v1/ai/chat/threads/${threadId}/tools/resolve`,
+                payload,
+            );
+        } catch (error) {
+            emitCopilotToolError({ threadId, reason: error instanceof Error ? error.message : 'unknown' });
+            throw error;
+        }
         const resolved = unwrap(toolResponse);
         toolRuns.push(resolved);
         cursor = resolved.response;

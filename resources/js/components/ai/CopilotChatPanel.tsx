@@ -17,6 +17,7 @@ import type {
     AiActionDraftStatus,
     AiChatAssistantResponse,
     AiChatDraftSnapshot,
+    AiChatGuidedResolution,
     AiChatMessage,
     AiChatWorkflowSuggestion,
 } from '@/types/ai-chat';
@@ -29,6 +30,7 @@ const RESPONSE_LABELS: Record<string, string> = {
     answer: 'Grounded answer',
     draft_action: 'Draft ready',
     workflow_suggestion: 'Workflow suggestion',
+    guided_resolution: 'Guided resolution',
     tool_request: 'Workspace lookup needed',
     error: 'Unable to respond',
 };
@@ -55,6 +57,8 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
             bootstrapAttempted.current = true;
         },
     });
+    // Pull the latest 60 messages for the selected thread once a thread id exists so the panel
+    // always renders a bounded, tenant-scoped transcript.
     const messagesQuery = useAiChatMessages(activeThreadId, {
         limit: 60,
         enabled: Boolean(activeThreadId),
@@ -68,6 +72,8 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
 
     const visibleMessages = useMemo(() => {
         return messages.filter((message) => {
+            // Tool role payloads and assistant tool_request stubs are kept in the timeline for auditing
+            // but hidden from the bubble list so end users only see authored turns.
             if (message.role === 'tool') {
                 return false;
             }
@@ -468,6 +474,8 @@ function AssistantBubble({
     onStartWorkflow?: (workflow: AiChatWorkflowSuggestion) => Promise<string | null>;
     isWorkflowStarting?: boolean;
 }) {
+    // Assistant turns carry an AiChatAssistantResponse envelope so we can decide whether to
+    // render grounded answers, draft approvals, workflow suggestions, or tool loops per type.
     const response = extractAssistantResponse(message);
     const label = response ? RESPONSE_LABELS[response.type] ?? 'Assistant' : 'Assistant';
     const markdown = response?.assistant_message_markdown ?? message.content_text ?? '';
@@ -544,8 +552,9 @@ function AssistantDetails({
     const warnings = response?.warnings ?? [];
     const hasDraft = response?.type === 'draft_action' && Boolean(response.draft);
     const hasWorkflow = response?.type === 'workflow_suggestion' && Boolean(response.workflow);
+    const guidedResolution = response?.type === 'guided_resolution' ? response.guided_resolution : null;
 
-    if (!warnings.length && !hasDraft && !hasWorkflow) {
+    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution) {
         return null;
     }
 
@@ -587,6 +596,8 @@ function AssistantDetails({
                     isStarting={Boolean(isWorkflowStarting)}
                 />
             ) : null}
+
+            {guidedResolution ? <GuidedResolutionCard resolution={guidedResolution} /> : null}
         </div>
     );
 }
@@ -851,6 +862,30 @@ function WorkflowPreview({
                         </div>
                     )}
                 </div>
+            ) : null}
+        </div>
+    );
+}
+
+function GuidedResolutionCard({ resolution }: { resolution: AiChatGuidedResolution }) {
+    const ctaLabel = resolution.cta_label?.trim().length ? resolution.cta_label : 'Open guide';
+    const hasLink = Boolean(resolution.cta_url);
+
+    return (
+        <div className="space-y-3 rounded-2xl border border-sky-400/30 bg-sky-950/30 p-4">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-sky-200">
+                <Sparkles className="size-4" /> Guided resolution suggested
+            </div>
+            <div>
+                <p className="text-sm font-semibold text-white">{resolution.title}</p>
+                <p className="mt-1 text-sm text-slate-200">{resolution.description}</p>
+            </div>
+            {hasLink ? (
+                <Button asChild className="gap-2">
+                    <a href={resolution.cta_url} target="_blank" rel="noreferrer">
+                        {ctaLabel}
+                    </a>
+                </Button>
             ) : null}
         </div>
     );

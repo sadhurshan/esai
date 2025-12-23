@@ -18,7 +18,7 @@ class AiChatResolveToolsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $toolNames = WorkspaceToolResolver::SUPPORTED_TOOLS;
+        $toolNames = WorkspaceToolResolver::supportedTools();
 
         return [
             'tool_calls' => ['required', 'array', 'min:1', 'max:' . WorkspaceToolResolver::MAX_TOOL_CALLS],

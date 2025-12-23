@@ -3,7 +3,13 @@ export type AiChatMessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
 export type AiActionDraftStatus = 'drafted' | 'approved' | 'rejected' | 'expired';
 
-export type AiChatResponseType = 'answer' | 'draft_action' | 'workflow_suggestion' | 'tool_request' | 'error';
+export type AiChatResponseType =
+    | 'answer'
+    | 'draft_action'
+    | 'workflow_suggestion'
+    | 'guided_resolution'
+    | 'tool_request'
+    | 'error';
 
 export interface AiChatWorkspaceToolCall {
     tool_name: string;
@@ -21,6 +27,13 @@ export interface AiChatWorkflowSuggestion {
     workflow_type: string;
     steps: Array<{ title: string; summary: string }>;
     payload?: Record<string, unknown>;
+}
+
+export interface AiChatGuidedResolution {
+    title: string;
+    description: string;
+    cta_label: string;
+    cta_url: string;
 }
 
 export interface AiChatDraftSnapshot {
@@ -49,6 +62,7 @@ export interface AiChatAssistantResponse {
     suggested_quick_replies?: string[];
     draft?: AiChatDraftSnapshot | null;
     workflow?: AiChatWorkflowSuggestion | null;
+    guided_resolution?: AiChatGuidedResolution | null;
     tool_calls?: AiChatWorkspaceToolCall[] | null;
     tool_results?: AiChatWorkspaceToolResult[] | null;
     needs_human_review?: boolean;

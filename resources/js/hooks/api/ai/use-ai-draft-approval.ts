@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
+import { emitCopilotDraftRejected } from '@/lib/copilot-events';
 import { queryKeys } from '@/lib/queryKeys';
 import type { AiActionDraftResponse } from '@/types/ai-chat';
 
@@ -43,11 +44,12 @@ export function useAiDraftApprove(
 
             return unwrap(response);
         },
-        onSuccess: (_data, _variables) => {
+        onSuccess: (_data, variables) => {
             if (!threadId) {
                 return;
             }
 
+            emitCopilotDraftRejected({ draftId: variables.draftId });
             invalidateChatQueries(queryClient, threadId);
         },
     });

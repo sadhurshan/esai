@@ -12,11 +12,14 @@ interface CopilotWidgetContextValue {
     isOpen: boolean;
     lastActionType: string | null;
     activeTab: string | null;
+    errorCount: number;
     open: () => void;
     close: () => void;
     toggle: () => void;
     setLastActionType: (value: string | null) => void;
     setActiveTab: (value: string | null) => void;
+    incrementErrors: () => void;
+    resetErrors: () => void;
 }
 
 const CopilotWidgetContext = createContext<CopilotWidgetContextValue | undefined>(undefined);
@@ -70,6 +73,7 @@ export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) 
     const [isOpen, setIsOpen] = useState<boolean>(() => readStoredState().isOpen);
     const [lastActionType, setLastActionType] = useState<string | null>(() => readStoredState().lastActionType ?? null);
     const [activeTab, setActiveTab] = useState<string | null>(() => readStoredState().activeTab ?? null);
+    const [errorCount, setErrorCount] = useState(0);
 
     useEffect(() => {
         writeStoredState({ isOpen, lastActionType, activeTab });
@@ -145,19 +149,24 @@ export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) 
     const open = useCallback(() => setIsOpen(true), []);
     const close = useCallback(() => setIsOpen(false), []);
     const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
+    const incrementErrors = useCallback(() => setErrorCount((value) => value + 1), []);
+    const resetErrors = useCallback(() => setErrorCount(0), []);
 
     const value = useMemo<CopilotWidgetContextValue>(() => {
         return {
             isOpen,
             lastActionType,
             activeTab,
+             errorCount,
             open,
             close,
             toggle,
             setLastActionType,
             setActiveTab,
+             incrementErrors,
+             resetErrors,
         };
-    }, [isOpen, lastActionType, activeTab, open, close, toggle]);
+    }, [isOpen, lastActionType, activeTab, errorCount, open, close, toggle, incrementErrors, resetErrors]);
 
     return <CopilotWidgetContext.Provider value={value}>{children}</CopilotWidgetContext.Provider>;
 }

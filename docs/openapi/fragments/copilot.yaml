@@ -1183,6 +1183,8 @@ components:
             - workspace.get_inventory_item
             - workspace.low_stock
             - workspace.get_awards
+            - workspace.get_receipts
+            - workspace.get_invoices
         call_id:
           type: string
           maxLength: 128

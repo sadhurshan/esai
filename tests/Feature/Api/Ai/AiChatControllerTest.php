@@ -2,12 +2,12 @@
 
 require_once __DIR__ . '/helpers.php';
 
+use App\Exceptions\AiChatException;
 use App\Models\AiChatMessage;
 use App\Models\AiChatThread;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\WorkspaceToolResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Symfony\Component\HttpFoundation\Response;
 use function Pest\Laravel\actingAs;
 
@@ -243,4 +243,37 @@ it('resolves workspace tool calls and continues the conversation', function (): 
         ->assertJsonPath('data.assistant_message.role', AiChatMessage::ROLE_ASSISTANT);
 
     expect(AiChatMessage::query()->where('thread_id', $thread->id)->where('role', AiChatMessage::ROLE_TOOL)->count())->toBe(1);
+});
+
+it('increments the tool error counter when workspace tools fail', function (): void {
+    ['user' => $user, 'company' => $company] = provisionCopilotActionUser();
+
+    $thread = AiChatThread::query()->create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'title' => 'Workspace failure',
+        'status' => AiChatThread::STATUS_OPEN,
+        'last_message_at' => now(),
+    ]);
+
+    $toolResolver = Mockery::mock(WorkspaceToolResolver::class);
+    $toolResolver->shouldReceive('resolveBatch')
+        ->once()
+        ->andThrow(new AiChatException('Resolver failed.'));
+    $this->app->instance(WorkspaceToolResolver::class, $toolResolver);
+
+    actingAs($user);
+
+    $this->withSession([]);
+
+    $response = $this->postJson("/api/v1/ai/chat/threads/{$thread->id}/tools/resolve", [
+        'tool_calls' => [
+            ['tool_name' => 'workspace.get_rfq', 'call_id' => 'c-1', 'arguments' => ['rfq_id' => 1]],
+        ],
+    ]);
+
+    $response->assertStatus(Response::HTTP_BAD_GATEWAY)
+        ->assertJsonPath('message', 'Resolver failed.');
+
+    expect(session('tool_error_count'))->toBe(1);
 });

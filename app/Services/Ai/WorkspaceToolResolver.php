@@ -15,18 +15,28 @@ use Illuminate\Support\Str;
 
 class WorkspaceToolResolver
 {
-    public const SUPPORTED_TOOLS = [
-        'workspace.search_rfqs',
-        'workspace.get_rfq',
-        'workspace.list_suppliers',
-        'workspace.get_quotes_for_rfq',
-        'workspace.get_inventory_item',
-        'workspace.low_stock',
-        'workspace.get_awards',
-        'workspace.stats_quotes',
+    public const RESOLVER_METHODS = [
+        'workspace.search_rfqs' => 'handleSearchRfqs',
+        'workspace.get_rfq' => 'handleGetRfq',
+        'workspace.list_suppliers' => 'handleListSuppliers',
+        'workspace.get_quotes_for_rfq' => 'handleGetQuotesForRfq',
+        'workspace.get_inventory_item' => 'handleGetInventoryItem',
+        'workspace.low_stock' => 'handleLowStock',
+        'workspace.get_awards' => 'handleGetAwards',
+        'workspace.stats_quotes' => 'handleQuoteStats',
+        'workspace.get_receipts' => 'handleGetReceipts',
+        'workspace.get_invoices' => 'handleGetInvoices',
     ];
 
     public const MAX_TOOL_CALLS = 5;
+
+    /**
+     * @return list<string>
+     */
+    public static function supportedTools(): array
+    {
+        return array_keys(self::RESOLVER_METHODS);
+    }
 
     private const QUOTE_STATUSES = [
         'draft',
@@ -52,7 +62,7 @@ class WorkspaceToolResolver
             $callId = (string) ($call['call_id'] ?? Str::uuid()->toString());
             $arguments = isset($call['arguments']) && is_array($call['arguments']) ? $call['arguments'] : [];
 
-            if (! in_array($toolName, self::SUPPORTED_TOOLS, true)) {
+            if (! array_key_exists($toolName, self::RESOLVER_METHODS)) {
                 throw new AiChatException(sprintf('Unsupported workspace tool "%s" requested.', $toolName));
             }
 
@@ -72,17 +82,13 @@ class WorkspaceToolResolver
      */
     private function dispatch(int $companyId, string $toolName, array $arguments): ?array
     {
-        return match ($toolName) {
-            'workspace.search_rfqs' => $this->handleSearchRfqs($companyId, $arguments),
-            'workspace.get_rfq' => $this->handleGetRfq($companyId, $arguments),
-            'workspace.list_suppliers' => $this->handleListSuppliers($companyId, $arguments),
-            'workspace.get_quotes_for_rfq' => $this->handleGetQuotesForRfq($companyId, $arguments),
-            'workspace.get_inventory_item' => $this->handleGetInventoryItem($companyId, $arguments),
-            'workspace.low_stock' => $this->handleLowStock($companyId, $arguments),
-            'workspace.get_awards' => $this->handleGetAwards($companyId, $arguments),
-            'workspace.stats_quotes' => $this->handleQuoteStats($companyId, $arguments),
-            default => null,
-        };
+        $method = self::RESOLVER_METHODS[$toolName] ?? null;
+
+        if ($method === null || ! method_exists($this, $method)) {
+            return null;
+        }
+
+        return $this->{$method}($companyId, $arguments);
     }
 
     /**
@@ -509,6 +515,74 @@ class WorkspaceToolResolver
         ];
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
+    private function handleGetReceipts(int $companyId, array $arguments): array
+    {
+        $limit = $this->sanitizeLimit($arguments['limit'] ?? null, 3, 10);
+        $context = $this->sanitizeArrayArgument($arguments['context'] ?? null);
+        $filters = $this->sanitizeArrayArgument($arguments['filters'] ?? null);
+
+        $items = [];
+
+        for ($index = 1; $index <= $limit; $index++) {
+            $items[] = [
+                'id' => $index,
+                'receipt_number' => sprintf('RCPT-%04d', $index),
+                'supplier_name' => $filters['supplier_name'] ?? 'Placeholder Supplier',
+                'status' => 'received',
+                'total_amount' => 1250.0 + ($index * 15),
+                'created_at' => now()->subDays($index)->toIso8601String(),
+            ];
+        }
+
+        return [
+            'items' => $items,
+            'meta' => [
+                'limit' => $limit,
+                'context' => $context,
+                'filters' => $filters,
+                'note' => 'Placeholder receiving data; replace with real receiving + QC integration.',
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
+    private function handleGetInvoices(int $companyId, array $arguments): array
+    {
+        $limit = $this->sanitizeLimit($arguments['limit'] ?? null, 3, 10);
+        $context = $this->sanitizeArrayArgument($arguments['context'] ?? null);
+        $filters = $this->sanitizeArrayArgument($arguments['filters'] ?? null);
+
+        $items = [];
+
+        for ($index = 1; $index <= $limit; $index++) {
+            $items[] = [
+                'id' => $index,
+                'invoice_number' => sprintf('INV-%04d', $index),
+                'supplier_name' => $filters['supplier_name'] ?? 'Placeholder Supplier',
+                'status' => 'pending',
+                'total_amount' => 2450.0 + ($index * 25),
+                'created_at' => now()->subDays($index + 2)->toIso8601String(),
+            ];
+        }
+
+        return [
+            'items' => $items,
+            'meta' => [
+                'limit' => $limit,
+                'context' => $context,
+                'filters' => $filters,
+                'note' => 'Placeholder invoice data; replace with AP + 3-way match pipeline.',
+            ],
+        ];
+    }
+
     private function sanitizeLimit(mixed $value, int $default, int $max): int
     {
         if (! is_numeric($value)) {
@@ -574,6 +648,14 @@ class WorkspaceToolResolver
         }
 
         return $sanitized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function sanitizeArrayArgument(mixed $value): array
+    {
+        return is_array($value) ? $value : [];
     }
 
     private function coerceId(mixed $value): ?int

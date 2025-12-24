@@ -1185,6 +1185,13 @@ components:
             - workspace.get_awards
             - workspace.get_receipts
             - workspace.get_invoices
+            - workspace.award_quote
+            - workspace.invoice_draft
+            - workspace.approve_invoice
+            - workspace.review_rfq
+            - workspace.review_quote
+            - workspace.review_po
+            - workspace.review_invoice
         call_id:
           type: string
           maxLength: 128
@@ -1305,6 +1312,10 @@ components:
             - workflow_suggestion
             - tool_request
             - error
+            - review_rfq
+            - review_quote
+            - review_po
+            - review_invoice
         assistant_message_markdown:
           type: string
         citations:
@@ -1342,6 +1353,11 @@ components:
           type: array
           items:
             type: string
+        review:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Structured checklist payload for review_* responses.
     AiChatSendMessageResult:
       type: object
       required:

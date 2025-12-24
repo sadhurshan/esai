@@ -1,6 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Bot, ChevronDown, GitBranch, Loader2, Send, Sparkles, User } from 'lucide-react';
 
+import { ReviewChecklist } from '@/components/ai/ReviewChecklist';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,10 @@ const RESPONSE_LABELS: Record<string, string> = {
     guided_resolution: 'Guided resolution',
     tool_request: 'Workspace lookup needed',
     error: 'Unable to respond',
+    review_rfq: 'RFQ review',
+    review_quote: 'Quote review',
+    review_po: 'PO review',
+    review_invoice: 'Invoice review',
 };
 
 const FALLBACK_THREAD_TITLE = 'New conversation';
@@ -553,8 +558,9 @@ function AssistantDetails({
     const hasDraft = response?.type === 'draft_action' && Boolean(response.draft);
     const hasWorkflow = response?.type === 'workflow_suggestion' && Boolean(response.workflow);
     const guidedResolution = response?.type === 'guided_resolution' ? response.guided_resolution : null;
+    const reviewPayload = response?.review ?? null;
 
-    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution) {
+    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution && !reviewPayload) {
         return null;
     }
 
@@ -574,6 +580,8 @@ function AssistantDetails({
                     </AlertDescription>
                 </Alert>
             ) : null} */}
+
+            {reviewPayload ? <ReviewChecklist review={reviewPayload} /> : null}
 
             {hasDraft && response?.draft ? (
                 <DraftPreview
@@ -644,10 +652,30 @@ function DraftPreview({
     const [rejectMode, setRejectMode] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
     const payloadEntries = Object.entries(draft.payload ?? {});
+    const invoiceDraftPayload = draft.action_type === 'invoice_draft' && isRecord(draft.payload) ? draft.payload : null;
+    const invoicePaymentPayload = draft.action_type === 'approve_invoice' && isRecord(draft.payload) ? draft.payload : null;
     const status = draft.status;
     const summary = draft.summary ?? 'Copilot saved this draft so you can approve or reject it.';
     const isActionable = !status || status === 'drafted';
     const showActions = isActionable && (Boolean(onApprove) || Boolean(onReject));
+    let payloadContent: ReactNode | null = null;
+
+    if (invoiceDraftPayload) {
+        payloadContent = <InvoiceDraftPayload payload={invoiceDraftPayload} />;
+    } else if (invoicePaymentPayload) {
+        payloadContent = <InvoicePaymentPayload payload={invoicePaymentPayload} />;
+    } else if (payloadEntries.length > 0) {
+        payloadContent = (
+            <dl className="mt-3 space-y-2 text-sm">
+                {payloadEntries.map(([key, value]) => (
+                    <div key={key}>
+                        <dt className="text-xs uppercase tracking-wide text-slate-400">{humanizeKey(key)}</dt>
+                        <dd className="text-slate-100">{renderValue(value)}</dd>
+                    </div>
+                ))}
+            </dl>
+        );
+    }
 
     useEffect(() => {
         if (!showActions) {
@@ -703,16 +731,7 @@ function DraftPreview({
                 ) : null}
             </div>
             <p className="mt-2 text-sm text-slate-200">{summary}</p>
-            {payloadEntries.length > 0 ? (
-                <dl className="mt-3 space-y-2 text-sm">
-                    {payloadEntries.map(([key, value]) => (
-                        <div key={key}>
-                            <dt className="text-xs uppercase tracking-wide text-slate-400">{humanizeKey(key)}</dt>
-                            <dd className="text-slate-100">{renderValue(value)}</dd>
-                        </div>
-                    ))}
-                </dl>
-            ) : null}
+            {payloadContent}
 
             {showActions ? (
                 <div className="mt-5 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -784,6 +803,137 @@ function DraftPreview({
                 </div>
             ) : null}
         </CollapsibleCard>
+    );
+}
+
+interface InvoiceDraftLine {
+    description: string;
+    qty: number;
+    unitPrice: number;
+    taxRate: number;
+}
+
+function InvoiceDraftPayload({ payload }: { payload: Record<string, unknown> }) {
+    const poId = normalizeStringValue(payload.po_id) ?? '—';
+    const invoiceDate = formatDateLabel(normalizeStringValue(payload.invoice_date));
+    const dueDate = formatDateLabel(normalizeStringValue(payload.due_date));
+    const notes = normalizeStringValue(payload.notes);
+    const currency = normalizeCurrencyCode(payload.currency) ?? 'USD';
+    const lineItems = Array.isArray(payload.line_items)
+        ? (payload.line_items
+              .map((item) => {
+                  if (!isRecord(item)) {
+                      return null;
+                  }
+
+                  const qty = numberValue(item.qty);
+                  const unitPrice = numberValue(item.unit_price);
+
+                  if (qty === null || unitPrice === null) {
+                      return null;
+                  }
+
+                  return {
+                      description: normalizeStringValue(item.description) ?? 'Line item',
+                      qty,
+                      unitPrice,
+                      taxRate: Math.max(0, numberValue(item.tax_rate) ?? 0),
+                  } satisfies InvoiceDraftLine;
+              })
+              .filter(Boolean) as InvoiceDraftLine[])
+        : [];
+
+    const subtotal = lineItems.reduce((sum, line) => sum + line.qty * line.unitPrice, 0);
+    const taxTotal = lineItems.reduce((sum, line) => sum + line.qty * line.unitPrice * line.taxRate, 0);
+    const grandTotal = subtotal + taxTotal;
+
+    return (
+        <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+            <div className="grid gap-4 text-sm text-white sm:grid-cols-2">
+                <InfoItem label="Purchase order" value={poId} />
+                <InfoItem label="Invoice date" value={invoiceDate} />
+                <InfoItem label="Due date" value={dueDate} />
+                <InfoItem label="Currency" value={currency} />
+            </div>
+
+            <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Line items</p>
+                <div className="mt-2 space-y-2">
+                    {lineItems.length === 0 ? (
+                        <p className="text-sm text-slate-400">Copilot did not include any invoice lines.</p>
+                    ) : (
+                        lineItems.map((line, index) => (
+                            <div key={`${line.description}-${index}`} className="rounded-xl border border-white/5 bg-white/5 p-3">
+                                <div className="flex items-center justify-between gap-3 text-sm font-semibold text-white">
+                                    <span>{line.description}</span>
+                                    <span>{formatCurrencyValue(line.qty * line.unitPrice, currency)}</span>
+                                </div>
+                                <p className="text-xs text-slate-400">
+                                    {line.qty} × {formatCurrencyValue(line.unitPrice, currency)} · Tax {formatPercentValue(line.taxRate)}
+                                </p>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-sm">
+                <div className="flex items-center justify-between text-slate-300">
+                    <span>Subtotal</span>
+                    <span>{formatCurrencyValue(subtotal, currency)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-slate-300">
+                    <span>Estimated tax</span>
+                    <span>{formatCurrencyValue(taxTotal, currency)}</span>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-base font-semibold text-white">
+                    <span>Total</span>
+                    <span>{formatCurrencyValue(grandTotal, currency)}</span>
+                </div>
+            </div>
+
+            {notes ? (
+                <div className="rounded-xl border border-white/5 bg-white/5 p-3 text-sm text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Reviewer note</p>
+                    <p className="mt-1 whitespace-pre-wrap">{notes}</p>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function InvoicePaymentPayload({ payload }: { payload: Record<string, unknown> }) {
+    const invoiceId = normalizeStringValue(payload.invoice_id) ?? '—';
+    const paymentReference = normalizeStringValue(payload.payment_reference) ?? '—';
+    const paymentMethod = normalizeStringValue(payload.payment_method) ?? '—';
+    const paidAt = formatDateLabel(normalizeStringValue(payload.paid_at));
+    const note = normalizeStringValue(payload.note);
+    const currency = normalizeCurrencyCode(payload.payment_currency) ?? 'USD';
+    const amount = numberValue(payload.payment_amount);
+
+    return (
+        <div className="mt-3 space-y-4 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-4 text-sm text-white">
+            <div className="grid gap-4 sm:grid-cols-2">
+                <InfoItem label="Invoice" value={invoiceId} />
+                <InfoItem label="Payment reference" value={paymentReference} />
+                <InfoItem label="Payment method" value={paymentMethod} />
+                <InfoItem label="Paid date" value={paidAt} />
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-emerald-950/30 p-4">
+                <p className="text-xs uppercase tracking-wide text-emerald-200">Amount recorded</p>
+                <p className="mt-2 text-2xl font-semibold">
+                    {amount === null ? '—' : formatCurrencyValue(amount, currency)}
+                </p>
+            </div>
+
+            {note ? (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Payment note</p>
+                    <p className="mt-1 whitespace-pre-wrap">{note}</p>
+                </div>
+            ) : null}
+        </div>
     );
 }
 
@@ -887,6 +1037,15 @@ function GuidedResolutionCard({ resolution }: { resolution: AiChatGuidedResoluti
                     </a>
                 </Button>
             ) : null}
+        </div>
+    );
+}
+
+function InfoItem({ label, value }: { label: string; value: ReactNode }) {
+    return (
+        <div>
+            <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+            <p className="text-base font-semibold text-white">{value}</p>
         </div>
     );
 }
@@ -1051,6 +1210,72 @@ function renderValue(value: unknown): string {
     }
 
     return String(value);
+}
+
+function formatDateLabel(value?: string | null): string {
+    if (!value) {
+        return '—';
+    }
+
+    try {
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+        }).format(new Date(value));
+    } catch {
+        return value;
+    }
+}
+
+function formatCurrencyValue(amount: number, currency = 'USD'): string {
+    if (!Number.isFinite(amount)) {
+        return '—';
+    }
+
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    } catch {
+        return `${currency} ${amount.toFixed(2)}`;
+    }
+}
+
+function numberValue(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return null;
+        }
+        const parsed = Number(trimmed);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+}
+
+function formatPercentValue(value: number): string {
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'percent',
+            maximumFractionDigits: value === 0 ? 0 : 1,
+        }).format(value);
+    } catch {
+        return `${(value * 100).toFixed(1)}%`;
+    }
+}
+
+function normalizeCurrencyCode(value: unknown): string | null {
+    const code = normalizeStringValue(value);
+    return code ? code.toUpperCase() : null;
 }
 
 function humanizeKey(key: string): string {

@@ -107,6 +107,16 @@ interface PoDraftPayload {
     total_value?: number | null;
 }
 
+interface AwardQuoteDraft {
+    rfq_id: string | null;
+    supplier_id: string | null;
+    supplier_name: string | null;
+    selected_quote_id: string | null;
+    justification: string | null;
+    delivery_date: string | null;
+    terms: string[];
+}
+
 interface CursorMeta {
     next: string | null;
     prev: string | null;
@@ -163,6 +173,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
     const step = stepQuery.data?.step ?? null;
     const quoteDraft = useMemo(() => parseQuoteDraft(step?.draft), [step]);
     const poDraft = useMemo(() => parsePoDraft(step?.draft), [step]);
+    const awardDraft = useMemo(() => parseAwardDraft(step?.draft), [step]);
 
     useEffect(() => {
         if (!step) {
@@ -187,6 +198,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
     const roleAllowsApproval = state.user?.role ? APPROVER_ROLE_FALLBACK.has(state.user.role) : false;
     const approvalScope = permissions.length > 0 ? permissions.includes('ai.workflows.approve') : roleAllowsApproval || isAdmin;
     const rfqScope = permissions.length > 0 ? permissions.includes('rfqs.write') : isAdmin;
+    const quoteScope = permissions.length > 0 ? permissions.includes('quotes.write') : isAdmin;
     const orderScope = permissions.length > 0 ? permissions.includes('orders.write') : isAdmin;
 
     const stepSpecificPermission = useMemo(() => {
@@ -196,11 +208,14 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
         if (step.action_type === 'compare_quotes') {
             return rfqScope;
         }
+        if (step.action_type === 'award_quote') {
+            return quoteScope;
+        }
         if (step.action_type === 'po_draft') {
             return orderScope;
         }
         return true;
-    }, [orderScope, rfqScope, step]);
+    }, [orderScope, quoteScope, rfqScope, step]);
 
     const canResolveStep = Boolean(step) && workflowFeatureEnabled && approvalScope && stepSpecificPermission;
     const approveDisabled =
@@ -231,6 +246,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
             quoteDraft,
             poDraft,
             selectedSupplier: quoteSelection,
+            awardDraft,
         });
 
         try {
@@ -248,7 +264,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
         } catch (error) {
             handleMutationError(error, 'Unable to approve step.');
         }
-    }, [poDraft, poAcknowledged, quoteDraft, quoteSelection, resolveStep, reviewNotes, selectedWorkflowId, step, stepQuery]);
+    }, [awardDraft, poDraft, poAcknowledged, quoteDraft, quoteSelection, resolveStep, reviewNotes, selectedWorkflowId, step, stepQuery]);
 
     const handleReject = useCallback(async () => {
         if (!step || !selectedWorkflowId) {
@@ -259,6 +275,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
             quoteDraft,
             poDraft,
             selectedSupplier: quoteSelection,
+            awardDraft,
         });
 
         try {
@@ -274,7 +291,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
         } catch (error) {
             handleMutationError(error, 'Unable to reject step.');
         }
-    }, [poDraft, quoteDraft, quoteSelection, resolveStep, reviewNotes, selectedWorkflowId, step, stepQuery]);
+    }, [awardDraft, poDraft, quoteDraft, quoteSelection, resolveStep, reviewNotes, selectedWorkflowId, step, stepQuery]);
 
     if (!workflowFeatureEnabled) {
         return (
@@ -490,6 +507,8 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
                                     selection={quoteSelection}
                                     onSelectionChange={setQuoteSelection}
                                 />
+                            ) : step.action_type === 'award_quote' ? (
+                                <AwardQuotePreview draft={awardDraft} />
                             ) : step.action_type === 'po_draft' ? (
                                 <PoDraftPreview
                                     draft={poDraft}
@@ -656,6 +675,70 @@ function QuoteComparisonPreview({
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function AwardQuotePreview({ draft }: { draft: AwardQuoteDraft | null }) {
+    if (!draft) {
+        return (
+            <EmptyState
+                title="No award details"
+                description="The AI service did not supply an award recommendation for this step."
+            />
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex flex-wrap items-start gap-4 rounded-xl border bg-card/60 p-4">
+                <div>
+                    <Badge variant="outline">{draft.selected_quote_id ? `Quote ${draft.selected_quote_id}` : 'Quote selection'}</Badge>
+                    <p className="text-base font-semibold text-foreground">
+                        {draft.supplier_name ?? draft.supplier_id ?? 'Unnamed supplier'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">RFQ #{draft.rfq_id ?? '—'}</p>
+                </div>
+                <div className="ml-auto text-right">
+                    <p className="text-xs uppercase text-muted-foreground">Target delivery</p>
+                    <p className="text-lg font-semibold text-foreground">{draft.delivery_date ?? '—'}</p>
+                    {draft.delivery_date && (
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(draft.delivery_date)}</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="grid gap-3 text-sm md:grid-cols-3">
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Supplier ID</p>
+                    <p className="font-semibold text-foreground">{draft.supplier_id ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Quote ID</p>
+                    <p className="font-semibold text-foreground">{draft.selected_quote_id ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">RFQ ID</p>
+                    <p className="font-semibold text-foreground">{draft.rfq_id ?? '—'}</p>
+                </div>
+            </div>
+
+            <div className="rounded-xl border border-dashed bg-muted/20 p-4">
+                <p className="text-sm font-semibold text-foreground">Justification</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {draft.justification ?? 'No justification provided.'}
+                </p>
+            </div>
+
+            {draft.terms.length > 0 && (
+                <CollapsibleSection title="Award terms" defaultOpen>
+                    <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+                        {draft.terms.map((term, index) => (
+                            <li key={`${term}-${index}`}>{term}</li>
+                        ))}
+                    </ul>
+                </CollapsibleSection>
+            )}
         </div>
     );
 }
@@ -891,13 +974,29 @@ function formatCurrency(value?: number | null, currency = 'USD'): string {
     }
 }
 
-function parseQuoteDraft(raw: Record<string, unknown> | undefined | null): QuoteComparisonDraft {
+function unwrapPayload(raw: Record<string, unknown> | undefined | null): Record<string, any> | null {
     if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const envelope = raw as Record<string, unknown>;
+
+    if (isRecord(envelope.payload)) {
+        return envelope.payload;
+    }
+
+    return envelope as Record<string, any>;
+}
+
+function parseQuoteDraft(raw: Record<string, unknown> | undefined | null): QuoteComparisonDraft {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
         return { rankings: [] };
     }
 
-    const rankings = Array.isArray((raw as Record<string, unknown>)['rankings'])
-        ? ((raw as Record<string, unknown>)['rankings'] as unknown[])
+    const rankings = Array.isArray(source['rankings'])
+        ? (source['rankings'] as unknown[])
               .map((entry) => {
                   if (!entry || typeof entry !== 'object') {
                       return null;
@@ -922,33 +1021,35 @@ function parseQuoteDraft(raw: Record<string, unknown> | undefined | null): Quote
               .filter((entry): entry is QuoteRanking => entry !== null)
         : [];
 
-    const summaryPayload = (raw['summary'] ?? []) as unknown;
+    const summaryPayload = (source['summary'] ?? []) as unknown;
     const summary = Array.isArray(summaryPayload)
         ? summaryPayload.filter((entry): entry is string => typeof entry === 'string')
         : [];
 
     return {
-        recommendation: normalizeId(raw['recommendation']),
+        recommendation: normalizeId(source['recommendation']),
         summary,
         rankings,
     };
 }
 
 function parsePoDraft(raw: Record<string, unknown> | undefined | null): PoDraftPayload | null {
-    if (!raw || typeof raw !== 'object') {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
         return null;
     }
 
-    const supplierBlock = isRecord(raw.supplier)
+    const supplierBlock = isRecord(source.supplier)
         ? {
-              supplier_id: normalizeId(raw.supplier.supplier_id ?? raw.supplier.id) ?? null,
-              name: typeof raw.supplier.name === 'string' ? raw.supplier.name : null,
-              contact: typeof raw.supplier.contact === 'string' ? raw.supplier.contact : null,
+              supplier_id: normalizeId(source.supplier.supplier_id ?? source.supplier.id) ?? null,
+              name: typeof source.supplier.name === 'string' ? source.supplier.name : null,
+              contact: typeof source.supplier.contact === 'string' ? source.supplier.contact : null,
           }
         : null;
 
-    const lineItems = Array.isArray(raw.line_items)
-        ? raw.line_items
+    const lineItems = Array.isArray(source.line_items)
+        ? source.line_items
               .map((item) => {
                   if (!isRecord(item)) {
                       return null;
@@ -968,8 +1069,8 @@ function parsePoDraft(raw: Record<string, unknown> | undefined | null): PoDraftP
               .filter((entry): entry is PoLineItem => entry !== null)
         : [];
 
-    const deliverySchedule = Array.isArray(raw.delivery_schedule)
-        ? raw.delivery_schedule
+    const deliverySchedule = Array.isArray(source.delivery_schedule)
+        ? source.delivery_schedule
               .map((entry) => {
                   if (!isRecord(entry)) {
                       return null;
@@ -984,27 +1085,68 @@ function parsePoDraft(raw: Record<string, unknown> | undefined | null): PoDraftP
               .filter((entry): entry is PoDeliveryMilestone => entry !== null)
         : [];
 
-    const terms = Array.isArray(raw.terms_and_conditions)
-        ? raw.terms_and_conditions
+    const terms = Array.isArray(source.terms_and_conditions)
+        ? source.terms_and_conditions
               .filter((term): term is string => typeof term === 'string' && term.trim().length > 0)
               .map((term) => term.trim())
         : [];
 
     return {
-        po_number: typeof raw.po_number === 'string' ? raw.po_number : null,
+        po_number: typeof source.po_number === 'string' ? source.po_number : null,
         supplier: supplierBlock,
-        currency: typeof raw.currency === 'string' ? raw.currency : 'USD',
+        currency: typeof source.currency === 'string' ? source.currency : 'USD',
         line_items: lineItems,
         delivery_schedule: deliverySchedule,
         terms_and_conditions: terms,
-        total_value: toNumber(raw.total_value),
+        total_value: toNumber(source.total_value),
+    };
+}
+
+function parseAwardDraft(raw: Record<string, unknown> | undefined | null): AwardQuoteDraft | null {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
+        return null;
+    }
+
+    const supplierBlock = isRecord(source.supplier) ? source.supplier : null;
+    const supplierName = typeof source.supplier_name === 'string'
+        ? (source.supplier_name as string)
+        : (supplierBlock && typeof supplierBlock.name === 'string' ? (supplierBlock.name as string) : null);
+
+    const supplierId = normalizeId(source.supplier_id)
+        ?? (supplierBlock ? normalizeId(supplierBlock.supplier_id ?? supplierBlock.id) : null);
+
+    const termsSource = Array.isArray(source.terms)
+        ? source.terms
+        : Array.isArray(source.terms_and_conditions)
+          ? source.terms_and_conditions
+          : [];
+
+    const terms = termsSource
+        .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+        .map((entry) => entry.trim());
+
+    return {
+        rfq_id: normalizeId(source.rfq_id),
+        supplier_id: supplierId,
+        supplier_name: supplierName,
+        selected_quote_id: normalizeId(source.selected_quote_id ?? source.quote_id),
+        justification: typeof source.justification === 'string' ? (source.justification as string) : null,
+        delivery_date: typeof source.delivery_date === 'string' ? (source.delivery_date as string) : null,
+        terms,
     };
 }
 
 function buildCompletionOutput(
     step: AiWorkflowStepDetail,
     approval: boolean,
-    context: { quoteDraft: QuoteComparisonDraft; poDraft: PoDraftPayload | null; selectedSupplier: string | null },
+    context: {
+        quoteDraft: QuoteComparisonDraft;
+        poDraft: PoDraftPayload | null;
+        selectedSupplier: string | null;
+        awardDraft: AwardQuoteDraft | null;
+    },
 ): Record<string, unknown> {
     if (!approval) {
         return {
@@ -1025,6 +1167,13 @@ function buildCompletionOutput(
                 rankings: context.quoteDraft.rankings,
                 summary: context.quoteDraft.summary,
             },
+        };
+    }
+
+    if (step.action_type === 'award_quote') {
+        return {
+            summary: 'Quote award approved',
+            payload: context.awardDraft ?? step.draft ?? {},
         };
     }
 

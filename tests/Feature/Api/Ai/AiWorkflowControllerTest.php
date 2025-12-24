@@ -6,7 +6,15 @@ use App\Models\AiEvent;
 use App\Models\AiWorkflow;
 use App\Models\AiWorkflowStep;
 use App\Models\CompanyFeatureFlag;
+use App\Models\Quote;
+use App\Models\QuoteItem;
+use App\Models\RFQ;
+use App\Models\RfqItem;
+use App\Models\RfqItemAward;
+use App\Models\RoleTemplate;
+use App\Models\Supplier;
 use App\Services\Ai\AiClient;
+use App\Support\Permissions\PermissionRegistry;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use function Pest\Laravel\actingAs;
@@ -50,7 +58,19 @@ it('starts a workflow and persists steps', function (): void {
         ->assertJsonPath('data.workflow_id', 'wf-123');
 
     expect(AiWorkflow::query()->where('workflow_id', 'wf-123')->where('company_id', $company->id)->exists())->toBeTrue();
-    expect(AiWorkflowStep::query()->where('workflow_id', 'wf-123')->count())->toBeGreaterThan(0);
+
+    $steps = AiWorkflowStep::query()
+        ->where('workflow_id', 'wf-123')
+        ->orderBy('step_index')
+        ->pluck('action_type')
+        ->all();
+
+    expect($steps)->toEqual([
+        'rfq_draft',
+        'compare_quotes',
+        'award_quote',
+        'po_draft',
+    ]);
 });
 
 it('drafts the next workflow step', function (): void {
@@ -155,6 +175,112 @@ it('approves a workflow step', function (): void {
     expect($step->fresh()->isApproved())->toBeTrue();
 });
 
+it('creates awards when the award quote step is approved', function (): void {
+    ['user' => $user, 'company' => $company] = provisionCopilotActionUser();
+
+    $supplier = Supplier::factory()->for($company)->create();
+
+    $rfq = RFQ::factory()->for($company)->create([
+        'created_by' => $user->id,
+        'status' => RFQ::STATUS_OPEN,
+        'due_at' => now()->addDays(10),
+    ]);
+
+    $items = RfqItem::factory()->count(2)->create([
+        'rfq_id' => $rfq->id,
+        'company_id' => $company->id,
+        'created_by' => $user->id,
+        'qty' => 5,
+    ]);
+
+    $quote = Quote::factory()->create([
+        'company_id' => $company->id,
+        'rfq_id' => $rfq->id,
+        'supplier_id' => $supplier->id,
+        'submitted_by' => $user->id,
+        'status' => 'submitted',
+    ]);
+
+    foreach ($items as $index => $item) {
+        QuoteItem::query()->create([
+            'company_id' => $company->id,
+            'quote_id' => $quote->id,
+            'rfq_item_id' => $item->id,
+            'unit_price' => 100 + $index,
+            'currency' => 'USD',
+            'unit_price_minor' => 10000 + $index,
+            'lead_time_days' => 10,
+            'status' => 'pending',
+        ]);
+    }
+
+    $workflow = AiWorkflow::factory()->create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'workflow_id' => 'wf-award-quote',
+        'steps_json' => ['steps' => []],
+        'current_step' => 1,
+        'workflow_type' => 'procurement',
+    ]);
+
+    $awardPayload = [
+        'rfq_id' => (string) $rfq->id,
+        'supplier_id' => (string) $supplier->id,
+        'selected_quote_id' => (string) $quote->id,
+        'justification' => 'Best overall value.',
+        'delivery_date' => now()->addDays(21)->toDateString(),
+        'terms' => ['Net 30', 'Maintain quoted pricing'],
+    ];
+
+    $step = AiWorkflowStep::factory()->create([
+        'company_id' => $company->id,
+        'workflow_id' => $workflow->workflow_id,
+        'step_index' => 1,
+        'action_type' => 'award_quote',
+        'draft_json' => [
+            'summary' => 'Award quote draft ready',
+            'payload' => $awardPayload,
+        ],
+        'input_json' => ['rfq_id' => $rfq->id],
+    ]);
+
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('completeWorkflowStep')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'ok',
+            'data' => [
+                'workflow_status' => 'in_progress',
+                'next_step' => null,
+            ],
+            'errors' => [],
+        ]);
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($user);
+
+    $response = $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['payload' => $awardPayload],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.step.approval_status', 'approved');
+
+    $awards = RfqItemAward::query()->where('rfq_id', $rfq->id)->get();
+
+    expect($awards)->toHaveCount($items->count());
+
+    $firstAward = $awards->first();
+    expect($firstAward?->quote_id)->toBe($quote->id);
+    expect($firstAward?->supplier_id)->toBe($supplier->id);
+    expect($firstAward?->awarded_by)->toBe($user->id);
+
+    expect($quote->fresh()->status)->toBe('awarded');
+});
+
 it('forbids drafting workflow steps without workflow access permissions', function (): void {
     ['user' => $user, 'company' => $company] = provisionCopilotActionUser('buyer_requester');
 
@@ -212,6 +338,62 @@ it('forbids approving workflow steps when user lacks approval permissions', func
 
     $response->assertForbidden()
         ->assertJsonPath('errors.code', 'workflow_approval_forbidden');
+});
+
+it('requires quote permissions to approve award quote steps', function (): void {
+    ['user' => $user, 'company' => $company] = provisionCopilotActionUser('finance');
+
+    RoleTemplate::query()->create([
+        'slug' => 'finance',
+        'name' => 'Finance',
+        'description' => 'Finance override for tests',
+        'permissions' => ['rfqs.write'],
+    ]);
+
+    app(PermissionRegistry::class)->forgetRoleCache('finance');
+
+    $workflow = AiWorkflow::factory()->create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'workflow_id' => 'wf-award-permissions',
+        'workflow_type' => 'procurement',
+        'steps_json' => ['steps' => []],
+        'current_step' => 1,
+    ]);
+
+    $awardPayload = [
+        'rfq_id' => 'RFQ-100',
+        'supplier_id' => 'SUP-77',
+        'selected_quote_id' => 'Q-55',
+        'justification' => 'Best TCO',
+        'delivery_date' => now()->addDays(15)->toDateString(),
+        'terms' => ['Net 30'],
+    ];
+
+    $step = AiWorkflowStep::factory()->create([
+        'company_id' => $company->id,
+        'workflow_id' => $workflow->workflow_id,
+        'step_index' => 1,
+        'action_type' => 'award_quote',
+        'draft_json' => [
+            'summary' => 'Award quote draft',
+            'payload' => $awardPayload,
+        ],
+        'input_json' => ['rfq_id' => 'RFQ-100'],
+    ]);
+
+    actingAs($user);
+
+    $response = $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['payload' => $awardPayload],
+    ]);
+
+    $response->assertForbidden()
+        ->assertJsonPath('message', 'You are not authorized to resolve this step.');
+
+    expect($step->fresh()->isPending())->toBeTrue();
 });
 
 it('rejects workflow requests when plan disables ai workflows', function (): void {

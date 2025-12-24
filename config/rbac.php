@@ -80,6 +80,20 @@ return [
                     'domain' => 'sourcing',
                 ],
                 [
+                    'key' => 'quotes.read',
+                    'label' => 'View quotes',
+                    'description' => 'Inspect supplier quote submissions and scoring summaries.',
+                    'level' => 'read',
+                    'domain' => 'sourcing',
+                ],
+                [
+                    'key' => 'quotes.write',
+                    'label' => 'Manage quotes',
+                    'description' => 'Review, shortlist, and award supplier quotes.',
+                    'level' => 'write',
+                    'domain' => 'sourcing',
+                ],
+                [
                     'key' => 'rfps.read',
                     'label' => 'View RFPs',
                     'description' => 'Read RFP briefs, evaluation criteria, and supplier proposals.',

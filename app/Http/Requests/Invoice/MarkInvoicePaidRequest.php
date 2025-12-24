@@ -14,6 +14,10 @@ class MarkInvoicePaidRequest extends ApiFormRequest
         return [
             'payment_reference' => ['required', 'string', 'max:191'],
             'note' => ['nullable', 'string', 'max:1000'],
+            'payment_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_currency' => ['nullable', 'string', 'size:3'],
+            'payment_method' => ['nullable', 'string', 'max:120'],
+            'paid_at' => ['nullable', 'date'],
         ];
     }
 
@@ -22,6 +26,12 @@ class MarkInvoicePaidRequest extends ApiFormRequest
      */
     public function payload(): array
     {
-        return $this->validated();
+        $data = $this->validated();
+
+        if (! empty($data['payment_currency'])) {
+            $data['payment_currency'] = strtoupper($data['payment_currency']);
+        }
+
+        return $data;
     }
 }

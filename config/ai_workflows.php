@@ -16,6 +16,11 @@ return [
                 'approval_permissions' => ['rfqs.write'],
             ],
             [
+                'action_type' => 'award_quote',
+                'name' => 'Award Quote',
+                'approval_permissions' => ['quotes.write'],
+            ],
+            [
                 'action_type' => 'po_draft',
                 'name' => 'Purchase Order Draft',
                 'approval_permissions' => ['orders.write'],

@@ -23,6 +23,7 @@ use App\Models\Invoice;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Carbon\CarbonImmutable;
 
 class InvoiceController extends ApiController
 {
@@ -174,7 +175,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice created.');
     }
@@ -228,7 +229,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice created.');
     }
@@ -245,7 +246,7 @@ class InvoiceController extends ApiController
             return $this->fail('Forbidden.', 403);
         }
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'purchaseOrder', 'supplier', 'supplierCompany', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'purchaseOrder', 'supplier', 'supplierCompany', 'reviewedBy', 'payments.creator']);
 
         $companyId = $this->resolveUserCompanyId($user);
 
@@ -272,7 +273,7 @@ class InvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice updated.');
     }
@@ -313,7 +314,7 @@ class InvoiceController extends ApiController
 
         $document = $this->attachInvoiceFileAction->execute($user, $invoice, $file);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok([
             'invoice' => (new InvoiceResource($invoice))->toArray($request),
@@ -341,7 +342,7 @@ class InvoiceController extends ApiController
 
         $invoice = $this->reviewSupplierInvoiceAction->approve($user, $invoice, $request->payload()['note'] ?? null);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice approved.');
     }
@@ -368,7 +369,7 @@ class InvoiceController extends ApiController
 
         $invoice = $this->reviewSupplierInvoiceAction->reject($user, $invoice, $payload['note']);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice rejected.');
     }
@@ -395,7 +396,7 @@ class InvoiceController extends ApiController
 
         $invoice = $this->reviewSupplierInvoiceAction->requestChanges($user, $invoice, $payload['note']);
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Review feedback recorded.');
     }
@@ -419,15 +420,20 @@ class InvoiceController extends ApiController
         }
 
         $payload = $request->payload();
+        $paidAt = ! empty($payload['paid_at']) ? CarbonImmutable::parse($payload['paid_at']) : null;
 
         $invoice = $this->reviewSupplierInvoiceAction->markPaid(
             $user,
             $invoice,
             $payload['payment_reference'],
-            $payload['note'] ?? null
+            $payload['note'] ?? null,
+            $payload['payment_amount'] ?? null,
+            $payload['payment_currency'] ?? null,
+            $payload['payment_method'] ?? null,
+            $paidAt
         );
 
-        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'document', 'attachments', 'matches', 'supplier', 'supplierCompany', 'purchaseOrder', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice marked as paid.');
     }

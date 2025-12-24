@@ -15,6 +15,8 @@ class AiActionDraft extends CompanyScopedModel
     public const TYPE_SUPPLIER_MESSAGE = 'supplier_message';
     public const TYPE_MAINTENANCE_CHECKLIST = 'maintenance_checklist';
     public const TYPE_INVENTORY_WHATIF = 'inventory_whatif';
+    public const TYPE_INVOICE_DRAFT = 'invoice_draft';
+    public const TYPE_APPROVE_INVOICE = 'approve_invoice';
 
     /**
      * @var list<string>
@@ -24,6 +26,8 @@ class AiActionDraft extends CompanyScopedModel
         self::TYPE_SUPPLIER_MESSAGE,
         self::TYPE_MAINTENANCE_CHECKLIST,
         self::TYPE_INVENTORY_WHATIF,
+        self::TYPE_INVOICE_DRAFT,
+        self::TYPE_APPROVE_INVOICE,
     ];
 
     public const STATUS_DRAFTED = 'drafted';

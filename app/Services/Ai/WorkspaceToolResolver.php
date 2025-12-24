@@ -2,9 +2,13 @@
 
 namespace App\Services\Ai;
 
+use App\Enums\AiChatToolCall;
 use App\Exceptions\AiChatException;
+use App\Enums\InvoiceStatus;
+use App\Models\Currency;
 use App\Models\Inventory;
 use App\Models\InventorySetting;
+use App\Models\Invoice;
 use App\Models\Part;
 use App\Models\Quote;
 use App\Models\RFQ;
@@ -16,16 +20,17 @@ use Illuminate\Support\Str;
 class WorkspaceToolResolver
 {
     public const RESOLVER_METHODS = [
-        'workspace.search_rfqs' => 'handleSearchRfqs',
-        'workspace.get_rfq' => 'handleGetRfq',
-        'workspace.list_suppliers' => 'handleListSuppliers',
-        'workspace.get_quotes_for_rfq' => 'handleGetQuotesForRfq',
-        'workspace.get_inventory_item' => 'handleGetInventoryItem',
-        'workspace.low_stock' => 'handleLowStock',
-        'workspace.get_awards' => 'handleGetAwards',
-        'workspace.stats_quotes' => 'handleQuoteStats',
-        'workspace.get_receipts' => 'handleGetReceipts',
-        'workspace.get_invoices' => 'handleGetInvoices',
+        AiChatToolCall::SearchRfqs->value => 'handleSearchRfqs',
+        AiChatToolCall::GetRfq->value => 'handleGetRfq',
+        AiChatToolCall::ListSuppliers->value => 'handleListSuppliers',
+        AiChatToolCall::GetQuotesForRfq->value => 'handleGetQuotesForRfq',
+        AiChatToolCall::GetInventoryItem->value => 'handleGetInventoryItem',
+        AiChatToolCall::LowStock->value => 'handleLowStock',
+        AiChatToolCall::GetAwards->value => 'handleGetAwards',
+        AiChatToolCall::QuoteStats->value => 'handleQuoteStats',
+        AiChatToolCall::GetReceipts->value => 'handleGetReceipts',
+        AiChatToolCall::GetInvoices->value => 'handleGetInvoices',
+        AiChatToolCall::ApproveInvoice->value => 'handleApproveInvoice',
     ];
 
     public const MAX_TOOL_CALLS = 5;
@@ -583,6 +588,142 @@ class WorkspaceToolResolver
         ];
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
+    private function handleApproveInvoice(int $companyId, array $arguments): array
+    {
+        $invoiceId = $this->coerceId($arguments['invoice_id'] ?? $arguments['id'] ?? null);
+        $invoiceNumber = isset($arguments['invoice_number']) ? trim((string) $arguments['invoice_number']) : null;
+
+        if ($invoiceId === null && ($invoiceNumber === null || $invoiceNumber === '')) {
+            throw new AiChatException('invoice_id or invoice_number is required for workspace.approve_invoice tool.');
+        }
+
+        $invoiceQuery = Invoice::query()
+            ->forCompany($companyId)
+            ->with([
+                'supplier' => static fn ($builder) => $builder->select(['id', 'name'])->withTrashed(),
+                'purchaseOrder' => static fn ($builder) => $builder->select(['id', 'company_id', 'po_number', 'status']),
+                'lines' => static fn ($builder) => $builder->select([
+                    'id',
+                    'invoice_id',
+                    'description',
+                    'quantity',
+                    'uom',
+                    'unit_price',
+                    'line_total_minor',
+                ])->orderBy('id'),
+                'payments' => static fn ($builder) => $builder->select([
+                    'id',
+                    'invoice_id',
+                    'amount',
+                    'amount_minor',
+                    'currency',
+                    'payment_reference',
+                    'payment_method',
+                    'paid_at',
+                ])->orderByDesc('paid_at')->orderByDesc('id'),
+            ]);
+
+        if ($invoiceId !== null) {
+            $invoiceQuery->whereKey($invoiceId);
+        } else {
+            $invoiceQuery->where('invoice_number', $invoiceNumber);
+        }
+
+        $invoice = $invoiceQuery->first();
+
+        if (! $invoice instanceof Invoice) {
+            return [
+                'invoice' => null,
+                'meta' => [
+                    'invoice_id' => $invoiceId,
+                    'invoice_number' => $invoiceNumber,
+                    'note' => 'Invoice not found for this workspace.',
+                ],
+            ];
+        }
+
+        $currency = strtoupper($invoice->currency ?? 'USD');
+        $minorUnit = $this->currencyMinorUnit($currency);
+        $precision = 10 ** $minorUnit;
+
+        $payments = $invoice->payments;
+        $paidMinor = (int) $payments->sum(static fn ($payment) => (int) ($payment->amount_minor ?? 0));
+        $totalMinor = $invoice->total_minor ?? null;
+        $openMinor = $totalMinor !== null ? max(0, $totalMinor - $paidMinor) : null;
+
+        $totalAmount = $invoice->total !== null ? (float) $invoice->total : ($totalMinor !== null ? round($totalMinor / $precision, $minorUnit) : null);
+        $openAmount = $openMinor !== null ? round($openMinor / $precision, $minorUnit) : ($totalAmount !== null ? max(0.0, $totalAmount - $payments->sum(static fn ($payment) => (float) ($payment->amount ?? 0))) : null);
+
+        $lines = $invoice->lines->map(function ($line) use ($currency, $minorUnit, $precision): array {
+            $lineMinor = $line->line_total_minor;
+            $lineTotal = $lineMinor !== null ? round($lineMinor / $precision, $minorUnit) : null;
+
+            return [
+                'line_id' => $line->id,
+                'description' => $line->description,
+                'quantity' => $line->quantity,
+                'uom' => $line->uom,
+                'unit_price' => $line->unit_price !== null ? (float) $line->unit_price : null,
+                'line_total' => $lineTotal,
+                'line_total_minor' => $lineMinor,
+                'currency' => $currency,
+            ];
+        })->take(12)->values()->all();
+
+        $paymentHistory = $payments->take(5)->map(static function ($payment): array {
+            return [
+                'payment_id' => $payment->id,
+                'amount' => $payment->amount !== null ? (float) $payment->amount : null,
+                'amount_minor' => $payment->amount_minor,
+                'currency' => $payment->currency,
+                'payment_reference' => $payment->payment_reference,
+                'payment_method' => $payment->payment_method,
+                'paid_at' => optional($payment->paid_at)->toIso8601String(),
+            ];
+        })->all();
+
+        return [
+            'invoice' => [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'status' => $invoice->status,
+                'currency' => $currency,
+                'invoice_date' => optional($invoice->invoice_date)->toIso8601String(),
+                'due_date' => optional($invoice->due_date)->toIso8601String(),
+                'supplier' => $invoice->supplier ? [
+                    'supplier_id' => $invoice->supplier->id,
+                    'name' => $invoice->supplier->name,
+                ] : null,
+                'purchase_order' => $invoice->purchaseOrder ? [
+                    'purchase_order_id' => $invoice->purchaseOrder->id,
+                    'po_number' => $invoice->purchaseOrder->po_number,
+                    'status' => $invoice->purchaseOrder->status,
+                ] : null,
+                'totals' => [
+                    'subtotal' => $invoice->subtotal !== null ? (float) $invoice->subtotal : null,
+                    'tax' => $invoice->tax_amount !== null ? (float) $invoice->tax_amount : null,
+                    'grand_total' => $totalAmount,
+                    'grand_total_minor' => $totalMinor,
+                    'paid_minor' => $paidMinor,
+                    'open_balance_minor' => $openMinor,
+                    'open_balance' => $openAmount,
+                ],
+                'lines' => $lines,
+                'payments' => $paymentHistory,
+            ],
+            'meta' => [
+                'can_mark_paid' => $invoice->status === InvoiceStatus::Approved->value,
+                'recommended_next_step' => $openMinor !== null && $openMinor > 0
+                    ? 'Capture payment details or request corrections before marking paid.'
+                    : 'Invoice already cleared.',
+            ],
+        ];
+    }
+
     private function sanitizeLimit(mixed $value, int $default, int $max): int
     {
         if (! is_numeric($value)) {
@@ -656,6 +797,25 @@ class WorkspaceToolResolver
     private function sanitizeArrayArgument(mixed $value): array
     {
         return is_array($value) ? $value : [];
+    }
+
+    private function currencyMinorUnit(string $currency): int
+    {
+        static $cache = [];
+
+        $code = strtoupper($currency);
+
+        if (isset($cache[$code])) {
+            return $cache[$code];
+        }
+
+        $minor = Currency::query()
+            ->where('code', $code)
+            ->value('minor_unit');
+
+        $cache[$code] = $minor !== null ? (int) $minor : 2;
+
+        return $cache[$code];
     }
 
     private function coerceId(mixed $value): ?int

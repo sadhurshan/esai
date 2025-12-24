@@ -81,6 +81,10 @@ class InvoiceResource extends JsonResource
                 ->map(fn ($attachment) => (new DocumentResource($attachment))->toArray($request))
                 ->values()
                 ->all(), []),
+            'payments' => $this->whenLoaded('payments', fn () => $this->payments
+                ->map(fn ($payment) => (new InvoicePaymentResource($payment))->toArray($request))
+                ->values()
+                ->all(), []),
             'created_at' => optional($this->created_at)?->toIso8601String(),
             'updated_at' => optional($this->updated_at)?->toIso8601String(),
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Enums\AiChatToolCall;
 use App\Exceptions\AiChatException;
 use App\Exceptions\AiServiceUnavailableException;
 use App\Models\AiActionDraft;
@@ -36,6 +37,7 @@ class ChatService
         'supplier',
         'inventory',
         'stock',
+        'invoice',
         'pricing',
         'lead time',
         'award',
@@ -90,7 +92,7 @@ class ChatService
 
         $structuredContext = $this->normalizeContext($context);
 
-        $toolResults = $this->toolResolver->resolveBatch($thread->company_id, $toolCalls);
+        $toolResults = $this->dispatchWorkspaceTools($thread, $user, $toolCalls, $structuredContext);
 
         $toolMessage = $thread->appendMessage(AiChatMessage::ROLE_TOOL, [
             'user_id' => $user->id,
@@ -703,6 +705,488 @@ class ChatService
         $appKey = (string) config('app.key');
 
         return hash('sha256', sprintf('%s|%s', $appKey, $identifier));
+    }
+
+    /**
+     * @param list<array{tool_name:string,call_id:string,arguments?:array<string,mixed>}> $toolCalls
+     * @param array<string, mixed> $context
+     * @return list<array{tool_name:string,call_id:string,result:array<string,mixed>|null}>
+     */
+    private function dispatchWorkspaceTools(
+        AiChatThread $thread,
+        User $user,
+        array $toolCalls,
+        array $context
+    ): array {
+        $resultsByIndex = [];
+        $batchedCalls = [];
+        $batchedIndexes = [];
+
+        foreach ($toolCalls as $index => $call) {
+            $toolName = (string) ($call['tool_name'] ?? '');
+            $callId = (string) ($call['call_id'] ?? Str::uuid()->toString());
+            $arguments = isset($call['arguments']) && is_array($call['arguments']) ? $call['arguments'] : [];
+
+            if ($toolName === AiChatToolCall::AwardQuote->value) {
+                $resultsByIndex[$index] = [
+                    'tool_name' => $toolName,
+                    'call_id' => $callId,
+                    'result' => $this->resolveAwardQuoteTool($thread, $user, $arguments, $context),
+                ];
+
+                continue;
+            }
+
+            if ($toolName === AiChatToolCall::InvoiceDraft->value) {
+                $resultsByIndex[$index] = [
+                    'tool_name' => $toolName,
+                    'call_id' => $callId,
+                    'result' => $this->resolveInvoiceDraftTool($thread, $user, $arguments, $context),
+                ];
+
+                continue;
+            }
+
+            if (in_array($toolName, [
+                AiChatToolCall::ReviewRfq->value,
+                AiChatToolCall::ReviewQuote->value,
+                AiChatToolCall::ReviewPo->value,
+                AiChatToolCall::ReviewInvoice->value,
+            ], true)) {
+                $resultsByIndex[$index] = [
+                    'tool_name' => $toolName,
+                    'call_id' => $callId,
+                    'result' => $this->resolveReviewTool($thread, $user, $toolName, $arguments, $context),
+                ];
+
+                continue;
+            }
+
+            $batchedCalls[] = [
+                'tool_name' => $toolName,
+                'call_id' => $callId,
+                'arguments' => $arguments,
+            ];
+            $batchedIndexes[] = $index;
+        }
+
+        if ($batchedCalls !== []) {
+            $batchedResults = $this->toolResolver->resolveBatch($thread->company_id, $batchedCalls);
+
+            foreach ($batchedIndexes as $offset => $originalIndex) {
+                if (! isset($batchedResults[$offset])) {
+                    continue;
+                }
+
+                $resultsByIndex[$originalIndex] = $batchedResults[$offset];
+            }
+        }
+
+        ksort($resultsByIndex);
+
+        return array_values(array_filter($resultsByIndex));
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function resolveAwardQuoteTool(
+        AiChatThread $thread,
+        User $user,
+        array $arguments,
+        array $context
+    ): array {
+        $inputs = $this->extractAwardQuoteInputs($arguments, $context);
+
+        $requestPayload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => $this->normalizeToolContextBlocks($arguments['context'] ?? $context['context'] ?? []),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = $this->client->buildAwardQuoteTool($requestPayload);
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Award quote drafting service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to build award quote recommendation.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Award quote draft generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function resolveInvoiceDraftTool(
+        AiChatThread $thread,
+        User $user,
+        array $arguments,
+        array $context
+    ): array {
+        $inputs = $this->extractInvoiceDraftInputs($arguments, $context);
+
+        $requestPayload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => $this->normalizeToolContextBlocks($arguments['context'] ?? $context['context'] ?? []),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = $this->client->buildInvoiceDraftTool($requestPayload);
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Invoice drafting service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to build invoice draft.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Invoice draft generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function resolveReviewTool(
+        AiChatThread $thread,
+        User $user,
+        string $toolName,
+        array $arguments,
+        array $context
+    ): array {
+        $inputs = $this->buildReviewInputs($toolName, $arguments, $context);
+
+        $requestPayload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => $this->normalizeToolContextBlocks($arguments['context'] ?? $context['context'] ?? []),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = match ($toolName) {
+                AiChatToolCall::ReviewRfq->value => $this->client->reviewRfqTool($requestPayload),
+                AiChatToolCall::ReviewQuote->value => $this->client->reviewQuoteTool($requestPayload),
+                AiChatToolCall::ReviewPo->value => $this->client->reviewPoTool($requestPayload),
+                AiChatToolCall::ReviewInvoice->value => $this->client->reviewInvoiceTool($requestPayload),
+                default => null,
+            };
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Review helper service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if (! is_array($response) || $response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to build review checklist.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Review checklist generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function extractAwardQuoteInputs(array $arguments, array $context): array
+    {
+        $rfqContext = is_array($context['context'] ?? null) ? $context['context'] : [];
+        $rfqId = $this->stringValue($arguments['rfq_id'] ?? $rfqContext['rfq_id'] ?? null);
+
+        $selectedQuote = isset($arguments['selected_quote']) && is_array($arguments['selected_quote'])
+            ? $arguments['selected_quote']
+            : [];
+        $selectedQuoteId = $this->stringValue($arguments['selected_quote_id'] ?? ($selectedQuote['id'] ?? null));
+
+        $supplierBlock = isset($arguments['supplier']) && is_array($arguments['supplier'])
+            ? $arguments['supplier']
+            : [];
+        if ($supplierBlock === [] && isset($selectedQuote['supplier']) && is_array($selectedQuote['supplier'])) {
+            $supplierBlock = $selectedQuote['supplier'];
+        }
+
+        $supplierId = $this->stringValue(
+            $arguments['supplier_id']
+            ?? ($selectedQuote['supplier_id'] ?? null)
+            ?? ($supplierBlock['supplier_id'] ?? $supplierBlock['id'] ?? null)
+        );
+
+        if ($rfqId === null || $selectedQuoteId === null) {
+            throw new AiChatException('Award quote tool requires rfq_id and selected_quote_id arguments.');
+        }
+
+        $inputs = [
+            'rfq_id' => $rfqId,
+            'selected_quote_id' => $selectedQuoteId,
+        ];
+
+        if ($supplierId !== null) {
+            $inputs['supplier_id'] = $supplierId;
+        }
+
+        if ($selectedQuote !== []) {
+            $inputs['selected_quote'] = $selectedQuote;
+        }
+
+        if ($supplierBlock !== []) {
+            $inputs['supplier'] = $supplierBlock;
+        }
+
+        foreach (['justification', 'delivery_date'] as $key) {
+            $value = $this->stringValue($arguments[$key] ?? null);
+            if ($value !== null) {
+                $inputs[$key] = $value;
+            }
+        }
+
+        if (isset($arguments['terms']) && is_array($arguments['terms'])) {
+            $terms = [];
+            foreach ($arguments['terms'] as $term) {
+                $value = $this->stringValue($term);
+                if ($value !== null) {
+                    $terms[] = $value;
+                }
+            }
+
+            if ($terms !== []) {
+                $inputs['terms'] = $terms;
+            }
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function extractInvoiceDraftInputs(array $arguments, array $context): array
+    {
+        $poContext = is_array($context['context'] ?? null) ? $context['context'] : [];
+        $poId = $this->stringValue(
+            $arguments['po_id']
+            ?? $poContext['po_id']
+            ?? $poContext['purchase_order_id']
+            ?? $poContext['po_number']
+        );
+
+        if ($poId === null) {
+            throw new AiChatException('Invoice draft tool requires po_id argument.');
+        }
+
+        $inputs = ['po_id' => $poId];
+
+        foreach (['invoice_date', 'due_date', 'notes'] as $key) {
+            $value = $this->stringValue($arguments[$key] ?? $poContext[$key] ?? null);
+            if ($value !== null) {
+                $inputs[$key] = $value;
+            }
+        }
+
+        $lineItems = $this->extractInvoiceDraftLineItems($arguments['line_items'] ?? null, $poContext['line_items'] ?? null);
+        if ($lineItems !== []) {
+            $inputs['line_items'] = $lineItems;
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * @param mixed $primary
+     * @param mixed $fallback
+     * @return list<array{description:string,qty:float,unit_price:float,tax_rate:float}>
+     */
+    private function extractInvoiceDraftLineItems(mixed $primary, mixed $fallback): array
+    {
+        $source = null;
+
+        if (is_array($primary)) {
+            $source = $primary;
+        } elseif (is_array($fallback)) {
+            $source = $fallback;
+        }
+
+        if ($source === null || ! array_is_list($source)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($source as $index => $rawLine) {
+            if (! is_array($rawLine)) {
+                continue;
+            }
+
+            $description = $this->stringValue($rawLine['description'] ?? $rawLine['item'] ?? $rawLine['part_number'] ?? null)
+                ?? sprintf('Line %d', $index + 1);
+            $quantity = $this->floatValue($rawLine['qty'] ?? $rawLine['quantity']) ?? 1.0;
+            $unitPrice = $this->floatValue($rawLine['unit_price'] ?? $rawLine['price']) ?? 0.0;
+            $taxRate = $this->floatValue($rawLine['tax_rate'] ?? $rawLine['tax']) ?? 0.0;
+
+            $items[] = [
+                'description' => $description,
+                'qty' => max(0.01, $quantity),
+                'unit_price' => max(0.0, $unitPrice),
+                'tax_rate' => max(0.0, $taxRate),
+            ];
+
+            if (count($items) >= 25) {
+                break;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function buildReviewInputs(string $toolName, array $arguments, array $context): array
+    {
+        $inputs = is_array($arguments) ? $arguments : [];
+        if (isset($inputs['context'])) {
+            unset($inputs['context']);
+        }
+
+        $contextPayload = isset($context['context']) && is_array($context['context']) ? $context['context'] : [];
+
+        $candidateKeys = match ($toolName) {
+            AiChatToolCall::ReviewRfq->value => ['rfq_id'],
+            AiChatToolCall::ReviewQuote->value => ['quote_id'],
+            AiChatToolCall::ReviewPo->value => ['po_id', 'purchase_order_id'],
+            AiChatToolCall::ReviewInvoice->value => ['invoice_id', 'invoice_number', 'id'],
+            default => [],
+        };
+
+        $identifier = $this->extractReviewIdentifier($inputs, $contextPayload, $candidateKeys);
+
+        if ($identifier === null) {
+            $label = match ($toolName) {
+                AiChatToolCall::ReviewRfq->value => 'rfq_id',
+                AiChatToolCall::ReviewQuote->value => 'quote_id',
+                AiChatToolCall::ReviewPo->value => 'po_id',
+                AiChatToolCall::ReviewInvoice->value => 'invoice_id',
+                default => 'record id',
+            };
+
+            throw new AiChatException(sprintf('Review tool requires %s argument.', $label));
+        }
+
+        if ($candidateKeys !== []) {
+            $inputs[$candidateKeys[0]] = $identifier;
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $contextPayload
+     * @param list<string> $candidates
+     */
+    private function extractReviewIdentifier(array $arguments, array $contextPayload, array $candidates): ?string
+    {
+        foreach ($candidates as $candidate) {
+            $value = $this->stringValue($arguments[$candidate] ?? $contextPayload[$candidate] ?? null);
+            if ($value !== null) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function stringValue(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $trimmed = trim($value);
+
+            return $trimmed === '' ? null : $trimmed;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
+    private function floatValue(mixed $value): ?float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        if (is_string($value) && $value !== '') {
+            return is_numeric($value) ? (float) $value : null;
+        }
+
+        return null;
+    }
+
+    private function normalizeToolContextBlocks(mixed $value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        if (! array_is_list($value)) {
+            return [$value];
+        }
+
+        $blocks = [];
+
+        foreach ($value as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+
+            $blocks[] = $block;
+
+            if (count($blocks) >= 5) {
+                break;
+            }
+        }
+
+        return $blocks;
     }
 
     /**

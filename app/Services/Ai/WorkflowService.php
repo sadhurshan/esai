@@ -6,6 +6,7 @@ use App\Exceptions\AiWorkflowException;
 use App\Models\AiWorkflow;
 use App\Models\AiWorkflowStep;
 use App\Models\User;
+use App\Services\Ai\Workflow\AwardQuoteDraftConverter;
 use App\Services\Ai\Workflow\PurchaseOrderDraftConverter;
 use App\Services\Ai\Workflow\QuoteComparisonDraftConverter;
 use App\Services\Ai\Workflow\ReceivingQualityDraftConverter;
@@ -19,6 +20,7 @@ class WorkflowService
         private readonly AiClient $client,
         private readonly AiEventRecorder $recorder,
         private readonly QuoteComparisonDraftConverter $quoteConverter,
+        private readonly AwardQuoteDraftConverter $awardQuoteConverter,
         private readonly PurchaseOrderDraftConverter $purchaseOrderConverter,
         private readonly ReceivingQualityDraftConverter $receivingQualityConverter,
     ) {
@@ -366,6 +368,10 @@ class WorkflowService
     {
         if ($step->action_type === 'compare_quotes') {
             $this->quoteConverter->convert($step);
+        }
+
+        if ($step->action_type === 'award_quote') {
+            $this->awardQuoteConverter->convert($step);
         }
 
         if ($step->action_type === 'po_draft') {

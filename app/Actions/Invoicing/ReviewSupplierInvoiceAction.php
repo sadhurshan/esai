@@ -4,11 +4,15 @@ namespace App\Actions\Invoicing;
 
 use App\Actions\PurchaseOrder\RecordPurchaseOrderEventAction;
 use App\Enums\InvoiceStatus;
+use App\Models\Currency;
 use App\Models\Invoice;
+use App\Models\InvoicePayment;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Services\InvoiceWorkflowNotificationService;
 use App\Support\Audit\AuditLogger;
+use App\Support\Money\Money;
+use Carbon\CarbonInterface;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -110,11 +114,20 @@ class ReviewSupplierInvoiceAction
         });
     }
 
-    public function markPaid(User $user, Invoice $invoice, string $paymentReference, ?string $note = null): Invoice
+    public function markPaid(
+        User $user,
+        Invoice $invoice,
+        string $paymentReference,
+        ?string $note = null,
+        ?float $paymentAmount = null,
+        ?string $currencyOverride = null,
+        ?string $paymentMethod = null,
+        ?CarbonInterface $paidAt = null,
+    ): Invoice
     {
         $allowed = [InvoiceStatus::Approved->value];
 
-        return $this->db->transaction(function () use ($user, $invoice, $paymentReference, $note, $allowed): Invoice {
+        return $this->db->transaction(function () use ($user, $invoice, $paymentReference, $note, $allowed, $paymentAmount, $currencyOverride, $paymentMethod, $paidAt): Invoice {
             $this->assertStatus($invoice, $allowed, 'mark paid');
 
             $invoice->status = InvoiceStatus::Paid->value;
@@ -124,9 +137,21 @@ class ReviewSupplierInvoiceAction
             $invoice->review_note = $note;
             $invoice->save();
 
+            $payment = $this->recordPayment(
+                $invoice,
+                $user,
+                $paymentReference,
+                $paymentMethod,
+                $paymentAmount,
+                $currencyOverride,
+                $note,
+                $paidAt
+            );
+
             $context = $this->contextPayload($invoice, $user, [
                 'note' => $note,
                 'payment_reference' => $paymentReference,
+                'payment_amount_minor' => $payment->amount_minor,
                 'action' => 'paid',
             ]);
 
@@ -203,5 +228,57 @@ class ReviewSupplierInvoiceAction
         $filteredExtra = array_filter($extra, static fn ($value) => $value !== null && $value !== '');
 
         return array_filter(array_merge($base, $filteredExtra), static fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function recordPayment(
+        Invoice $invoice,
+        User $user,
+        string $paymentReference,
+        ?string $paymentMethod,
+        ?float $paymentAmount,
+        ?string $currencyOverride,
+        ?string $note,
+        ?CarbonInterface $paidAt
+    ): InvoicePayment {
+        $currency = strtoupper($currencyOverride ?? $invoice->currency ?? 'USD');
+        $minorUnit = $this->resolveMinorUnit($currency);
+
+        if ($paymentAmount !== null) {
+            $money = Money::fromDecimal($paymentAmount, $currency, $minorUnit);
+            $amountMinor = $money->amountMinor();
+            $amountDecimal = $money->toDecimal($minorUnit);
+        } elseif ($invoice->total_minor !== null) {
+            $amountMinor = (int) $invoice->total_minor;
+            $amountDecimal = Money::fromMinor($amountMinor, $currency)->toDecimal($minorUnit);
+        } elseif ($invoice->total !== null) {
+            $money = Money::fromDecimal((float) $invoice->total, $currency, $minorUnit);
+            $amountMinor = $money->amountMinor();
+            $amountDecimal = $money->toDecimal($minorUnit);
+        } else {
+            $amountMinor = 0;
+            $amountDecimal = Money::fromMinor(0, $currency)->toDecimal($minorUnit);
+        }
+
+        return InvoicePayment::create([
+            'company_id' => $invoice->company_id,
+            'invoice_id' => $invoice->getKey(),
+            'created_by_id' => $user->getKey(),
+            'amount' => $amountDecimal,
+            'amount_minor' => $amountMinor,
+            'currency' => $currency,
+            'paid_at' => $paidAt?->toDateTimeString() ?? now(),
+            'payment_reference' => $paymentReference,
+            'payment_method' => $paymentMethod,
+            'note' => $note,
+        ]);
+    }
+
+    private function resolveMinorUnit(string $currency): int
+    {
+        $minor = Currency::query()
+            ->where('code', strtoupper($currency))
+            ->value('minor_unit');
+
+        return $minor !== null ? (int) $minor : 2;
     }
 }

@@ -47,8 +47,10 @@ from ai_microservice.embedding_provider import EmbeddingProvider, get_embedding_
 from ai_microservice.llm_provider import DummyLLMProvider, LLMProviderError, LLMProvider, build_llm_provider
 from ai_microservice.schemas import (
     ANSWER_SCHEMA,
+    AWARD_QUOTE_SCHEMA,
     CHAT_RESPONSE_SCHEMA,
     INVENTORY_WHATIF_SCHEMA,
+    INVOICE_DRAFT_SCHEMA,
     MAINTENANCE_CHECKLIST_SCHEMA,
     PO_DRAFT_SCHEMA,
     REPORT_SUMMARY_SCHEMA,
@@ -58,11 +60,17 @@ from ai_microservice.schemas import (
 )
 from ai_microservice.supplier_scraper import SupplierScraper
 from ai_microservice.tools_contract import (
+    build_award_quote,
+    build_invoice_draft,
     build_maintenance_checklist,
     build_rfq_draft,
     build_supplier_message,
     compare_quotes,
     draft_purchase_order,
+    review_invoice,
+    review_po,
+    review_quote,
+    review_rfq,
     run_inventory_whatif,
 )
 from ai_microservice.workflow_engine import WorkflowEngine, WorkflowEngineError, WorkflowNotFoundError
@@ -403,6 +411,20 @@ CHAT_SUMMARY_TRIGGER_TOKENS = int(os.getenv("AI_CHAT_SUMMARY_TRIGGER_TOKENS", "2
 CHAT_SUMMARY_TARGET_CHARS = int(os.getenv("AI_CHAT_SUMMARY_TARGET_CHARS", "1800"))
 CHAT_TOOL_ROUND_LIMIT = int(os.getenv("AI_CHAT_TOOL_ROUND_LIMIT", "3"))
 
+REVIEW_TOOL_TYPE_MAP = {
+    "workspace.review_rfq": "review_rfq",
+    "workspace.review_quote": "review_quote",
+    "workspace.review_po": "review_po",
+    "workspace.review_invoice": "review_invoice",
+}
+
+REVIEW_TOOL_QUICK_REPLIES = {
+    "review_rfq": ["Plan award", "Ask for quote status"],
+    "review_quote": ["Share with buyer", "Request best and final"],
+    "review_po": ["Check receipts", "Notify logistics"],
+    "review_invoice": ["Mark as approved", "Flag discrepancy"],
+}
+
 ACTION_TYPE_LABELS: Dict[str, str] = {
     "rfq_draft": "RFQ Draft",
     "supplier_message": "Supplier Message",
@@ -410,6 +432,8 @@ ACTION_TYPE_LABELS: Dict[str, str] = {
     "inventory_whatif": "Inventory What-If",
     "compare_quotes": "Quote Comparison",
     "po_draft": "Purchase Order Draft",
+    "award_quote": "Award Quote",
+    "invoice_draft": "Invoice Draft",
 }
 
 ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
@@ -419,6 +443,8 @@ ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
     "inventory_whatif": INVENTORY_WHATIF_SCHEMA,
     "compare_quotes": QUOTE_COMPARISON_SCHEMA,
     "po_draft": PO_DRAFT_SCHEMA,
+    "award_quote": AWARD_QUOTE_SCHEMA,
+    "invoice_draft": INVOICE_DRAFT_SCHEMA,
 }
 
 WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
@@ -826,6 +852,44 @@ class ToolResultPayload(BaseModel):
         if not isinstance(value, dict):
             raise ValueError("result must be an object")
         return value
+
+
+class WorkspaceToolRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    thread_id: Optional[int] = Field(default=None, ge=1)
+    user_id: Optional[int] = Field(default=None, ge=1)
+    context: List[Dict[str, Any]] = Field(default_factory=list, max_length=CHAT_TOOL_RESULTS_LIMIT)
+    inputs: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def normalize_context_blocks(cls, value: Any) -> List[Dict[str, Any]]:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise ValueError("context must be an array")
+        normalized: List[Dict[str, Any]] = []
+        for block in value:
+            if isinstance(block, dict):
+                normalized.append(block)
+        return normalized[:CHAT_TOOL_RESULTS_LIMIT]
+
+    @field_validator("inputs", mode="before")
+    @classmethod
+    def ensure_inputs(cls, value: Any) -> Dict[str, Any]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("inputs must be an object")
+        return value
+
+
+class AwardQuoteToolRequest(WorkspaceToolRequest):
+    pass
+
+
+class InvoiceDraftToolRequest(WorkspaceToolRequest):
+    pass
 
 
 class ChatContinueRequest(BaseModel):
@@ -1619,15 +1683,20 @@ async def chat_continue(payload: ChatContinueRequest) -> Dict[str, Any]:
     if not tool_context_blocks:
         raise HTTPException(status_code=400, detail="tool_results must include result data")
 
+    review_response = _chat_try_build_review_response(tool_results)
+
     try:
-        router_response = await _chat_build_answer_response(
-            company_id=payload.company_id,
-            query=latest_user_text,
-            safety_identifier=payload.user_id_hash,
-            intent="workspace_qna",
-            extra_context_blocks=tool_context_blocks,
-            allow_general_override=bool(payload.allow_general),
-        )
+        if review_response is not None:
+            router_response = review_response
+        else:
+            router_response = await _chat_build_answer_response(
+                company_id=payload.company_id,
+                query=latest_user_text,
+                safety_identifier=payload.user_id_hash,
+                intent="workspace_qna",
+                extra_context_blocks=tool_context_blocks,
+                allow_general_override=bool(payload.allow_general),
+            )
     except HTTPException:
         raise
     except Exception as exc:  # pragma: no cover - defensive guard
@@ -1662,6 +1731,140 @@ async def chat_continue(payload: ChatContinueRequest) -> Dict[str, Any]:
         "data": {
             "response": router_response,
             "memory": memory_payload,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_award_quote")
+async def build_award_quote_tool(payload: AwardQuoteToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_award_quote(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Award quote draft generated."
+    LOGGER.info(
+        "tool_award_quote_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_invoice_draft")
+async def build_invoice_draft_tool(payload: InvoiceDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_invoice_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Invoice draft generated."
+    LOGGER.info(
+        "tool_invoice_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/review_rfq")
+async def review_rfq_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = review_rfq(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "RFQ review checklist generated."
+    LOGGER.info(
+        "tool_review_rfq_built",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/review_quote")
+async def review_quote_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = review_quote(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Quote review checklist generated."
+    LOGGER.info(
+        "tool_review_quote_built",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/review_po")
+async def review_po_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = review_po(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "PO review checklist generated."
+    LOGGER.info(
+        "tool_review_po_built",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/review_invoice")
+async def review_invoice_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = review_invoice(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Invoice review checklist generated."
+    LOGGER.info(
+        "tool_review_invoice_built",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
         },
     }
 
@@ -2326,6 +2529,75 @@ def _chat_build_tool_request_response(*, intent: chat_router.ChatIntent, query: 
         "confidence": 0.35,
         "warnings": [],
     }
+
+
+def _chat_try_build_review_response(tool_results: Sequence[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    for tool_result in tool_results:
+        tool_name = tool_result.get("tool_name")
+        if not isinstance(tool_name, str):
+            continue
+        response_type = REVIEW_TOOL_TYPE_MAP.get(tool_name)
+        if response_type is None:
+            continue
+        result_payload = tool_result.get("result") or {}
+        if not isinstance(result_payload, dict):
+            continue
+        review_payload = result_payload.get("payload")
+        if not isinstance(review_payload, dict):
+            continue
+        summary = result_payload.get("summary") or "Review checklist generated."
+        citations = result_payload.get("citations")
+        return _chat_build_review_response(
+            response_type=response_type,
+            summary=summary,
+            payload=review_payload,
+            citations=citations if isinstance(citations, list) else [],
+        )
+    return None
+
+
+def _chat_build_review_response(
+    *,
+    response_type: str,
+    summary: str,
+    payload: Dict[str, Any],
+    citations: Sequence[Dict[str, Any]] | Sequence[str],
+) -> Dict[str, Any]:
+    markdown = _chat_render_review_markdown(summary, payload)
+    quick_replies = REVIEW_TOOL_QUICK_REPLIES.get(response_type, [
+        "Share summary",
+        "Ask for follow-up",
+    ])
+    highlights = payload.get("highlights") if isinstance(payload.get("highlights"), list) else []
+    return {
+        "type": response_type,
+        "assistant_message_markdown": markdown,
+        "citations": citations,
+        "suggested_quick_replies": quick_replies,
+        "draft": None,
+        "workflow": None,
+        "tool_calls": None,
+        "needs_human_review": True,
+        "confidence": 0.6,
+        "warnings": highlights or [],
+        "review": payload,
+    }
+
+
+def _chat_render_review_markdown(summary: str, payload: Dict[str, Any]) -> str:
+    lines = [summary]
+    checklist = payload.get("checklist")
+    if isinstance(checklist, list):
+        for item in checklist[:4]:
+            if not isinstance(item, dict):
+                continue
+            label = item.get("label") or "Metric"
+            value = item.get("value")
+            detail = item.get("detail") or ""
+            status = item.get("status") or "ok"
+            value_text = f" — {value}" if value not in (None, "") else ""
+            lines.append(f"- **{label}** ({status}){value_text}. {detail}".strip())
+    return "\n".join(lines)
 
 
 def _chat_build_tool_limit_response(*, intent: chat_router.ChatIntent, query: str) -> Dict[str, Any]:  # noqa: ARG001
@@ -3455,6 +3727,8 @@ def _invoke_tool_contract(
         "inventory_whatif": run_inventory_whatif,
         "compare_quotes": compare_quotes,
         "po_draft": draft_purchase_order,
+        "award_quote": build_award_quote,
+        "invoice_draft": build_invoice_draft,
     }
     tool = tool_mapping.get(action_type)
     if not tool:

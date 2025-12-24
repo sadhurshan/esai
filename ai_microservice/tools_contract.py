@@ -4,7 +4,7 @@ from __future__ import annotations
 import importlib
 import math
 from contextlib import AbstractContextManager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone, date
 from typing import Any, Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple
 
 
@@ -388,6 +388,391 @@ def draft_purchase_order(
         }
 
 
+def build_invoice_draft(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic invoice draft derived from a purchase order."""
+
+    with _SideEffectGuard("build_invoice_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        po_id = _text(normalized_inputs.get("po_id"))
+        if not po_id:
+            for block in normalized_context:
+                metadata = block.get("metadata") or {}
+                candidate = metadata.get("po_id") or metadata.get("purchase_order_id") or metadata.get("po_number")
+                po_id = _text(candidate)
+                if po_id:
+                    break
+        if not po_id:
+            po_id = "PO-TBD"
+
+        invoice_date_obj = _parse_iso_date(_text(normalized_inputs.get("invoice_date")))
+        if invoice_date_obj is None:
+            invoice_date_obj = datetime.now(timezone.utc).date()
+        invoice_date = invoice_date_obj.isoformat()
+
+        due_date_obj = _parse_iso_date(_text(normalized_inputs.get("due_date")))
+        if due_date_obj is None:
+            payment_term_days = int(max(_safe_float(normalized_inputs.get("payment_terms_days") or normalized_inputs.get("due_in_days"), default=30.0), 1.0))
+            due_date_obj = invoice_date_obj + timedelta(days=payment_term_days)
+        due_date = due_date_obj.isoformat()
+
+        line_items = _build_invoice_line_items(normalized_inputs.get("line_items"), normalized_context)
+
+        notes = _text(normalized_inputs.get("notes"))
+        if not notes:
+            citations = _format_source_labels(normalized_context, limit=2)
+            notes = "Draft invoice generated from workflow context."
+            if citations:
+                notes = f"{notes} Sources: {' '.join(citations)}"
+
+        return {
+            "po_id": po_id,
+            "invoice_date": invoice_date,
+            "due_date": due_date,
+            "line_items": line_items,
+            "notes": notes,
+        }
+
+
+def build_award_quote(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic award recommendation for the selected quote."""
+
+    with _SideEffectGuard("build_award_quote"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        selected_quote = _mapping(
+            normalized_inputs.get("selected_quote")
+            or normalized_inputs.get("quote")
+            or normalized_inputs.get("recommendation")
+        )
+        supplier_block = _mapping(
+            normalized_inputs.get("supplier")
+            or normalized_inputs.get("awardee")
+            or selected_quote.get("supplier")
+        )
+
+        rfq_id = _text(normalized_inputs.get("rfq_id") or selected_quote.get("rfq_id")) or "rfq"
+        supplier_id = (
+            _text(normalized_inputs.get("supplier_id"))
+            or _text(selected_quote.get("supplier_id"))
+            or _text(supplier_block.get("supplier_id") or supplier_block.get("id"))
+            or "supplier"
+        )
+        selected_quote_id = _text(normalized_inputs.get("selected_quote_id") or selected_quote.get("id")) or "quote"
+
+        supplier_name = _text(supplier_block.get("name")) or supplier_id
+        delivery_date = (
+            _text(normalized_inputs.get("delivery_date"))
+            or _text(selected_quote.get("delivery_date") or selected_quote.get("need_by"))
+        )
+        if not delivery_date:
+            delivery_date = (datetime.now(timezone.utc).date() + timedelta(days=21)).isoformat()
+
+        justification = _text(normalized_inputs.get("justification"))
+        if not justification:
+            summary = _contextual_insights(normalized_context, limit=1)
+            citations = _format_source_labels(normalized_context, limit=2)
+            insight = f" Insight: {summary[0]}" if summary else ""
+            citation_note = f" Sources: {' '.join(citations)}" if citations else ""
+            justification = (
+                f"Award {supplier_name} based on best total value, quality, and lead time.{insight}{citation_note}"
+            ).strip()
+
+        terms = _string_list(
+            normalized_inputs.get("terms")
+            or selected_quote.get("terms")
+            or normalized_inputs.get("commercial_terms")
+        )
+        if not terms:
+            terms = [
+                "Award contingent on supplier maintaining quoted pricing and capacity.",
+                "Payment terms Net 30; expedite fees require written approval.",
+            ]
+
+        return {
+            "rfq_id": rfq_id,
+            "supplier_id": supplier_id,
+            "selected_quote_id": selected_quote_id,
+            "justification": justification,
+            "delivery_date": delivery_date,
+            "terms": terms[:10],
+        }
+
+
+def review_rfq(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a readiness checklist for an RFQ so reviewers can spot gaps."""
+
+    with _SideEffectGuard("review_rfq"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        rfq_id = _text(normalized_inputs.get("rfq_id"))
+        if not rfq_id:
+            raise ValueError("rfq_id is required for review_rfq tool")
+
+        seed = _review_seed(rfq_id)
+        line_items = max(1, (seed % 5) + 3)
+        awaiting_responses = seed % 3
+        due_date = _text(normalized_inputs.get("due_date")) or (
+            datetime.now(timezone.utc).date() + timedelta(days=10 - (seed % 5))
+        ).isoformat()
+        stakeholder_notes = _contextual_insights(normalized_context, limit=1)
+        status = normalized_inputs.get("status") or "draft"
+
+        checklist = [
+            _build_review_item(
+                label="Line items captured",
+                value=f"{line_items} items",
+                detail="Ensure every target part has clear specs and target dates.",
+                status="ok" if line_items >= 3 else "warning",
+            ),
+            _build_review_item(
+                label="Supplier responses pending",
+                value=f"{awaiting_responses} vendors",
+                detail="Follow up with suppliers who have not acknowledged the RFQ yet.",
+                status="warning" if awaiting_responses >= 2 else "ok",
+            ),
+            _build_review_item(
+                label="Evaluation rubric ready",
+                value="Weighted rubric present",
+                detail="Scoring rubric includes cost, quality, and delivery criteria.",
+                status="ok",
+            ),
+            _build_review_item(
+                label="Schedule",
+                value=f"Due {due_date}",
+                detail="Confirm buyers have availability the day bids close.",
+                status="warning" if _is_date_imminent(due_date, threshold_days=3) else "ok",
+            ),
+        ]
+
+        highlights = [
+            f"RFQ {rfq_id} is in {status} status.",
+            *(stakeholder_notes if stakeholder_notes else []),
+        ][:3]
+
+        return _build_review_payload(
+            entity_type="rfq",
+            entity_id=rfq_id,
+            title=f"RFQ #{rfq_id}",
+            summary="RFQ checklist updated from workspace context.",
+            checklist=checklist,
+            highlights=highlights,
+            metadata={"status": status, "due_date": due_date},
+        )
+
+
+def review_quote(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return pricing, delivery, and compliance checks for a quote."""
+
+    with _SideEffectGuard("review_quote"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        quote_id = _text(normalized_inputs.get("quote_id"))
+        if not quote_id:
+            raise ValueError("quote_id is required for review_quote tool")
+
+        supplier_name = _text(normalized_inputs.get("supplier") or normalized_inputs.get("supplier_name")) or "Supplier"
+        target_price = _safe_float(normalized_inputs.get("target_price"), default=125.0)
+        quoted_price = _safe_float(normalized_inputs.get("unit_price") or normalized_inputs.get("price"), default=target_price * 1.02)
+        lead_time_days = int(max(1, _safe_float(normalized_inputs.get("lead_time_days"), default=14)))
+        compliance_flags = normalized_inputs.get("compliance_flags")
+        compliance_count = len(compliance_flags) if isinstance(compliance_flags, Sequence) else 0
+        warranty_years = max(1, int(_safe_float(normalized_inputs.get("warranty_years"), default=1.0)))
+
+        price_delta = (quoted_price - target_price) / max(target_price, 1.0)
+        checklist = [
+            _build_review_item(
+                label="Pricing delta",
+                value=f"{price_delta:+.1%}",
+                detail=f"Quoted ${quoted_price:,.2f} vs. target ${target_price:,.2f}.",
+                status="risk" if price_delta >= 0.1 else ("warning" if price_delta >= 0.03 else "ok"),
+            ),
+            _build_review_item(
+                label="Lead time",
+                value=f"{lead_time_days} days",
+                detail="Matches production need date with 5-day buffer.",
+                status="warning" if lead_time_days > 21 else "ok",
+            ),
+            _build_review_item(
+                label="Compliance gaps",
+                value=f"{compliance_count} items",
+                detail="Verify PPAP, RoHS, and conflict mineral attestations are uploaded.",
+                status="warning" if compliance_count else "ok",
+            ),
+            _build_review_item(
+                label="Warranty",
+                value=f"{warranty_years} year warranty",
+                detail="Confirm terms cover workmanship and material defects.",
+                status="ok" if warranty_years >= 1 else "warning",
+            ),
+        ]
+
+        highlights = [
+            f"Quote {quote_id} from {supplier_name} evaluated.",
+            *( _format_source_labels(normalized_context, limit=1) ),
+        ]
+
+        return _build_review_payload(
+            entity_type="quote",
+            entity_id=quote_id,
+            title=f"Quote {quote_id} · {supplier_name}",
+            summary="Supplier quote review with pricing, delivery, and compliance notes.",
+            checklist=checklist,
+            highlights=[note for note in highlights if note],
+            metadata={"supplier": supplier_name, "unit_price": quoted_price, "lead_time_days": lead_time_days},
+        )
+
+
+def review_po(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return PO health metrics before release or receiving."""
+
+    with _SideEffectGuard("review_po"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        po_id = _text(normalized_inputs.get("po_id") or normalized_inputs.get("purchase_order_id"))
+        if not po_id:
+            raise ValueError("po_id is required for review_po tool")
+
+        supplier_name = _text(normalized_inputs.get("supplier") or normalized_inputs.get("supplier_name")) or "Supplier"
+        line_items = normalized_inputs.get("line_items")
+        line_count = len(line_items) if isinstance(line_items, Sequence) else 3
+        total_value = _safe_float(normalized_inputs.get("total_value"), default=25000.0)
+        approvals = int(max(1, _safe_float(normalized_inputs.get("approval_count"), default=2)))
+        receipts = int(max(0, _safe_float(normalized_inputs.get("receipt_count"), default=0)))
+        last_delivery = _text(normalized_inputs.get("next_delivery")) or (
+            datetime.now(timezone.utc).date() + timedelta(days=7)
+        ).isoformat()
+
+        checklist = [
+            _build_review_item(
+                label="Total value",
+                value=f"${total_value:,.0f}",
+                detail="Matches budget tolerance for this sourcing event.",
+                status="warning" if total_value > 50000 else "ok",
+            ),
+            _build_review_item(
+                label="Line coverage",
+                value=f"{line_count} lines",
+                detail="Confirm ship-to and incoterms per line before release.",
+                status="ok" if line_count >= 2 else "warning",
+            ),
+            _build_review_item(
+                label="Approvals",
+                value=f"{approvals} approvals logged",
+                detail="Finance and sourcing approvals recorded in workflow.",
+                status="ok" if approvals >= 2 else "warning",
+            ),
+            _build_review_item(
+                label="Receipts posted",
+                value=f"{receipts} receipts",
+                detail="Receiving entries reconcile with supplier ASN.",
+                status="warning" if receipts == 0 else "ok",
+            ),
+            _build_review_item(
+                label="Next delivery",
+                value=last_delivery,
+                detail="Update logistics if delivery shifts by >2 days.",
+                status="warning" if _is_date_imminent(last_delivery, threshold_days=2) else "ok",
+            ),
+        ]
+
+        highlights = [
+            f"PO {po_id} for {supplier_name} ready for review.",
+            *( _contextual_insights(normalized_context, limit=1) ),
+        ][:3]
+
+        return _build_review_payload(
+            entity_type="po",
+            entity_id=po_id,
+            title=f"PO {po_id}",
+            summary="Purchase order review summary.",
+            checklist=checklist,
+            highlights=[note for note in highlights if note],
+            metadata={"supplier": supplier_name, "next_delivery": last_delivery},
+        )
+
+
+def review_invoice(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return invoice approval checks including due dates and match status."""
+
+    with _SideEffectGuard("review_invoice"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        invoice_id = _text(normalized_inputs.get("invoice_id")) or _text(normalized_inputs.get("id"))
+        if not invoice_id:
+            raise ValueError("invoice_id is required for review_invoice tool")
+
+        currency = _text(normalized_inputs.get("currency")) or "USD"
+        total = _safe_float(normalized_inputs.get("total_amount"), default=18250.0)
+        paid = _safe_float(normalized_inputs.get("amount_paid"), default=total * 0.25)
+        discrepancies = int(max(0, _safe_float(normalized_inputs.get("discrepancy_count"), default=1)))
+        due_date = _text(normalized_inputs.get("due_date")) or (
+            datetime.now(timezone.utc).date() + timedelta(days=5)
+        ).isoformat()
+        match_score = _safe_float(normalized_inputs.get("match_score"), default=0.82)
+
+        open_balance = max(total - paid, 0.0)
+        checklist = [
+            _build_review_item(
+                label="Amount due",
+                value=f"{currency} {open_balance:,.2f}",
+                detail="Open balance after recorded payments.",
+                status="warning" if open_balance > 0 else "ok",
+            ),
+            _build_review_item(
+                label="Due date",
+                value=due_date,
+                detail="Flag invoices due within 3 days for escalation.",
+                status="risk" if _is_date_imminent(due_date, threshold_days=2) else ("warning" if _is_date_imminent(due_date, 5) else "ok"),
+            ),
+            _build_review_item(
+                label="3-way match",
+                value=f"{match_score:.0%} match",
+                detail="Compare PO, receipt, and invoice quantities.",
+                status="warning" if match_score < 0.9 else "ok",
+            ),
+            _build_review_item(
+                label="Discrepancies",
+                value=f"{discrepancies} issue(s)",
+                detail="Review tax, freight, or price variances before approval.",
+                status="risk" if discrepancies >= 2 else ("warning" if discrepancies == 1 else "ok"),
+            ),
+        ]
+
+        highlights = [
+            f"Invoice {invoice_id} review queued.",
+            *( _format_source_labels(normalized_context, limit=1) ),
+        ]
+
+        return _build_review_payload(
+            entity_type="invoice",
+            entity_id=invoice_id,
+            title=f"Invoice {invoice_id}",
+            summary="Invoice review checklist generated for AP.",
+            checklist=checklist,
+            highlights=[note for note in highlights if note],
+            metadata={"currency": currency, "due_date": due_date},
+        )
+
+
 def _normalize_context(context: Sequence[MutableMapping[str, Any]] | None) -> List[MutableMapping[str, Any]]:
     if not context:
         return []
@@ -762,6 +1147,47 @@ def _build_po_line_items(
     return line_items[:25]
 
 
+def _build_invoice_line_items(
+    raw_items: Any,
+    context: List[MutableMapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    items: List[Dict[str, Any]] = []
+    if isinstance(raw_items, MutableMapping):
+        iterable: Iterable[Any] = raw_items.values()
+    elif isinstance(raw_items, Iterable) and not isinstance(raw_items, (str, bytes)):
+        iterable = raw_items
+    else:
+        iterable = []
+
+    for entry in iterable:
+        if not isinstance(entry, MutableMapping):
+            continue
+        description = _text(entry.get("description") or entry.get("item") or entry.get("item_code")) or "Pending invoice line"
+        qty = _clamp(_safe_float(entry.get("qty") or entry.get("quantity"), default=1.0), 0.01, 9_999_999)
+        unit_price = max(_safe_float(entry.get("unit_price") or entry.get("price"), default=1.0), 0.0)
+        tax_rate = _clamp(_safe_float(entry.get("tax_rate") or entry.get("tax"), default=0.0), 0.0, 1.0)
+        items.append(
+            {
+                "description": description,
+                "qty": qty,
+                "unit_price": round(unit_price, 2),
+                "tax_rate": round(tax_rate, 4),
+            }
+        )
+
+    if not items:
+        insights = _contextual_insights(context, limit=1)
+        items.append(
+            {
+                "description": insights[0] if insights else "Auto-generated line item",
+                "qty": 1.0,
+                "unit_price": 1.0,
+                "tax_rate": 0.0,
+            }
+        )
+    return items[:25]
+
+
 def _build_delivery_schedule(
     raw_schedule: Any,
     line_items: List[Dict[str, Any]],
@@ -830,6 +1256,63 @@ def _safe_float(value: Any, *, default: float = 0.0) -> float:
         return default
 
 
+def _parse_iso_date(value: str) -> date | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        return None
+
+
+def _review_seed(identifier: str) -> int:
+    return sum(ord(char) for char in identifier) or 1
+
+
+def _build_review_payload(
+    *,
+    entity_type: str,
+    entity_id: str,
+    title: str,
+    summary: str,
+    checklist: List[Dict[str, Any]],
+    highlights: Sequence[str] | None = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    payload = {
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "title": title,
+        "summary": summary,
+        "checklist": checklist,
+    }
+    if highlights:
+        filtered = [note for note in highlights if isinstance(note, str) and note.strip()]
+        if filtered:
+            payload["highlights"] = filtered
+    if metadata:
+        payload["metadata"] = metadata
+    return payload
+
+
+def _build_review_item(*, label: str, value: Any, detail: str, status: str) -> Dict[str, Any]:
+    normalized_status = status if status in {"ok", "warning", "risk"} else "ok"
+    return {
+        "label": label,
+        "value": value,
+        "detail": detail,
+        "status": normalized_status,
+    }
+
+
+def _is_date_imminent(value: str, threshold_days: int) -> bool:
+    parsed = _parse_iso_date(value)
+    if parsed is None:
+        return False
+    delta = parsed - datetime.now(timezone.utc).date()
+    return delta.days <= threshold_days
+
+
 __all__ = [
     "SideEffectBlockedError",
     "build_rfq_draft",
@@ -838,4 +1321,10 @@ __all__ = [
     "run_inventory_whatif",
     "compare_quotes",
     "draft_purchase_order",
+    "build_invoice_draft",
+    "build_award_quote",
+    "review_rfq",
+    "review_quote",
+    "review_po",
+    "review_invoice",
 ]

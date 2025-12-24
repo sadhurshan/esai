@@ -408,6 +408,100 @@ PO_DRAFT_PAYLOAD_SCHEMA = {
     },
 }
 
+INVOICE_LINE_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["description", "qty", "unit_price", "tax_rate"],
+    "properties": {
+        "description": {"type": "string", "minLength": 1},
+        "qty": {"type": "number", "exclusiveMinimum": 0},
+        "unit_price": {"type": "number", "minimum": 0},
+        "tax_rate": {"type": "number", "minimum": 0},
+    },
+}
+
+INVOICE_DRAFT_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["po_id", "invoice_date", "due_date", "line_items", "notes"],
+    "properties": {
+        "po_id": {"type": "string", "minLength": 1},
+        "invoice_date": {"type": "string", "format": "date"},
+        "due_date": {"type": "string", "format": "date"},
+        "line_items": {
+            "type": "array",
+            "minItems": 1,
+            "items": INVOICE_LINE_ITEM_SCHEMA,
+        },
+        "notes": {"type": "string", "minLength": 1},
+    },
+}
+
+AWARD_QUOTE_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "rfq_id",
+        "supplier_id",
+        "selected_quote_id",
+        "justification",
+        "delivery_date",
+        "terms",
+    ],
+    "properties": {
+        "rfq_id": {"type": "string", "minLength": 1},
+        "supplier_id": {"type": "string", "minLength": 1},
+        "selected_quote_id": {"type": "string", "minLength": 1},
+        "justification": {"type": "string", "minLength": 1},
+        "delivery_date": {"type": "string", "format": "date"},
+        "terms": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+REVIEW_CHECKLIST_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["label", "status", "detail"],
+    "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "number", "null"]},
+        "status": {
+            "type": "string",
+            "enum": ["ok", "warning", "risk"],
+        },
+        "detail": {"type": "string", "minLength": 1},
+    },
+}
+
+REVIEW_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["entity_type", "entity_id", "title", "summary", "checklist"],
+    "properties": {
+        "entity_type": {"type": "string", "minLength": 1},
+        "entity_id": {"type": ["string", "number"]},
+        "title": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1},
+        "checklist": {
+            "type": "array",
+            "minItems": 1,
+            "items": REVIEW_CHECKLIST_ITEM_SCHEMA,
+        },
+        "highlights": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "metadata": {
+            "type": "object",
+            "additionalProperties": True,
+        },
+    },
+}
+
 RFQ_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionRfqDraft", RFQ_DRAFT_PAYLOAD_SCHEMA
 )
@@ -430,6 +524,14 @@ QUOTE_COMPARISON_SCHEMA = _make_action_wrapper_schema(
 
 PO_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionPurchaseOrderDraft", PO_DRAFT_PAYLOAD_SCHEMA
+)
+
+AWARD_QUOTE_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionAwardQuote", AWARD_QUOTE_PAYLOAD_SCHEMA
+)
+
+INVOICE_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionInvoiceDraft", INVOICE_DRAFT_PAYLOAD_SCHEMA
 )
 
 SCRAPED_SUPPLIER_SCHEMA = {
@@ -487,6 +589,8 @@ DRAFT_ACTION_SCHEMAS = [
     MAINTENANCE_CHECKLIST_SCHEMA,
     INVENTORY_WHATIF_SCHEMA,
     QUOTE_COMPARISON_SCHEMA,
+    AWARD_QUOTE_SCHEMA,
+    INVOICE_DRAFT_SCHEMA,
     PO_DRAFT_SCHEMA,
 ]
 
@@ -496,6 +600,10 @@ CHAT_RESPONSE_TYPES = [
     "workflow_suggestion",
     "tool_request",
     "error",
+    "review_rfq",
+    "review_quote",
+    "review_po",
+    "review_invoice",
 ]
 
 CHAT_RESPONSE_SCHEMA = {
@@ -539,6 +647,9 @@ CHAT_RESPONSE_SCHEMA = {
                 },
             ],
         },
+        "review": {
+            "oneOf": [REVIEW_PAYLOAD_SCHEMA, {"type": "null"}],
+        },
         "needs_human_review": {"type": "boolean"},
         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         "warnings": WARNINGS_ARRAY_SCHEMA,
@@ -553,6 +664,8 @@ __all__ = [
     "MAINTENANCE_CHECKLIST_SCHEMA",
     "INVENTORY_WHATIF_SCHEMA",
     "QUOTE_COMPARISON_SCHEMA",
+    "AWARD_QUOTE_SCHEMA",
+    "INVOICE_DRAFT_SCHEMA",
     "PO_DRAFT_SCHEMA",
     "SCRAPED_SUPPLIER_SCHEMA",
     "CHAT_RESPONSE_SCHEMA",

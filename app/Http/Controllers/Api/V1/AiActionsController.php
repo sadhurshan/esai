@@ -516,6 +516,8 @@ class AiActionsController extends ApiController
             AiActionDraft::TYPE_SUPPLIER_MESSAGE => ['suppliers.write'],
             AiActionDraft::TYPE_MAINTENANCE_CHECKLIST => ['inventory.write'],
             AiActionDraft::TYPE_INVENTORY_WHATIF => ['inventory.read', 'inventory.write'],
+            AiActionDraft::TYPE_INVOICE_DRAFT => ['billing.write'],
+            AiActionDraft::TYPE_APPROVE_INVOICE => ['billing.write'],
         ];
 
         $permissions = $permissionMap[$actionType] ?? ['rfqs.write'];

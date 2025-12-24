@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\Ai;
 
+use App\Enums\AiChatToolCall;
 use App\Services\Ai\WorkspaceToolResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class AiChatResolveToolsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $toolNames = WorkspaceToolResolver::supportedTools();
+        $toolNames = AiChatToolCall::values();
 
         return [
             'tool_calls' => ['required', 'array', 'min:1', 'max:' . WorkspaceToolResolver::MAX_TOOL_CALLS],

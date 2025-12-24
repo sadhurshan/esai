@@ -141,6 +141,90 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function buildAwardQuoteTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/build_award_quote',
+            $payload,
+            'Award quote draft generated.',
+            'tool_award_quote'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function buildInvoiceDraftTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/build_invoice_draft',
+            $payload,
+            'Invoice draft generated.',
+            'tool_invoice_draft'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function reviewRfqTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/review_rfq',
+            $payload,
+            'RFQ review checklist generated.',
+            'tool_review_rfq'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function reviewQuoteTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/review_quote',
+            $payload,
+            'Quote review checklist generated.',
+            'tool_review_quote'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function reviewPoTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/review_po',
+            $payload,
+            'PO review checklist generated.',
+            'tool_review_po'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function reviewInvoiceTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/review_invoice',
+            $payload,
+            'Invoice review checklist generated.',
+            'tool_review_invoice'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function planAction(array $payload): array
     {
         return $this->send(

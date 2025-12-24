@@ -10,6 +10,7 @@ ChatIntent = Literal[
     "supplier_message",
     "maintenance_checklist",
     "inventory_whatif",
+    "invoice_draft",
     "quote_compare",
     "start_workflow",
     "general_qna",
@@ -20,6 +21,7 @@ ACTION_INTENTS: Dict[str, str] = {
     "supplier_message": "supplier_message",
     "maintenance_checklist": "maintenance_checklist",
     "inventory_whatif": "inventory_whatif",
+    "invoice_draft": "invoice_draft",
     "quote_compare": "compare_quotes",
 }
 
@@ -45,6 +47,13 @@ KEYWORD_RULES: Dict[ChatIntent, List[str]] = {
         "safety stock analysis",
     ],
     "quote_compare": ["compare quote", "quote comparison", "rank suppliers", "score suppliers"],
+    "invoice_draft": [
+        "invoice draft",
+        "create invoice",
+        "generate invoice",
+        "prepare invoice",
+        "supplier invoice",
+    ],
     "start_workflow": ["start workflow", "kick off workflow", "workflow suggestion"],
 }
 
@@ -56,6 +65,7 @@ WORKSPACE_KEYWORDS = [
     "inventory",
     "supplier",
     "award",
+    "invoice",
     "lead time",
     "pricing",
 ]
@@ -104,6 +114,7 @@ TOOL_LOOKUP_KEYWORDS = [
     "stock",
     "quote",
     "pricing",
+    "invoice",
 ]
 
 

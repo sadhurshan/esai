@@ -84,6 +84,29 @@ it('prevents unauthorized roles from planning actions', function (): void {
     expect(AiActionDraft::count())->toBe(0);
 });
 
+it('prevents unauthorized roles from planning invoice actions', function (string $actionType): void {
+    ['user' => $user] = provisionCopilotActionUser(role: 'buyer_requester');
+
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldNotReceive('planAction');
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($user);
+
+    $response = $this->postJson('/api/v1/ai/actions/plan', [
+        'action_type' => $actionType,
+        'query' => 'Prepare invoice follow-up',
+    ]);
+
+    $response->assertForbidden()
+        ->assertJsonPath('message', 'You are not authorized to run this Copilot action.');
+
+    expect(AiActionDraft::count())->toBe(0);
+})->with([
+    'invoice_draft' => [AiActionDraft::TYPE_INVOICE_DRAFT],
+    'approve_invoice' => [AiActionDraft::TYPE_APPROVE_INVOICE],
+]);
+
 it('blocks draft approval when the user lacks access', function (): void {
     ['user' => $user] = provisionCopilotActionUser(role: 'finance');
 
@@ -100,6 +123,26 @@ it('blocks draft approval when the user lacks access', function (): void {
 
     expect($draft->fresh()->status)->toBe(AiActionDraft::STATUS_DRAFTED);
 });
+
+it('prevents unauthorized roles from approving invoice actions', function (string $actionType): void {
+    ['user' => $user] = provisionCopilotActionUser(role: 'buyer_requester');
+
+    $draft = createDraftForUser($user, [
+        'action_type' => $actionType,
+    ]);
+
+    actingAs($user);
+
+    $response = $this->postJson("/api/v1/ai/actions/{$draft->id}/approve");
+
+    $response->assertForbidden()
+        ->assertJsonPath('message', 'You are not authorized to approve this Copilot action.');
+
+    expect($draft->fresh()->status)->toBe(AiActionDraft::STATUS_DRAFTED);
+})->with([
+    'invoice_draft' => [AiActionDraft::TYPE_INVOICE_DRAFT],
+    'approve_invoice' => [AiActionDraft::TYPE_APPROVE_INVOICE],
+]);
 
 it('requires approval before converters run', function (): void {
     ['user' => $user] = provisionCopilotActionUser();

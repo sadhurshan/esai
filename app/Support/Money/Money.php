@@ -18,7 +18,7 @@ class Money
 
     public static function fromMinor(int $amountMinor, string $currency): self
     {
-    return new self($amountMinor, strtoupper($currency));
+        return new self($amountMinor, strtoupper($currency));
     }
 
     public static function fromDecimal(float $amount, string $currency, int $minorUnit, MoneyRoundRule $rule = MoneyRoundRule::HalfUp): self
@@ -27,7 +27,7 @@ class Money
         $value = $amount * $factor;
         $minor = self::roundMinor($value, $rule);
 
-    return new self($minor, strtoupper($currency));
+        return new self($minor, strtoupper($currency));
     }
 
     public function amountMinor(): int

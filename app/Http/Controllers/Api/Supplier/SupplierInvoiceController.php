@@ -52,7 +52,7 @@ class SupplierInvoiceController extends ApiController
         $filters = $request->payload();
 
         $query = Invoice::query()
-            ->with(['purchaseOrder', 'attachments', 'document', 'supplierCompany'])
+            ->with(['purchaseOrder', 'attachments', 'document', 'supplierCompany', 'payments.creator'])
             ->where('supplier_company_id', $supplierCompanyId);
 
         if (! empty($filters['status'])) {
@@ -106,7 +106,7 @@ class SupplierInvoiceController extends ApiController
             return $this->fail('Invoice not found.', 404);
         }
 
-        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request));
     }
@@ -153,7 +153,7 @@ class SupplierInvoiceController extends ApiController
 
         $this->performInvoiceMatchAction->execute($invoice);
 
-        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice draft created.');
     }
@@ -217,7 +217,7 @@ class SupplierInvoiceController extends ApiController
             $this->performInvoiceMatchAction->execute($invoice);
         }
 
-        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy']);
+        $invoice->load(['lines.taxes.taxCode', 'purchaseOrder', 'attachments', 'document', 'matches', 'supplierCompany', 'reviewedBy', 'payments.creator']);
 
         return $this->ok((new InvoiceResource($invoice))->toArray($request), 'Invoice updated.');
     }

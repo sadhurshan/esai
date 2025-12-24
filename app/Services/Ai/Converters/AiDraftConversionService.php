@@ -14,6 +14,8 @@ class AiDraftConversionService
         private readonly SupplierMessageDraftConverter $supplierMessageConverter,
         private readonly MaintenanceChecklistDraftConverter $maintenanceConverter,
         private readonly InventoryWhatIfConverter $inventoryConverter,
+        private readonly InvoiceDraftConverter $invoiceConverter,
+        private readonly InvoiceApprovalConverter $invoiceApprovalConverter,
     ) {}
 
     /**
@@ -32,6 +34,8 @@ class AiDraftConversionService
             AiActionDraft::TYPE_SUPPLIER_MESSAGE => $this->supplierMessageConverter->convert($draft, $user),
             AiActionDraft::TYPE_MAINTENANCE_CHECKLIST => $this->maintenanceConverter->convert($draft, $user),
             AiActionDraft::TYPE_INVENTORY_WHATIF => $this->inventoryConverter->convert($draft, $user),
+            AiActionDraft::TYPE_INVOICE_DRAFT => $this->invoiceConverter->convert($draft, $user),
+            AiActionDraft::TYPE_APPROVE_INVOICE => $this->invoiceApprovalConverter->convert($draft, $user),
             default => throw new RuntimeException('Unsupported Copilot action type: ' . $draft->action_type),
         };
     }

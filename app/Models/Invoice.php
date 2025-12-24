@@ -119,4 +119,9 @@ class Invoice extends CompanyScopedModel
     {
         return $this->hasMany(CreditNote::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(InvoicePayment::class)->latest('paid_at')->latest('id');
+    }
 }

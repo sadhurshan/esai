@@ -9,6 +9,10 @@ export type AiChatResponseType =
     | 'workflow_suggestion'
     | 'guided_resolution'
     | 'tool_request'
+    | 'review_rfq'
+    | 'review_quote'
+    | 'review_po'
+    | 'review_invoice'
     | 'error';
 
 export interface AiChatWorkspaceToolCall {
@@ -63,11 +67,29 @@ export interface AiChatAssistantResponse {
     draft?: AiChatDraftSnapshot | null;
     workflow?: AiChatWorkflowSuggestion | null;
     guided_resolution?: AiChatGuidedResolution | null;
+    review?: AiChatReviewPayload | null;
     tool_calls?: AiChatWorkspaceToolCall[] | null;
     tool_results?: AiChatWorkspaceToolResult[] | null;
     needs_human_review?: boolean;
     confidence?: number;
     warnings?: string[];
+}
+
+export interface AiChatReviewChecklistItem {
+    label: string;
+    value?: string | number | null;
+    status: 'ok' | 'warning' | 'risk';
+    detail: string;
+}
+
+export interface AiChatReviewPayload {
+    entity_type: string;
+    entity_id: string | number;
+    title?: string;
+    summary?: string;
+    checklist: AiChatReviewChecklistItem[];
+    highlights?: string[];
+    metadata?: Record<string, unknown>;
 }
 
 export interface AiChatMessageContextPayload {

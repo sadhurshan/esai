@@ -454,6 +454,9 @@ components:
             - supplier_message
             - maintenance_checklist
             - inventory_whatif
+            - award_quote
+            - invoice_draft
+            - approve_invoice
         query:
           type: string
           maxLength: 2000
@@ -533,6 +536,9 @@ components:
             - supplier_message
             - maintenance_checklist
             - inventory_whatif
+            - award_quote
+            - invoice_draft
+            - approve_invoice
         status:
           type: string
           enum:

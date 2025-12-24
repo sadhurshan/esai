@@ -728,8 +728,9 @@ paths:
         content:
           application/json:
             schema:
-             nullable: true
-              $ref: '#/components/schemas/StartSupplierScrapeRequest'
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/StartSupplierScrapeRequest'
       responses:
         '200':
           description: Supplier scrape job queued.

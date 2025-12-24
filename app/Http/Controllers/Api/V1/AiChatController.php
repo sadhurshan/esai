@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\AiChatToolCall;
 use App\Exceptions\AiChatException;
 use App\Exceptions\AiServiceUnavailableException;
 use App\Http\Controllers\Api\ApiController;
@@ -304,6 +305,14 @@ class AiChatController extends ApiController
             ]);
         }
 
+        $toolCalls = $request->toolCalls();
+
+        if ($this->requiresHelpPermission($toolCalls) && ! $this->permissionRegistry->userHasAny($user, ['help.read'], $companyId)) {
+            return $this->fail('You are not authorized to view workspace guides.', Response::HTTP_FORBIDDEN, [
+                'code' => 'workspace_help_forbidden',
+            ]);
+        }
+
         $model = $this->chatService->getThreadWithMessages($thread, $companyId, $this->messageLimit($request));
 
         if (! $model instanceof AiChatThread) {
@@ -311,7 +320,7 @@ class AiChatController extends ApiController
         }
 
         try {
-            $result = $this->chatService->resolveTools($model, $user, $request->toolCalls(), $request->messageContext());
+            $result = $this->chatService->resolveTools($model, $user, $toolCalls, $request->messageContext());
         } catch (AiServiceUnavailableException $exception) {
             $this->incrementToolErrorCount($request);
             return $this->fail('AI service is unavailable.', Response::HTTP_SERVICE_UNAVAILABLE, [
@@ -375,5 +384,21 @@ class AiChatController extends ApiController
         } catch (\Throwable) {
             // Session may not be available for stateless clients; ignore silently.
         }
+    }
+
+    /**
+     * @param list<array{tool_name:string,call_id:string,arguments?:array<string,mixed>}>|list<array{tool_name:string,call_id:string}> $toolCalls
+     */
+    private function requiresHelpPermission(array $toolCalls): bool
+    {
+        foreach ($toolCalls as $call) {
+            $toolName = (string) ($call['tool_name'] ?? '');
+
+            if ($toolName === AiChatToolCall::Help->value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Ai\Workflow\AwardQuoteDraftConverter;
 use App\Services\Ai\Workflow\PurchaseOrderDraftConverter;
 use App\Services\Ai\Workflow\QuoteComparisonDraftConverter;
+use App\Services\Ai\Workflow\PaymentProcessConverter;
 use App\Services\Ai\Workflow\ReceivingQualityDraftConverter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class WorkflowService
         private readonly AwardQuoteDraftConverter $awardQuoteConverter,
         private readonly PurchaseOrderDraftConverter $purchaseOrderConverter,
         private readonly ReceivingQualityDraftConverter $receivingQualityConverter,
+        private readonly PaymentProcessConverter $paymentProcessConverter,
     ) {
     }
 
@@ -380,6 +382,10 @@ class WorkflowService
 
         if ($step->action_type === 'receiving_quality') {
             $this->receivingQualityConverter->convert($step);
+        }
+
+        if ($step->action_type === 'payment_process') {
+            $this->paymentProcessConverter->convert($step);
         }
     }
 

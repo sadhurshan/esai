@@ -92,7 +92,11 @@ class ChatService
 
         $structuredContext = $this->normalizeContext($context);
 
-        $toolResults = $this->dispatchWorkspaceTools($thread, $user, $toolCalls, $structuredContext);
+        try {
+            $toolResults = $this->dispatchWorkspaceTools($thread, $user, $toolCalls, $structuredContext);
+        } catch (AiChatException $exception) {
+            return $this->respondWithGuidedResolutionFallback($thread, $user, $toolCalls, $structuredContext, $exception);
+        }
 
         $toolMessage = $thread->appendMessage(AiChatMessage::ROLE_TOOL, [
             'user_id' => $user->id,
@@ -787,6 +791,239 @@ class ChatService
         return array_values(array_filter($resultsByIndex));
     }
 
+    private function respondWithGuidedResolutionFallback(
+        AiChatThread $thread,
+        User $user,
+        array $toolCalls,
+        array $context,
+        AiChatException $exception
+    ): array {
+        $sanitizedToolCalls = $this->sanitizeToolCalls($toolCalls);
+        $reason = $exception->getMessage();
+        $helpResult = $this->buildHelpToolResult($thread, $context, $sanitizedToolCalls, $reason);
+        $toolResults = [$helpResult];
+
+        $toolMessage = $thread->appendMessage(AiChatMessage::ROLE_TOOL, [
+            'user_id' => $user->id,
+            'content_text' => 'Workspace guide shared instead of running a tool.',
+            'content_json' => [
+                'tool_results' => $toolResults,
+                'fallback_reason' => $reason,
+                'tool_calls' => $sanitizedToolCalls,
+            ],
+            'tool_results_json' => $toolResults,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $assistantPayload = $this->buildGuidedResolutionPayload($helpResult, $sanitizedToolCalls, $reason);
+
+        $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
+            'content_text' => (string) ($assistantPayload['assistant_message_markdown'] ?? ''),
+            'content_json' => $assistantPayload,
+            'citations_json' => $this->normalizeList($assistantPayload['citations'] ?? []),
+            'tool_calls_json' => [],
+            'tool_results_json' => $toolResults,
+            'latency_ms' => null,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $this->recordToolEvent($thread, $user, $toolCalls, $context, null, $assistantPayload, $reason);
+
+        return [
+            'tool_message' => $toolMessage->fresh(),
+            'assistant_message' => $assistantMessage->fresh(),
+            'response' => $assistantPayload,
+        ];
+    }
+
+    private function buildHelpToolResult(
+        AiChatThread $thread,
+        array $context,
+        array $toolCalls,
+        string $reason
+    ): array {
+        $callId = Str::uuid()->toString();
+        $topic = $this->inferHelpTopic($toolCalls);
+        $arguments = [
+            'topic' => $topic,
+            'action' => $topic,
+            'context' => $this->buildHelpContextBlocks($context, $toolCalls, $reason),
+        ];
+
+        try {
+            $results = $this->toolResolver->resolveBatch($thread->company_id, [[
+                'tool_name' => AiChatToolCall::Help->value,
+                'call_id' => $callId,
+                'arguments' => $arguments,
+            ]]);
+
+            if (isset($results[0])) {
+                return $results[0];
+            }
+        } catch (Throwable $fallbackException) {
+            report($fallbackException);
+        }
+
+        return [
+            'tool_name' => AiChatToolCall::Help->value,
+            'call_id' => $callId,
+            'result' => [
+                'summary' => 'Workspace help guide not available right now.',
+                'payload' => [
+                    'title' => 'Workspace help unavailable',
+                    'description' => 'Copilot could not retrieve the fallback guide. Review the workflow manually or contact an admin.',
+                    'steps' => [],
+                    'cta_label' => 'Contact support',
+                    'cta_url' => null,
+                ],
+                'citations' => [],
+            ],
+        ];
+    }
+
+    private function buildGuidedResolutionPayload(array $helpResult, array $toolCalls, string $reason): array
+    {
+        $result = is_array($helpResult['result'] ?? null) ? $helpResult['result'] : [];
+        $guidePayload = is_array($result['payload'] ?? null) ? $result['payload'] : [];
+
+        $topic = $this->inferHelpTopic($toolCalls);
+        $title = $this->stringValue($guidePayload['title'] ?? null)
+            ?? ($topic !== '' ? sprintf('%s guide', Str::title($topic)) : 'Workspace guide');
+        $description = $this->stringValue($guidePayload['description'] ?? ($result['summary'] ?? null))
+            ?? 'Follow these steps inside Elements Supply.';
+        $ctaLabel = $this->stringValue($guidePayload['cta_label'] ?? null) ?? 'Open help center';
+        $ctaUrl = $this->stringValue($guidePayload['cta_url'] ?? null);
+        $steps = $this->normalizeGuideSteps($guidePayload['steps'] ?? null);
+
+        $markdown = $this->formatGuidedResolutionMarkdown($topic, $description, $steps, $ctaLabel, $ctaUrl, $reason);
+
+        return [
+            'type' => 'guided_resolution',
+            'assistant_message_markdown' => $markdown,
+            'guided_resolution' => [
+                'title' => $title,
+                'description' => $description,
+                'cta_label' => $ctaLabel,
+                'cta_url' => $ctaUrl,
+            ],
+            'tool_results' => [$helpResult],
+            'citations' => $this->normalizeList($result['citations'] ?? []),
+            'warnings' => ['Manual steps required while automation is unavailable.'],
+        ];
+    }
+
+    private function inferHelpTopic(array $toolCalls): string
+    {
+        foreach ($toolCalls as $call) {
+            $name = is_array($call) ? ($call['tool_name'] ?? null) : null;
+            if (! is_string($name) || $name === '') {
+                continue;
+            }
+
+            $humanized = $this->humanizeToolName($name);
+
+            if ($humanized !== '') {
+                return $humanized;
+            }
+        }
+
+        return 'workspace guide';
+    }
+
+    private function humanizeToolName(string $toolName): string
+    {
+        $normalized = str_replace(['workspace.', '.'], ['', ' '], trim($toolName));
+        $normalized = str_replace(['_', '-'], ' ', $normalized);
+
+        return trim(Str::headline($normalized));
+    }
+
+    private function buildHelpContextBlocks(array $context, array $toolCalls, string $reason): array
+    {
+        $blocks = $this->normalizeToolContextBlocks($context['context'] ?? []);
+
+        if (count($blocks) < 5) {
+            $blocks[] = array_filter([
+                'type' => 'tool_fallback',
+                'tool_calls' => array_values(array_filter(array_map(
+                    static fn ($call) => is_array($call) ? ($call['tool_name'] ?? null) : null,
+                    $toolCalls
+                ))),
+                'reason' => $reason,
+            ], static fn ($value) => $value !== null && $value !== []);
+        }
+
+        $filtered = array_values(array_filter($blocks, static fn ($block) => is_array($block) && $block !== []));
+
+        return array_slice($filtered, 0, 5);
+    }
+
+    private function normalizeGuideSteps(mixed $steps): array
+    {
+        if (! is_array($steps)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($steps as $step) {
+            $value = $this->stringValue($step);
+            if ($value === null) {
+                continue;
+            }
+
+            $normalized[] = $value;
+
+            if (count($normalized) >= 8) {
+                break;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function formatGuidedResolutionMarkdown(
+        string $topic,
+        string $description,
+        array $steps,
+        string $ctaLabel,
+        ?string $ctaUrl,
+        string $reason
+    ): string {
+        $headline = $topic !== ''
+            ? sprintf('Copilot could not complete the requested workspace lookup for **%s**.', $topic)
+            : 'Copilot could not complete the requested workspace lookup.';
+
+        $segments = [$headline];
+
+        $reason = trim($reason);
+        if ($reason !== '') {
+            $segments[] = sprintf('_Reason_: %s', $reason);
+        }
+
+        if ($description !== '') {
+            $segments[] = $description;
+        }
+
+        if ($steps !== []) {
+            $lines = [];
+            foreach ($steps as $index => $step) {
+                $lines[] = sprintf('%d. %s', $index + 1, $step);
+            }
+            $segments[] = implode("\n", $lines);
+        }
+
+        if ($ctaUrl) {
+            $segments[] = sprintf('[%s](%s)', $ctaLabel, $ctaUrl);
+        } elseif ($ctaLabel !== '') {
+            $segments[] = $ctaLabel;
+        }
+
+        $segments[] = 'Follow the guide above, then ask Copilot to continue once complete.';
+
+        return implode("\n\n", array_filter($segments, static fn ($segment) => $segment !== ''));
+    }
+
     /**
      * @param array<string, mixed> $arguments
      * @param array<string, mixed> $context
@@ -1456,5 +1693,72 @@ class ChatService
             entityType: 'ai_chat_thread',
             entityId: $thread->id,
         );
+
+        $helpCalls = $this->extractHelpToolCalls($toolCalls);
+
+        if ($helpCalls !== []) {
+            $this->recorder->record(
+                companyId: $thread->company_id,
+                userId: $user->id,
+                feature: 'workspace_help',
+                requestPayload: [
+                    'thread_id' => $thread->id,
+                    'help_calls' => $helpCalls,
+                    'context_meta' => $this->sanitizeContextForLogging($context),
+                ],
+                responsePayload: $assistantPayload,
+                latencyMs: $latency,
+                status: $status,
+                errorMessage: $errorMessage,
+                entityType: 'ai_chat_thread',
+                entityId: $thread->id,
+            );
+        }
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $toolCalls
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractHelpToolCalls(array $toolCalls): array
+    {
+        $entries = [];
+
+        foreach ($toolCalls as $call) {
+            $toolName = (string) ($call['tool_name'] ?? '');
+
+            if ($toolName !== AiChatToolCall::Help->value) {
+                continue;
+            }
+
+            $entry = [
+                'tool_name' => $toolName,
+                'call_id' => isset($call['call_id']) ? (string) $call['call_id'] : null,
+            ];
+
+            if (isset($call['arguments']) && is_array($call['arguments'])) {
+                $arguments = [];
+
+                foreach (['topic', 'query', 'action'] as $field) {
+                    $value = $call['arguments'][$field] ?? null;
+
+                    if (is_string($value)) {
+                        $trimmed = trim($value);
+
+                        if ($trimmed !== '') {
+                            $arguments[$field] = $trimmed;
+                        }
+                    }
+                }
+
+                if ($arguments !== []) {
+                    $entry['arguments'] = $arguments;
+                }
+            }
+
+            $entries[] = array_filter($entry, static fn ($value) => $value !== null && $value !== '');
+        }
+
+        return $entries;
     }
 }

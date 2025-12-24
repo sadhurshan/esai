@@ -73,6 +73,54 @@ it('starts a workflow and persists steps', function (): void {
     ]);
 });
 
+it('queues extended steps for the procurement_full_flow template', function (): void {
+    ['user' => $user, 'company' => $company] = provisionCopilotActionUser();
+
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('planWorkflow')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'ok',
+            'data' => [
+                'workflow_id' => 'wf-full',
+                'status' => 'pending',
+            ],
+            'errors' => [],
+        ]);
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($user);
+
+    $response = $this->postJson('/api/v1/ai/workflows/start', [
+        'workflow_type' => 'procurement_full_flow',
+        'rfq_id' => 'RFQ-9',
+        'inputs' => [
+            'rfq' => ['scope' => 'Extended flow'],
+            'quotes' => [],
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.workflow_id', 'wf-full');
+
+    $steps = AiWorkflowStep::query()
+        ->where('workflow_id', 'wf-full')
+        ->orderBy('step_index')
+        ->pluck('action_type')
+        ->all();
+
+    expect($steps)->toEqual([
+        'rfq_draft',
+        'compare_quotes',
+        'award_quote',
+        'po_draft',
+        'receiving_quality',
+        'invoice_approval',
+        'payment_process',
+    ]);
+});
+
 it('drafts the next workflow step', function (): void {
     ['user' => $user, 'company' => $company] = provisionCopilotActionUser();
 

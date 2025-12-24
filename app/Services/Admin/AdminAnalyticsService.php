@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Enums\CompanyStatus;
 use App\Enums\SupplierApplicationStatus;
+use App\Models\AiEvent;
 use App\Models\AiWorkflow;
 use App\Models\AiWorkflowStep;
 use App\Models\AuditLog;
@@ -76,6 +77,7 @@ class AdminAnalyticsService
             ->get();
 
         $workflowMetrics = $this->workflowMetrics($now);
+        $copilotMetrics = $this->copilotMetrics($now);
 
         return [
             'tenants' => [
@@ -113,8 +115,34 @@ class AdminAnalyticsService
                 'tenants' => $this->monthlyCounts('companies', $trendStart, $now),
             ],
             'workflows' => $workflowMetrics,
+            'copilot' => $copilotMetrics,
             'recent_companies' => $recentCompanies,
             'recent_audit_logs' => $recentAuditLogs,
+        ];
+    }
+
+    /**
+     * @return array{window_days:int,forecast_requests:int,help_requests:int}
+     */
+    private function copilotMetrics(Carbon $now): array
+    {
+        $windowDays = 7;
+        $windowStart = $now->copy()->subDays($windowDays);
+
+        $forecastRequests = AiEvent::query()
+            ->where('feature', 'forecast')
+            ->whereBetween('created_at', [$windowStart, $now])
+            ->count();
+
+        $helpRequests = AiEvent::query()
+            ->where('feature', 'workspace_help')
+            ->whereBetween('created_at', [$windowStart, $now])
+            ->count();
+
+        return [
+            'window_days' => $windowDays,
+            'forecast_requests' => $forecastRequests,
+            'help_requests' => $helpRequests,
         ];
     }
 

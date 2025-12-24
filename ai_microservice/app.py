@@ -67,6 +67,10 @@ from ai_microservice.tools_contract import (
     build_supplier_message,
     compare_quotes,
     draft_purchase_order,
+    forecast_inventory,
+    forecast_spend,
+    forecast_supplier_performance,
+    get_help,
     review_invoice,
     review_po,
     review_quote,
@@ -1785,6 +1789,69 @@ async def build_invoice_draft_tool(payload: InvoiceDraftToolRequest) -> Dict[str
     }
 
 
+@app.post("/v1/ai/tools/forecast_spend")
+async def forecast_spend_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = forecast_spend(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Spend forecast generated."
+    LOGGER.info(
+        "tool_forecast_spend",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/forecast_supplier_performance")
+async def forecast_supplier_performance_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = forecast_supplier_performance(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Supplier performance forecast generated."
+    LOGGER.info(
+        "tool_forecast_supplier_performance",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/forecast_inventory")
+async def forecast_inventory_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = forecast_inventory(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Inventory forecast generated."
+    LOGGER.info(
+        "tool_forecast_inventory",
+        extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
 @app.post("/v1/ai/tools/review_rfq")
 async def review_rfq_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
     context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
@@ -1857,6 +1924,32 @@ async def review_invoice_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
     LOGGER.info(
         "tool_review_invoice_built",
         extra=log_extra(company_id=payload.company_id, thread_id=payload.thread_id, user_id=payload.user_id),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/help")
+async def help_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = get_help(context_blocks, payload.inputs)
+    summary = tool_payload.get("description") or "Guided steps assembled."
+    citations = _build_tool_citations(context_blocks)
+    LOGGER.info(
+        "tool_help_generated",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+            topic=tool_payload.get("topic"),
+        ),
     )
     return {
         "status": "ok",

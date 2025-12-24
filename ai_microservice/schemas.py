@@ -32,6 +32,16 @@ QUICK_REPLIES_ARRAY_SCHEMA = {
     },
 }
 
+CONFIDENCE_INTERVAL_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["lower", "upper"],
+    "properties": {
+        "lower": {"type": "number"},
+        "upper": {"type": "number"},
+    },
+}
+
 WORKFLOW_SUGGESTION_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -300,6 +310,68 @@ INVENTORY_WHATIF_PAYLOAD_SCHEMA = {
             "type": "array",
             "items": {"type": "string", "minLength": 1},
         },
+    },
+}
+
+SPEND_FORECAST_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "category",
+        "past_period_days",
+        "projected_period_days",
+        "projected_total",
+        "confidence_interval",
+        "drivers",
+    ],
+    "properties": {
+        "category": {"type": "string", "minLength": 1},
+        "past_period_days": {"type": "integer", "minimum": 1},
+        "projected_period_days": {"type": "integer", "minimum": 1},
+        "projected_total": {"type": "number", "minimum": 0},
+        "confidence_interval": CONFIDENCE_INTERVAL_SCHEMA,
+        "drivers": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+SUPPLIER_PERFORMANCE_FORECAST_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "supplier_id",
+        "metric",
+        "period_days",
+        "projection",
+        "confidence_interval",
+    ],
+    "properties": {
+        "supplier_id": {"type": "string", "minLength": 1},
+        "metric": {"type": "string", "minLength": 1},
+        "period_days": {"type": "integer", "minimum": 1},
+        "projection": {"type": "number"},
+        "confidence_interval": CONFIDENCE_INTERVAL_SCHEMA,
+    },
+}
+
+INVENTORY_FORECAST_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "item_id",
+        "period_days",
+        "expected_usage",
+        "expected_reorder_date",
+        "safety_stock",
+    ],
+    "properties": {
+        "item_id": {"type": "string", "minLength": 1},
+        "period_days": {"type": "integer", "minimum": 1},
+        "expected_usage": {"type": "number", "minimum": 0},
+        "expected_reorder_date": {"type": "string", "format": "date"},
+        "safety_stock": {"type": "number", "minimum": 0},
     },
 }
 
@@ -667,6 +739,9 @@ __all__ = [
     "AWARD_QUOTE_SCHEMA",
     "INVOICE_DRAFT_SCHEMA",
     "PO_DRAFT_SCHEMA",
+    "SPEND_FORECAST_SCHEMA",
+    "SUPPLIER_PERFORMANCE_FORECAST_SCHEMA",
+    "INVENTORY_FORECAST_SCHEMA",
     "SCRAPED_SUPPLIER_SCHEMA",
     "CHAT_RESPONSE_SCHEMA",
 ]

@@ -8,14 +8,25 @@ use App\Models\CopilotPrompt;
 use App\Models\Notification;
 use App\Models\Plan;
 use App\Models\User;
+use App\Services\Ai\AiClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Mockery as M;
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    app()->forgetInstance(AiClient::class);
+});
+
+afterEach(function (): void {
+    M::close();
+    app()->forgetInstance(AiClient::class);
+});
 
 function analyticsEnabledCompany(): Company
 {
@@ -147,4 +158,84 @@ it('returns analytics results, logs prompt history, and notifies admins', functi
             'type' => AnalyticsSnapshot::TYPE_CYCLE_TIME,
             'value' => (float) $snapshot->value,
         ]);
+});
+
+it('routes forecast spend queries through the ai client', function (): void {
+    Event::fake();
+    Mail::fake();
+
+    try {
+        Carbon::setTestNow(Carbon::parse('2024-05-01 00:00:00', 'UTC'));
+
+        $company = analyticsEnabledCompany();
+
+        $actor = User::factory()->for($company)->create([
+            'role' => 'buyer_admin',
+            'email' => 'owner@example.com',
+        ]);
+
+        User::factory()->for($company)->create([
+            'role' => 'finance',
+            'email' => 'finance@example.com',
+        ]);
+
+        actingAs($actor);
+
+        $aiClient = M::mock(AiClient::class);
+        $aiClient->shouldReceive('forecastSpendTool')
+            ->once()
+            ->withArgs(function (array $payload) use ($company, $actor): bool {
+                expect($payload['company_id'])->toBe($company->id)
+                    ->and($payload['user_id'])->toBe($actor->id)
+                    ->and($payload['inputs']['category'])->toBe('Raw Materials')
+                    ->and($payload['inputs']['projected_period_days'])->toBe(45)
+                    ->and($payload['context'])->toHaveCount(1);
+
+                return true;
+            })
+            ->andReturn([
+                'status' => 'success',
+                'message' => 'Forecast complete.',
+                'data' => [
+                    'summary' => 'Expect +12% spend next month.',
+                    'payload' => [
+                        'projected_total' => 125000.45,
+                        'projected_period_days' => 45,
+                    ],
+                    'citations' => [
+                        ['source' => 'analytics_snapshot', 'id' => 'spend-trend-2024'],
+                    ],
+                ],
+            ]);
+
+        app()->instance(AiClient::class, $aiClient);
+
+        $response = $this->postJson('/api/copilot/analytics', [
+            'query' => 'Forecast spend for raw materials next month',
+            'context' => [
+                ['type' => 'note', 'content' => 'Seasonal demand spike'],
+            ],
+            'inputs' => [
+                'category' => 'Raw Materials',
+                'past_period_days' => 90,
+                'projected_period_days' => 45,
+                'drivers' => ['Orders backlog', 'Supplier capacity'],
+            ],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.type', 'forecast_spend')
+            ->assertJsonPath('data.0.meta.summary', 'Expect +12% spend next month.')
+            ->assertJsonPath('meta.metrics.0', 'forecast_spend');
+
+        $prompt = CopilotPrompt::first();
+
+        expect($prompt)->not->toBeNull()
+            ->and($prompt->metrics)->toBe(['forecast_spend'])
+            ->and($prompt->response[0]['meta']['payload']['projected_total'])->toBe(125000.45);
+
+        expect(Notification::count())->toBe(2);
+    } finally {
+        Carbon::setTestNow();
+    }
 });

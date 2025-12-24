@@ -596,6 +596,12 @@ export interface AdminAnalyticsApprovalsSummary {
     pending_supplier_applications: number;
 }
 
+export interface AdminAnalyticsCopilotMetrics {
+    window_days: number;
+    forecast_requests: number;
+    help_requests: number;
+}
+
 export interface AdminAnalyticsOverview {
     tenants: AdminAnalyticsTenantsSummary;
     subscriptions: AdminAnalyticsSubscriptionsSummary;
@@ -603,6 +609,7 @@ export interface AdminAnalyticsOverview {
     people: AdminAnalyticsPeopleSummary;
     approvals: AdminAnalyticsApprovalsSummary;
     workflows: AdminWorkflowMetrics;
+    copilot: AdminAnalyticsCopilotMetrics;
     trends: {
         rfqs: AdminAnalyticsTrendPoint[];
         tenants: AdminAnalyticsTrendPoint[];

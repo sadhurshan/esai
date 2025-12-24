@@ -17,6 +17,7 @@ enum AiChatToolCall: string
     case AwardQuote = 'workspace.award_quote';
     case InvoiceDraft = 'workspace.invoice_draft';
     case ApproveInvoice = 'workspace.approve_invoice';
+    case Help = 'workspace.help';
     case ReviewRfq = 'workspace.review_rfq';
     case ReviewQuote = 'workspace.review_quote';
     case ReviewPo = 'workspace.review_po';

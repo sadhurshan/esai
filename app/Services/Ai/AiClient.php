@@ -169,6 +169,48 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function forecastSpendTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/forecast_spend',
+            $payload,
+            'Spend forecast generated.',
+            'tool_forecast_spend'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function forecastSupplierPerformanceTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/forecast_supplier_performance',
+            $payload,
+            'Supplier performance forecast generated.',
+            'tool_forecast_supplier_performance'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function forecastInventoryTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/forecast_inventory',
+            $payload,
+            'Inventory forecast generated.',
+            'tool_forecast_inventory'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function reviewRfqTool(array $payload): array
     {
         return $this->send(
@@ -218,6 +260,20 @@ class AiClient
             $payload,
             'Invoice review checklist generated.',
             'tool_review_invoice'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function helpTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/help',
+            $payload,
+            'Workspace help guide generated.',
+            'tool_help'
         );
     }
 

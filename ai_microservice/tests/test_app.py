@@ -226,6 +226,115 @@ def test_supplier_risk_validation_errors_return_422(client: TestClient) -> None:
     assert any("supplier object cannot be empty" in error["msg"] for error in detail)
 
 
+def test_forecast_spend_tool_endpoint_returns_projection(client: TestClient) -> None:
+    payload = {
+        "company_id": 1,
+        "thread_id": 10,
+        "user_id": 20,
+        "context": [
+            {
+                "doc_id": "spend-rollup",
+                "doc_version": "v1",
+                "chunk_id": 0,
+                "snippet": "Spend history",
+                "metadata": {
+                    "values": [1200.0, 1350.0, 1400.0],
+                },
+            }
+        ],
+        "inputs": {
+            "category": "Facilities",
+            "past_period_days": 45,
+            "projected_period_days": 30,
+        },
+    }
+
+    response = client.post("/v1/ai/tools/forecast_spend", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    data = body["data"]
+    assert data["summary"] == "Spend forecast generated."
+    payload_data = data["payload"]
+    assert payload_data["category"] == "Facilities"
+    assert payload_data["confidence_interval"]["lower"] <= payload_data["confidence_interval"]["upper"]
+    assert data["citations"]
+
+
+def test_forecast_supplier_performance_tool_endpoint_returns_projection(client: TestClient) -> None:
+    payload = {
+        "company_id": 2,
+        "thread_id": 20,
+        "user_id": 30,
+        "context": [
+            {
+                "doc_id": "supplier-metrics",
+                "doc_version": "v4",
+                "chunk_id": 3,
+                "snippet": "On-time performance",
+                "metadata": {
+                    "series": [0.8, 0.92, 0.97, 0.95],
+                },
+            }
+        ],
+        "inputs": {
+            "supplier_id": "SUP-5",
+            "metric": "on_time",
+            "period_days": 60,
+        },
+    }
+
+    response = client.post("/v1/ai/tools/forecast_supplier_performance", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    data = body["data"]
+    assert data["summary"] == "Supplier performance forecast generated."
+    payload_data = data["payload"]
+    assert payload_data["supplier_id"] == "SUP-5"
+    assert 0.0 <= payload_data["projection"] <= 1.0
+    assert data["citations"]
+
+
+def test_forecast_inventory_tool_endpoint_returns_usage(client: TestClient) -> None:
+    payload = {
+        "company_id": 3,
+        "thread_id": 30,
+        "user_id": 40,
+        "context": [
+            {
+                "doc_id": "inventory-utilization",
+                "doc_version": "v2",
+                "chunk_id": 5,
+                "snippet": "Usage trends",
+                "metadata": {
+                    "values": [15, 17, 19, 16],
+                },
+            }
+        ],
+        "inputs": {
+            "item_id": "SKU-123",
+            "period_days": 21,
+            "lead_time_days": 14,
+        },
+    }
+
+    response = client.post("/v1/ai/tools/forecast_inventory", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    data = body["data"]
+    assert data["summary"] == "Inventory forecast generated."
+    payload_data = data["payload"]
+    assert payload_data["item_id"] == "SKU-123"
+    assert payload_data["expected_usage"] > 0
+    assert payload_data["safety_stock"] > 0
+    assert data["citations"]
+
+
 def test_index_document_endpoint_persists_chunks(
     client: TestClient,
     stub_embedding_provider: _StubEmbeddingProvider,

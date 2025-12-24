@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useAdminAnalyticsOverview } from '@/hooks/api/admin/use-admin-analytics-overview';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint, AdminWorkflowAlert, AdminWorkflowMetrics } from '@/types/admin';
+import type { AdminAnalyticsCopilotMetrics, AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint, AdminWorkflowAlert, AdminWorkflowMetrics } from '@/types/admin';
 import { cn } from '@/lib/utils';
 
 type QuickLink = {
@@ -236,6 +236,8 @@ export function AdminHomePage() {
                     formatDate={formatDate}
                 />
             </div>
+
+            <CopilotMonitoringCard metrics={analytics?.copilot} isLoading={isLoading} formatNumber={formatNumber} />
 
             <div className="grid gap-4 lg:grid-cols-2">
                 <RecentCompaniesTable
@@ -566,6 +568,51 @@ function WorkflowAlertsCard({
                         icon={<Sparkles className="h-8 w-8" aria-hidden />}
                         title="No failed workflows"
                         description="Workflow-level alerts will populate here as issues arise."
+                    />
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function CopilotMonitoringCard({
+    metrics,
+    isLoading,
+    formatNumber,
+}: {
+    metrics?: AdminAnalyticsCopilotMetrics;
+    isLoading: boolean;
+    formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
+}) {
+    const windowLabel = metrics ? `Past ${metrics.window_days}-day window` : 'Awaiting usage data';
+
+    return (
+        <Card className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div>
+                    <CardTitle>Copilot monitoring</CardTitle>
+                    <CardDescription>Track forecast & guided help volume.</CardDescription>
+                </div>
+                <div className="rounded-full bg-primary/10 p-2 text-primary">
+                    <Sparkles className="h-5 w-5" aria-hidden />
+                </div>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <Skeleton className="h-32 w-full" />
+                ) : metrics ? (
+                    <div className="space-y-4">
+                        <dl className="grid gap-4 sm:grid-cols-2">
+                            <Stat value={metrics.forecast_requests} label="Forecast requests" formatNumber={formatNumber} intent="success" />
+                            <Stat value={metrics.help_requests} label="Help guides" formatNumber={formatNumber} intent="warning" />
+                        </dl>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">{windowLabel}</p>
+                    </div>
+                ) : (
+                    <EmptyState
+                        icon={<Sparkles className="h-8 w-8" aria-hidden />}
+                        title="No Copilot activity"
+                        description="Once tenants request forecasts or workspace guides, their counts will appear here."
                     />
                 )}
             </CardContent>

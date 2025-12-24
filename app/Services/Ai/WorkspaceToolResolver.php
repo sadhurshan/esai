@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\Enums\AiChatToolCall;
 use App\Exceptions\AiChatException;
+use App\Exceptions\AiServiceUnavailableException;
 use App\Enums\InvoiceStatus;
 use App\Models\Currency;
 use App\Models\Inventory;
@@ -14,6 +15,7 @@ use App\Models\Quote;
 use App\Models\RFQ;
 use App\Models\RfqItemAward;
 use App\Models\Supplier;
+use App\Services\Ai\AiClient;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
@@ -31,9 +33,14 @@ class WorkspaceToolResolver
         AiChatToolCall::GetReceipts->value => 'handleGetReceipts',
         AiChatToolCall::GetInvoices->value => 'handleGetInvoices',
         AiChatToolCall::ApproveInvoice->value => 'handleApproveInvoice',
+        AiChatToolCall::Help->value => 'handleHelp',
     ];
 
     public const MAX_TOOL_CALLS = 5;
+
+    public function __construct(private readonly AiClient $client)
+    {
+    }
 
     /**
      * @return list<string>
@@ -724,6 +731,51 @@ class WorkspaceToolResolver
         ];
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
+    private function handleHelp(int $companyId, array $arguments): array
+    {
+        $topic = $this->stringValue($arguments['topic'] ?? null)
+            ?? $this->stringValue($arguments['query'] ?? null)
+            ?? $this->stringValue($arguments['action'] ?? null)
+            ?? 'copilot workspace basics';
+
+        $inputs = ['topic' => $topic];
+
+        foreach (['query', 'action'] as $field) {
+            $value = $this->stringValue($arguments[$field] ?? null);
+            if ($value !== null) {
+                $inputs[$field] = $value;
+            }
+        }
+
+        $requestPayload = [
+            'company_id' => $companyId,
+            'context' => $this->sanitizeContextBlocks($arguments['context'] ?? null),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = $this->client->helpTool($requestPayload);
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Workspace help service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to generate workspace help guide.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Workspace guide generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->sanitizeArrayArgument($data['citations'] ?? []),
+        ];
+    }
+
     private function sanitizeLimit(mixed $value, int $default, int $max): int
     {
         if (! is_numeric($value)) {
@@ -797,6 +849,44 @@ class WorkspaceToolResolver
     private function sanitizeArrayArgument(mixed $value): array
     {
         return is_array($value) ? $value : [];
+    }
+
+    private function sanitizeContextBlocks(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $blocks = [];
+
+        foreach ($value as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+
+            $blocks[] = $block;
+
+            if (count($blocks) >= 5) {
+                break;
+            }
+        }
+
+        return $blocks;
+    }
+
+    private function stringValue(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $trimmed = trim($value);
+
+            return $trimmed === '' ? null : $trimmed;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        return null;
     }
 
     private function currencyMinorUnit(string $currency): int

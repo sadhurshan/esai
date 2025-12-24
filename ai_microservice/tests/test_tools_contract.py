@@ -9,6 +9,9 @@ from ai_microservice.schemas import AWARD_QUOTE_SCHEMA, INVOICE_DRAFT_SCHEMA
 from ai_microservice.tools_contract import (
     build_award_quote,
     build_invoice_draft,
+    forecast_inventory,
+    forecast_spend,
+    forecast_supplier_performance,
     review_invoice,
     review_po,
     review_quote,
@@ -111,6 +114,83 @@ def test_build_invoice_draft_returns_expected_fields() -> None:
     assert payload["line_items"][0]["description"] == "Machining lot"
     assert payload["line_items"][0]["qty"] == 10
     assert payload["notes"] == "Match against PO-123 prior to approval."
+
+
+def test_forecast_spend_returns_confidence_interval_and_drivers() -> None:
+    context = [
+        {
+            "metadata": {
+                "values": [1000.0, 1200.0, 900.0, 1100.0],
+                "notes": ["Expedite fees", "Volume discounts"],
+            }
+        }
+    ]
+    inputs = {
+        "category": "MRO",
+        "past_period_days": 60,
+        "projected_period_days": 30,
+        "drivers": [
+            "Planned shutdown",
+            "Supplier incentives",
+            "Logistics surcharges",
+            "Spot buys",
+            "Rush orders",
+            "Should be trimmed",
+        ],
+    }
+
+    payload = forecast_spend(context, inputs)
+
+    assert payload["category"] == "MRO"
+    assert payload["projected_total"] > 0
+    assert payload["confidence_interval"]["lower"] <= payload["confidence_interval"]["upper"]
+    assert len(payload["drivers"]) == 5
+
+
+def test_forecast_supplier_performance_clamps_projection() -> None:
+    context = [
+        {
+            "metadata": {
+                "series": [1.2, 0.95, 0.85, 0.8],
+            }
+        }
+    ]
+    inputs = {
+        "supplier_id": "SUP-42",
+        "metric": "on_time",
+        "period_days": 45,
+    }
+
+    payload = forecast_supplier_performance(context, inputs)
+
+    assert payload["supplier_id"] == "SUP-42"
+    assert 0.0 <= payload["projection"] <= 1.0
+    interval = payload["confidence_interval"]
+    assert 0.0 <= interval["lower"] <= interval["upper"] <= 1.0
+
+
+def test_forecast_inventory_returns_expected_usage_and_date() -> None:
+    context = [
+        {
+            "metadata": {
+                "values": [15.0, 18.0, 20.0, 22.0],
+            }
+        }
+    ]
+    inputs = {
+        "item_id": "SKU-99",
+        "period_days": 21,
+        "lead_time_days": 14,
+    }
+
+    payload = forecast_inventory(context, inputs)
+
+    assert payload["item_id"] == "SKU-99"
+    assert payload["expected_usage"] > 0
+    assert payload["safety_stock"] > 0
+    assert payload["expected_reorder_date"]
+    # ensure ISO-8601
+    assert isinstance(date.fromisoformat(payload["expected_reorder_date"]), date)
 
 
 def test_review_rfq_requires_identifier() -> None:

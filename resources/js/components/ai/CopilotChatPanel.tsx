@@ -1,6 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Bot, ChevronDown, GitBranch, Loader2, Send, Sparkles, User } from 'lucide-react';
 
+import { AnalyticsCard } from '@/components/ai/AnalyticsCard';
 import { ReviewChecklist } from '@/components/ai/ReviewChecklist';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +21,10 @@ import type {
     AiChatDraftSnapshot,
     AiChatGuidedResolution,
     AiChatMessage,
+    AiChatResponseType,
     AiChatWorkflowSuggestion,
 } from '@/types/ai-chat';
+import type { AiAnalyticsChartDatum, AiAnalyticsCitation, AiAnalyticsMetric } from '@/types/ai-analytics';
 
 interface CopilotChatPanelProps {
     className?: string;
@@ -42,11 +45,44 @@ const RESPONSE_LABELS: Record<string, string> = {
 
 const FALLBACK_THREAD_TITLE = 'New conversation';
 
+const ANALYTICS_RESPONSE_TYPES = new Set<AiChatResponseType>([
+    'analytics',
+    'forecast_spend',
+    'forecast_supplier_performance',
+    'forecast_inventory',
+]);
+
+const KNOWN_ANALYTICS_METRICS: ReadonlyArray<AiAnalyticsMetric> = [
+    'cycle_time',
+    'otif',
+    'response_rate',
+    'spend',
+    'forecast_accuracy',
+    'forecast_spend',
+    'forecast_supplier_performance',
+    'forecast_inventory',
+];
+
+const TOOL_TO_ANALYTICS_METRIC: Record<string, AiAnalyticsMetric> = {
+    tool_forecast_spend: 'forecast_spend',
+    tool_forecast_supplier_performance: 'forecast_supplier_performance',
+    tool_forecast_inventory: 'forecast_inventory',
+};
+
 type DraftActionState = {
     approvingId: number | null;
     rejectingId: number | null;
     isApprovePending: boolean;
     isRejectPending: boolean;
+};
+
+type AnalyticsCardViewModel = {
+    metric: AiAnalyticsMetric | null;
+    title: string;
+    chartData: AiAnalyticsChartDatum[];
+    summary?: string | null;
+    citations?: AiAnalyticsCitation[];
+    valueFormatter?: (value: number) => string;
 };
 
 export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
@@ -559,13 +595,24 @@ function AssistantDetails({
     const hasWorkflow = response?.type === 'workflow_suggestion' && Boolean(response.workflow);
     const guidedResolution = response?.type === 'guided_resolution' ? response.guided_resolution : null;
     const reviewPayload = response?.review ?? null;
+    const analyticsCards = extractAnalyticsCards(response);
 
-    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution && !reviewPayload) {
+    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution && !reviewPayload && analyticsCards.length === 0) {
         return null;
     }
 
     return (
         <div className="mt-4 space-y-4 text-slate-100">
+            {analyticsCards.map((card, index) => (
+                <AnalyticsCard
+                    key={`${card.metric ?? 'analytics'}-${card.title}-${index}`}
+                    title={card.title}
+                    chartData={card.chartData}
+                    summary={card.summary}
+                    citations={card.citations}
+                    valueFormatter={card.valueFormatter}
+                />
+            ))}
             {/* {warnings.length > 0 ? (
                 <Alert variant="default" className="bg-amber-100/10 text-amber-50">
                     <AlertTitle className="flex items-center gap-2 text-amber-100">
@@ -1309,6 +1356,383 @@ function buildWorkflowStartVariables(workflow: AiChatWorkflowSuggestion): StartA
         goal: normalizeStringValue(payload.goal),
         inputs: rawInputs,
     };
+}
+
+function extractAnalyticsCards(response: AiChatAssistantResponse | null): AnalyticsCardViewModel[] {
+    if (!response || !ANALYTICS_RESPONSE_TYPES.has(response.type)) {
+        return [];
+    }
+
+    const rawCards = getAnalyticsPayloads(response);
+    const normalizedCards = rawCards
+        .map((card) => normalizeAnalyticsCardPayload(card))
+        .filter((card): card is AnalyticsCardViewModel => Boolean(card));
+
+    if (normalizedCards.length > 0) {
+        return normalizedCards;
+    }
+
+    return buildCardsFromToolResults(response);
+}
+
+type AnalyticsResponsePayload = AiChatAssistantResponse & {
+    analytics_cards?: unknown;
+    analytics?: unknown;
+};
+
+function getAnalyticsPayloads(response: AnalyticsResponsePayload): unknown[] {
+    if (Array.isArray(response.analytics_cards)) {
+        return response.analytics_cards;
+    }
+
+    if (Array.isArray(response.analytics)) {
+        return response.analytics;
+    }
+
+    return [];
+}
+
+function normalizeAnalyticsCardPayload(card: unknown): AnalyticsCardViewModel | null {
+    if (!isRecord(card)) {
+        return null;
+    }
+
+    const title = normalizeTextValue(card.title ?? card.metric ?? card.type);
+    const metric = normalizeAnalyticsMetric(card.metric);
+    const chartData =
+        normalizeChartData(card.chartData) ||
+        normalizeChartData(card.chart_data) ||
+        normalizeChartData(card.series);
+
+    if (!title || chartData.length === 0) {
+        return null;
+    }
+
+    const summary = normalizeTextValue(card.summary ?? card.description ?? card.subtitle);
+    const citations = normalizeAnalyticsCitations(card.citations);
+
+    return {
+        metric,
+        title,
+        chartData,
+        summary,
+        citations,
+    };
+}
+
+function normalizeAnalyticsMetric(value: unknown): AiAnalyticsMetric | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    return (KNOWN_ANALYTICS_METRICS as ReadonlyArray<string>).includes(value)
+        ? (value as AiAnalyticsMetric)
+        : null;
+}
+
+function normalizeChartData(value: unknown): AiAnalyticsChartDatum[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (!isRecord(entry)) {
+                return null;
+            }
+
+            const label = normalizeTextValue(entry.label ?? entry.name ?? entry.metric);
+            const numericValue = numberValue(entry.value ?? entry.score ?? entry.amount);
+
+            if (!label || numericValue === null) {
+                return null;
+            }
+
+            return {
+                label,
+                value: numericValue,
+            } satisfies AiAnalyticsChartDatum;
+        })
+        .filter((datum): datum is AiAnalyticsChartDatum => Boolean(datum));
+}
+
+function normalizeAnalyticsCitations(value: unknown): AiAnalyticsCitation[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry, index): AiAnalyticsCitation | null => {
+            if (typeof entry === 'string') {
+                const label = normalizeTextValue(entry);
+                return label ? { id: `${label}-${index}`, label } : null;
+            }
+
+            if (!isRecord(entry)) {
+                return null;
+            }
+
+            const label =
+                normalizeTextValue(entry.label) ??
+                normalizeTextValue(entry.title) ??
+                normalizeTextValue(entry.name) ??
+                normalizeTextValue(entry.snippet);
+            const docId = normalizeTextValue(entry.doc_id);
+            const fallbackLabel = label ?? (docId ? `Document #${docId}` : null);
+
+            if (!fallbackLabel) {
+                return null;
+            }
+
+            const source = normalizeTextValue(entry.source ?? entry.source_type);
+            const url = normalizeTextValue(entry.url ?? entry.link ?? entry.download_url ?? entry.href);
+            const citationId =
+                normalizeCitationId(entry.id) ??
+                docId ??
+                (typeof entry.chunk_id === 'number' ? `${fallbackLabel}-${entry.chunk_id}` : null) ??
+                `${fallbackLabel}-${index}`;
+
+            return {
+                id: citationId,
+                label: fallbackLabel,
+                source,
+                url,
+            };
+        })
+        .filter((citation): citation is AiAnalyticsCitation => Boolean(citation));
+}
+
+function normalizeCitationId(value: unknown): string | number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    return normalizeTextValue(value);
+}
+
+function buildCardsFromToolResults(response: AiChatAssistantResponse): AnalyticsCardViewModel[] {
+    const toolResults = Array.isArray(response.tool_results) ? response.tool_results : [];
+    if (toolResults.length === 0) {
+        return [];
+    }
+
+    const fallbackCitations = normalizeAnalyticsCitations(response.citations);
+
+    return toolResults
+        .map((result) => {
+            if (!result || typeof result.tool_name !== 'string') {
+                return null;
+            }
+
+            const metric = TOOL_TO_ANALYTICS_METRIC[result.tool_name];
+            if (!metric || !isRecord(result.result)) {
+                return null;
+            }
+
+            return buildAnalyticsCardFromTool(metric, result.result, fallbackCitations);
+        })
+        .filter((card): card is AnalyticsCardViewModel => Boolean(card));
+}
+
+function buildAnalyticsCardFromTool(
+    metric: AiAnalyticsMetric,
+    payload: Record<string, unknown>,
+    fallbackCitations: AiAnalyticsCitation[],
+): AnalyticsCardViewModel | null {
+    switch (metric) {
+        case 'forecast_spend':
+            return buildForecastSpendCard(payload, fallbackCitations);
+        case 'forecast_supplier_performance':
+            return buildSupplierPerformanceCard(payload, fallbackCitations);
+        case 'forecast_inventory':
+            return buildInventoryForecastCard(payload, fallbackCitations);
+        default:
+            return null;
+    }
+}
+
+function buildForecastSpendCard(
+    payload: Record<string, unknown>,
+    fallbackCitations: AiAnalyticsCitation[],
+): AnalyticsCardViewModel | null {
+    const projectedTotal = numberValue(payload.projected_total);
+    const periodDays = numberValue(payload.projected_period_days);
+    const confidenceInterval = isRecord(payload.confidence_interval) ? payload.confidence_interval : null;
+    const lowerBound = confidenceInterval ? numberValue(confidenceInterval.lower) : null;
+    const upperBound = confidenceInterval ? numberValue(confidenceInterval.upper) : null;
+
+    const chartData: AiAnalyticsChartDatum[] = [];
+    if (projectedTotal !== null) {
+        chartData.push({ label: periodDays ? `Projected ${periodDays}d` : 'Projected spend', value: projectedTotal });
+    }
+    if (lowerBound !== null) {
+        chartData.push({ label: 'Lower bound', value: lowerBound });
+    }
+    if (upperBound !== null) {
+        chartData.push({ label: 'Upper bound', value: upperBound });
+    }
+
+    if (chartData.length === 0) {
+        return null;
+    }
+
+    const drivers = Array.isArray(payload.drivers)
+        ? payload.drivers
+              .map((driver) => (typeof driver === 'string' ? driver.trim() : ''))
+              .filter((driver) => driver.length > 0)
+        : [];
+
+    const summaryParts: string[] = [];
+    const category = normalizeTextValue(payload.category);
+    if (category) {
+        summaryParts.push(`Category ${category}`);
+    }
+    if (projectedTotal !== null) {
+        summaryParts.push(`Projected spend ${formatCurrencyValue(projectedTotal, 'USD')}`);
+    }
+    if (lowerBound !== null && upperBound !== null) {
+        summaryParts.push(`Confidence ${formatCurrencyValue(lowerBound, 'USD')} – ${formatCurrencyValue(upperBound, 'USD')}`);
+    }
+    if (drivers.length > 0) {
+        summaryParts.push(drivers.slice(0, 2).join(' '));
+    }
+
+    const citations = normalizeAnalyticsCitations(payload.citations);
+
+    return {
+        metric: 'forecast_spend',
+        title: 'Spend forecast',
+        chartData,
+        summary: summaryParts.filter(Boolean).join(' • ') || undefined,
+        citations: citations.length > 0 ? citations : fallbackCitations,
+        valueFormatter: (value) => formatCurrencyValue(value, 'USD'),
+    };
+}
+
+function buildSupplierPerformanceCard(
+    payload: Record<string, unknown>,
+    fallbackCitations: AiAnalyticsCitation[],
+): AnalyticsCardViewModel | null {
+    const projection = numberValue(payload.projection);
+    const confidenceInterval = isRecord(payload.confidence_interval) ? payload.confidence_interval : null;
+    const lowerBound = confidenceInterval ? numberValue(confidenceInterval.lower) : null;
+    const upperBound = confidenceInterval ? numberValue(confidenceInterval.upper) : null;
+    const periodDays = numberValue(payload.period_days);
+
+    const chartData: AiAnalyticsChartDatum[] = [];
+    if (projection !== null) {
+        chartData.push({ label: 'Projection', value: projection });
+    }
+    if (lowerBound !== null) {
+        chartData.push({ label: 'Lower bound', value: lowerBound });
+    }
+    if (upperBound !== null) {
+        chartData.push({ label: 'Upper bound', value: upperBound });
+    }
+
+    if (chartData.length === 0) {
+        return null;
+    }
+
+    const metricName = normalizeTextValue(payload.metric) ?? 'Performance';
+    const supplierId = normalizeTextValue(payload.supplier_id);
+    const summaryParts: string[] = [];
+
+    if (projection !== null) {
+        summaryParts.push(`${metricName} projected at ${formatPercentValue(projection)}`);
+    }
+    if (periodDays !== null) {
+        summaryParts.push(`Window ${periodDays} days`);
+    }
+    if (lowerBound !== null && upperBound !== null) {
+        summaryParts.push(`Confidence ${formatPercentValue(lowerBound)} – ${formatPercentValue(upperBound)}`);
+    }
+
+    const title = supplierId ? `Supplier ${supplierId} · ${metricName}` : `${metricName} forecast`;
+    const citations = normalizeAnalyticsCitations(payload.citations);
+
+    return {
+        metric: 'forecast_supplier_performance',
+        title,
+        chartData,
+        summary: summaryParts.filter(Boolean).join(' • ') || undefined,
+        citations: citations.length > 0 ? citations : fallbackCitations,
+        valueFormatter: (value) => formatPercentValue(value),
+    };
+}
+
+function buildInventoryForecastCard(
+    payload: Record<string, unknown>,
+    fallbackCitations: AiAnalyticsCitation[],
+): AnalyticsCardViewModel | null {
+    const expectedUsage = numberValue(payload.expected_usage);
+    const safetyStock = numberValue(payload.safety_stock);
+    const periodDays = numberValue(payload.period_days);
+    const reorderDate = normalizeTextValue(payload.expected_reorder_date);
+
+    const chartData: AiAnalyticsChartDatum[] = [];
+    if (expectedUsage !== null) {
+        chartData.push({ label: 'Expected usage', value: expectedUsage });
+    }
+    if (safetyStock !== null) {
+        chartData.push({ label: 'Safety stock', value: safetyStock });
+    }
+
+    if (chartData.length === 0) {
+        return null;
+    }
+
+    const summaryParts: string[] = [];
+    if (periodDays !== null) {
+        summaryParts.push(`Window ${periodDays} days`);
+    }
+    if (reorderDate) {
+        summaryParts.push(`Reorder by ${formatDateLabel(reorderDate)}`);
+    }
+    if (expectedUsage !== null) {
+        summaryParts.push(`Usage ${formatWholeNumber(expectedUsage)} units`);
+    }
+    if (safetyStock !== null) {
+        summaryParts.push(`Safety stock ${formatWholeNumber(safetyStock)} units`);
+    }
+
+    const itemId = normalizeTextValue(payload.item_id);
+    const citations = normalizeAnalyticsCitations(payload.citations);
+
+    return {
+        metric: 'forecast_inventory',
+        title: itemId ? `Inventory forecast · ${itemId}` : 'Inventory forecast',
+        chartData,
+        summary: summaryParts.filter(Boolean).join(' • ') || undefined,
+        citations: citations.length > 0 ? citations : fallbackCitations,
+        valueFormatter: (value) => formatWholeNumber(value),
+    };
+}
+
+function formatWholeNumber(value: number): string {
+    if (!Number.isFinite(value)) {
+        return '—';
+    }
+
+    try {
+        const maximumFractionDigits = Math.abs(value) < 10 ? 1 : 0;
+        return new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value);
+    } catch {
+        return value.toString();
+    }
+}
+
+function normalizeTextValue(value: unknown): string | null {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed === '' ? null : trimmed;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value.toString();
+    }
+
+    return null;
 }
 
 function normalizeStringValue(value: unknown): string | null {

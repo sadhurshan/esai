@@ -245,7 +245,7 @@ it('resolves workspace tool calls and continues the conversation', function (): 
     expect(AiChatMessage::query()->where('thread_id', $thread->id)->where('role', AiChatMessage::ROLE_TOOL)->count())->toBe(1);
 });
 
-it('increments the tool error counter when workspace tools fail', function (): void {
+it('returns a guided resolution when workspace tools fail', function (): void {
     ['user' => $user, 'company' => $company] = provisionCopilotActionUser();
 
     $thread = AiChatThread::query()->create([
@@ -259,12 +259,47 @@ it('increments the tool error counter when workspace tools fail', function (): v
     $toolResolver = Mockery::mock(WorkspaceToolResolver::class);
     $toolResolver->shouldReceive('resolveBatch')
         ->once()
+        ->withArgs(function ($companyId, array $calls) use ($thread): bool {
+            expect($companyId)->toBe($thread->company_id);
+            expect($calls[0]['tool_name'] ?? null)->toBe('workspace.get_rfq');
+
+            return true;
+        })
         ->andThrow(new AiChatException('Resolver failed.'));
+
+    $helpResult = [[
+        'tool_name' => 'workspace.help',
+        'call_id' => 'help-fallback',
+        'result' => [
+            'summary' => 'Manual RFQ lookup steps.',
+            'payload' => [
+                'title' => 'RFQ lookup guide',
+                'description' => 'Follow these steps to inspect RFQs manually.',
+                'steps' => ['Open the RFQs workspace view.', 'Filter by the requested RFQ number.'],
+                'cta_label' => 'Open RFQs',
+                'cta_url' => 'https://example.test/rfqs',
+            ],
+            'citations' => [],
+        ],
+    ]];
+
+    $toolResolver->shouldReceive('resolveBatch')
+        ->once()
+        ->withArgs(function ($companyId, array $calls) use ($thread): bool {
+            expect($companyId)->toBe($thread->company_id);
+            expect($calls[0]['tool_name'] ?? null)->toBe('workspace.help');
+
+            return true;
+        })
+        ->andReturn($helpResult);
+
     $this->app->instance(WorkspaceToolResolver::class, $toolResolver);
 
-    actingAs($user);
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldNotReceive('chatContinue');
+    $this->app->instance(AiClient::class, $client);
 
-    $this->withSession([]);
+    actingAs($user);
 
     $response = $this->postJson("/api/v1/ai/chat/threads/{$thread->id}/tools/resolve", [
         'tool_calls' => [
@@ -272,8 +307,11 @@ it('increments the tool error counter when workspace tools fail', function (): v
         ],
     ]);
 
-    $response->assertStatus(Response::HTTP_BAD_GATEWAY)
-        ->assertJsonPath('message', 'Resolver failed.');
+    $response->assertOk()
+        ->assertJsonPath('data.response.type', 'guided_resolution')
+        ->assertJsonPath('data.response.guided_resolution.title', 'RFQ lookup guide')
+        ->assertJsonPath('data.assistant_message.content.guided_resolution.cta_url', 'https://example.test/rfqs')
+        ->assertJsonPath('data.tool_message.role', AiChatMessage::ROLE_TOOL);
 
-    expect(session('tool_error_count'))->toBe(1);
+    expect(AiChatMessage::query()->where('thread_id', $thread->id)->where('role', AiChatMessage::ROLE_TOOL)->count())->toBe(1);
 });

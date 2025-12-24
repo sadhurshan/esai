@@ -4,8 +4,10 @@ use App\Exceptions\AiServiceUnavailableException;
 use App\Models\AiEvent;
 use App\Models\Company;
 use App\Models\Plan;
+use App\Models\RoleTemplate;
 use App\Models\User;
 use App\Services\Ai\AiClient;
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use function Pest\Laravel\actingAs;
@@ -112,6 +114,40 @@ it('forbids forecast requests when the user lacks inventory permissions', functi
             ['date' => now()->subDay()->toDateString(), 'quantity' => 8],
         ],
         'horizon' => 21,
+    ];
+
+    $response = $this->postJson('/api/ai/forecast', $payload);
+
+    $response->assertForbidden()
+        ->assertJsonPath('message', 'You are not authorized to generate forecasts.')
+        ->assertJsonPath('status', 'error');
+
+    expect(AiEvent::count())->toBe(0);
+});
+
+it('forbids forecast requests when the user lacks forecasts.read', function (): void {
+    RoleTemplate::query()->create([
+        'slug' => 'forecast_observer',
+        'name' => 'Forecast Observer',
+        'permissions' => ['inventory.read', 'inventory.write'],
+    ]);
+
+    app(PermissionRegistry::class)->forgetRoleCache('forecast_observer');
+
+    ['user' => $user] = provisionAiUser(role: 'forecast_observer');
+
+    $client = \Mockery::mock(AiClient::class);
+    $client->shouldNotReceive('forecast');
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($user);
+
+    $payload = [
+        'part_id' => 55,
+        'history' => [
+            ['date' => now()->subDay()->toDateString(), 'quantity' => 6],
+        ],
+        'horizon' => 10,
     ];
 
     $response = $this->postJson('/api/ai/forecast', $payload);

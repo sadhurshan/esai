@@ -141,3 +141,33 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+    .copilot-analytics-card {
+        @apply rounded-3xl border border-white/10 bg-slate-900/70 p-5 text-white shadow-[0_18px_60px_rgba(15,23,42,0.55)] backdrop-blur;
+    }
+
+    .copilot-analytics-card__badge {
+        @apply inline-flex items-center rounded-full border border-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/70;
+    }
+
+    .copilot-analytics-card__chart {
+        height: 200px;
+    }
+
+    .copilot-analytics-card__empty {
+        @apply flex h-full items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-white/60;
+    }
+
+    .copilot-analytics-card__summary {
+        @apply mt-4 text-sm leading-relaxed text-white/80;
+    }
+
+    .copilot-analytics-card__citations {
+        @apply mt-4 rounded-2xl border border-white/5 bg-white/5 p-4;
+    }
+
+    .copilot-analytics-card__citations ul li {
+        @apply border-b border-white/5 pb-1 text-sm last:border-b-0 last:pb-0;
+    }
+}

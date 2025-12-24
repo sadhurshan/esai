@@ -488,7 +488,11 @@
                             "draft_action",
                             "workflow_suggestion",
                             "tool_request",
-                            "error"
+                            "error",
+                            "review_rfq",
+                            "review_quote",
+                            "review_po",
+                            "review_invoice"
                         ]
                     },
                     "assistant_message_markdown": {
@@ -552,6 +556,12 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "review": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": true,
+                        "description": "Structured checklist payload for review_* responses."
                     }
                 }
             },
@@ -701,7 +711,16 @@
                             "workspace.get_quotes_for_rfq",
                             "workspace.get_inventory_item",
                             "workspace.low_stock",
-                            "workspace.get_awards"
+                            "workspace.get_awards",
+                            "workspace.get_receipts",
+                            "workspace.get_invoices",
+                            "workspace.award_quote",
+                            "workspace.invoice_draft",
+                            "workspace.approve_invoice",
+                            "workspace.review_rfq",
+                            "workspace.review_quote",
+                            "workspace.review_po",
+                            "workspace.review_invoice"
                         ]
                     },
                     "call_id": {
@@ -1176,6 +1195,35 @@
                     "name": {
                         "type": "string",
                         "nullable": true
+                    }
+                }
+            },
+            "AnalyticsReportSummary": {
+                "type": "object",
+                "required": [
+                    "summary_markdown",
+                    "bullets",
+                    "source",
+                    "provider"
+                ],
+                "properties": {
+                    "summary_markdown": {
+                        "type": "string",
+                        "description": "Markdown-formatted overview of key insights."
+                    },
+                    "bullets": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "source": {
+                        "type": "string",
+                        "description": "Indicates whether the content came from AI or deterministic fallback logic."
+                    },
+                    "provider": {
+                        "type": "string",
+                        "description": "Identifier for the model or fallback generator."
                     }
                 }
             },
@@ -2215,7 +2263,10 @@
                             "rfq_draft",
                             "supplier_message",
                             "maintenance_checklist",
-                            "inventory_whatif"
+                            "inventory_whatif",
+                            "award_quote",
+                            "invoice_draft",
+                            "approve_invoice"
                         ]
                     },
                     "status": {
@@ -2341,7 +2392,10 @@
                             "rfq_draft",
                             "supplier_message",
                             "maintenance_checklist",
-                            "inventory_whatif"
+                            "inventory_whatif",
+                            "award_quote",
+                            "invoice_draft",
+                            "approve_invoice"
                         ]
                     },
                     "query": {
@@ -3513,6 +3567,216 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "ForecastReport": {
+                "type": "object",
+                "required": [
+                    "series",
+                    "table",
+                    "aggregates",
+                    "filters_used"
+                ],
+                "properties": {
+                    "series": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ForecastReportSeries"
+                        }
+                    },
+                    "table": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ForecastReportTableRow"
+                        }
+                    },
+                    "aggregates": {
+                        "$ref": "#/components/schemas/ForecastReportAggregates"
+                    },
+                    "filters_used": {
+                        "$ref": "#/components/schemas/ForecastReportFilters"
+                    }
+                }
+            },
+            "ForecastReportAggregates": {
+                "type": "object",
+                "required": [
+                    "total_forecast",
+                    "total_actual",
+                    "mape",
+                    "mae",
+                    "avg_daily_demand",
+                    "recommended_reorder_point",
+                    "recommended_safety_stock"
+                ],
+                "properties": {
+                    "total_forecast": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "total_actual": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "mape": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "mae": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "avg_daily_demand": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "recommended_reorder_point": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "recommended_safety_stock": {
+                        "type": "number",
+                        "format": "float"
+                    }
+                }
+            },
+            "ForecastReportFilters": {
+                "type": "object",
+                "required": [
+                    "start_date",
+                    "end_date",
+                    "part_ids",
+                    "category_ids",
+                    "location_ids",
+                    "bucket"
+                ],
+                "properties": {
+                    "start_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "part_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "category_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "location_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "bucket": {
+                        "type": "string",
+                        "enum": [
+                            "daily",
+                            "weekly"
+                        ],
+                        "description": "Time bucket applied to series data."
+                    }
+                }
+            },
+            "ForecastReportSeries": {
+                "type": "object",
+                "required": [
+                    "part_id",
+                    "part_name",
+                    "data"
+                ],
+                "properties": {
+                    "part_id": {
+                        "type": "integer"
+                    },
+                    "part_name": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ForecastReportSeriesPoint"
+                        }
+                    }
+                }
+            },
+            "ForecastReportSeriesPoint": {
+                "type": "object",
+                "description": "Time-bucketed actual versus forecast quantities for a part.",
+                "required": [
+                    "date",
+                    "actual",
+                    "forecast"
+                ],
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "ISO date or range label for the bucket."
+                    },
+                    "actual": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "forecast": {
+                        "type": "number",
+                        "format": "float"
+                    }
+                }
+            },
+            "ForecastReportTableRow": {
+                "type": "object",
+                "required": [
+                    "part_id",
+                    "part_name",
+                    "total_forecast",
+                    "total_actual",
+                    "mape",
+                    "mae",
+                    "reorder_point",
+                    "safety_stock"
+                ],
+                "properties": {
+                    "part_id": {
+                        "type": "integer"
+                    },
+                    "part_name": {
+                        "type": "string"
+                    },
+                    "total_forecast": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "total_actual": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "mape": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Mean absolute percentage error for the part."
+                    },
+                    "mae": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Mean absolute error in demand units."
+                    },
+                    "reorder_point": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "safety_stock": {
+                        "type": "number",
+                        "format": "float"
                     }
                 }
             },
@@ -8581,6 +8845,157 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
+                        "nullable": true
+                    }
+                }
+            },
+            "SupplierPerformanceFilters": {
+                "type": "object",
+                "required": [
+                    "start_date",
+                    "end_date",
+                    "bucket",
+                    "supplier_id"
+                ],
+                "properties": {
+                    "start_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "bucket": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly"
+                        ]
+                    },
+                    "supplier_id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "SupplierPerformanceReport": {
+                "type": "object",
+                "required": [
+                    "series",
+                    "table",
+                    "filters_used"
+                ],
+                "properties": {
+                    "series": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplierPerformanceSeries"
+                        }
+                    },
+                    "table": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplierPerformanceTableRow"
+                        }
+                    },
+                    "filters_used": {
+                        "$ref": "#/components/schemas/SupplierPerformanceFilters"
+                    }
+                }
+            },
+            "SupplierPerformanceSeries": {
+                "type": "object",
+                "required": [
+                    "metric_name",
+                    "label",
+                    "data"
+                ],
+                "properties": {
+                    "metric_name": {
+                        "type": "string",
+                        "enum": [
+                            "on_time_delivery_rate",
+                            "defect_rate",
+                            "lead_time_variance",
+                            "price_volatility",
+                            "service_responsiveness"
+                        ]
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplierPerformanceSeriesPoint"
+                        }
+                    }
+                }
+            },
+            "SupplierPerformanceSeriesPoint": {
+                "type": "object",
+                "required": [
+                    "date",
+                    "value"
+                ],
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "Week or month label applied to the metric bucket."
+                    },
+                    "value": {
+                        "type": "number",
+                        "format": "float"
+                    }
+                }
+            },
+            "SupplierPerformanceTableRow": {
+                "type": "object",
+                "required": [
+                    "supplier_id",
+                    "on_time_delivery_rate",
+                    "defect_rate",
+                    "lead_time_variance",
+                    "price_volatility",
+                    "service_responsiveness"
+                ],
+                "properties": {
+                    "supplier_id": {
+                        "type": "integer"
+                    },
+                    "supplier_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "on_time_delivery_rate": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "defect_rate": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "lead_time_variance": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Standard deviation of lead times expressed in days."
+                    },
+                    "price_volatility": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "service_responsiveness": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Average acknowledgement time in hours."
+                    },
+                    "risk_score": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "risk_category": {
+                        "type": "string",
                         "nullable": true
                     }
                 }
@@ -25967,11 +26382,11 @@
                     {
                         "name": "company_id",
                         "in": "query",
-                        "required": true,
+                        "required": false,
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "Tenant to scope scrape jobs to."
+                        "description": "Optional tenant ID to scope scrape jobs to."
                     },
                     {
                         "name": "status",
@@ -26076,13 +26491,17 @@
                     "Admin"
                 ],
                 "summary": "Start a supplier scrape job",
-                "operationId": "adminStartSupplierScrape",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/StartSupplierScrapeRequest"
+                                "nullable": true,
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/StartSupplierScrapeRequest"
+                                    }
+                                ]
                             }
                         }
                     }
@@ -27770,6 +28189,354 @@
                     },
                     "503": {
                         "description": "AI service temporarily unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/forecast-report": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Generate demand forecast accuracy report",
+                "operationId": "generateForecastReport",
+                "description": "Returns demand forecast versus actual consumption along with reorder recommendations and an AI summary.",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Inclusive start date for demand analysis. Defaults to 90 days ago when omitted."
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Inclusive end date for the analysis window. Defaults to today when omitted."
+                    },
+                    {
+                        "name": "part_ids",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            }
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "description": "Limit calculations to the specified part identifiers."
+                    },
+                    {
+                        "name": "category_ids",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "description": "Filter parts by category slug or taxonomy identifier."
+                    },
+                    {
+                        "name": "location_ids",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            }
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "description": "Restrict usage signals to the listed warehouse or site identifiers."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Forecast report payload scoped to the authenticated company.",
+                        "headers": {
+                            "X-Request-Id": {
+                                "$ref": "#/components/headers/XRequestId"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "report",
+                                                        "summary"
+                                                    ],
+                                                    "properties": {
+                                                        "report": {
+                                                            "$ref": "#/components/schemas/ForecastReport"
+                                                        },
+                                                        "summary": {
+                                                            "$ref": "#/components/schemas/AnalyticsReportSummary"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Analytics feature disabled or missing permission for forecast reports.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid filter payload supplied.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/supplier-options": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "List supplier filter options",
+                "operationId": "listAnalyticsSupplierOptions",
+                "description": "Returns supplier names scoped to the authenticated company so analytics filters can present relevant options.",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Optional prefix search applied to supplier names."
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 25
+                        },
+                        "description": "Maximum number of suppliers to return."
+                    },
+                    {
+                        "name": "selected_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "description": "Supplier identifier that is prepended to the results even if it falls outside the current search window."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier options eligible for analytics filters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "id",
+                                                                    "name"
+                                                                ],
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "minimum": 1
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Analytics feature disabled or permission denied for supplier filters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/supplier-performance-report": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Generate supplier performance diagnostics",
+                "operationId": "generateSupplierPerformanceReport",
+                "description": "Aggregates delivery quality, pricing volatility, and responsiveness for a specific supplier with an accompanying AI summary.",
+                "parameters": [
+                    {
+                        "name": "supplier_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "description": "Supplier company identifier to analyze. Required for buyer personas; supplier personas default to their invited supplier ID."
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Inclusive start date for supplier performance metrics. Defaults to the prior 90 days."
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Inclusive end date for the reporting range. Defaults to today."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier performance report for the requested supplier.",
+                        "headers": {
+                            "X-Request-Id": {
+                                "$ref": "#/components/headers/XRequestId"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "report",
+                                                        "summary"
+                                                    ],
+                                                    "properties": {
+                                                        "report": {
+                                                            "$ref": "#/components/schemas/SupplierPerformanceReport"
+                                                        },
+                                                        "summary": {
+                                                            "$ref": "#/components/schemas/AnalyticsReportSummary"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Analytics feature disabled or missing permission for supplier performance reports.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found within the active company.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid supplier or date filters supplied.",
                         "content": {
                             "application/json": {
                                 "schema": {

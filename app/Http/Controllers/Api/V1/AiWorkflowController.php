@@ -111,6 +111,14 @@ class AiWorkflowController extends ApiController
         }
 
         $payload = $request->startPayload();
+        $templatePermissions = $this->workflowTemplatePermissions($payload['workflow_type'] ?? '');
+
+        if ($templatePermissions !== [] && ! $this->permissionRegistry->userHasAll($user, $templatePermissions, $companyId)) {
+            return $this->fail('You are not authorized to run this workflow.', Response::HTTP_FORBIDDEN, [
+                'code' => 'workflow_forbidden',
+            ]);
+        }
+
         $payload['user_context'] = $this->buildUserContext($user, $payload['user_context'], $companyId);
 
         try {
@@ -347,6 +355,19 @@ class AiWorkflowController extends ApiController
         ], static fn ($value) => $value !== null && $value !== '');
 
         return $defaults + $clientContext;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function workflowTemplatePermissions(string $workflowType): array
+    {
+        return match ($workflowType) {
+            'receiving_quality' => ['receiving.write'],
+            'invoice_approval_flow' => ['finance.write'],
+            'procurement_full_flow' => ['receiving.write', 'finance.write'],
+            default => [],
+        };
     }
 
     private function resolveThread(?int $threadId, int $companyId): ?AiChatThread

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Company;
+use App\Services\Ai\AiClient;
 use App\Services\Ai\WorkspaceToolResolver;
 
 it('returns placeholder receipts payloads for workspace.get_receipts', function () {
@@ -73,4 +74,52 @@ it('returns placeholder invoice payloads for workspace.get_invoices', function (
 
     expect($payload['meta']['filters'])->toMatchArray(['supplier_name' => 'Helios Industries'])
         ->and($payload['meta']['context'])->toMatchArray(['origin' => 'spec-test']);
+});
+
+it('delegates workspace.help to the AI help tool', function (): void {
+    $company = Company::factory()->create();
+
+    $client = \Mockery::mock(AiClient::class);
+    $client->shouldReceive('helpTool')
+        ->once()
+        ->with(\Mockery::on(function (array $payload) use ($company): bool {
+            expect($payload['company_id'] ?? null)->toBe($company->id);
+            expect($payload['inputs']['topic'] ?? null)->toBe('Approve invoice');
+
+            return true;
+        }))
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Workspace help guide generated.',
+            'data' => [
+                'summary' => 'Guided steps ready.',
+                'payload' => ['topic' => 'approve invoice'],
+                'citations' => [['doc_id' => 'doc-1']],
+            ],
+            'errors' => [],
+        ]);
+
+    $this->app->instance(AiClient::class, $client);
+
+    $resolver = app(WorkspaceToolResolver::class);
+
+    $results = $resolver->resolveBatch($company->id, [[
+        'tool_name' => 'workspace.help',
+        'call_id' => 'call-help',
+        'arguments' => [
+            'topic' => 'Approve invoice',
+            'context' => [['doc_id' => 'doc-1']],
+        ],
+    ]]);
+
+    expect($results)->toHaveCount(1)
+        ->and($results[0]['tool_name'])->toBe('workspace.help');
+
+    $payload = $results[0]['result'];
+
+    expect($payload)->toMatchArray([
+        'summary' => 'Guided steps ready.',
+        'payload' => ['topic' => 'approve invoice'],
+        'citations' => [['doc_id' => 'doc-1']],
+    ]);
 });

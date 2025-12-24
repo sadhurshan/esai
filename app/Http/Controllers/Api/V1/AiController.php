@@ -190,10 +190,7 @@ class AiController extends ApiController
     private function deniesForecast(User $user, int $companyId): bool
     {
         return ! $this->permissionRegistry->userHasAny($user, [
-            'inventory.read',
-            'inventory.write',
-            'finance.read',
-            'finance.write',
+            'forecasts.read',
         ], $companyId);
     }
 

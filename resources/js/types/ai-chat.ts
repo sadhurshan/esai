@@ -1,3 +1,5 @@
+import type { AiAnalyticsCardPayload } from './ai-analytics';
+
 export type AiChatThreadStatus = 'open' | 'closed';
 export type AiChatMessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
@@ -13,6 +15,10 @@ export type AiChatResponseType =
     | 'review_quote'
     | 'review_po'
     | 'review_invoice'
+    | 'analytics'
+    | 'forecast_spend'
+    | 'forecast_supplier_performance'
+    | 'forecast_inventory'
     | 'error';
 
 export interface AiChatWorkspaceToolCall {
@@ -73,6 +79,7 @@ export interface AiChatAssistantResponse {
     needs_human_review?: boolean;
     confidence?: number;
     warnings?: string[];
+    analytics_cards?: AiAnalyticsCardPayload[] | null;
 }
 
 export interface AiChatReviewChecklistItem {

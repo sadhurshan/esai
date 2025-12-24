@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import importlib
 import math
+import os
+import re
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta, timezone, date
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple
 
 
@@ -64,6 +68,14 @@ class _SideEffectGuard(AbstractContextManager[None]):
             except Exception:
                 pass
         return None
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+HELP_DOC_BASE_URL = os.getenv("AI_HELP_BASE_URL", "https://docs.elements-supply.ai")
+HELP_DOC_SOURCES: Tuple[tuple[str, Path], ...] = (
+    ("copilot_primer", REPO_ROOT / "docs" / "COPILOT_PRIMER.md"),
+    ("requirements_full", REPO_ROOT / "docs" / "REQUIREMENTS_FULL.md"),
+)
 
 
 def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: MutableMapping[str, Any]) -> Dict[str, Any]:
@@ -257,6 +269,161 @@ def run_inventory_whatif(
             "expected_holding_cost_change": expected_holding_cost_change,
             "recommendation": recommendation,
             "assumptions": assumptions,
+        }
+
+
+def forecast_spend(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a projected spend forecast using historical context data."""
+
+    with _SideEffectGuard("forecast_spend"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        category = _text(normalized_inputs.get("category")) or "General"
+        past_period_days = int(max(1, _safe_float(normalized_inputs.get("past_period_days"), default=90.0)))
+        projected_period_days = int(max(1, _safe_float(normalized_inputs.get("projected_period_days"), default=30.0)))
+
+        history = _extract_numeric_series(normalized_context)
+        if not history:
+            fallback_total = _safe_float(normalized_inputs.get("historical_total"), default=25000.0)
+            history = [fallback_total / max(float(past_period_days), 1.0)]
+
+        avg_daily_spend = max(_series_mean(history), 0.0)
+        projected_total = round(avg_daily_spend * projected_period_days, 2)
+        volatility = _series_stddev(history)
+        if volatility <= 0.0:
+            volatility = max(avg_daily_spend * 0.1, 1.0)
+        margin = volatility * math.sqrt(projected_period_days / max(past_period_days, 1))
+        confidence_interval = _build_confidence_interval(projected_total, margin, minimum=0.0)
+
+        drivers = _string_list(normalized_inputs.get("drivers"))
+        if not drivers:
+            drivers = _contextual_insights(normalized_context, limit=3)
+        if not drivers:
+            drivers = [
+                f"Average daily spend estimated at ${avg_daily_spend:,.2f}.",
+                f"Projection window: {projected_period_days} day(s).",
+            ]
+
+        return {
+            "category": category,
+            "past_period_days": past_period_days,
+            "projected_period_days": projected_period_days,
+            "projected_total": projected_total,
+            "confidence_interval": confidence_interval,
+            "drivers": drivers[:5],
+        }
+
+
+def forecast_supplier_performance(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic supplier performance projection."""
+
+    with _SideEffectGuard("forecast_supplier_performance"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        supplier_id = _text(normalized_inputs.get("supplier_id")) or "supplier"
+        metric = _text(normalized_inputs.get("metric")) or "on-time delivery"
+        period_days = int(max(1, _safe_float(normalized_inputs.get("period_days"), default=30.0)))
+
+        history = _extract_numeric_series(normalized_context)
+        if not history:
+            history = [_safe_float(normalized_inputs.get("historical_metric"), default=0.9)]
+
+        projection = _clamp(_series_mean(history), 0.0, 1.0)
+        variability = _series_stddev(history)
+        if variability <= 0.0:
+            variability = 0.05
+        confidence_interval = _build_confidence_interval(
+            projection,
+            variability,
+            minimum=0.0,
+            maximum=1.0,
+        )
+
+        return {
+            "supplier_id": supplier_id,
+            "metric": metric,
+            "period_days": period_days,
+            "projection": round(projection, 4),
+            "confidence_interval": confidence_interval,
+        }
+
+
+def forecast_inventory(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return an inventory usage forecast with reorder guidance."""
+
+    with _SideEffectGuard("forecast_inventory"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        item_id = _text(normalized_inputs.get("item_id")) or "item"
+        period_days = int(max(1, _safe_float(normalized_inputs.get("period_days"), default=30.0)))
+        lead_time_days = int(max(1, _safe_float(normalized_inputs.get("lead_time_days"), default=14.0)))
+
+        history = _extract_numeric_series(normalized_context)
+        if not history:
+            history = [_safe_float(normalized_inputs.get("avg_daily_usage"), default=25.0)]
+
+        avg_daily_usage = max(_series_mean(history), 0.0)
+        expected_usage = round(avg_daily_usage * period_days, 2)
+        safety_stock = round(max(avg_daily_usage * math.sqrt(float(lead_time_days)), 0.0), 2)
+
+        reorder_date_input = _text(normalized_inputs.get("expected_reorder_date"))
+        reorder_date = _parse_iso_date(reorder_date_input)
+        if reorder_date is None:
+            reorder_date = datetime.now(timezone.utc).date() + timedelta(days=max(lead_time_days // 2, 1))
+
+        return {
+            "item_id": item_id,
+            "period_days": period_days,
+            "expected_usage": expected_usage,
+            "expected_reorder_date": reorder_date.isoformat(),
+            "safety_stock": safety_stock,
+        }
+
+
+def get_help(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic help guide sourced from local documentation."""
+
+    with _SideEffectGuard("get_help"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        topic = (
+            _text(normalized_inputs.get("topic"))
+            or _text(normalized_inputs.get("query"))
+            or _text(normalized_inputs.get("action"))
+        )
+        topic = topic or "copilot workspace basics"
+
+        section = _select_help_section(topic)
+        guidance_steps = section.get("steps") or []
+        if not guidance_steps:
+            guidance_steps = _fallback_help_steps(topic)
+
+        description = section.get("summary") or f"Follow these steps to {topic}."
+        references = _format_source_labels(normalized_context, limit=2)
+        if section.get("reference"):
+            references.append(section["reference"])
+
+        return {
+            "topic": topic,
+            "title": section.get("title") or "Copilot help",
+            "description": description,
+            "steps": guidance_steps[:8],
+            "cta_label": section.get("cta_label") or "Open help center",
+            "cta_url": section.get("url"),
+            "source": section.get("source"),
+            "references": references[:5],
         }
 
 
@@ -1313,6 +1480,234 @@ def _is_date_imminent(value: str, threshold_days: int) -> bool:
     return delta.days <= threshold_days
 
 
+def _extract_numeric_series(
+    context: List[MutableMapping[str, Any]],
+    *,
+    limit: int = 180,
+) -> List[float]:
+    series: List[float] = []
+    for block in context:
+        candidates: List[Any] = []
+        if "data" in block:
+            candidates.append(block.get("data"))
+        metadata = block.get("metadata") or {}
+        for key in ("history", "series", "values"):
+            if key in metadata:
+                candidates.append(metadata.get(key))
+        for candidate in candidates:
+            for entry in _iter_numeric_candidates(candidate):
+                numeric = _coerce_numeric(entry)
+                if numeric is not None:
+                    series.append(numeric)
+                    if len(series) >= limit:
+                        return series
+    return series
+
+
+def _iter_numeric_candidates(value: Any) -> Iterable[Any]:
+    if isinstance(value, MutableMapping):
+        return value.values()
+    if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+        return value
+    return [value]
+
+
+def _coerce_numeric(value: Any) -> Optional[float]:
+    if isinstance(value, (int, float)) and not math.isnan(float(value)):
+        return float(value)
+    if isinstance(value, MutableMapping):
+        preferred_keys = (
+            "value",
+            "amount",
+            "total",
+            "quantity",
+            "actual",
+            "forecast",
+            "usage",
+            "score",
+        )
+        for key in preferred_keys:
+            if key in value:
+                numeric = _coerce_numeric(value.get(key))
+                if numeric is not None:
+                    return numeric
+        for nested in value.values():
+            numeric = _coerce_numeric(nested)
+            if numeric is not None:
+                return numeric
+    return None
+
+
+def _series_mean(values: Sequence[float]) -> float:
+    if not values:
+        return 0.0
+    return sum(values) / float(len(values))
+
+
+def _series_stddev(values: Sequence[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean_value = _series_mean(values)
+    variance = sum((value - mean_value) ** 2 for value in values) / float(len(values))
+    return math.sqrt(max(variance, 0.0))
+
+
+def _build_confidence_interval(
+    center: float,
+    margin: float,
+    *,
+    minimum: float = float("-inf"),
+    maximum: Optional[float] = None,
+) -> Dict[str, float]:
+    lower = center - margin
+    upper = center + margin
+    if maximum is not None:
+        lower = min(lower, maximum)
+        upper = min(upper, maximum)
+    lower = max(lower, minimum)
+    upper = max(upper, minimum)
+    return {
+        "lower": round(lower, 4),
+        "upper": round(upper, 4),
+    }
+
+
+def _select_help_section(topic: str) -> Dict[str, Any]:
+    sections = _load_help_sections()
+    if not sections:
+        return {
+            "title": "Copilot help center",
+            "summary": "Here is how to proceed in the workspace.",
+            "steps": _fallback_help_steps(topic),
+            "source": "help",
+            "reference": "[help]",
+            "url": f"{HELP_DOC_BASE_URL.rstrip('/')}/copilot",
+            "cta_label": "Open help center",
+            "level": 1,
+        }
+
+    keywords = [token for token in re.split(r"[^a-z0-9]+", topic.lower()) if len(token) > 2]
+    best_section = sections[0]
+    best_score = float("-inf")
+    for section in sections:
+        score = 0.0
+        title = section.get("title", "").lower()
+        body = section.get("body", "").lower()
+        for keyword in keywords:
+            if keyword and keyword in title:
+                score += 3.0
+            if keyword and keyword in body:
+                score += 1.0
+        score += max(0, 3 - int(section.get("level", 1)))
+        if score > best_score:
+            best_score = score
+            best_section = section
+
+    return best_section
+
+
+@lru_cache(maxsize=1)
+def _load_help_sections() -> List[Dict[str, Any]]:
+    sections: List[Dict[str, Any]] = []
+    for slug, path in HELP_DOC_SOURCES:
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        sections.extend(_split_markdown_sections(slug, raw))
+    return sections
+
+
+def _split_markdown_sections(source: str, document: str) -> List[Dict[str, Any]]:
+    sections: List[Dict[str, Any]] = []
+    current_title = source.replace("_", " ").title()
+    current_lines: List[str] = []
+    current_level = 1
+    for line in document.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            if current_lines:
+                sections.append(_build_help_entry(source, current_title, current_level, current_lines))
+                current_lines = []
+            level = len(stripped) - len(stripped.lstrip("#"))
+            current_level = max(1, level)
+            current_title = stripped.lstrip("# ").strip() or current_title
+            continue
+        current_lines.append(line)
+
+    if current_lines:
+        sections.append(_build_help_entry(source, current_title, current_level, current_lines))
+    return sections
+
+
+def _build_help_entry(source: str, title: str, level: int, lines: Sequence[str]) -> Dict[str, Any]:
+    body = "\n".join(line.rstrip() for line in lines).strip()
+    anchor = _slugify_anchor(title or source)
+    summary = _summarize_help_body(body)
+    steps = _extract_help_steps(body)
+    url = _build_help_url(source, anchor)
+    return {
+        "source": source,
+        "title": title or source.replace("_", " ").title(),
+        "body": body,
+        "level": level,
+        "summary": summary,
+        "steps": steps,
+        "reference": f"[{source}:{anchor}]" if anchor else f"[{source}]",
+        "url": url,
+        "cta_label": "Open help center",
+    }
+
+
+def _summarize_help_body(body: str) -> str:
+    cleaned_lines = [line.strip() for line in body.splitlines() if line.strip()]
+    if not cleaned_lines:
+        return "Here is how to proceed in the workspace."
+    first_sentence = re.split(r"(?<=[.!?])\s+", cleaned_lines[0])[0]
+    return first_sentence or "Here is how to proceed in the workspace."
+
+
+def _extract_help_steps(body: str) -> List[str]:
+    steps: List[str] = []
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if re.match(r"^\d+[.)]\s+", stripped):
+            entry = re.sub(r"^\d+[.)]\s+", "", stripped).strip()
+        elif stripped.startswith(('- ', '* ')):
+            entry = stripped[2:].strip()
+        else:
+            continue
+        if entry:
+            steps.append(entry)
+        if len(steps) >= 8:
+            break
+    return steps
+
+
+def _fallback_help_steps(topic: str) -> List[str]:
+    normalized = topic.strip() or "the requested action"
+    return [
+        f"Open the Copilot dock and describe that you want to {normalized}.",
+        "Review the action links Copilot suggests for that module.",
+        "Follow the in-app breadcrumbs or documentation link to continue.",
+    ]
+
+
+def _build_help_url(source: str, anchor: str) -> str:
+    base = HELP_DOC_BASE_URL.rstrip("/")
+    path = source.replace("_", "-")
+    if anchor:
+        return f"{base}/{path}#{anchor}"
+    return f"{base}/{path}"
+
+
+def _slugify_anchor(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return normalized or "section"
+
+
 __all__ = [
     "SideEffectBlockedError",
     "build_rfq_draft",
@@ -1323,6 +1718,10 @@ __all__ = [
     "draft_purchase_order",
     "build_invoice_draft",
     "build_award_quote",
+    "forecast_spend",
+    "forecast_supplier_performance",
+    "forecast_inventory",
+    "get_help",
     "review_rfq",
     "review_quote",
     "review_po",

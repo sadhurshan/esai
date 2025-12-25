@@ -87,6 +87,14 @@ const sanitizeContextPayload = (context?: AiChatMessageContextPayload): AiChatMe
         normalized.attachments = context.attachments;
     }
 
+    if (typeof context.locale === 'string') {
+        const trimmedLocale = context.locale.trim().toLowerCase();
+
+        if (trimmedLocale !== '') {
+            normalized.locale = trimmedLocale.slice(0, 10);
+        }
+    }
+
     return Object.keys(normalized).length > 0 ? normalized : undefined;
 };
 

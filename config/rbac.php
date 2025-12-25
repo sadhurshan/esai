@@ -304,6 +304,13 @@ return [
                     'domain' => 'workspace',
                 ],
                 [
+                    'key' => 'ai.admin',
+                    'label' => 'Administer AI usage',
+                    'description' => 'Access AI usage dashboards and manage Copilot governance.',
+                    'level' => 'admin',
+                    'domain' => 'workspace',
+                ],
+                [
                     'key' => 'exports.run',
                     'label' => 'Run exports',
                     'description' => 'Generate CSV/PDF exports and download archives.',

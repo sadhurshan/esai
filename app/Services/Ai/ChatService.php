@@ -6,6 +6,7 @@ use App\Enums\AiChatToolCall;
 use App\Exceptions\AiChatException;
 use App\Exceptions\AiServiceUnavailableException;
 use App\Models\AiActionDraft;
+use App\Models\AiChatMemory;
 use App\Models\AiChatMessage;
 use App\Models\AiChatThread;
 use App\Models\AiEvent;
@@ -50,6 +51,8 @@ class ChatService
     private bool $memoryEnabled;
     private int $summaryMaxChars;
     private int $threadSummaryLimit;
+    private int $memoryTurnLimit;
+    private int $memoryMessageMaxChars;
     private int $toolRoundLimit;
     private int $toolCallLimit;
     private int $logPreviewLength;
@@ -66,6 +69,8 @@ class ChatService
         $this->memoryEnabled = (bool) config('ai_chat.memory.enabled', true);
         $this->summaryMaxChars = max(200, (int) config('ai_chat.memory.summary_max_chars', 1800));
         $this->threadSummaryLimit = max(500, (int) config('ai_chat.memory.thread_summary_limit', 5000));
+        $this->memoryTurnLimit = max(1, (int) config('ai_chat.memory.turn_limit', 5));
+        $this->memoryMessageMaxChars = max(60, (int) config('ai_chat.memory.message_max_chars', 360));
         $this->toolRoundLimit = max(1, (int) config('ai_chat.tooling.max_rounds_per_message', 3));
         $this->toolCallLimit = max(1, (int) config('ai_chat.tooling.max_calls_per_request', 3));
         $this->logPreviewLength = max(60, (int) config('ai_chat.logs.message_preview_length', 240));
@@ -105,6 +110,8 @@ class ChatService
             'tool_results_json' => $toolResults,
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
+
+        $structuredContext = $this->withMemoryContext($thread, $structuredContext);
 
         $payload = [
             'thread_id' => (string) $thread->id,
@@ -247,6 +254,8 @@ class ChatService
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
 
+        $structuredContext = $this->withMemoryContext($thread, $structuredContext);
+
         $payload = [
             'thread_id' => (string) $thread->id,
             'company_id' => $thread->company_id,
@@ -323,6 +332,8 @@ class ChatService
             'content_json' => $structuredContext === [] ? null : ['context' => $structuredContext],
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
+
+        $structuredContext = $this->withMemoryContext($thread, $structuredContext);
 
         $payload = [
             'thread_id' => (string) $thread->id,
@@ -624,6 +635,129 @@ class ChatService
         $thread->forceFill(['thread_summary' => $normalized])->save();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function getMemory(AiChatThread|int $thread): array
+    {
+        if (! $this->memoryEnabled || $this->memoryTurnLimit < 1) {
+            return [];
+        }
+
+        $threadModel = $thread instanceof AiChatThread
+            ? $thread
+            : AiChatThread::query()->whereKey($thread)->first();
+
+        if (! $threadModel instanceof AiChatThread) {
+            return [];
+        }
+
+        $latestMessageId = $this->latestConversationMessageId($threadModel->id);
+
+        $existingMemory = AiChatMemory::query()
+            ->where('thread_id', $threadModel->id)
+            ->first();
+
+        if (
+            $existingMemory !== null
+            && $latestMessageId !== null
+            && (int) $existingMemory->last_message_id === (int) $latestMessageId
+            && is_array($existingMemory->memory_json)
+        ) {
+            return $existingMemory->memory_json;
+        }
+
+        $turnLimit = max(1, $this->memoryTurnLimit * 2);
+
+        $messages = AiChatMessage::query()
+            ->where('thread_id', $threadModel->id)
+            ->whereIn('role', [AiChatMessage::ROLE_USER, AiChatMessage::ROLE_ASSISTANT])
+            ->orderByDesc('id')
+            ->limit($turnLimit)
+            ->get()
+            ->sortBy('id')
+            ->values();
+
+        if ($messages->isEmpty()) {
+            return [];
+        }
+
+        $turns = $messages->map(function (AiChatMessage $message): array {
+            return [
+                'role' => $message->role,
+                'content' => $this->truncateMemoryContent($this->resolveMessageContent($message)),
+                'message_id' => $message->id,
+                'created_at' => optional($message->created_at)->toIso8601String(),
+            ];
+        })->all();
+
+        $payload = [
+            'turns' => $turns,
+            'turn_count' => count($turns),
+            'captured_at' => now()->toIso8601String(),
+        ];
+
+        if ($latestMessageId !== null) {
+            $payload['last_message_id'] = $latestMessageId;
+        }
+
+        AiChatMemory::query()->updateOrCreate(
+            ['thread_id' => $threadModel->id],
+            [
+                'company_id' => $threadModel->company_id,
+                'last_message_id' => $latestMessageId,
+                'memory_json' => $payload,
+            ]
+        );
+
+        return $payload;
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function withMemoryContext(AiChatThread $thread, array $context): array
+    {
+        if (! $this->memoryEnabled) {
+            return $context;
+        }
+
+        $memory = $this->getMemory($thread);
+
+        if ($memory === [] && isset($context['memory'])) {
+            unset($context['memory']);
+        }
+
+        if ($memory === []) {
+            return $context;
+        }
+
+        $context['memory'] = $memory;
+
+        return $context;
+    }
+
+    private function latestConversationMessageId(int $threadId): ?int
+    {
+        return AiChatMessage::query()
+            ->where('thread_id', $threadId)
+            ->whereIn('role', [AiChatMessage::ROLE_USER, AiChatMessage::ROLE_ASSISTANT])
+            ->orderByDesc('id')
+            ->value('id');
+    }
+
+    private function truncateMemoryContent(string $content): string
+    {
+        $normalized = trim($content);
+
+        if ($normalized === '') {
+            return '[no content]';
+        }
+
+        return Str::limit($normalized, $this->memoryMessageMaxChars);
+    }
+
     private function ensureToolRoundLimit(AiChatThread $thread): void
     {
         if ($this->toolRoundLimit < 1) {
@@ -660,11 +794,13 @@ class ChatService
         $hasContext = isset($context['context']) && is_array($context['context']) && $context['context'] !== [];
         $uiMode = isset($context['ui_mode']) && is_string($context['ui_mode']) ? trim($context['ui_mode']) : null;
         $attachmentCount = isset($context['attachments']) && is_array($context['attachments']) ? count($context['attachments']) : 0;
+        $locale = isset($context['locale']) ? $this->sanitizeLocale($context['locale']) : null;
 
         return array_filter([
             'has_structured_context' => $hasContext ? true : null,
             'ui_mode' => $uiMode !== '' ? $uiMode : null,
             'attachment_count' => $attachmentCount > 0 ? $attachmentCount : null,
+            'locale' => $locale,
         ], static fn ($value) => $value !== null);
     }
 
@@ -844,11 +980,16 @@ class ChatService
     ): array {
         $callId = Str::uuid()->toString();
         $topic = $this->inferHelpTopic($toolCalls);
+        $locale = $this->sanitizeLocale($context['locale'] ?? null);
         $arguments = [
             'topic' => $topic,
             'action' => $topic,
             'context' => $this->buildHelpContextBlocks($context, $toolCalls, $reason),
         ];
+
+        if ($locale !== null) {
+            $arguments['locale'] = $locale;
+        }
 
         try {
             $results = $this->toolResolver->resolveBatch($thread->company_id, [[
@@ -894,6 +1035,8 @@ class ChatService
         $ctaLabel = $this->stringValue($guidePayload['cta_label'] ?? null) ?? 'Open help center';
         $ctaUrl = $this->stringValue($guidePayload['cta_url'] ?? null);
         $steps = $this->normalizeGuideSteps($guidePayload['steps'] ?? null);
+        $availableLocales = $this->normalizeList($guidePayload['available_locales'] ?? []);
+        $resolutionLocale = $this->sanitizeLocale($guidePayload['locale'] ?? null) ?? 'en';
 
         $markdown = $this->formatGuidedResolutionMarkdown($topic, $description, $steps, $ctaLabel, $ctaUrl, $reason);
 
@@ -905,6 +1048,8 @@ class ChatService
                 'description' => $description,
                 'cta_label' => $ctaLabel,
                 'cta_url' => $ctaUrl,
+                'locale' => $resolutionLocale,
+                'available_locales' => $availableLocales,
             ],
             'tool_results' => [$helpResult],
             'citations' => $this->normalizeList($result['citations'] ?? []),
@@ -1395,6 +1540,21 @@ class ChatService
         return null;
     }
 
+    private function sanitizeLocale(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = strtolower(trim(str_replace('_', '-', $value)));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return substr($normalized, 0, 10);
+    }
+
     private function normalizeToolContextBlocks(mixed $value): array
     {
         if ($value === null) {
@@ -1438,6 +1598,7 @@ class ChatService
                 ? $context['ui_mode']
                 : null,
             'attachments' => isset($context['attachments']) && is_array($context['attachments']) ? $context['attachments'] : [],
+            'locale' => $this->sanitizeLocale($context['locale'] ?? null),
         ], static fn ($value) => $value !== null && $value !== []);
 
         return $normalized;

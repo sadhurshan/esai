@@ -6,6 +6,7 @@ import { parseEnvelope, sanitizeQuery } from './api-helpers';
 import { toCursorMeta, toOffsetMeta } from '@/lib/pagination';
 import type {
     AdminAnalyticsOverview,
+    AiAdminUsageMetrics,
     AdminRolesPayload,
     AuditLogFilters,
     AuditLogResponse,
@@ -69,6 +70,22 @@ export class AdminConsoleApi extends BaseAPI {
         );
 
         return parseEnvelope<AdminAnalyticsOverview>(response);
+    }
+
+    async aiUsageMetrics(initOverrides?: RequestInit | InitOverrideFunction): Promise<AiAdminUsageMetrics> {
+        const headers: HTTPHeaders = {};
+        const response = await this.request(
+            {
+                path: '/api/v1/ai/admin/usage-metrics',
+                method: 'GET',
+                headers,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{ metrics: AiAdminUsageMetrics }>(response);
+
+        return data.metrics;
     }
 
     async listRoles(

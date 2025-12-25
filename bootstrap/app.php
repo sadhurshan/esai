@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\AiAuditPermissionsCommand;
 use App\Console\Commands\ApiSpecBuildCommand;
 use App\Console\Commands\ApiSpecPostmanCommand;
 use App\Console\Commands\ApiSpecSdkTypescriptCommand;
@@ -12,6 +13,7 @@ use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
+use App\Http\Middleware\EnsureAiAdminAccess;
 use App\Http\Middleware\EnsureAiServiceAvailable;
 use App\Http\Middleware\EnsureBuyerAccess;
 use App\Http\Middleware\EnsureBillingAccess;
@@ -66,6 +68,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ApiSpecPostmanCommand::class,
         ApiSpecSdkTypescriptCommand::class,
         BackfillSupplierPersonas::class,
+        AiAuditPermissionsCommand::class,
     ])
     ->withBroadcasting(__DIR__.'/../routes/channels.php')
     ->withMiddleware(function (Middleware $middleware): void {
@@ -89,6 +92,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'ensure.supplier.approved' => \App\Http\Middleware\EnsureSupplierApproved::class,
             'ensure.analytics.access' => EnsureAnalyticsAccess::class,
             'ensure.risk.access' => EnsureRiskAccess::class,
+            'ensure.ai.admin' => EnsureAiAdminAccess::class,
             'ensure.ai.workflows.access' => EnsureAiWorkflowAccess::class,
             'ensure.ai.training.enabled' => EnsureAiTrainingEnabled::class,
             'ensure.approvals.access' => EnsureApprovalsAccess::class,
@@ -117,6 +121,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'rate.limit.enforcer' => RateLimitEnforcer::class,
             'ai.rate.limit' => \App\Http\Middleware\AiRateLimiter::class,
             'ai.ensure.available' => \App\Http\Middleware\EnsureAiServiceAvailable::class,
+            'ensure.ai.service' => \App\Http\Middleware\EnsureAiServiceAvailable::class,
             'auth.session' => AuthenticateApiSession::class,
         ]);
 

@@ -1,0 +1,61 @@
+templates:
+  procurement:
+    - action_type: rfq_draft
+      name: RFQ Draft
+      metadata:
+        input_key: rfq
+    - action_type: compare_quotes
+      name: Quote Comparison
+      metadata:
+        input_key: quotes
+    - action_type: award_quote
+      name: Award Quote
+      metadata:
+        input_key: quotes
+    - action_type: po_draft
+      name: Purchase Order Draft
+      metadata:
+        input_key: po
+  procurement_full_flow:
+    - action_type: rfq_draft
+      name: RFQ Draft
+      metadata:
+        input_key: rfq
+    - action_type: compare_quotes
+      name: Quote Comparison
+      metadata:
+        input_key: quotes
+    - action_type: award_quote
+      name: Award Quote
+      metadata:
+        input_key: quotes
+    - action_type: po_draft
+      name: Purchase Order Draft
+      metadata:
+        input_key: po
+    - action_type: receiving_quality
+      name: Receiving & Quality Review
+      metadata:
+        input_key: receiving
+    - action_type: invoice_approval
+      name: Invoice Approval
+      metadata:
+        input_key: invoices
+    - action_type: payment_process
+      name: Payment Processing
+      metadata:
+        input_key: payments
+  receiving_quality:
+    - action_type: receiving_quality
+      name: Receiving & Quality Review
+      metadata:
+        input_key: receiving
+  invoice_approval_flow:
+    - action_type: invoice_draft
+      name: Invoice Draft
+      metadata:
+        input_key: invoices
+    - action_type: payment_process
+      name: Payment Processing
+      metadata:
+        input_key: payments

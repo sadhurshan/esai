@@ -320,6 +320,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /api/v1/ai/admin/usage-metrics:
+    get:
+      tags:
+        - Copilot
+      summary: Retrieve AI admin usage metrics
+      description: Aggregates feature-level AI adoption metrics for the authenticated tenant or selected company.
+      operationId: getAiAdminUsageMetrics
+      responses:
+        '200':
+          description: Aggregated AI usage metrics for the trailing window.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required:
+                          - metrics
+                        properties:
+                          metrics:
+                            $ref: '#/components/schemas/AiUsageMetrics'
+        '403':
+          description: User lacks AI admin permissions or feature gating blocks access.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
   /api/v1/ai/chat/threads:
     get:
       tags:
@@ -1134,6 +1164,10 @@ components:
         ui_mode:
           type: string
           maxLength: 50
+        locale:
+          type: string
+          maxLength: 10
+          description: Preferred language tag (BCP 47) used when requesting localized help guides.
         attachments:
           type: array
           items:
@@ -1256,6 +1290,33 @@ components:
         payload:
           type: object
           additionalProperties: true
+    AiChatGuidedResolution:
+      type: object
+      required:
+        - title
+        - description
+        - cta_label
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        cta_label:
+          type: string
+        cta_url:
+          type: string
+          format: uri
+          nullable: true
+        locale:
+          type: string
+          maxLength: 10
+          description: Language used to render the help content.
+        available_locales:
+          type: array
+          description: Language codes Copilot can serve for this guide.
+          items:
+            type: string
+            maxLength: 10
     AiChatDraftAction:
       type: object
       required:
@@ -1310,12 +1371,17 @@ components:
             - answer
             - draft_action
             - workflow_suggestion
+            - guided_resolution
             - tool_request
-            - error
             - review_rfq
             - review_quote
             - review_po
             - review_invoice
+            - analytics
+            - forecast_spend
+            - forecast_supplier_performance
+            - forecast_inventory
+            - error
         assistant_message_markdown:
           type: string
         citations:
@@ -1334,6 +1400,11 @@ components:
           oneOf:
             - $ref: '#/components/schemas/AiChatWorkflowSuggestion'
             - type: 'null'
+        guided_resolution:
+          oneOf:
+            - $ref: '#/components/schemas/AiChatGuidedResolution'
+            - type: 'null'
+          description: Localized help metadata surfaced when Copilot cannot automate the requested task.
         tool_calls:
           type: array
           nullable: true
@@ -1581,3 +1652,93 @@ components:
           type: string
           maxLength: 2000
           nullable: true
+    AiUsageMetrics:
+      type: object
+      required:
+        - window_days
+        - window_start
+        - window_end
+        - actions
+        - forecasts
+        - help_requests
+        - tool_errors
+      properties:
+        window_days:
+          type: integer
+          minimum: 1
+        window_start:
+          type: string
+          format: date-time
+        window_end:
+          type: string
+          format: date-time
+        actions:
+          $ref: '#/components/schemas/AiUsageActionMetrics'
+        forecasts:
+          $ref: '#/components/schemas/AiUsageForecastMetrics'
+        help_requests:
+          $ref: '#/components/schemas/AiUsageHelpMetrics'
+        tool_errors:
+          $ref: '#/components/schemas/AiUsageToolErrorMetrics'
+    AiUsageActionMetrics:
+      type: object
+      required:
+        - planned
+        - approved
+        - approval_rate
+      properties:
+        planned:
+          type: integer
+          minimum: 0
+        approved:
+          type: integer
+          minimum: 0
+        approval_rate:
+          type: number
+          format: float
+          nullable: true
+          description: Percentage of planned Copilot drafts that were approved in the trailing window.
+    AiUsageForecastMetrics:
+      type: object
+      required:
+        - generated
+        - errors
+      properties:
+        generated:
+          type: integer
+          minimum: 0
+        errors:
+          type: integer
+          minimum: 0
+    AiUsageHelpMetrics:
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          type: integer
+          minimum: 0
+    AiUsageToolErrorMetrics:
+      type: object
+      required:
+        - total
+        - by_feature
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        by_feature:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiUsageToolErrorBreakdown'
+    AiUsageToolErrorBreakdown:
+      type: object
+      required:
+        - feature
+        - count
+      properties:
+        feature:
+          type: string
+        count:
+          type: integer
+          minimum: 0

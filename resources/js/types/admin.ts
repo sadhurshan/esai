@@ -602,6 +602,45 @@ export interface AdminAnalyticsCopilotMetrics {
     help_requests: number;
 }
 
+export interface AiAdminUsageActionMetrics {
+    planned: number;
+    approved: number;
+    approval_rate: number | null;
+}
+
+export interface AiAdminUsageForecastMetrics {
+    generated: number;
+    errors: number;
+}
+
+export interface AiAdminUsageHelpMetrics {
+    total: number;
+}
+
+export interface AiAdminUsageToolErrorBreakdown {
+    feature: string;
+    count: number;
+}
+
+export interface AiAdminUsageToolErrorMetrics {
+    total: number;
+    by_feature: AiAdminUsageToolErrorBreakdown[];
+}
+
+export interface AiAdminUsageMetrics {
+    window_days: number;
+    window_start: string;
+    window_end: string;
+    actions: AiAdminUsageActionMetrics;
+    forecasts: AiAdminUsageForecastMetrics;
+    help_requests: AiAdminUsageHelpMetrics;
+    tool_errors: AiAdminUsageToolErrorMetrics;
+}
+
+export interface AiAdminUsageMetricsResponse {
+    metrics: AiAdminUsageMetrics;
+}
+
 export interface AdminAnalyticsOverview {
     tenants: AdminAnalyticsTenantsSummary;
     subscriptions: AdminAnalyticsSubscriptionsSummary;

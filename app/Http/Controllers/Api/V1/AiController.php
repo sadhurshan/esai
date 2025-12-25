@@ -8,10 +8,13 @@ use App\Http\Requests\Api\Ai\ForecastRequest;
 use App\Http\Requests\Api\Ai\SupplierRiskRequest;
 use App\Models\AiEvent;
 use App\Models\User;
+use App\Services\Admin\AiUsageMetricsService;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\AiEventRecorder;
+use App\Support\ActivePersonaContext;
 use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,8 +23,20 @@ class AiController extends ApiController
     public function __construct(
         private readonly AiClient $client,
         private readonly AiEventRecorder $recorder,
-        private readonly PermissionRegistry $permissionRegistry
+        private readonly PermissionRegistry $permissionRegistry,
+        private readonly AiUsageMetricsService $aiUsageMetrics
     ) {
+    }
+
+    public function adminUsageMetrics(Request $request): JsonResponse
+    {
+        $companyId = $this->resolveCompanyId($request);
+
+        $metrics = $this->aiUsageMetrics->summary($companyId);
+
+        return $this->ok([
+            'metrics' => $metrics,
+        ], 'AI usage metrics retrieved.');
     }
 
     public function forecast(ForecastRequest $request): JsonResponse
@@ -185,6 +200,23 @@ class AiController extends ApiController
     private function calculateLatencyMs(float $startedAt): int
     {
         return (int) round((microtime(true) - $startedAt) * 1000);
+    }
+
+    private function resolveCompanyId(Request $request): ?int
+    {
+        $personaCompanyId = ActivePersonaContext::companyId();
+
+        if ($personaCompanyId !== null) {
+            return $personaCompanyId;
+        }
+
+        $user = $request->user();
+
+        if ($user instanceof User && $user->company_id !== null) {
+            return (int) $user->company_id;
+        }
+
+        return null;
     }
 
     private function deniesForecast(User $user, int $companyId): bool

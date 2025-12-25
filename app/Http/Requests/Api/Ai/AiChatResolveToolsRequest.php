@@ -27,6 +27,7 @@ class AiChatResolveToolsRequest extends FormRequest
             'tool_calls.*.call_id' => ['required', 'string', 'max:128'],
             'tool_calls.*.arguments' => ['nullable', 'array'],
             'context' => ['nullable', 'array'],
+            'context.locale' => ['sometimes', 'string', 'max:10'],
         ];
     }
 

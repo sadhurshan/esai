@@ -13,6 +13,9 @@ return [
     'memory' => [
         'enabled' => (bool) env('AI_CHAT_MEMORY_SUMMARY_ENABLED', true),
         'summary_max_chars' => (int) env('AI_CHAT_SUMMARY_MAX_CHARS', 1800),
+        'thread_summary_limit' => (int) env('AI_CHAT_MEMORY_THREAD_SUMMARY_LIMIT', 5000),
+        'turn_limit' => (int) env('AI_CHAT_MEMORY_TURN_LIMIT', 5),
+        'message_max_chars' => (int) env('AI_CHAT_MEMORY_MESSAGE_MAX_CHARS', 360),
     ],
     'tooling' => [
         'max_calls_per_request' => (int) env('AI_CHAT_TOOL_MAX_CALLS', 3),

@@ -751,6 +751,14 @@ class WorkspaceToolResolver
             }
         }
 
+        $locale = $this->stringValue($arguments['locale'] ?? null);
+        if ($locale !== null) {
+            $sanitizedLocale = $this->sanitizeLocale($locale);
+            if ($sanitizedLocale !== null) {
+                $inputs['locale'] = $sanitizedLocale;
+            }
+        }
+
         $requestPayload = [
             'company_id' => $companyId,
             'context' => $this->sanitizeContextBlocks($arguments['context'] ?? null),
@@ -789,6 +797,21 @@ class WorkspaceToolResolver
         }
 
         return min($limit, $max);
+    }
+
+    private function sanitizeLocale(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = strtolower(trim(str_replace('_', '-', $value)));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return substr($normalized, 0, 10);
     }
 
     /**

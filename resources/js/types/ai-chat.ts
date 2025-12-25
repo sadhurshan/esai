@@ -43,7 +43,9 @@ export interface AiChatGuidedResolution {
     title: string;
     description: string;
     cta_label: string;
-    cta_url: string;
+    cta_url: string | null;
+    locale?: string;
+    available_locales?: string[];
 }
 
 export interface AiChatDraftSnapshot {
@@ -103,6 +105,7 @@ export interface AiChatMessageContextPayload {
     context?: Record<string, unknown>;
     ui_mode?: string;
     attachments?: Array<Record<string, unknown>>;
+    locale?: string;
 }
 
 export interface AiChatMessage {

@@ -244,7 +244,7 @@ Route::prefix('ai')
         'ensure.company.onboarded:strict',
         'ensure.company.approved',
         'ensure.subscribed',
-        'ai.ensure.available',
+        'ensure.ai.service',
         'ai.rate.limit',
     ])
     ->group(function (): void {
@@ -272,13 +272,29 @@ Route::prefix('v1')->group(function (): void {
         'ensure.company.approved',
         'ensure.subscribed',
         'buyer_access',
+        'ensure.ai.service',
     ];
 
-    $copilotChatMiddleware = array_merge($copilotActionMiddleware, ['ai.ensure.available', 'ai.rate.limit']);
+    $aiAdminMiddleware = [
+        'auth',
+        'ensure.company.onboarded:strict',
+        'ensure.company.approved',
+        'ensure.subscribed',
+        'ensure.ai.service',
+        'ensure.ai.admin',
+    ];
+
+    Route::prefix('ai/admin')
+        ->middleware($aiAdminMiddleware)
+        ->group(function (): void {
+            Route::get('usage-metrics', [AiController::class, 'adminUsageMetrics']);
+        });
+
+    $copilotChatMiddleware = array_merge($copilotActionMiddleware, ['ai.rate.limit']);
 
     Route::prefix('ai/actions')->group(function () use ($copilotActionMiddleware): void {
         Route::post('plan', [AiActionsController::class, 'plan'])
-            ->middleware(array_merge($copilotActionMiddleware, ['ai.ensure.available', 'ai.rate.limit']));
+            ->middleware(array_merge($copilotActionMiddleware, ['ai.rate.limit']));
 
         Route::post('{draft}/approve', [AiActionsController::class, 'approve'])
             ->middleware($copilotActionMiddleware);
@@ -309,7 +325,7 @@ Route::prefix('v1')->group(function (): void {
         });
 
     Route::prefix('ai/workflows')->group(function () use ($copilotActionMiddleware): void {
-        $workflowMiddleware = array_merge($copilotActionMiddleware, ['ensure.ai.workflows.access', 'ai.ensure.available', 'ai.rate.limit']);
+        $workflowMiddleware = array_merge($copilotActionMiddleware, ['ensure.ai.workflows.access', 'ai.rate.limit']);
 
         Route::get('/', [AiWorkflowController::class, 'index'])
             ->middleware($workflowMiddleware);
@@ -774,7 +790,7 @@ Route::middleware(['ensure.company.onboarded'])->group(function (): void {
             'ensure.company.approved',
             'ensure.subscribed',
             'buyer_access',
-            'ai.ensure.available',
+            'ensure.ai.service',
             'ai.rate.limit',
         ])
         ->group(function (): void {

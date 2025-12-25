@@ -34,6 +34,11 @@ from pathlib import Path
 from statistics import StatisticsError, fmean
 from typing import Any, Callable, Dict, List, Literal, Optional, Sequence
 
+try:  # pragma: no cover - optional dependency load
+    import yaml
+except ImportError:  # pragma: no cover - fallback handled later
+    yaml = None
+
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -414,6 +419,8 @@ CHAT_TOOL_RESULTS_LIMIT = int(os.getenv("AI_CHAT_TOOL_RESULTS_LIMIT", "5"))
 CHAT_SUMMARY_TRIGGER_TOKENS = int(os.getenv("AI_CHAT_SUMMARY_TRIGGER_TOKENS", "2800"))
 CHAT_SUMMARY_TARGET_CHARS = int(os.getenv("AI_CHAT_SUMMARY_TARGET_CHARS", "1800"))
 CHAT_TOOL_ROUND_LIMIT = int(os.getenv("AI_CHAT_TOOL_ROUND_LIMIT", "3"))
+CHAT_MEMORY_CONTEXT_CHAR_LIMIT = int(os.getenv("AI_CHAT_MEMORY_CONTEXT_CHARS", "1600"))
+WORKFLOW_TEMPLATE_FILE = Path(__file__).resolve().parent / "config" / "workflow_templates.yaml"
 
 REVIEW_TOOL_TYPE_MAP = {
     "workspace.review_rfq": "review_rfq",
@@ -451,13 +458,94 @@ ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
     "invoice_draft": INVOICE_DRAFT_SCHEMA,
 }
 
-WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
+DEFAULT_WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
     "procurement": [
         {"action_type": "rfq_draft", "name": "RFQ Draft", "metadata": {"input_key": "rfq"}},
-        {"action_type": "compare_quotes", "name": "Compare Quotes", "metadata": {"input_key": "quotes"}},
+        {"action_type": "compare_quotes", "name": "Quote Comparison", "metadata": {"input_key": "quotes"}},
+        {"action_type": "award_quote", "name": "Award Quote", "metadata": {"input_key": "quotes"}},
         {"action_type": "po_draft", "name": "Purchase Order Draft", "metadata": {"input_key": "po"}},
     ],
+    "procurement_full_flow": [
+        {"action_type": "rfq_draft", "name": "RFQ Draft", "metadata": {"input_key": "rfq"}},
+        {"action_type": "compare_quotes", "name": "Quote Comparison", "metadata": {"input_key": "quotes"}},
+        {"action_type": "award_quote", "name": "Award Quote", "metadata": {"input_key": "quotes"}},
+        {"action_type": "po_draft", "name": "Purchase Order Draft", "metadata": {"input_key": "po"}},
+        {"action_type": "receiving_quality", "name": "Receiving & Quality Review", "metadata": {"input_key": "receiving"}},
+        {"action_type": "invoice_approval", "name": "Invoice Approval", "metadata": {"input_key": "invoices"}},
+        {"action_type": "payment_process", "name": "Payment Processing", "metadata": {"input_key": "payments"}},
+    ],
+    "receiving_quality": [
+        {"action_type": "receiving_quality", "name": "Receiving & Quality Review", "metadata": {"input_key": "receiving"}},
+    ],
+    "invoice_approval_flow": [
+        {"action_type": "invoice_draft", "name": "Invoice Draft", "metadata": {"input_key": "invoices"}},
+        {"action_type": "payment_process", "name": "Payment Processing", "metadata": {"input_key": "payments"}},
+    ],
 }
+
+
+def _load_workflow_templates() -> Dict[str, List[Dict[str, Any]]]:
+    if yaml is None:
+        LOGGER.warning("workflow_templates_missing_yaml_dependency")
+        return DEFAULT_WORKFLOW_STEP_TEMPLATES
+
+    if not WORKFLOW_TEMPLATE_FILE.exists():
+        LOGGER.warning(
+            "workflow_templates_file_missing",
+            extra=log_extra(path=str(WORKFLOW_TEMPLATE_FILE)),
+        )
+        return DEFAULT_WORKFLOW_STEP_TEMPLATES
+
+    try:
+        raw = WORKFLOW_TEMPLATE_FILE.read_text(encoding="utf-8")
+        data = yaml.safe_load(raw) or {}
+    except Exception as exc:  # pragma: no cover - defensive guard
+        LOGGER.warning(
+            "workflow_templates_load_failed",
+            extra=log_extra(error=str(exc)),
+        )
+        return DEFAULT_WORKFLOW_STEP_TEMPLATES
+
+    templates = data.get("templates") if isinstance(data, dict) else None
+    if not isinstance(templates, dict):
+        LOGGER.warning("workflow_templates_invalid_payload")
+        return DEFAULT_WORKFLOW_STEP_TEMPLATES
+
+    normalized: Dict[str, List[Dict[str, Any]]] = {}
+
+    for template_name, steps in templates.items():
+        if not isinstance(steps, list):
+            continue
+
+        normalized_steps: List[Dict[str, Any]] = []
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+
+            action_type = str(step.get("action_type") or "").strip()
+            if not action_type:
+                continue
+
+            name = str(step.get("name") or "").strip() or action_type
+            metadata = step.get("metadata") if isinstance(step.get("metadata"), dict) else {}
+
+            normalized_steps.append({
+                "action_type": action_type,
+                "name": name,
+                "metadata": metadata,
+            })
+
+        if normalized_steps:
+            normalized[str(template_name)] = normalized_steps
+
+    if not normalized:
+        LOGGER.warning("workflow_templates_empty_after_normalization")
+        return DEFAULT_WORKFLOW_STEP_TEMPLATES
+
+    return normalized
+
+
+WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = _load_workflow_templates()
 
 INTENT_CLASSIFICATION_SCHEMA: Dict[str, Any] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1977,6 +2065,7 @@ async def _chat_generate_router_response(payload: ChatRespondRequest) -> tuple[D
         overflow_messages,
         payload.thread_summary,
     )
+    conversation_messages = _chat_apply_memory_context(conversation_messages, context_payload)
     tool_rounds = _chat_tool_round_count(trimmed_messages)
     allow_general_override = bool(payload.allow_general)
 
@@ -2326,6 +2415,56 @@ async def _chat_prepare_conversation(
             memory_payload["thread_summary"] = truncated
 
     return conversation, memory_payload
+
+
+def _chat_apply_memory_context(
+    conversation: List[Dict[str, Any]],
+    context_payload: Optional[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    if not context_payload:
+        return conversation
+
+    memory_payload = context_payload.get("memory") if isinstance(context_payload, dict) else None
+    if not isinstance(memory_payload, dict):
+        return conversation
+
+    turns = memory_payload.get("turns")
+    if not isinstance(turns, list) or not turns:
+        return conversation
+
+    transcript: List[str] = []
+    total_chars = 0
+
+    for turn in turns:
+        if not isinstance(turn, dict):
+            continue
+        role = str(turn.get("role") or "assistant").strip() or "assistant"
+        content = str(turn.get("content") or "").strip()
+        if not content:
+            continue
+        timestamp_raw = turn.get("created_at")
+        timestamp = str(timestamp_raw).strip() if isinstance(timestamp_raw, str) else ""
+        prefix = f"{role} @ {timestamp}" if timestamp else role
+        line = f"{prefix}: {content}"
+        transcript.append(line)
+        total_chars += len(line)
+        if total_chars >= CHAT_MEMORY_CONTEXT_CHAR_LIMIT:
+            break
+
+    if not transcript:
+        return conversation
+
+    recap = "\n".join(transcript)
+    memory_entry = {
+        "role": "system",
+        "content": f"Persistent memory from earlier sessions:\n{recap}",
+        "content_json": {
+            "source": "memory",
+            "turn_count": len(transcript),
+        },
+    }
+
+    return [memory_entry, *conversation]
 
 
 async def _chat_generate_summary_text(

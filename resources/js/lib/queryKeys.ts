@@ -166,6 +166,7 @@ export const queryKeys = {
         supplierApplicationAuditLogs: (id: string | number, params?: Record<string, unknown>) =>
             ['admin', 'supplier-applications', String(id), 'audit-logs', params ?? {}] as const,
         analyticsOverview: () => ['admin', 'analytics', 'overview'] as const,
+        aiUsageMetrics: () => ['admin', 'ai-usage', 'metrics'] as const,
         companies: (params?: Record<string, unknown>) => ['admin', 'companies', 'list', params ?? {}] as const,
         plans: () => ['admin', 'plans'] as const,
         plan: (id: string | number) => ['admin', 'plans', String(id)] as const,
@@ -291,6 +292,7 @@ export type QueryKey = ReturnType<
     | (typeof queryKeys)['inventory']['movement']
     | (typeof queryKeys)['inventory']['lowStock']
     | (typeof queryKeys)['admin']['analyticsOverview']
+    | (typeof queryKeys)['admin']['aiUsageMetrics']
     | (typeof queryKeys)['admin']['companies']
     | (typeof queryKeys)['admin']['companyApprovals']
     | (typeof queryKeys)['admin']['supplierApplications']

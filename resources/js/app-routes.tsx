@@ -62,6 +62,7 @@ import {
     AdminApiKeysPage,
     AdminAiActivityLogPage,
     AdminAiModelHealthPage,
+    AdminAiUsageDashboardPage,
     AdminAiTrainingPage,
     AdminAuditLogPage,
     AdminCompanyApprovalsPage,
@@ -204,6 +205,7 @@ export function AppRoutes(): ReactElement {
                             <Route path="admin/rate-limits" element={<AdminRateLimitsPage />} />
                             <Route path="admin/audit" element={<AdminAuditLogPage />} />
                             <Route path="admin/ai-model-health" element={<AdminAiModelHealthPage />} />
+                            <Route path="admin/ai-usage" element={<AdminAiUsageDashboardPage />} />
                             <Route path="admin/ai-training" element={<AdminAiTrainingPage />} />
                             <Route path="admin/ai-events" element={<AdminAiActivityLogPage />} />
                             <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />

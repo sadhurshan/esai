@@ -102,6 +102,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     { label: 'Rate Limits', to: '/app/admin/rate-limits', icon: Activity, requiresAdminConsole: true },
     { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
     { label: 'AI Activity', to: '/app/admin/ai-events', icon: Sparkles, requiresAdminConsole: true },
+    { label: 'AI Usage', to: '/app/admin/ai-usage', icon: TrendingUp, requiresAdminConsole: true },
     { label: 'AI Training', to: '/app/admin/ai-training', icon: Sparkles, requiresAdminConsole: true },
 ];
 

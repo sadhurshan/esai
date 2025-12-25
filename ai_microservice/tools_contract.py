@@ -72,10 +72,46 @@ class _SideEffectGuard(AbstractContextManager[None]):
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HELP_DOC_BASE_URL = os.getenv("AI_HELP_BASE_URL", "https://docs.elements-supply.ai")
+HELP_DEFAULT_LOCALE = "en"
 HELP_DOC_SOURCES: Tuple[tuple[str, Path], ...] = (
-    ("copilot_primer", REPO_ROOT / "docs" / "COPILOT_PRIMER.md"),
-    ("requirements_full", REPO_ROOT / "docs" / "REQUIREMENTS_FULL.md"),
+    ("user_guide", REPO_ROOT / "docs" / "USER_GUIDE.md"),
 )
+
+HELP_TRANSLATIONS: Dict[str, Dict[str, Dict[str, Any]]] = {
+    "es": {
+        "user_guide::draft-an-rfq-with-copilot": {
+            "title": "Redactar una RFQ con Copilot",
+            "summary": "Crea la solicitud manualmente cuando el asistente no este disponible.",
+            "steps": [
+                "Abre Compras -> RFQs y selecciona Nueva RFQ.",
+                "Adjunta planos, listas de materiales y notas que Copilot usó en el chat.",
+                "Completa alcance, cronograma y rubrica para mantener la trazabilidad.",
+                "Agrega proveedores y fechas límite antes de publicar la solicitud.",
+            ],
+            "cta_label": "Abrir guía de RFQ",
+        },
+        "user_guide::compare-supplier-quotes": {
+            "title": "Comparar cotizaciones de proveedores",
+            "summary": "Evalua precio, tiempo de entrega y calidad cuando el comparador no responda.",
+            "steps": [
+                "Abre Abastecimiento → Cotizaciones y filtra el RFQ correspondiente.",
+                "Ordena la vista por precio, plazo y calificaciones de calidad.",
+                "Aplica los pesos de la rúbrica y documenta la justificación en el registro de actividad.",
+            ],
+            "cta_label": "Revisar cotizaciones",
+        },
+        "user_guide::issue-a-purchase-order": {
+            "title": "Emitir una orden de compra",
+            "summary": "Convierte la recomendacion de Copilot en una orden aprobada.",
+            "steps": [
+                "Desde la adjudicacion del RFQ selecciona Crear PO o ve a Ordenes -> Purchase Orders -> New PO.",
+                "Elige el proveedor adjudicado e importa las líneas del RFQ o de la cotización.",
+                "Revisa moneda, terminos y calendario de entregas antes de enviar a aprobacion.",
+            ],
+            "cta_label": "Abrir guía de PO",
+        },
+    }
+}
 
 
 def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: MutableMapping[str, Any]) -> Dict[str, Any]:
@@ -405,25 +441,34 @@ def get_help(
         )
         topic = topic or "copilot workspace basics"
 
+        locale = _normalize_locale(_text(normalized_inputs.get("locale")))
         section = _select_help_section(topic)
-        guidance_steps = section.get("steps") or []
+        localized_section = _localize_help_section(section, locale)
+        guidance_steps = localized_section.get("steps") or []
         if not guidance_steps:
             guidance_steps = _fallback_help_steps(topic)
 
-        description = section.get("summary") or f"Follow these steps to {topic}."
+        description = localized_section.get("summary") or f"Follow these steps to {topic}."
         references = _format_source_labels(normalized_context, limit=2)
-        if section.get("reference"):
-            references.append(section["reference"])
+        if localized_section.get("reference"):
+            references.append(localized_section["reference"])
+        cta_label = localized_section.get("cta_label") or "Open help center"
+        cta_url = localized_section.get("url")
+        available_locales = localized_section.get("available_locales") or _available_help_locales(
+            localized_section.get("slug")
+        )
 
         return {
             "topic": topic,
-            "title": section.get("title") or "Copilot help",
+            "title": localized_section.get("title") or "Copilot help",
             "description": description,
             "steps": guidance_steps[:8],
-            "cta_label": section.get("cta_label") or "Open help center",
-            "cta_url": section.get("url"),
-            "source": section.get("source"),
+            "cta_label": cta_label,
+            "cta_url": cta_url,
+            "source": localized_section.get("source"),
             "references": references[:5],
+            "locale": localized_section.get("locale", HELP_DEFAULT_LOCALE),
+            "available_locales": available_locales,
         }
 
 
@@ -1584,6 +1629,9 @@ def _select_help_section(topic: str) -> Dict[str, Any]:
             "url": f"{HELP_DOC_BASE_URL.rstrip('/')}/copilot",
             "cta_label": "Open help center",
             "level": 1,
+            "slug": "help::fallback",
+            "anchor": "fallback",
+            "locale": HELP_DEFAULT_LOCALE,
         }
 
     keywords = [token for token in re.split(r"[^a-z0-9]+", topic.lower()) if len(token) > 2]
@@ -1646,6 +1694,7 @@ def _build_help_entry(source: str, title: str, level: int, lines: Sequence[str])
     summary = _summarize_help_body(body)
     steps = _extract_help_steps(body)
     url = _build_help_url(source, anchor)
+    slug = _compose_help_slug(source, anchor)
     return {
         "source": source,
         "title": title or source.replace("_", " ").title(),
@@ -1656,7 +1705,69 @@ def _build_help_entry(source: str, title: str, level: int, lines: Sequence[str])
         "reference": f"[{source}:{anchor}]" if anchor else f"[{source}]",
         "url": url,
         "cta_label": "Open help center",
+        "anchor": anchor,
+        "slug": slug,
+        "locale": HELP_DEFAULT_LOCALE,
     }
+
+
+def _localize_help_section(section: Dict[str, Any], locale: Optional[str]) -> Dict[str, Any]:
+    normalized_locale = _normalize_locale(locale)
+    localized = dict(section)
+    slug = localized.get("slug") or _compose_help_slug(
+        localized.get("source", "help"),
+        localized.get("anchor", "section"),
+    )
+    localized["slug"] = slug
+    translations = HELP_TRANSLATIONS.get(normalized_locale, {})
+    translation = translations.get(slug)
+
+    if translation:
+        for field in ("title", "summary", "cta_label"):
+            if translation.get(field):
+                localized[field] = translation[field]
+        if translation.get("steps"):
+            localized["steps"] = translation["steps"]
+        if translation.get("cta_url"):
+            localized["url"] = translation["cta_url"]
+        localized["locale"] = normalized_locale
+    else:
+        localized["locale"] = HELP_DEFAULT_LOCALE
+
+    localized["available_locales"] = _available_help_locales(slug)
+
+    return localized
+
+
+def _available_help_locales(slug: Optional[str]) -> List[str]:
+    base = [HELP_DEFAULT_LOCALE]
+
+    if not slug:
+        return base
+
+    for locale_code, catalog in HELP_TRANSLATIONS.items():
+        if slug in catalog and locale_code not in base:
+            base.append(locale_code)
+
+    return base
+
+
+def _compose_help_slug(source: str, anchor: str) -> str:
+    normalized_source = source or "help"
+    normalized_anchor = anchor or "section"
+    return f"{normalized_source}::{normalized_anchor}"
+
+
+def _normalize_locale(value: Optional[str]) -> str:
+    if not value:
+        return HELP_DEFAULT_LOCALE
+
+    normalized = re.sub(r"[^a-z-]", "", value.lower())
+
+    if normalized.startswith("es"):
+        return "es"
+
+    return HELP_DEFAULT_LOCALE
 
 
 def _summarize_help_body(body: str) -> str:

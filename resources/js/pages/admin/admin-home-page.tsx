@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, AlertTriangle, BadgeInfo, Building2, Database, GaugeCircle, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react';
+import { Activity, AlertTriangle, BadgeInfo, Building2, Database, GaugeCircle, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Timer, TrendingUp, Users } from 'lucide-react';
 
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -86,6 +86,12 @@ const quickLinks: QuickLink[] = [
         description: 'Debug AI usage, latency, and errors across every tenant.',
         href: '/app/admin/ai-events',
         icon: Sparkles,
+    },
+    {
+        title: 'AI usage dashboard',
+        description: 'Monitor Copilot actions, forecasts, and help volume in one place.',
+        href: '/app/admin/ai-usage',
+        icon: TrendingUp,
     },
     {
         title: 'AI training console',

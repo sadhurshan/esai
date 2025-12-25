@@ -2,6 +2,7 @@ export * from './admin-console-page';
 export * from './admin-home-page';
 export * from './admin-ai-activity-log-page';
 export * from './admin-ai-model-health-page';
+export * from './admin-ai-usage-dashboard-page';
 export * from './ai-training-page';
 export * from './admin-api-keys-page';
 export * from './admin-plans-page';

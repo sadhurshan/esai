@@ -6,6 +6,7 @@ import { ReviewChecklist } from '@/components/ai/ReviewChecklist';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
 import { useAiChatMessages } from '@/hooks/api/ai/use-ai-chat-messages';
@@ -21,6 +22,7 @@ import type {
     AiChatDraftSnapshot,
     AiChatGuidedResolution,
     AiChatMessage,
+    AiChatMessageContextPayload,
     AiChatResponseType,
     AiChatWorkflowSuggestion,
 } from '@/types/ai-chat';
@@ -69,6 +71,17 @@ const TOOL_TO_ANALYTICS_METRIC: Record<string, AiAnalyticsMetric> = {
     tool_forecast_inventory: 'forecast_inventory',
 };
 
+const HELP_LOCALE_STORAGE_KEY = 'copilot.help.locale';
+const HELP_LANGUAGE_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Spanish' },
+];
+
+const GUIDE_LANGUAGE_LABELS: Record<string, string> = {
+    en: 'English',
+    es: 'Spanish',
+};
+
 type DraftActionState = {
     approvingId: number | null;
     rejectingId: number | null;
@@ -88,6 +101,15 @@ type AnalyticsCardViewModel = {
 export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
     const [composerValue, setComposerValue] = useState('');
     const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
+    const [helpLocale, setHelpLocale] = useState<string>(() => {
+        if (typeof window === 'undefined') {
+            return 'en';
+        }
+
+        const stored = window.localStorage.getItem(HELP_LOCALE_STORAGE_KEY);
+
+        return stored && stored.trim() !== '' ? stored : 'en';
+    });
     const bootstrapAttempted = useRef(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -173,6 +195,14 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
         node.scrollTop = node.scrollHeight;
     }, [messages, sendMutation.isPending, sendMutation.isStreaming]);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        window.localStorage.setItem(HELP_LOCALE_STORAGE_KEY, helpLocale);
+    }, [helpLocale]);
+
     const lastAssistantResponse = useMemo(() => {
         const assistant = [...messages]
             .reverse()
@@ -223,8 +253,12 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
             setComposerValue('');
         }
 
+        const contextPayload: AiChatMessageContextPayload = {
+            locale: helpLocale,
+        };
+
         try {
-            await sendMutation.mutateAsync({ message: trimmed });
+            await sendMutation.mutateAsync({ message: trimmed, context: contextPayload });
         } catch (error) {
             if (!preset) {
                 setComposerValue(previousDraft);
@@ -233,6 +267,34 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to send message',
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
+        }
+    };
+
+    const handleGuidedResolutionLocaleChange = async (resolution: AiChatGuidedResolution, locale: string) => {
+        if (!activeThreadId || sendMutation.isPending || sendMutation.isStreaming) {
+            return;
+        }
+
+        const normalizedLocale = (locale ?? '').trim().toLowerCase() || 'en';
+        const readableLocale = formatGuideLocale(normalizedLocale) || normalizedLocale.toUpperCase();
+        const guideTitle = resolution.title?.trim() || 'workspace guide';
+        const followUpPrompt = `Show me the "${guideTitle}" guide in ${readableLocale}.`;
+
+        setHelpLocale(normalizedLocale);
+
+        try {
+            await sendMutation.mutateAsync({
+                message: followUpPrompt,
+                context: {
+                    locale: normalizedLocale,
+                },
+            });
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to switch guide language',
                 description: error instanceof Error ? error.message : 'Please try again.',
             });
         }
@@ -409,6 +471,8 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                             draftActionState={draftActionState}
                             onStartWorkflow={handleStartWorkflowSuggestion}
                             isWorkflowStarting={startWorkflow.isPending}
+                            onGuidedResolutionLocaleChange={handleGuidedResolutionLocaleChange}
+                            isLocaleSwitchPending={sendMutation.isPending || sendMutation.isStreaming}
                         />
                     ))
                 )}
@@ -436,7 +500,10 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                         className="min-h-[96px] resize-none border-0 bg-transparent text-base text-white placeholder:text-slate-500 focus-visible:ring-0 disabled:cursor-not-allowed"
                     />
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-xs text-slate-500">Copilot cites every answer with doc ids or workspace tools.</p>
+                        <div className="flex flex-col gap-1 text-xs text-slate-500">
+                            <p>Copilot cites every answer with doc ids or workspace tools.</p>
+                            <HelpLanguageSelector value={helpLocale} onChange={setHelpLocale} />
+                        </div>
                         <Button
                             type="button"
                             size="sm"
@@ -460,6 +527,8 @@ type ChatMessageProps = {
     draftActionState?: DraftActionState;
     onStartWorkflow?: (workflow: AiChatWorkflowSuggestion) => Promise<string | null>;
     isWorkflowStarting?: boolean;
+    onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
+    isLocaleSwitchPending?: boolean;
 };
 
 function ChatMessage({
@@ -469,6 +538,8 @@ function ChatMessage({
     draftActionState,
     onStartWorkflow,
     isWorkflowStarting,
+    onGuidedResolutionLocaleChange,
+    isLocaleSwitchPending,
 }: ChatMessageProps) {
     if (message.role === 'user') {
         return (
@@ -493,6 +564,8 @@ function ChatMessage({
                 draftActionState={draftActionState}
                 onStartWorkflow={onStartWorkflow}
                 isWorkflowStarting={isWorkflowStarting}
+                onGuidedResolutionLocaleChange={onGuidedResolutionLocaleChange}
+                isLocaleSwitchPending={isLocaleSwitchPending}
             />
         );
     }
@@ -507,6 +580,8 @@ function AssistantBubble({
     draftActionState,
     onStartWorkflow,
     isWorkflowStarting,
+    onGuidedResolutionLocaleChange,
+    isLocaleSwitchPending,
 }: {
     message: AiChatMessage;
     onApproveDraft?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
@@ -514,6 +589,8 @@ function AssistantBubble({
     draftActionState?: DraftActionState;
     onStartWorkflow?: (workflow: AiChatWorkflowSuggestion) => Promise<string | null>;
     isWorkflowStarting?: boolean;
+    onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
+    isLocaleSwitchPending?: boolean;
 }) {
     // Assistant turns carry an AiChatAssistantResponse envelope so we can decide whether to
     // render grounded answers, draft approvals, workflow suggestions, or tool loops per type.
@@ -552,6 +629,8 @@ function AssistantBubble({
                     draftActionState={draftActionState}
                     onStartWorkflow={onStartWorkflow}
                     isWorkflowStarting={isWorkflowStarting}
+                    onGuidedResolutionLocaleChange={onGuidedResolutionLocaleChange}
+                    disableLocaleSwitch={isLocaleSwitchPending}
                 />
 
                 <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">{formatDisplayTimestamp(message.created_at)}</p>
@@ -582,6 +661,8 @@ function AssistantDetails({
     draftActionState,
     onStartWorkflow,
     isWorkflowStarting,
+    onGuidedResolutionLocaleChange,
+    disableLocaleSwitch,
 }: {
     response: AiChatAssistantResponse | null;
     onApproveDraft?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
@@ -589,6 +670,8 @@ function AssistantDetails({
     draftActionState?: DraftActionState;
     onStartWorkflow?: (workflow: AiChatWorkflowSuggestion) => Promise<string | null>;
     isWorkflowStarting?: boolean;
+    onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
+    disableLocaleSwitch?: boolean;
 }) {
     const warnings = response?.warnings ?? [];
     const hasDraft = response?.type === 'draft_action' && Boolean(response.draft);
@@ -652,7 +735,17 @@ function AssistantDetails({
                 />
             ) : null}
 
-            {guidedResolution ? <GuidedResolutionCard resolution={guidedResolution} /> : null}
+            {guidedResolution ? (
+                <GuidedResolutionCard
+                    resolution={guidedResolution}
+                    onChangeLocale={
+                        onGuidedResolutionLocaleChange
+                            ? (nextLocale) => onGuidedResolutionLocaleChange(guidedResolution, nextLocale)
+                            : undefined
+                    }
+                    disableLocaleSwitch={disableLocaleSwitch}
+                />
+            ) : null}
         </div>
     );
 }
@@ -1064,22 +1157,76 @@ function WorkflowPreview({
     );
 }
 
-function GuidedResolutionCard({ resolution }: { resolution: AiChatGuidedResolution }) {
+function GuidedResolutionCard({
+    resolution,
+    onChangeLocale,
+    disableLocaleSwitch = false,
+}: {
+    resolution: AiChatGuidedResolution;
+    onChangeLocale?: (locale: string) => void;
+    disableLocaleSwitch?: boolean;
+}) {
     const ctaLabel = resolution.cta_label?.trim().length ? resolution.cta_label : 'Open guide';
-    const hasLink = Boolean(resolution.cta_url);
+    const ctaHref = resolution.cta_url ?? undefined;
+    const hasLink = Boolean(ctaHref);
+    const currentLocale = (resolution.locale ?? '').trim().toLowerCase() || 'en';
+    const localeLabel = formatGuideLocale(currentLocale);
+    const availableLocales = Array.from(
+        new Set(
+            (resolution.available_locales ?? [])
+                .map((code) => (code ?? '').trim().toLowerCase())
+                .filter((code) => code.length > 0),
+        ),
+    );
+
+    if (!availableLocales.includes(currentLocale)) {
+        availableLocales.unshift(currentLocale);
+    }
+
+    const localeOptions = availableLocales.length > 0 ? availableLocales : [currentLocale];
+    const canSwitchLocale = Boolean(onChangeLocale) && localeOptions.length > 1;
+    const handleLocaleChange = (nextLocale: string) => {
+        if (!onChangeLocale || nextLocale === currentLocale) {
+            return;
+        }
+
+        onChangeLocale(nextLocale);
+    };
 
     return (
         <div className="space-y-3 rounded-2xl border border-sky-400/30 bg-sky-950/30 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-sky-200">
                 <Sparkles className="size-4" /> Guided resolution suggested
+                {localeLabel ? (
+                    <Badge variant="outline" className="border-sky-200/30 text-[10px] uppercase text-sky-50">
+                        {localeLabel}
+                    </Badge>
+                ) : null}
             </div>
             <div>
                 <p className="text-sm font-semibold text-white">{resolution.title}</p>
                 <p className="mt-1 text-sm text-slate-200">{resolution.description}</p>
             </div>
+            {canSwitchLocale ? (
+                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-slate-300">
+                    <span>View in</span>
+                    <Select value={currentLocale} onValueChange={handleLocaleChange} disabled={disableLocaleSwitch}>
+                        <SelectTrigger className="h-8 w-[140px] border-white/20 bg-white/5 text-[11px] uppercase text-white">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="start" className="text-slate-900">
+                            {localeOptions.map((localeCode) => (
+                                <SelectItem key={localeCode} value={localeCode} className="text-sm uppercase">
+                                    {formatGuideLocale(localeCode) || localeCode.toUpperCase()}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            ) : null}
             {hasLink ? (
                 <Button asChild className="gap-2">
-                    <a href={resolution.cta_url} target="_blank" rel="noreferrer">
+                    <a href={ctaHref} target="_blank" rel="noreferrer">
                         {ctaLabel}
                     </a>
                 </Button>
@@ -1863,4 +2010,38 @@ function EmptyConversationState() {
             <p className="mt-2 text-sm text-slate-400">Copilot cites every answer and stays within your workspace data.</p>
         </div>
     );
+}
+
+function HelpLanguageSelector({ value, onChange }: { value: string; onChange: (locale: string) => void }) {
+    return (
+        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-slate-400">
+            <span>Guide language</span>
+            <Select value={value} onValueChange={onChange}>
+                <SelectTrigger className="h-8 w-[140px] border-white/20 bg-white/5 text-[11px] uppercase text-white">
+                    <SelectValue placeholder="Language" />
+                </SelectTrigger>
+                <SelectContent align="start" className="text-slate-900">
+                    {HELP_LANGUAGE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="text-sm uppercase">
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
+function formatGuideLocale(locale?: string | null): string {
+    if (!locale) {
+        return '';
+    }
+
+    const normalized = locale.trim().toLowerCase();
+    if (normalized === '') {
+        return '';
+    }
+
+    const base = normalized.split('-')[0];
+    return GUIDE_LANGUAGE_LABELS[normalized] ?? GUIDE_LANGUAGE_LABELS[base] ?? normalized.toUpperCase();
 }

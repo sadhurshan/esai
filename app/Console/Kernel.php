@@ -50,6 +50,11 @@ class Kernel extends ConsoleKernel
             ->everyTenMinutes()
             ->withoutOverlapping()
             ->onOneServer();
+
+        $schedule->command('ai:purge-events')
+            ->dailyAt('04:30')
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     protected function commands(): void

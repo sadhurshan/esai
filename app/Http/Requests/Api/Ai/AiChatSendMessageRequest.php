@@ -11,6 +11,7 @@ class AiChatSendMessageRequest extends ApiFormRequest
         return [
             'message' => ['required', 'string', 'max:4000'],
             'context' => ['sometimes', 'array'],
+            'context.locale' => ['sometimes', 'string', 'max:10'],
             'ui_mode' => ['sometimes', 'string', 'max:50'],
             'attachments' => ['sometimes', 'array', 'max:10'],
             'attachments.*' => ['array'],
@@ -80,6 +81,7 @@ class AiChatSendMessageRequest extends ApiFormRequest
             'context' => $this->contextPayload(),
             'ui_mode' => $this->uiMode(),
             'attachments' => $this->attachments(),
+            'locale' => $this->localePreference(),
         ], static fn ($value) => $value !== null && $value !== [] && $value !== '');
 
         return $payload;
@@ -88,5 +90,22 @@ class AiChatSendMessageRequest extends ApiFormRequest
     public function wantsStream(): bool
     {
         return (bool) ($this->validated()['stream'] ?? false);
+    }
+
+    private function localePreference(): ?string
+    {
+        $value = data_get($this->validated(), 'context.locale');
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = strtolower(trim(str_replace('_', '-', $value)));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return substr($normalized, 0, 10);
     }
 }

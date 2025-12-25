@@ -20,4 +20,11 @@ return [
         'poll_interval_seconds' => (int) env('AI_SCRAPER_POLL_INTERVAL_SECONDS', 30),
         'max_duration_seconds' => (int) env('AI_SCRAPER_MAX_DURATION_SECONDS', 900),
     ],
+    'retention' => [
+        'mode' => env('AI_RETENTION_MODE', 'delete'),
+        'events_days' => (int) env('AI_RETENTION_EVENTS_DAYS', 90),
+        'chat_messages_days' => (int) env('AI_RETENTION_CHAT_MESSAGES_DAYS', 90),
+        'archive_disk' => env('AI_RETENTION_ARCHIVE_DISK', 'local'),
+        'archive_directory' => env('AI_RETENTION_ARCHIVE_DIRECTORY', 'ai/archives'),
+    ],
 ];

@@ -77,6 +77,11 @@ class Part extends CompanyScopedModel
         return $this->hasMany(ReorderSuggestion::class);
     }
 
+    public function preferredSuppliers(): HasMany
+    {
+        return $this->hasMany(PartPreferredSupplier::class);
+    }
+
     public function tags(): HasMany
     {
         return $this->hasMany(PartTag::class);

@@ -160,6 +160,82 @@ class AiController extends ApiController
         }
     }
 
+    public function intentPlan(Request $request): JsonResponse
+    {
+        $context = $this->requireCompanyContext($request);
+
+        if ($context instanceof JsonResponse) {
+            return $context;
+        }
+
+        $user = $context['user'];
+        $companyId = $context['companyId'];
+
+        $validated = $request->validate([
+            'prompt' => ['required', 'string', 'max:4000'],
+            'thread_id' => ['nullable', 'string', 'max:255'],
+            'context' => ['nullable', 'array', 'max:'.(int) config('ai_chat.history_limit', 30)],
+            'context.*.role' => ['required', 'string', 'in:user,assistant,system'],
+            'context.*.content' => ['required', 'string'],
+        ]);
+
+        $startedAt = microtime(true);
+        $payload = [
+            'prompt' => $validated['prompt'],
+            'context' => array_map(
+                static fn (array $message): array => [
+                    'role' => $message['role'],
+                    'content' => $message['content'],
+                ],
+                $validated['context'] ?? []
+            ),
+            'company_id' => $companyId,
+            'thread_id' => $validated['thread_id'] ?? null,
+            'user_id' => $user->id,
+        ];
+
+        try {
+            $response = $this->client->intentPlan($payload);
+        } catch (AiServiceUnavailableException $exception) {
+            $latency = $this->calculateLatencyMs($startedAt);
+            $this->recordEvent(
+                companyId: $companyId,
+                userId: $user->id,
+                feature: 'intent_plan',
+                requestPayload: $payload,
+                responsePayload: null,
+                latencyMs: $latency,
+                status: AiEvent::STATUS_ERROR,
+                errorMessage: $exception->getMessage(),
+                metadata: [],
+            );
+
+            return $this->fail('AI service is unavailable.', Response::HTTP_SERVICE_UNAVAILABLE, [
+                'service' => ['AI service is unavailable.'],
+            ]);
+        }
+
+        $latency = $this->calculateLatencyMs($startedAt);
+        $status = $response['status'] === 'success' ? AiEvent::STATUS_SUCCESS : AiEvent::STATUS_ERROR;
+        $errorMessage = $response['status'] === 'success'
+            ? null
+            : ($response['errors']['ai'][0] ?? $response['message'] ?? 'Intent planner failed.');
+
+        $this->recordEvent(
+            companyId: $companyId,
+            userId: $user->id,
+            feature: 'intent_plan',
+            requestPayload: $payload,
+            responsePayload: $response,
+            latencyMs: $latency,
+            status: $status,
+            errorMessage: $errorMessage,
+            metadata: [],
+        );
+
+        return $this->respondFromClient($response);
+    }
+
     private function respondFromClient(array $response): JsonResponse
     {
         if ($response['status'] === 'success') {

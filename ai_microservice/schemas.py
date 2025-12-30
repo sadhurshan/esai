@@ -422,6 +422,50 @@ PO_SUPPLIER_SCHEMA = {
     },
 }
 
+ITEM_ATTRIBUTE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"],
+    },
+}
+
+ITEM_PREFERRED_SUPPLIER_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["name"],
+    "properties": {
+        "supplier_id": {"type": ["string", "integer", "null"]},
+        "name": {"type": "string", "minLength": 1},
+        "priority": {"type": ["integer", "null"], "minimum": 1, "maximum": 5},
+        "notes": {"type": ["string", "null"]},
+    },
+}
+
+ITEM_DRAFT_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "item_code",
+        "name",
+        "uom",
+        "status",
+    ],
+    "properties": {
+        "item_code": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "uom": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["active", "inactive"]},
+        "category": {"type": ["string", "null"]},
+        "description": {"type": ["string", "null"]},
+        "spec": {"type": ["string", "null"]},
+        "attributes": {"oneOf": [ITEM_ATTRIBUTE_SCHEMA, {"type": "null"}]},
+        "preferred_suppliers": {
+            "type": "array",
+            "items": ITEM_PREFERRED_SUPPLIER_SCHEMA,
+        },
+    },
+}
+
 PO_LINE_ITEM_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -438,6 +482,80 @@ PO_LINE_ITEM_SCHEMA = {
         "notes": {"type": "string"},
     },
 }
+
+SUPPLIER_DOCUMENT_REQUIREMENT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Document type identifier such as iso9001 or nda.",
+        },
+        "description": {
+            "type": ["string", "null"],
+            "description": "Short summary of why the document is required.",
+        },
+        "required": {
+            "type": "boolean",
+            "description": "Indicates whether this document is mandatory.",
+        },
+        "due_in_days": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 180,
+            "description": "Optional number of days until the document is due.",
+        },
+        "priority": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Relative priority ordering where 1 is highest.",
+        },
+        "notes": {
+            "type": ["string", "null"],
+            "description": "Additional instructions for the supplier.",
+        },
+    },
+}
+
+SUPPLIER_ONBOARD_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "legal_name",
+        "country",
+        "email",
+        "phone",
+        "payment_terms",
+        "tax_id",
+        "documents_needed",
+    ],
+    "properties": {
+        "legal_name": {"type": "string", "minLength": 1},
+        "country": {"type": "string", "minLength": 2, "maxLength": 64},
+        "email": {"type": "string", "format": "email"},
+        "phone": {"type": "string", "minLength": 3},
+        "payment_terms": {"type": "string", "minLength": 1},
+        "tax_id": {"type": "string", "minLength": 1},
+        "website": {"type": ["string", "null"]},
+        "address": {"type": ["string", "null"]},
+        "documents_needed": {
+            "type": "array",
+            "items": SUPPLIER_DOCUMENT_REQUIREMENT_SCHEMA,
+        },
+        "notes": {
+            "type": ["string", "null"],
+            "description": "Internal onboarding notes.",
+        },
+    },
+}
+
+SUPPLIER_ONBOARD_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionSupplierOnboardDraft",
+    SUPPLIER_ONBOARD_PAYLOAD_SCHEMA,
+)
 
 PO_DELIVERY_SCHEDULE_ITEM_SCHEMA = {
     "type": "object",
@@ -508,6 +626,319 @@ INVOICE_DRAFT_PAYLOAD_SCHEMA = {
         "notes": {"type": "string", "minLength": 1},
     },
 }
+
+RECEIPT_LINE_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["po_line_id", "description", "received_qty", "accepted_qty", "rejected_qty"],
+    "properties": {
+        "po_line_id": {"type": "string", "minLength": 1},
+        "line_number": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1},
+        "uom": {"type": "string"},
+        "expected_qty": {"type": "number", "minimum": 0},
+        "received_qty": {"type": "number", "minimum": 0},
+        "accepted_qty": {"type": "number", "minimum": 0},
+        "rejected_qty": {"type": "number", "minimum": 0},
+        "issues": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "notes": {"type": "string"},
+    },
+}
+
+RECEIPT_DRAFT_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["po_id", "received_date", "line_items"],
+    "properties": {
+        "po_id": {"type": "string", "minLength": 1},
+        "received_date": {"type": "string", "format": "date"},
+        "reference": {"type": "string"},
+        "inspected_by": {"type": "string"},
+        "status": {"type": "string"},
+        "total_received_qty": {"type": "number", "minimum": 0},
+        "notes": {"type": "string"},
+        "line_items": {
+            "type": "array",
+            "minItems": 1,
+            "items": RECEIPT_LINE_ITEM_SCHEMA,
+        },
+    },
+}
+
+PAYMENT_DRAFT_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["invoice_id", "amount", "payment_method", "notes"],
+    "properties": {
+        "invoice_id": {"type": "string", "minLength": 1},
+        "amount": {"type": "number", "exclusiveMinimum": 0},
+        "currency": {"type": "string", "minLength": 1},
+        "payment_method": {"type": "string", "minLength": 1},
+        "scheduled_date": {"type": "string", "format": "date"},
+        "reference": {"type": "string"},
+        "notes": {"type": "string", "minLength": 1},
+    },
+}
+
+INVOICE_MISMATCH_ITEM_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type", "detail"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": ["qty", "price", "tax", "missing_line"],
+        },
+        "line_reference": {"type": "string", "minLength": 1},
+        "severity": {
+            "type": "string",
+            "enum": ["info", "warning", "risk"],
+        },
+        "detail": {"type": "string", "minLength": 1},
+        "expected": {"type": ["number", "string"]},
+        "actual": {"type": ["number", "string"]},
+    },
+}
+
+INVOICE_MATCH_RECOMMENDATION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["status", "explanation"],
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": ["approve", "hold"],
+        },
+        "explanation": {"type": "string", "minLength": 1},
+    },
+}
+
+INVOICE_MATCH_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "invoice_id",
+        "matched_po_id",
+        "matched_receipt_ids",
+        "mismatches",
+        "recommendation",
+    ],
+    "properties": {
+        "invoice_id": {"type": "string", "minLength": 1},
+        "matched_po_id": {"type": "string", "minLength": 1},
+        "matched_receipt_ids": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "match_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "mismatches": {
+            "type": "array",
+            "items": INVOICE_MISMATCH_ITEM_SCHEMA,
+        },
+        "recommendation": INVOICE_MATCH_RECOMMENDATION_SCHEMA,
+        "analysis_notes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+INVOICE_MISMATCH_RESOLUTION_ACTION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type", "description"],
+    "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "owner_role": {"type": "string"},
+        "due_in_days": {"type": "integer", "minimum": 0},
+        "requires_hold": {"type": "boolean"},
+    },
+}
+
+INVOICE_MISMATCH_IMPACT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["line_reference", "issue", "recommended_action"],
+    "properties": {
+        "line_reference": {"type": "string", "minLength": 1},
+        "issue": {"type": "string", "minLength": 1},
+        "severity": {"type": "string", "enum": ["info", "warning", "risk"]},
+        "variance": {"type": ["number", "null"]},
+        "recommended_action": {"type": "string", "minLength": 1},
+    },
+}
+
+INVOICE_MISMATCH_RESOLUTION_DECISION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type", "summary"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": ["hold", "partial_approve", "request_credit_note", "adjust_po"],
+        },
+        "summary": {"type": "string", "minLength": 1},
+        "reason_codes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    },
+}
+
+INVOICE_MISMATCH_RESOLUTION_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "invoice_id",
+        "resolution",
+        "actions",
+        "impacted_lines",
+        "next_steps",
+    ],
+    "properties": {
+        "invoice_id": {"type": "string", "minLength": 1},
+        "resolution": INVOICE_MISMATCH_RESOLUTION_DECISION_SCHEMA,
+        "actions": {
+            "type": "array",
+            "items": INVOICE_MISMATCH_RESOLUTION_ACTION_SCHEMA,
+        },
+        "impacted_lines": {
+            "type": "array",
+            "items": INVOICE_MISMATCH_IMPACT_SCHEMA,
+        },
+        "next_steps": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "notes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+INVOICE_DISPUTE_ENTITY_REFERENCE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["id"],
+    "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "number": {"type": ["string", "null"], "minLength": 1},
+    },
+}
+
+INVOICE_DISPUTE_REFERENCE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["invoice"],
+    "properties": {
+        "invoice": INVOICE_DISPUTE_ENTITY_REFERENCE_SCHEMA,
+        "purchase_order": INVOICE_DISPUTE_ENTITY_REFERENCE_SCHEMA,
+        "receipt": INVOICE_DISPUTE_ENTITY_REFERENCE_SCHEMA,
+    },
+}
+
+INVOICE_DISPUTE_ACTION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type", "description"],
+    "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "owner_role": {"type": ["string", "null"], "minLength": 1},
+        "due_in_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "maximum": 120,
+        },
+        "requires_hold": {"type": "boolean"},
+    },
+}
+
+INVOICE_DISPUTE_IMPACT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["reference", "issue", "recommended_action"],
+    "properties": {
+        "reference": {"type": "string", "minLength": 1},
+        "issue": {"type": "string", "minLength": 1},
+        "severity": {
+            "type": ["string", "null"],
+            "enum": ["info", "warning", "risk", None],
+        },
+        "variance": {
+            "type": ["number", "null"],
+        },
+        "recommended_action": {"type": "string", "minLength": 1},
+    },
+}
+
+INVOICE_DISPUTE_PAYLOAD_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "dispute_reference",
+        "issue_summary",
+        "issue_category",
+        "owner_role",
+        "requires_hold",
+        "actions",
+        "impacted_lines",
+        "next_steps",
+        "notes",
+        "reason_codes",
+    ],
+    "properties": {
+        "dispute_reference": INVOICE_DISPUTE_REFERENCE_SCHEMA,
+        "invoice_id": {"type": ["string", "null"], "minLength": 1},
+        "invoice_number": {"type": ["string", "null"], "minLength": 1},
+        "purchase_order_id": {"type": ["string", "null"], "minLength": 1},
+        "purchase_order_number": {"type": ["string", "null"], "minLength": 1},
+        "receipt_id": {"type": ["string", "null"], "minLength": 1},
+        "receipt_number": {"type": ["string", "null"], "minLength": 1},
+        "issue_summary": {"type": "string", "minLength": 1},
+        "issue_category": {"type": "string", "minLength": 1},
+        "owner_role": {"type": "string", "minLength": 1},
+        "requires_hold": {"type": "boolean"},
+        "due_in_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "maximum": 120,
+        },
+        "actions": {
+            "type": "array",
+            "minItems": 1,
+            "items": INVOICE_DISPUTE_ACTION_SCHEMA,
+        },
+        "impacted_lines": {
+            "type": "array",
+            "minItems": 1,
+            "items": INVOICE_DISPUTE_IMPACT_SCHEMA,
+        },
+        "next_steps": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "notes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "reason_codes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+INVOICE_DISPUTE_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionInvoiceDisputeDraft",
+    INVOICE_DISPUTE_PAYLOAD_SCHEMA,
+)
 
 AWARD_QUOTE_PAYLOAD_SCHEMA = {
     "type": "object",
@@ -606,6 +1037,27 @@ INVOICE_DRAFT_SCHEMA = _make_action_wrapper_schema(
     "CopilotActionInvoiceDraft", INVOICE_DRAFT_PAYLOAD_SCHEMA
 )
 
+RECEIPT_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionReceiptDraft", RECEIPT_DRAFT_PAYLOAD_SCHEMA
+)
+
+PAYMENT_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionPaymentDraft", PAYMENT_DRAFT_PAYLOAD_SCHEMA
+)
+
+INVOICE_MATCH_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionInvoiceMatch", INVOICE_MATCH_PAYLOAD_SCHEMA
+)
+
+ITEM_DRAFT_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionItemDraft", ITEM_DRAFT_PAYLOAD_SCHEMA
+)
+
+INVOICE_MISMATCH_RESOLUTION_SCHEMA = _make_action_wrapper_schema(
+    "CopilotActionInvoiceMismatchResolution",
+    INVOICE_MISMATCH_RESOLUTION_PAYLOAD_SCHEMA,
+)
+
 SCRAPED_SUPPLIER_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "ScrapedSupplierRecord",
@@ -663,7 +1115,13 @@ DRAFT_ACTION_SCHEMAS = [
     QUOTE_COMPARISON_SCHEMA,
     AWARD_QUOTE_SCHEMA,
     INVOICE_DRAFT_SCHEMA,
+    ITEM_DRAFT_SCHEMA,
     PO_DRAFT_SCHEMA,
+    RECEIPT_DRAFT_SCHEMA,
+    PAYMENT_DRAFT_SCHEMA,
+    INVOICE_MATCH_SCHEMA,
+    INVOICE_DISPUTE_DRAFT_SCHEMA,
+    INVOICE_MISMATCH_RESOLUTION_SCHEMA,
 ]
 
 CHAT_RESPONSE_TYPES = [
@@ -738,7 +1196,13 @@ __all__ = [
     "QUOTE_COMPARISON_SCHEMA",
     "AWARD_QUOTE_SCHEMA",
     "INVOICE_DRAFT_SCHEMA",
+    "ITEM_DRAFT_SCHEMA",
     "PO_DRAFT_SCHEMA",
+    "RECEIPT_DRAFT_SCHEMA",
+    "PAYMENT_DRAFT_SCHEMA",
+    "INVOICE_MATCH_SCHEMA",
+    "INVOICE_DISPUTE_DRAFT_SCHEMA",
+    "INVOICE_MISMATCH_RESOLUTION_SCHEMA",
     "SPEND_FORECAST_SCHEMA",
     "SUPPLIER_PERFORMANCE_FORECAST_SCHEMA",
     "INVENTORY_FORECAST_SCHEMA",

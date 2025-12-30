@@ -95,7 +95,53 @@ const sanitizeContextPayload = (context?: AiChatMessageContextPayload): AiChatMe
         }
     }
 
+    const clarification = sanitizeClarificationReference(context.clarification);
+    if (clarification) {
+        normalized.clarification = clarification;
+    }
+
+    const entityPicker = sanitizeEntityPickerReference(context.entity_picker);
+    if (entityPicker) {
+        normalized.entity_picker = entityPicker;
+    }
+
     return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
+const sanitizeClarificationReference = (
+    clarification?: AiChatMessageContextPayload['clarification'],
+): AiChatMessageContextPayload['clarification'] | undefined => {
+    if (!clarification || typeof clarification !== 'object') {
+        return undefined;
+    }
+
+    const identifier = typeof clarification.id === 'string' ? clarification.id.trim() : '';
+
+    if (identifier === '') {
+        return undefined;
+    }
+
+    return { id: identifier.slice(0, 100) };
+};
+
+const sanitizeEntityPickerReference = (
+    picker?: AiChatMessageContextPayload['entity_picker'],
+): AiChatMessageContextPayload['entity_picker'] | undefined => {
+    if (!picker || typeof picker !== 'object') {
+        return undefined;
+    }
+
+    const identifier = typeof picker.id === 'string' ? picker.id.trim() : '';
+    const candidateId = typeof picker.candidate_id === 'string' ? picker.candidate_id.trim() : '';
+
+    if (identifier === '' || candidateId === '') {
+        return undefined;
+    }
+
+    return {
+        id: identifier.slice(0, 100),
+        candidate_id: candidateId.slice(0, 100),
+    };
 };
 
 const supportsEventSource = (): boolean => typeof window !== 'undefined' && typeof window.EventSource !== 'undefined';

@@ -19,6 +19,8 @@ use App\Services\Ai\AiClient;
 use App\Services\Ai\AiEventRecorder;
 use App\Services\Ai\Converters\AiDraftConversionService;
 use App\Services\Ai\ChatService;
+use App\Services\Ai\Policies\PolicyCheckService;
+use App\Services\Ai\Policies\PolicyDecision;
 use App\Support\Permissions\PermissionRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +39,7 @@ class AiActionsController extends ApiController
         private readonly AiEventRecorder $recorder,
         private readonly PermissionRegistry $permissionRegistry,
         private readonly AiDraftConversionService $conversionService,
+        private readonly PolicyCheckService $policyCheckService,
         private readonly ChatService $chatService,
     ) {
     }
@@ -171,6 +174,38 @@ class AiActionsController extends ApiController
             return $this->fail('Chat thread not found.', Response::HTTP_NOT_FOUND, [
                 'code' => 'chat_thread_not_found',
             ]);
+        }
+
+        $policyActionType = $this->resolvePolicyActionType($model);
+
+        $policyDecision = $this->policyCheckService->evaluate(
+            $companyId,
+            $user,
+            $policyActionType,
+            $this->buildPolicyPayload($model)
+        );
+
+        if (! $policyDecision->allowed()) {
+            $this->recordEvent(
+                companyId: $companyId,
+                userId: $user->id,
+                feature: 'copilot_action_approve',
+                requestPayload: [
+                    'draft_id' => $model->id,
+                    'action_type' => $model->action_type,
+                    'policy_action_type' => $policyActionType,
+                    'policy_decision' => $policyDecision->toArray(),
+                ],
+                responsePayload: null,
+                latencyMs: null,
+                status: AiEvent::STATUS_ERROR,
+                errorMessage: 'Policy check blocked this Copilot action.',
+                entityType: $model->entity_type,
+                entityId: $model->entity_id,
+                thread: $thread,
+            );
+
+            return $this->policyCheckFailedResponse($policyDecision, $model);
         }
 
         try {
@@ -365,6 +400,158 @@ class AiActionsController extends ApiController
         ];
     }
 
+    private function buildPolicyPayload(AiActionDraft $draft): array
+    {
+        $payload = [
+            'draft_id' => $draft->id,
+        ];
+
+        $output = $draft->output_json;
+
+        if (is_array($output)) {
+            $payload = array_merge(
+                $payload,
+                Arr::except($output, ['payload', 'citations', 'warnings'])
+            );
+
+            if (isset($output['payload']) && is_array($output['payload'])) {
+                $payload = array_merge($payload, $output['payload']);
+            }
+        }
+
+        $input = $draft->input_json;
+
+        if (is_array($input)) {
+            $payload['inputs'] = Arr::except($input, ['query']);
+        }
+
+        if ($draft->entity_type !== null && $draft->entity_id !== null) {
+            $payload['entity'] = [
+                'type' => $draft->entity_type,
+                'id' => $draft->entity_id,
+            ];
+        }
+
+        return array_filter($payload, static function ($value) {
+            if (is_array($value)) {
+                return $value !== [];
+            }
+
+            if (is_string($value)) {
+                return trim($value) !== '';
+            }
+
+            return $value !== null;
+        });
+    }
+
+    private function policyCheckFailedResponse(PolicyDecision $decision, AiActionDraft $draft): JsonResponse
+    {
+        $primaryReason = $decision->reasons()[0] ?? 'Policy guardrails blocked this draft.';
+        $message = sprintf(
+            'Unable to approve %s: %s',
+            Str::lower($this->formatActionLabel($decision->actionType())),
+            $primaryReason
+        );
+
+        return $this->fail($message, Response::HTTP_UNPROCESSABLE_ENTITY, [
+            'code' => 'policy_check_blocked',
+            'policy' => $decision->toArray(),
+            'guided_resolution' => $this->buildPolicyGuidedResolution($decision, $draft),
+        ]);
+    }
+
+    private function buildPolicyGuidedResolution(PolicyDecision $decision, AiActionDraft $draft): array
+    {
+        $actionLabel = $this->formatActionLabel($decision->actionType());
+        $approvalSummary = $this->describeRequiredApproval($decision);
+        $suggestion = $decision->suggestedChanges()[0] ?? null;
+        $descriptionParts = array_filter([
+            $decision->reasons()[0] ?? null,
+            $suggestion,
+            $approvalSummary,
+        ]);
+
+        $description = $descriptionParts !== []
+            ? implode(' ', $descriptionParts)
+            : 'Follow the approval checklist before finalizing this draft.';
+
+        return [
+            'type' => 'guided_resolution',
+            'assistant_message_markdown' => $this->formatPolicyGuidedResolutionMarkdown($actionLabel, $decision, $approvalSummary),
+            'guided_resolution' => [
+                'title' => sprintf('%s blocked by policy', $actionLabel),
+                'description' => $description,
+                'cta_label' => 'Review approval steps',
+                'cta_url' => null,
+                'locale' => 'en',
+                'available_locales' => ['en'],
+            ],
+        ];
+    }
+
+    private function describeRequiredApproval(PolicyDecision $decision): ?string
+    {
+        $approvals = $decision->requiredApprovals();
+
+        if ($approvals === []) {
+            return null;
+        }
+
+        $labels = array_map(static function (array $approval): string {
+            $label = $approval['label'] ?? null;
+
+            if (is_string($label) && $label !== '') {
+                return $label;
+            }
+
+            return Str::headline($approval['value'] ?? '');
+        }, $approvals);
+
+        $labels = array_filter($labels);
+
+        if ($labels === []) {
+            return null;
+        }
+
+        return sprintf('Approvals needed: %s', implode(', ', $labels));
+    }
+
+    private function formatPolicyGuidedResolutionMarkdown(string $actionLabel, PolicyDecision $decision, ?string $approvalSummary = null): string
+    {
+        $lines = array_map(static fn (string $reason): string => sprintf('- %s', $reason), $decision->reasons());
+
+        foreach ($decision->suggestedChanges() as $suggestedChange) {
+            $lines[] = sprintf('- Next: %s', $suggestedChange);
+        }
+
+        if ($approvalSummary !== null) {
+            $lines[] = sprintf('- %s.', rtrim($approvalSummary, '.'));
+        }
+
+        if ($lines === []) {
+            $lines[] = '- Policy review required.';
+        }
+
+        return sprintf(
+            "I couldn't approve the %s draft because:\n%s",
+            Str::lower($actionLabel),
+            implode("\n", $lines)
+        );
+    }
+
+    private function resolvePolicyActionType(AiActionDraft $draft): string
+    {
+        $output = $draft->output_json;
+        $outputActionType = is_array($output) ? ($output['action_type'] ?? null) : null;
+
+        if (is_string($outputActionType) && $outputActionType !== '') {
+            return $outputActionType;
+        }
+
+        return $draft->action_type;
+    }
+
     private function calculateLatencyMs(float $startedAt): int
     {
         return (int) round((microtime(true) - $startedAt) * 1000);
@@ -514,14 +701,51 @@ class AiActionsController extends ApiController
         $permissionMap = [
             AiActionDraft::TYPE_RFQ_DRAFT => ['rfqs.write'],
             AiActionDraft::TYPE_SUPPLIER_MESSAGE => ['suppliers.write'],
+            AiActionDraft::TYPE_SUPPLIER_ONBOARD_DRAFT => ['suppliers.write'],
             AiActionDraft::TYPE_MAINTENANCE_CHECKLIST => ['inventory.write'],
             AiActionDraft::TYPE_INVENTORY_WHATIF => ['inventory.read', 'inventory.write'],
+            AiActionDraft::TYPE_ITEM_DRAFT => ['inventory.write'],
             AiActionDraft::TYPE_INVOICE_DRAFT => ['billing.write'],
             AiActionDraft::TYPE_APPROVE_INVOICE => ['billing.write'],
+            AiActionDraft::TYPE_INVOICE_MISMATCH_RESOLUTION => ['billing.write'],
         ];
 
-        $permissions = $permissionMap[$actionType] ?? ['rfqs.write'];
+        $permissions = $permissionMap[$actionType] ?? $this->fallbackPermissionsForAction($actionType);
 
         return ! $this->permissionRegistry->userHasAny($user, $permissions, $companyId);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function fallbackPermissionsForAction(string $actionType): array
+    {
+        $normalized = Str::of($actionType)->lower()->value();
+
+        if (str_contains($normalized, 'purchase_order') || preg_match('/\bpo\b/', $normalized) === 1) {
+            return ['orders.write'];
+        }
+
+        if (str_contains($normalized, 'supplier')) {
+            return ['suppliers.write'];
+        }
+
+        if (str_contains($normalized, 'inventory') || str_contains($normalized, 'item')) {
+            return ['inventory.write'];
+        }
+
+        if (str_contains($normalized, 'invoice')) {
+            return ['billing.write'];
+        }
+
+        if (str_contains($normalized, 'payment')) {
+            return ['finance.write'];
+        }
+
+        if (str_contains($normalized, 'rfq')) {
+            return ['rfqs.write'];
+        }
+
+        return ['rfqs.write'];
     }
 }

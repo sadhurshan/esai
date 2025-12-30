@@ -62,6 +62,11 @@ it('runs a procurement workflow end-to-end', function (): void {
     ];
 
     $client = \Mockery::mock(AiClient::class);
+    $client->shouldReceive('intentPlan')->once()->andReturn([
+        'status' => 'success',
+        'message' => 'Planner skipped for feature test.',
+        'data' => [],
+    ]);
     $client->shouldReceive('chatRespond')->once()->andReturn([
         'status' => 'success',
         'message' => 'Chat response generated.',
@@ -465,4 +470,95 @@ it('runs a procurement workflow end-to-end', function (): void {
     expect($assistantMessages->last())->toContain('español');
 
     expect(AiEvent::query()->where('feature', 'workspace_help')->exists())->toBeTrue();
+});
+
+it('creates an item draft end-to-end via the chat planner tool', function (): void {
+    config()->set('ai.enabled', true);
+    config()->set('ai.shared_secret', 'test-secret');
+    config()->set('ai_chat.permissions', []);
+
+    $company = Company::factory()->create();
+    $user = User::factory()->for($company)->create(['role' => 'inventory_manager']);
+
+    $thread = AiChatThread::query()->create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'title' => 'Item drafting e2e',
+        'status' => AiChatThread::STATUS_OPEN,
+        'last_message_at' => now(),
+        'metadata_json' => [],
+    ]);
+
+    $client = \Mockery::mock(AiClient::class);
+
+    $client->shouldReceive('intentPlan')
+        ->once()
+        ->withArgs(function (array $payload) use ($thread, $user): bool {
+            expect($payload['prompt'] ?? null)->toBe('Create item Rotar Blades with hardened steel');
+            expect($payload['thread_id'] ?? null)->toBe((string) $thread->id);
+            expect($payload['user_id'] ?? null)->toBe($user->id);
+
+            return true;
+        })
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'tool selected',
+            'data' => [
+                'tool' => 'build_item_draft',
+                'args' => [
+                    'item_code' => 'ROTAR-100',
+                    'name' => 'Rotar Blades',
+                    'uom' => 'EA',
+                ],
+            ],
+        ]);
+
+    $client->shouldReceive('planAction')
+        ->once()
+        ->withArgs(function (array $payload): bool {
+            expect($payload['action_type'] ?? null)->toBe('item_draft');
+            expect($payload['inputs']['item_code'] ?? null)->toBe('ROTAR-100');
+            expect($payload['inputs']['name'] ?? null)->toBe('Rotar Blades');
+
+            return true;
+        })
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Draft ready',
+            'data' => [
+                'action_type' => 'item_draft',
+                'summary' => 'Item draft prepared.',
+                'payload' => [
+                    'item_code' => 'ROTAR-100',
+                    'name' => 'Rotar Blades',
+                ],
+                'citations' => [],
+                'warnings' => [],
+            ],
+        ]);
+
+    $client->shouldNotReceive('chatRespond');
+
+    $this->app->instance(AiClient::class, $client);
+
+    /** @var ChatService $chatService */
+    $chatService = app(ChatService::class);
+
+    $result = $chatService->sendMessage(
+        $thread->fresh(),
+        $user->fresh(),
+        'Create item Rotar Blades with hardened steel',
+        ['locale' => 'en', 'context' => ['ui_mode' => 'workspace']]
+    );
+
+    $draftId = data_get($result, 'response.draft.draft_id');
+    expect($draftId)->not->toBeNull();
+    expect(data_get($result, 'response.draft.payload.item_code'))->toBe('ROTAR-100');
+    expect(data_get($result, 'response.draft.payload.name'))->toBe('Rotar Blades');
+
+    $draft = AiActionDraft::query()->findOrFail($draftId);
+    expect($draft->action_type)->toBe(AiActionDraft::TYPE_ITEM_DRAFT);
+    expect(data_get($draft->output_json, 'payload.item_code'))->toBe('ROTAR-100');
+    expect(data_get($draft->output_json, 'payload.name'))->toBe('Rotar Blades');
+    expect($draft->company_id)->toBe($company->id);
 });

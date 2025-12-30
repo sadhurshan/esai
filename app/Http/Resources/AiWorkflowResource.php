@@ -46,6 +46,8 @@ class AiWorkflowResource extends JsonResource
                     'action_type' => $step['action_type'] ?? null,
                     'approval_status' => $step['approval_status'] ?? null,
                     'name' => $step['name'] ?? null,
+                    'approval_requirements' => $step['approval_requirements'] ?? null,
+                    'has_pending_approval_request' => (bool) ($step['has_pending_approval_request'] ?? false),
                 ];
             })
             ->all();

@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Bot, ChevronDown, GitBranch, Loader2, Send, Sparkles, User } from 'lucide-react';
 
 import { AnalyticsCard } from '@/components/ai/AnalyticsCard';
@@ -6,6 +6,7 @@ import { ReviewChecklist } from '@/components/ai/ReviewChecklist';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
@@ -19,11 +20,15 @@ import type {
     AiActionDraft,
     AiActionDraftStatus,
     AiChatAssistantResponse,
+    AiChatClarificationPrompt,
     AiChatDraftSnapshot,
+    AiChatEntityPickerCandidate,
+    AiChatEntityPickerPrompt,
     AiChatGuidedResolution,
     AiChatMessage,
     AiChatMessageContextPayload,
     AiChatResponseType,
+    AiChatUnsafeActionPrompt,
     AiChatWorkflowSuggestion,
 } from '@/types/ai-chat';
 import type { AiAnalyticsChartDatum, AiAnalyticsCitation, AiAnalyticsMetric } from '@/types/ai-analytics';
@@ -35,8 +40,11 @@ interface CopilotChatPanelProps {
 const RESPONSE_LABELS: Record<string, string> = {
     answer: 'Grounded answer',
     draft_action: 'Draft ready',
+    unsafe_action_confirmation: 'Confirm action',
     workflow_suggestion: 'Workflow suggestion',
     guided_resolution: 'Guided resolution',
+    clarification: 'Clarification needed',
+    entity_picker: 'Select a record',
     tool_request: 'Workspace lookup needed',
     error: 'Unable to respond',
     review_rfq: 'RFQ review',
@@ -127,6 +135,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
         enabled: Boolean(activeThreadId),
     });
     const sendMutation = useAiChatSend(activeThreadId);
+    const isSendLocked = sendMutation.isPending || sendMutation.isStreaming;
     const approveDraft = useAiDraftApprove(activeThreadId);
     const rejectDraft = useAiDraftReject(activeThreadId);
     const startWorkflow = useStartAiWorkflow(activeThreadId);
@@ -193,7 +202,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
         }
 
         node.scrollTop = node.scrollHeight;
-    }, [messages, sendMutation.isPending, sendMutation.isStreaming]);
+    }, [messages, isSendLocked]);
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -236,7 +245,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
     const threadTitle = activeThread?.title ?? FALLBACK_THREAD_TITLE;
 
     const handleSend = async (preset?: string) => {
-        if (!activeThreadId || sendMutation.isPending || sendMutation.isStreaming) {
+        if (!activeThreadId || isSendLocked) {
             return;
         }
 
@@ -273,7 +282,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
     };
 
     const handleGuidedResolutionLocaleChange = async (resolution: AiChatGuidedResolution, locale: string) => {
-        if (!activeThreadId || sendMutation.isPending || sendMutation.isStreaming) {
+        if (!activeThreadId || isSendLocked) {
             return;
         }
 
@@ -297,6 +306,108 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                 title: 'Unable to switch guide language',
                 description: error instanceof Error ? error.message : 'Please try again.',
             });
+        }
+    };
+    const handleClarificationResponse = async (
+        clarification: AiChatClarificationPrompt,
+        answer: string,
+    ): Promise<boolean> => {
+        if (!activeThreadId || isSendLocked) {
+            return false;
+        }
+
+        const trimmed = answer.trim();
+
+        if (trimmed === '') {
+            return false;
+        }
+
+        const clarificationId = clarification?.id;
+
+        if (!clarificationId) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to send clarification',
+                description: 'Clarification metadata is missing. Ask Copilot to repeat the question.',
+            });
+
+            return false;
+        }
+
+        try {
+            await sendMutation.mutateAsync({
+                message: trimmed,
+                context: {
+                    locale: helpLocale,
+                    clarification: { id: clarificationId },
+                },
+            });
+
+            return true;
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to send clarification',
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
+
+            return false;
+        }
+    };
+
+    const handleEntityPickerSelection = async (
+        prompt: AiChatEntityPickerPrompt,
+        candidate: AiChatEntityPickerCandidate,
+    ): Promise<boolean> => {
+        if (!activeThreadId || isSendLocked) {
+            return false;
+        }
+
+        const pickerId = prompt?.id?.trim();
+        const candidateId = candidate?.candidate_id?.trim();
+
+        if (!pickerId || !candidateId) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to select record',
+                description: 'Selection metadata is missing. Ask Copilot to re-run the search.',
+            });
+
+            return false;
+        }
+
+        const entityLabel = prompt?.entity_type ? humanizeKey(prompt.entity_type) : null;
+        const selectionSummary = candidate?.label?.trim() || 'this record';
+        const followUpPrompt = [
+            'Use',
+            selectionSummary,
+            entityLabel ? `for ${entityLabel}` : null,
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .concat('.');
+
+        try {
+            await sendMutation.mutateAsync({
+                message: followUpPrompt,
+                context: {
+                    locale: helpLocale,
+                    entity_picker: {
+                        id: pickerId,
+                        candidate_id: candidateId,
+                    },
+                },
+            });
+
+            return true;
+        } catch (error) {
+            publishToast({
+                variant: 'destructive',
+                title: 'Unable to select record',
+                description: error instanceof Error ? error.message : 'Please try again.',
+            });
+
+            return false;
         }
     };
 
@@ -472,7 +583,11 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                             onStartWorkflow={handleStartWorkflowSuggestion}
                             isWorkflowStarting={startWorkflow.isPending}
                             onGuidedResolutionLocaleChange={handleGuidedResolutionLocaleChange}
-                            isLocaleSwitchPending={sendMutation.isPending || sendMutation.isStreaming}
+                            isLocaleSwitchPending={isSendLocked}
+                            onClarificationResponse={handleClarificationResponse}
+                            clarificationPending={isSendLocked}
+                            onEntityPickerSelection={handleEntityPickerSelection}
+                            entityPickerPending={isSendLocked}
                         />
                     ))
                 )}
@@ -484,7 +599,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
             {quickReplies.length > 0 ? (
                 <QuickReplyRail
                     replies={quickReplies}
-                    disabled={sendMutation.isPending || sendMutation.isStreaming}
+                    disabled={isSendLocked}
                     onSelect={handleSend}
                 />
             ) : null}
@@ -507,7 +622,7 @@ export function CopilotChatPanel({ className }: CopilotChatPanelProps) {
                         <Button
                             type="button"
                             size="sm"
-                            disabled={!activeThreadId || isThreadLoading || sendMutation.isPending || sendMutation.isStreaming}
+                            disabled={!activeThreadId || isThreadLoading || isSendLocked}
                             onClick={() => handleSend()}
                             className="gap-2"
                         >
@@ -529,6 +644,13 @@ type ChatMessageProps = {
     isWorkflowStarting?: boolean;
     onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
     isLocaleSwitchPending?: boolean;
+    onClarificationResponse?: (clarification: AiChatClarificationPrompt, answer: string) => Promise<boolean>;
+    clarificationPending?: boolean;
+    onEntityPickerSelection?: (
+        prompt: AiChatEntityPickerPrompt,
+        candidate: AiChatEntityPickerCandidate,
+    ) => Promise<boolean>;
+    entityPickerPending?: boolean;
 };
 
 function ChatMessage({
@@ -540,6 +662,10 @@ function ChatMessage({
     isWorkflowStarting,
     onGuidedResolutionLocaleChange,
     isLocaleSwitchPending,
+    onClarificationResponse,
+    clarificationPending,
+    onEntityPickerSelection,
+    entityPickerPending,
 }: ChatMessageProps) {
     if (message.role === 'user') {
         return (
@@ -566,6 +692,10 @@ function ChatMessage({
                 isWorkflowStarting={isWorkflowStarting}
                 onGuidedResolutionLocaleChange={onGuidedResolutionLocaleChange}
                 isLocaleSwitchPending={isLocaleSwitchPending}
+                onClarificationResponse={onClarificationResponse}
+                clarificationPending={clarificationPending}
+                onEntityPickerSelection={onEntityPickerSelection}
+                entityPickerPending={entityPickerPending}
             />
         );
     }
@@ -582,6 +712,10 @@ function AssistantBubble({
     isWorkflowStarting,
     onGuidedResolutionLocaleChange,
     isLocaleSwitchPending,
+    onClarificationResponse,
+    clarificationPending,
+    onEntityPickerSelection,
+    entityPickerPending,
 }: {
     message: AiChatMessage;
     onApproveDraft?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
@@ -591,6 +725,13 @@ function AssistantBubble({
     isWorkflowStarting?: boolean;
     onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
     isLocaleSwitchPending?: boolean;
+    onClarificationResponse?: (clarification: AiChatClarificationPrompt, answer: string) => Promise<boolean>;
+    clarificationPending?: boolean;
+    onEntityPickerSelection?: (
+        prompt: AiChatEntityPickerPrompt,
+        candidate: AiChatEntityPickerCandidate,
+    ) => Promise<boolean>;
+    entityPickerPending?: boolean;
 }) {
     // Assistant turns carry an AiChatAssistantResponse envelope so we can decide whether to
     // render grounded answers, draft approvals, workflow suggestions, or tool loops per type.
@@ -631,6 +772,10 @@ function AssistantBubble({
                     isWorkflowStarting={isWorkflowStarting}
                     onGuidedResolutionLocaleChange={onGuidedResolutionLocaleChange}
                     disableLocaleSwitch={isLocaleSwitchPending}
+                    onClarificationResponse={onClarificationResponse}
+                    clarificationPending={clarificationPending}
+                    onEntityPickerSelection={onEntityPickerSelection}
+                    entityPickerPending={entityPickerPending}
                 />
 
                 <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">{formatDisplayTimestamp(message.created_at)}</p>
@@ -663,6 +808,10 @@ function AssistantDetails({
     isWorkflowStarting,
     onGuidedResolutionLocaleChange,
     disableLocaleSwitch,
+    onClarificationResponse,
+    clarificationPending,
+    onEntityPickerSelection,
+    entityPickerPending,
 }: {
     response: AiChatAssistantResponse | null;
     onApproveDraft?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
@@ -672,20 +821,56 @@ function AssistantDetails({
     isWorkflowStarting?: boolean;
     onGuidedResolutionLocaleChange?: (resolution: AiChatGuidedResolution, locale: string) => void;
     disableLocaleSwitch?: boolean;
+    onClarificationResponse?: (clarification: AiChatClarificationPrompt, answer: string) => Promise<boolean>;
+    clarificationPending?: boolean;
+    onEntityPickerSelection?: (
+        prompt: AiChatEntityPickerPrompt,
+        candidate: AiChatEntityPickerCandidate,
+    ) => Promise<boolean>;
+    entityPickerPending?: boolean;
 }) {
     const warnings = response?.warnings ?? [];
-    const hasDraft = response?.type === 'draft_action' && Boolean(response.draft);
+    const isUnsafeDraft = response?.type === 'unsafe_action_confirmation';
+    const unsafePrompt = isUnsafeDraft ? response?.unsafe_action : null;
+    const hasDraft = Boolean(response?.draft) && (response?.type === 'draft_action' || isUnsafeDraft);
     const hasWorkflow = response?.type === 'workflow_suggestion' && Boolean(response.workflow);
     const guidedResolution = response?.type === 'guided_resolution' ? response.guided_resolution : null;
     const reviewPayload = response?.review ?? null;
     const analyticsCards = extractAnalyticsCards(response);
 
-    if (!warnings.length && !hasDraft && !hasWorkflow && !guidedResolution && !reviewPayload && analyticsCards.length === 0) {
+    const clarificationPrompt = response?.type === 'clarification' ? response.clarification : null;
+    const entityPickerPrompt = response?.type === 'entity_picker' ? response.entity_picker : null;
+
+    if (
+        !warnings.length &&
+        !hasDraft &&
+        !hasWorkflow &&
+        !guidedResolution &&
+        !reviewPayload &&
+        analyticsCards.length === 0 &&
+        !clarificationPrompt &&
+        !entityPickerPrompt &&
+        !unsafePrompt
+    ) {
         return null;
     }
 
     return (
         <div className="mt-4 space-y-4 text-slate-100">
+            {entityPickerPrompt ? (
+                <EntityPickerPrompt
+                    prompt={entityPickerPrompt}
+                    onSelect={onEntityPickerSelection}
+                    disabled={entityPickerPending}
+                />
+            ) : null}
+            {clarificationPrompt ? (
+                <ClarificationPromptForm
+                    prompt={clarificationPrompt}
+                    onSubmit={onClarificationResponse}
+                    disabled={clarificationPending}
+                />
+            ) : null}
             {analyticsCards.map((card, index) => (
                 <AnalyticsCard
                     key={`${card.metric ?? 'analytics'}-${card.title}-${index}`}
@@ -714,6 +899,19 @@ function AssistantDetails({
             {reviewPayload ? <ReviewChecklist review={reviewPayload} /> : null}
 
             {hasDraft && response?.draft ? (
+                isUnsafeDraft && unsafePrompt ? (
+                    <UnsafeActionConfirmationCard
+                        prompt={unsafePrompt}
+                        draft={response.draft}
+                        onApprove={onApproveDraft}
+                        isConfirming={Boolean(
+                            draftActionState?.isApprovePending &&
+                                draftActionState?.approvingId === response.draft.draft_id,
+                        )}
+                    />
+                ) : null
+            ) : null}
+            {hasDraft && response?.draft ? (
                 <DraftPreview
                     draft={response.draft}
                     onApprove={onApproveDraft}
@@ -724,6 +922,7 @@ function AssistantDetails({
                     isRejecting={Boolean(
                         draftActionState?.isRejectPending && draftActionState?.rejectingId === response.draft.draft_id,
                     )}
+                    requireExternalApproval={isUnsafeDraft}
                 />
             ) : null}
 
@@ -747,6 +946,226 @@ function AssistantDetails({
                 />
             ) : null}
         </div>
+    );
+}
+
+function EntityPickerPrompt({
+    prompt,
+    onSelect,
+    disabled = false,
+}: {
+    prompt: AiChatEntityPickerPrompt;
+    onSelect?: (prompt: AiChatEntityPickerPrompt, candidate: AiChatEntityPickerCandidate) => Promise<boolean>;
+    disabled?: boolean;
+}) {
+    const [pendingId, setPendingId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const entityLabel = prompt.entity_type ? humanizeKey(prompt.entity_type) : 'record';
+    const heading = prompt.title?.trim() || `Pick the ${entityLabel} Copilot should use`;
+    const description =
+        prompt.description?.trim() ?? 'Multiple records matched your request. Choose the right one so Copilot continues.';
+
+    const handleSelect = async (candidate: AiChatEntityPickerCandidate) => {
+        if (!onSelect || disabled || pendingId === candidate.candidate_id) {
+            return;
+        }
+
+        setError(null);
+        setPendingId(candidate.candidate_id);
+
+        try {
+            const success = await onSelect(prompt, candidate);
+
+            if (!success) {
+                setError('Copilot could not continue. Try again or ask for another search.');
+            }
+        } catch {
+            setError('Copilot could not continue. Try again or ask for another search.');
+        } finally {
+            setPendingId(null);
+        }
+    };
+
+    const candidates = prompt.candidates ?? [];
+
+    return (
+        <div
+            className="space-y-4 rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-slate-950/80 to-slate-900/40 p-5"
+            data-testid="entity-picker-form"
+        >
+            <div className="flex flex-wrap items-start gap-3">
+                <div className="rounded-2xl bg-cyan-500/10 p-3 text-cyan-200">
+                    <GitBranch className="size-5" />
+                </div>
+                <div className="flex-1">
+                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Multiple matches found</p>
+                    <h3 className="mt-1 text-lg font-semibold text-white">{heading}</h3>
+                    <p className="mt-1 text-sm text-slate-200">{description}</p>
+                </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide text-cyan-100/80">
+                <Badge variant="outline" className="border-cyan-200/40 text-cyan-50">
+                    {entityLabel}
+                </Badge>
+                <span className="text-cyan-100/70">
+                    Query · <span className="font-semibold text-white">{prompt.query}</span>
+                </span>
+            </div>
+            {candidates.length > 0 ? (
+                <div className="grid gap-3 md:grid-cols-2" role="list">
+                    {candidates.map((candidate) => {
+                        const pending = pendingId === candidate.candidate_id;
+                        const statusLabel = candidate.status ? humanizeKey(candidate.status) : null;
+
+                        return (
+                            <div
+                                key={candidate.candidate_id}
+                                role="listitem"
+                                className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-white">{candidate.label}</p>
+                                        {candidate.description ? (
+                                            <p className="text-xs text-slate-300">{candidate.description}</p>
+                                        ) : null}
+                                    </div>
+                                    {statusLabel ? (
+                                        <Badge
+                                            variant="outline"
+                                            className="border-cyan-200/40 text-[10px] uppercase tracking-wide text-cyan-100"
+                                        >
+                                            {statusLabel}
+                                        </Badge>
+                                    ) : null}
+                                </div>
+                                {candidate.meta && candidate.meta.length > 0 ? (
+                                    <ul className="space-y-1 text-xs text-slate-300">
+                                        {candidate.meta.map((metaLine, index) => (
+                                            <li key={`${candidate.candidate_id}-meta-${index}`} className="flex items-start gap-2">
+                                                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-cyan-300/80" aria-hidden="true" />
+                                                <span>{metaLine}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    className="w-full gap-2 bg-slate-900/70"
+                                    disabled={disabled || pending}
+                                    onClick={() => void handleSelect(candidate)}
+                                >
+                                    {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+                                    Use this record
+                                </Button>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <p className="text-sm text-rose-200">
+                    Copilot could not load options from the workspace search. Ask it to try again.
+                </p>
+            )}
+            {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+        </div>
+    );
+}
+
+function ClarificationPromptForm({
+    prompt,
+    onSubmit,
+    disabled = false,
+}: {
+    prompt: AiChatClarificationPrompt;
+    onSubmit?: (clarification: AiChatClarificationPrompt, answer: string) => Promise<boolean>;
+    disabled?: boolean;
+}) {
+    const [answer, setAnswer] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const busy = disabled || isSubmitting;
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!onSubmit || busy) {
+            return;
+        }
+
+        const trimmed = answer.trim();
+
+        if (trimmed === '') {
+            setError('Enter an answer so Copilot can continue.');
+            return;
+        }
+
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            const success = await onSubmit(prompt, trimmed);
+
+            if (success) {
+                setAnswer('');
+            } else {
+                setError('Unable to send answer. Try again.');
+            }
+        } catch {
+            setError('Unable to send answer. Try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+            className="space-y-3 rounded-2xl border border-indigo-400/30 bg-indigo-950/30 p-4"
+            data-testid="clarification-form"
+        >
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-indigo-200">
+                <Sparkles className="size-4" /> Copilot needs one more detail
+            </div>
+            <p className="text-sm text-slate-100">{prompt.question}</p>
+            {prompt.missing_args?.length ? (
+                <div className="flex flex-wrap gap-2">
+                    {prompt.missing_args.map((arg) => (
+                        <Badge
+                            key={arg}
+                            variant="outline"
+                            className="border-indigo-300/40 text-[11px] uppercase tracking-wide text-indigo-100"
+                        >
+                            {arg}
+                        </Badge>
+                    ))}
+                </div>
+            ) : null}
+            <Textarea
+                value={answer}
+                onChange={(event) => {
+                    setAnswer(event.target.value);
+                    if (error) {
+                        setError(null);
+                    }
+                }}
+                rows={2}
+                disabled={busy}
+                placeholder="Type your answer"
+                aria-label="Clarification answer"
+                className="min-h-[64px] bg-slate-950/50 text-slate-100"
+            />
+            {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+                <span>Copilot will continue building the draft once this is answered.</span>
+                <Button type="submit" size="sm" disabled={busy} className="gap-2">
+                    {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+                    Submit answer
+                </Button>
+            </div>
+        </form>
     );
 }
 
@@ -781,12 +1200,14 @@ function DraftPreview({
     onReject,
     isApproving = false,
     isRejecting = false,
+    requireExternalApproval = false,
 }: {
     draft: AiChatDraftSnapshot;
     onApprove?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
     onReject?: (draft: AiChatDraftSnapshot, reason: string) => Promise<boolean>;
     isApproving?: boolean;
     isRejecting?: boolean;
+    requireExternalApproval?: boolean;
 }) {
     const [open, setOpen] = useState(() => draft.status !== 'approved');
     const [rejectMode, setRejectMode] = useState(false);
@@ -794,16 +1215,30 @@ function DraftPreview({
     const payloadEntries = Object.entries(draft.payload ?? {});
     const invoiceDraftPayload = draft.action_type === 'invoice_draft' && isRecord(draft.payload) ? draft.payload : null;
     const invoicePaymentPayload = draft.action_type === 'approve_invoice' && isRecord(draft.payload) ? draft.payload : null;
+    const receiptDraftPayload = draft.action_type === 'receipt_draft' && isRecord(draft.payload) ? draft.payload : null;
+    const paymentDraftPayload =
+        (draft.action_type === 'payment_process' || draft.action_type === 'payment_draft') && isRecord(draft.payload)
+            ? draft.payload
+            : null;
+    const invoiceMatchPayload = draft.action_type === 'invoice_match' && isRecord(draft.payload) ? draft.payload : null;
     const status = draft.status;
     const summary = draft.summary ?? 'Copilot saved this draft so you can approve or reject it.';
     const isActionable = !status || status === 'drafted';
-    const showActions = isActionable && (Boolean(onApprove) || Boolean(onReject));
+    const allowApproveAction = Boolean(onApprove) && !requireExternalApproval;
+    const allowRejectAction = Boolean(onReject);
+    const showActions = isActionable && (allowApproveAction || allowRejectAction);
     let payloadContent: ReactNode | null = null;
 
     if (invoiceDraftPayload) {
         payloadContent = <InvoiceDraftPayload payload={invoiceDraftPayload} />;
     } else if (invoicePaymentPayload) {
         payloadContent = <InvoicePaymentPayload payload={invoicePaymentPayload} />;
+    } else if (receiptDraftPayload) {
+        payloadContent = <ReceiptDraftPayload payload={receiptDraftPayload} />;
+    } else if (paymentDraftPayload) {
+        payloadContent = <PaymentDraftPayload payload={paymentDraftPayload} />;
+    } else if (invoiceMatchPayload) {
+        payloadContent = <InvoiceMatchPayload payload={invoiceMatchPayload} />;
     } else if (payloadEntries.length > 0) {
         payloadContent = (
             <dl className="mt-3 space-y-2 text-sm">
@@ -877,7 +1312,7 @@ function DraftPreview({
                 <div className="mt-5 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="text-xs text-slate-400">Approvals and rejections log to the thread so your team sees who cleared it.</p>
                     <div className="flex flex-wrap gap-2">
-                        {onApprove ? (
+                        {allowApproveAction && onApprove ? (
                             <Button
                                 type="button"
                                 className="gap-2"
@@ -888,7 +1323,7 @@ function DraftPreview({
                                 Approve draft
                             </Button>
                         ) : null}
-                        {onReject && !rejectMode ? (
+                        {allowRejectAction && onReject && !rejectMode ? (
                             <Button
                                 type="button"
                                 variant="secondary"
@@ -943,6 +1378,107 @@ function DraftPreview({
                 </div>
             ) : null}
         </CollapsibleCard>
+    );
+}
+
+function UnsafeActionConfirmationCard({
+    prompt,
+    draft,
+    onApprove,
+    isConfirming = false,
+}: {
+    prompt: AiChatUnsafeActionPrompt;
+    draft: AiChatDraftSnapshot;
+    onApprove?: (draft: AiChatDraftSnapshot) => Promise<boolean>;
+    isConfirming?: boolean;
+}) {
+    const [acknowledged, setAcknowledged] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const checkboxId = `unsafe-action-${prompt.id}`;
+    const acknowledgementText = prompt.acknowledgement?.trim() || 'I understand this action will update financial records.';
+    const confirmLabel = prompt.confirm_label?.trim() || 'Confirm action';
+
+    const handleConfirm = async () => {
+        if (!onApprove || isConfirming || !acknowledged) {
+            return;
+        }
+
+        setError(null);
+
+        try {
+            const success = await onApprove(draft);
+
+            if (!success) {
+                setError('Copilot could not run this action. Try again.');
+            } else {
+                setAcknowledged(false);
+            }
+        } catch {
+            setError('Copilot could not run this action. Try again.');
+        }
+    };
+
+    return (
+        <div
+            className="space-y-4 rounded-3xl border border-rose-400/40 bg-rose-950/20 p-5"
+            data-testid="unsafe-action-confirmation"
+        >
+            <div className="flex flex-wrap items-start gap-3">
+                <div className="rounded-2xl bg-rose-500/10 p-3 text-rose-100">
+                    <AlertTriangle className="size-5" />
+                </div>
+                <div className="flex-1">
+                    <p className="text-xs uppercase tracking-[0.2em] text-rose-200">High-impact action</p>
+                    <h3 className="mt-1 text-lg font-semibold text-white">{prompt.headline}</h3>
+                    {prompt.summary ? <p className="mt-1 text-sm text-rose-100/90">{prompt.summary}</p> : null}
+                </div>
+            </div>
+            {prompt.description ? <p className="text-sm text-slate-100">{prompt.description}</p> : null}
+            {prompt.entity || prompt.impact ? (
+                <div className="flex flex-wrap items-center gap-3 text-xs text-rose-100/80">
+                    {prompt.entity ? (
+                        <Badge variant="outline" className="border-rose-200/40 text-rose-50">
+                            {prompt.entity}
+                        </Badge>
+                    ) : null}
+                    {prompt.impact ? (
+                        <span>
+                            Impact · <span className="font-semibold text-white">{prompt.impact}</span>
+                        </span>
+                    ) : null}
+                </div>
+            ) : null}
+            {prompt.risks && prompt.risks.length > 0 ? (
+                <ul className="space-y-1 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-rose-50/90">
+                    {prompt.risks.map((risk) => (
+                        <li key={risk} className="flex items-start gap-2">
+                            <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-rose-300" aria-hidden="true" />
+                            <span>{risk}</span>
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+            <label className="flex items-start gap-3 text-sm text-slate-100" htmlFor={checkboxId}>
+                <Checkbox
+                    id={checkboxId}
+                    checked={acknowledged}
+                    onCheckedChange={(checked) => setAcknowledged(Boolean(checked))}
+                    aria-label={acknowledgementText}
+                />
+                <span>{acknowledgementText}</span>
+            </label>
+            {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+            <Button
+                type="button"
+                className="w-full gap-2 bg-rose-600/90 hover:bg-rose-600"
+                disabled={!acknowledged || isConfirming}
+                onClick={() => void handleConfirm()}
+            >
+                {isConfirming ? <Loader2 className="size-4 animate-spin" /> : null}
+                {confirmLabel}
+            </Button>
+        </div>
     );
 }
 
@@ -1075,6 +1611,417 @@ function InvoicePaymentPayload({ payload }: { payload: Record<string, unknown> }
             ) : null}
         </div>
     );
+}
+
+interface ReceiptDraftLine {
+    reference: string;
+    lineNumber: number | null;
+    description: string;
+    uom: string | null;
+    expectedQty: number | null;
+    receivedQty: number | null;
+    acceptedQty: number | null;
+    rejectedQty: number | null;
+    issues: string[];
+    notes: string | null;
+}
+
+function ReceiptDraftPayload({ payload }: { payload: Record<string, unknown> }) {
+    const poId = normalizeStringValue(payload.po_id) ?? '—';
+    const reference = normalizeStringValue(payload.reference) ?? '—';
+    const inspector = normalizeStringValue(payload.inspected_by) ?? '—';
+    const receivedDate = formatDateLabel(normalizeStringValue(payload.received_date));
+    const status = normalizeStringValue(payload.status);
+    const totalReceivedQty = numberValue(payload.total_received_qty);
+    const notes = normalizeStringValue(payload.notes);
+    const lineItems = Array.isArray(payload.line_items)
+        ? (payload.line_items
+              .map((entry, index) => normalizeReceiptLine(entry, index))
+              .filter(Boolean) as ReceiptDraftLine[])
+        : [];
+    const visibleLines = lineItems.slice(0, 5);
+    const hiddenLineCount = Math.max(0, lineItems.length - visibleLines.length);
+    const payloadWarnings = normalizeStringList(payload.warnings);
+    const derivedWarnings = buildReceiptWarnings(lineItems);
+    const warnings = [...payloadWarnings, ...derivedWarnings];
+    const warningsToShow = warnings.slice(0, 3);
+    const hiddenWarnings = Math.max(0, warnings.length - warningsToShow.length);
+
+    return (
+        <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+            <div className="grid gap-4 text-sm text-white sm:grid-cols-2">
+                <InfoItem label="Purchase order" value={poId} />
+                <InfoItem label="Receipt reference" value={reference} />
+                <InfoItem label="Received date" value={receivedDate} />
+                <InfoItem label="Inspector" value={inspector} />
+                <InfoItem label="Status" value={status ? humanizeKey(status) : 'Draft'} />
+                <InfoItem
+                    label="Total received qty"
+                    value={totalReceivedQty === null ? '—' : formatDecimalValue(totalReceivedQty, 3)}
+                />
+            </div>
+
+            <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Line items</p>
+                {visibleLines.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                        {visibleLines.map((line, index) => {
+                            const key = `${line.reference}-${line.lineNumber ?? index}`;
+                            const isFlagged = line.issues.length > 0 || Boolean(line.rejectedQty);
+
+                            return (
+                                <div
+                                    key={key}
+                                    className={cn(
+                                        'rounded-xl border bg-white/5 p-3 text-sm text-white',
+                                        isFlagged ? 'border-amber-300/40 bg-amber-950/20' : 'border-white/5',
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold">{line.description}</p>
+                                            <p className="text-xs text-slate-400">
+                                                Line {line.lineNumber ?? line.reference}
+                                            </p>
+                                        </div>
+                                        <span className="text-sm font-semibold">
+                                            {formatQuantityValue(line.receivedQty, line.uom)}
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 text-xs text-slate-400">
+                                        Expected {formatQuantityValue(line.expectedQty, line.uom)} · Accepted{' '}
+                                        {formatQuantityValue(line.acceptedQty, line.uom)}
+                                        {line.rejectedQty ? ` · Rejected ${formatQuantityValue(line.rejectedQty, line.uom)}` : ''}
+                                    </p>
+                                    {line.issues.length > 0 ? (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {line.issues.map((issue, issueIndex) => (
+                                                <Badge
+                                                    key={`${key}-issue-${issueIndex}`}
+                                                    variant="outline"
+                                                    className="border-amber-200/40 text-[11px] uppercase tracking-wide text-amber-100"
+                                                >
+                                                    {issue}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                    {line.notes ? <p className="mt-2 text-xs text-slate-300">{line.notes}</p> : null}
+                                </div>
+                            );
+                        })}
+                        {hiddenLineCount > 0 ? (
+                            <p className="text-xs text-slate-400">+{hiddenLineCount} more line items not shown.</p>
+                        ) : null}
+                    </div>
+                ) : (
+                    <p className="mt-2 text-sm text-slate-400">Copilot did not include line-level receipt data.</p>
+                )}
+            </div>
+
+            {warningsToShow.length > 0 ? (
+                <div className="rounded-xl border border-amber-300/30 bg-amber-950/30 p-3 text-sm text-amber-100">
+                    <p className="text-xs uppercase tracking-wide text-amber-200">Warnings</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                        {warningsToShow.map((warning, index) => (
+                            <li key={`${warning}-${index}`}>{warning}</li>
+                        ))}
+                    </ul>
+                    {hiddenWarnings > 0 ? (
+                        <p className="mt-2 text-xs text-amber-200/80">+{hiddenWarnings} more warnings not shown.</p>
+                    ) : null}
+                </div>
+            ) : null}
+
+            {notes ? (
+                <div className="rounded-xl border border-white/5 bg-white/5 p-3 text-sm text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+                    <p className="mt-1 whitespace-pre-wrap">{notes}</p>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function normalizeReceiptLine(entry: unknown, index: number): ReceiptDraftLine | null {
+    if (!isRecord(entry)) {
+        return null;
+    }
+
+    const lineNumber = numberValue(entry.line_number);
+    const reference =
+        normalizeStringValue(entry.po_line_id) ??
+        normalizeStringValue(entry.line_reference) ??
+        normalizeTextValue(entry.po_line_id) ??
+        normalizeTextValue(entry.line_reference) ??
+        `Line ${index + 1}`;
+    const description =
+        normalizeStringValue(entry.description) ??
+        normalizeStringValue(entry.item) ??
+        normalizeStringValue(entry.part_number) ??
+        'Received line';
+    const uom = normalizeStringValue(entry.uom) ?? normalizeStringValue(entry.unit) ?? null;
+    const issues = normalizeStringList(entry.issues ?? entry.defects ?? entry.warnings);
+    const notes = normalizeStringValue(entry.notes) ?? normalizeStringValue(entry.quality_notes);
+
+    return {
+        reference,
+        lineNumber,
+        description,
+        uom,
+        expectedQty: numberValue(entry.expected_qty ?? entry.ordered_qty),
+        receivedQty: numberValue(entry.received_qty ?? entry.qty),
+        acceptedQty: numberValue(entry.accepted_qty),
+        rejectedQty: numberValue(entry.rejected_qty),
+        issues,
+        notes,
+    } satisfies ReceiptDraftLine;
+}
+
+function buildReceiptWarnings(lines: ReceiptDraftLine[]): string[] {
+    const warnings: string[] = [];
+
+    lines.forEach((line) => {
+        if (line.rejectedQty && line.rejectedQty > 0) {
+            warnings.push(`${line.reference} has ${formatQuantityValue(line.rejectedQty, line.uom)} rejected.`);
+        }
+        line.issues.forEach((issue) => warnings.push(`${line.reference}: ${issue}`));
+    });
+
+    return warnings;
+}
+
+function PaymentDraftPayload({ payload }: { payload: Record<string, unknown> }) {
+    const invoiceId = normalizeStringValue(payload.invoice_id) ?? '—';
+    const scheduledDate = formatDateLabel(normalizeStringValue(payload.scheduled_date));
+    const paymentMethod = normalizeStringValue(payload.payment_method);
+    const reference =
+        normalizeStringValue(payload.reference) ?? normalizeStringValue(payload.payment_reference) ?? '—';
+    const amount = numberValue(payload.amount ?? payload.payment_amount);
+    const currency = normalizeCurrencyCode(payload.currency ?? payload.payment_currency) ?? 'USD';
+    const notes = normalizeStringValue(payload.notes ?? payload.note);
+
+    return (
+        <div className="mt-3 space-y-4 rounded-2xl border border-emerald-400/30 bg-emerald-950/20 p-4 text-sm text-white">
+            <div className="grid gap-4 sm:grid-cols-2">
+                <InfoItem label="Invoice" value={invoiceId} />
+                <InfoItem label="Scheduled date" value={scheduledDate} />
+                <InfoItem label="Payment method" value={paymentMethod ? humanizeKey(paymentMethod) : '—'} />
+                <InfoItem label="Reference" value={reference} />
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-emerald-950/40 p-4 text-center">
+                <p className="text-xs uppercase tracking-wide text-emerald-200">Planned payment</p>
+                <p className="mt-2 text-3xl font-semibold">
+                    {typeof amount === 'number' && Number.isFinite(amount) ? formatCurrencyValue(amount, currency) : '—'}
+                </p>
+            </div>
+
+            {notes ? (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+                    <p className="mt-1 whitespace-pre-wrap">{notes}</p>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+type InvoiceMatchSeverity = 'info' | 'warning' | 'risk';
+
+interface InvoiceMatchMismatch {
+    type: string;
+    lineReference: string | null;
+    severity: InvoiceMatchSeverity;
+    detail: string;
+    expected: number | null;
+    actual: number | null;
+}
+
+function InvoiceMatchPayload({ payload }: { payload: Record<string, unknown> }) {
+    const invoiceId = normalizeStringValue(payload.invoice_id) ?? '—';
+    const poId = normalizeStringValue(payload.matched_po_id ?? payload.po_id) ?? '—';
+    const receiptIds = normalizeStringList(payload.matched_receipt_ids);
+    const matchScore = numberValue(payload.match_score);
+    const recommendation = isRecord(payload.recommendation)
+        ? {
+              status: normalizeStringValue(payload.recommendation.status),
+              explanation: normalizeStringValue(payload.recommendation.explanation),
+          }
+        : null;
+    const analysisNotes = normalizeStringList(payload.analysis_notes);
+    const warnings = normalizeStringList(payload.warnings);
+    const mismatches = normalizeInvoiceMismatches(payload.mismatches);
+    const visibleMismatches = mismatches.slice(0, 5);
+    const hiddenMismatchCount = Math.max(0, mismatches.length - visibleMismatches.length);
+    const warningsToShow = warnings.slice(0, 3);
+    const hiddenWarnings = Math.max(0, warnings.length - warningsToShow.length);
+
+    return (
+        <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+            <div className="grid gap-4 text-sm text-white sm:grid-cols-2">
+                <InfoItem label="Invoice" value={invoiceId} />
+                <InfoItem label="Matching PO" value={poId} />
+                <InfoItem label="Receipts" value={receiptIds.length > 0 ? receiptIds.join(', ') : '—'} />
+                <InfoItem label="Match score" value={matchScore === null ? '—' : formatPercentValue(matchScore)} />
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-sm text-slate-100">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                        variant="outline"
+                        className={cn(
+                            'text-xs uppercase tracking-wide',
+                            matchRecommendationBadgeClass(recommendation?.status ?? null),
+                        )}
+                    >
+                        {formatMatchRecommendation(recommendation?.status)}
+                    </Badge>
+                    <span className="text-xs uppercase tracking-wide text-slate-400">Recommendation</span>
+                </div>
+                <p className="mt-2 text-slate-100">
+                    {recommendation?.explanation ?? 'Copilot did not include a recommendation note.'}
+                </p>
+            </div>
+
+            <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Mismatch summary</p>
+                {visibleMismatches.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                        {visibleMismatches.map((mismatch, index) => (
+                            <div
+                                key={`${mismatch.type}-${mismatch.lineReference ?? index}`}
+                                className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white"
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="font-semibold">
+                                        {mismatch.lineReference ? `Line ${mismatch.lineReference}` : humanizeKey(mismatch.type)}
+                                    </p>
+                                    <Badge
+                                        variant="outline"
+                                        className={cn(
+                                            'text-[10px] uppercase tracking-wide',
+                                            matchSeverityBadgeClass(mismatch.severity),
+                                        )}
+                                    >
+                                        {mismatch.severity}
+                                    </Badge>
+                                </div>
+                                <p className="text-xs text-slate-400">{humanizeKey(mismatch.type)}</p>
+                                <p className="mt-1 text-sm text-slate-100">{mismatch.detail}</p>
+                                {mismatch.expected !== null || mismatch.actual !== null ? (
+                                    <p className="mt-1 text-xs text-slate-400">
+                                        {mismatch.expected !== null ? `Expected ${formatDecimalValue(mismatch.expected, 3)}` : null}
+                                        {mismatch.expected !== null && mismatch.actual !== null ? ' · ' : null}
+                                        {mismatch.actual !== null ? `Actual ${formatDecimalValue(mismatch.actual, 3)}` : null}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ))}
+                        {hiddenMismatchCount > 0 ? (
+                            <p className="text-xs text-slate-400">+{hiddenMismatchCount} more mismatches not shown.</p>
+                        ) : null}
+                    </div>
+                ) : (
+                    <div className="mt-2 rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-3 text-sm text-emerald-100">
+                        Three-way match looks clean. No mismatches detected.
+                    </div>
+                )}
+            </div>
+
+            {analysisNotes.length > 0 ? (
+                <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Analysis notes</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                        {analysisNotes.slice(0, 4).map((note, index) => (
+                            <li key={`${note}-${index}`}>{note}</li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+
+            {warningsToShow.length > 0 ? (
+                <div className="rounded-xl border border-amber-300/30 bg-amber-950/30 p-3 text-sm text-amber-100">
+                    <p className="text-xs uppercase tracking-wide text-amber-200">Warnings</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                        {warningsToShow.map((warning, index) => (
+                            <li key={`${warning}-${index}`}>{warning}</li>
+                        ))}
+                    </ul>
+                    {hiddenWarnings > 0 ? (
+                        <p className="mt-2 text-xs text-amber-200/80">+{hiddenWarnings} more warnings not shown.</p>
+                    ) : null}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function normalizeInvoiceMismatches(entries: unknown): InvoiceMatchMismatch[] {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+
+    return entries
+        .map((entry, index) => {
+            if (!isRecord(entry)) {
+                return null;
+            }
+
+            const type = normalizeStringValue(entry.type) ?? normalizeTextValue(entry.type) ?? 'Mismatch';
+            const lineReference =
+                normalizeStringValue(entry.line_reference) ?? normalizeTextValue(entry.line_reference) ?? null;
+            const detail = normalizeStringValue(entry.detail) ?? normalizeTextValue(entry.detail) ?? 'Needs review.';
+
+            return {
+                type,
+                lineReference,
+                severity: normalizeMismatchSeverity(entry.severity),
+                detail,
+                expected: numberValue(entry.expected),
+                actual: numberValue(entry.actual),
+            } satisfies InvoiceMatchMismatch;
+        })
+        .filter((entry): entry is InvoiceMatchMismatch => Boolean(entry));
+}
+
+function normalizeMismatchSeverity(value: unknown): InvoiceMatchSeverity {
+    if (typeof value === 'string') {
+        const normalized = value.toLowerCase();
+        if (normalized === 'warning' || normalized === 'risk') {
+            return normalized;
+        }
+    }
+    return 'info';
+}
+
+function matchSeverityBadgeClass(severity: InvoiceMatchSeverity): string {
+    switch (severity) {
+        case 'risk':
+            return 'border-rose-400/40 text-rose-100';
+        case 'warning':
+            return 'border-amber-300/40 text-amber-100';
+        default:
+            return 'border-sky-300/40 text-sky-100';
+    }
+}
+
+function matchRecommendationBadgeClass(status: string | null): string {
+    switch ((status ?? '').toLowerCase()) {
+        case 'approve':
+            return 'border-emerald-300/40 text-emerald-100';
+        case 'hold':
+            return 'border-amber-300/40 text-amber-100';
+        default:
+            return 'border-white/20 text-white';
+    }
+}
+
+function formatMatchRecommendation(status?: string | null): string {
+    if (!status) {
+        return 'Review';
+    }
+    return humanizeKey(status);
 }
 
 function WorkflowPreview({
@@ -1437,6 +2384,56 @@ function formatCurrencyValue(amount: number, currency = 'USD'): string {
     } catch {
         return `${currency} ${amount.toFixed(2)}`;
     }
+}
+
+function formatDecimalValue(value: number | null, maximumFractionDigits = 2): string {
+    if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) {
+        return '—';
+    }
+
+    const hasFraction = Math.abs(value % 1) > 0.0001;
+
+    try {
+        return new Intl.NumberFormat('en-US', {
+            maximumFractionDigits,
+            minimumFractionDigits: hasFraction ? Math.min(2, maximumFractionDigits) : 0,
+        }).format(value);
+    } catch {
+        return value.toFixed(hasFraction ? Math.min(2, maximumFractionDigits) : 0);
+    }
+}
+
+function formatQuantityValue(value: number | null, uom?: string | null): string {
+    const label = formatDecimalValue(value, 3);
+    if (label === '—') {
+        return label;
+    }
+
+    return uom ? `${label} ${uom}` : label;
+}
+
+function normalizeStringList(value: unknown): string[] {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed === '' ? [] : [trimmed];
+    }
+
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((entry) => {
+            if (typeof entry === 'string') {
+                const trimmed = entry.trim();
+                return trimmed === '' ? null : trimmed;
+            }
+            if (typeof entry === 'number' && Number.isFinite(entry)) {
+                return entry.toString();
+            }
+            return null;
+        })
+        .filter((entry): entry is string => Boolean(entry));
 }
 
 function numberValue(value: unknown): number | null {

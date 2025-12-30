@@ -304,39 +304,14 @@ class AiWorkflowController extends ApiController
 
     private function deniesStepApproval(User $user, int $companyId, AiWorkflowStep $step): bool
     {
-        $approvalPermissions = config('ai_workflows.approve_permissions', []);
-        $stepPermissions = $this->stepPermissions($step->action_type);
-        $required = array_values(array_unique(array_merge($approvalPermissions, $stepPermissions)));
+        $requirements = $this->workflowService->resolveRequiredApprovals($step);
+        $permissions = $requirements['permissions'] ?? [];
 
-        return ! $this->permissionRegistry->userHasAll($user, $required, $companyId);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function stepPermissions(string $actionType): array
-    {
-        $templates = config('ai_workflows.templates', []);
-
-        if (! is_array($templates)) {
-            return [];
+        if (! is_array($permissions) || $permissions === []) {
+            $permissions = config('ai_workflows.approve_permissions', []);
         }
 
-        foreach ($templates as $steps) {
-            if (! is_array($steps)) {
-                continue;
-            }
-
-            foreach ($steps as $step) {
-                if (($step['action_type'] ?? null) === $actionType) {
-                    $permissions = $step['approval_permissions'] ?? [];
-
-                    return is_array($permissions) ? $permissions : [];
-                }
-            }
-        }
-
-        return [];
+        return ! $this->permissionRegistry->userHasAll($user, $permissions, $companyId);
     }
 
     private function buildUserContext(User $user, array $clientContext, int $companyId): array

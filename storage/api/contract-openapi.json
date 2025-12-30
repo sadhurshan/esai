@@ -528,6 +528,7 @@
                         "enum": [
                             "answer",
                             "draft_action",
+                            "unsafe_action_confirmation",
                             "workflow_suggestion",
                             "guided_resolution",
                             "tool_request",
@@ -561,6 +562,16 @@
                         "oneOf": [
                             {
                                 "$ref": "#/components/schemas/AiChatDraftAction"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "unsafe_action": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/AiChatUnsafeActionPrompt"
                             },
                             {
                                 "type": "null"
@@ -764,16 +775,31 @@
                         "type": "string",
                         "enum": [
                             "workspace.search_rfqs",
+                            "workspace.search_pos",
+                            "workspace.search_receipts",
+                            "workspace.search_invoices",
+                            "workspace.search_payments",
+                            "workspace.search_contracts",
+                            "workspace.search_items",
+                            "workspace.search_suppliers",
+                            "workspace.procurement_snapshot",
                             "workspace.get_rfq",
+                            "workspace.get_po",
+                            "workspace.get_receipt",
+                            "workspace.get_invoice",
+                            "workspace.get_payment",
+                            "workspace.get_contract",
+                            "workspace.get_item",
+                            "workspace.get_supplier",
                             "workspace.list_suppliers",
+                            "workspace.supplier_risk_snapshot",
                             "workspace.get_quotes_for_rfq",
                             "workspace.get_inventory_item",
                             "workspace.low_stock",
                             "workspace.get_awards",
-                            "workspace.get_receipts",
-                            "workspace.get_invoices",
                             "workspace.award_quote",
                             "workspace.invoice_draft",
+                            "workspace.resolve_invoice_mismatch",
                             "workspace.approve_invoice",
                             "workspace.review_rfq",
                             "workspace.review_quote",
@@ -788,7 +814,8 @@
                     "arguments": {
                         "type": "object",
                         "nullable": true,
-                        "additionalProperties": true
+                        "additionalProperties": true,
+                        "description": "Refer to Workspace*Arguments schemas for the exact JSON contract per tool."
                     }
                 }
             },
@@ -828,6 +855,59 @@
                         "type": "object",
                         "nullable": true,
                         "additionalProperties": true
+                    }
+                }
+            },
+            "AiChatUnsafeActionPrompt": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "action_type",
+                    "action_label",
+                    "headline"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "action_type": {
+                        "type": "string"
+                    },
+                    "action_label": {
+                        "type": "string"
+                    },
+                    "headline": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "impact": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "entity": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "acknowledgement": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "confirm_label": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "risks": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -907,6 +987,91 @@
                     "doc_version": {
                         "type": "string",
                         "maxLength": 100
+                    }
+                }
+            },
+            "AiIntentPlanMessage": {
+                "type": "object",
+                "required": [
+                    "role",
+                    "content"
+                ],
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "description": "Chat role associated with the transcript entry.",
+                        "enum": [
+                            "user",
+                            "assistant",
+                            "system"
+                        ]
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Natural language text included in the planner context."
+                    }
+                }
+            },
+            "AiIntentPlanRequest": {
+                "type": "object",
+                "required": [
+                    "prompt"
+                ],
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "maxLength": 4000,
+                        "description": "Latest user prompt that should be evaluated by the planner."
+                    },
+                    "thread_id": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Optional chat thread identifier for correlating planner sessions."
+                    },
+                    "context": {
+                        "type": "array",
+                        "description": "Recent ordered chat turns supplied to the planner.",
+                        "items": {
+                            "$ref": "#/components/schemas/AiIntentPlanMessage"
+                        }
+                    }
+                }
+            },
+            "AiIntentPlanResult": {
+                "type": "object",
+                "description": "Intent planner output describing which tool to execute next or what clarification is needed.",
+                "properties": {
+                    "tool": {
+                        "type": "string",
+                        "description": "Selected tool identifier such as build_rfq_draft or clarification."
+                    },
+                    "target_tool": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Original tool that requires clarification before execution."
+                    },
+                    "args": {
+                        "type": "object",
+                        "description": "Structured argument map to pass to the downstream tool.",
+                        "additionalProperties": true
+                    },
+                    "missing_args": {
+                        "type": "array",
+                        "description": "Arguments the planner still needs before it can proceed.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "question": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Clarification question to present to the end user."
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true,
+                        "description": "Optional confidence score assigned by the planner for the selected tool."
                     }
                 }
             },
@@ -9644,6 +9809,670 @@
                         "minLength": 3
                     }
                 }
+            },
+            "WorkspaceGetContractArguments": {
+                "type": "object",
+                "properties": {
+                    "contract_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "contract_number": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "contract_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "contract_number"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetInvoiceArguments": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "invoice_number": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "invoice_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "invoice_number"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetItemArguments": {
+                "type": "object",
+                "properties": {
+                    "item_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Primary key of the part/item record."
+                    },
+                    "part_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Alias for item_id accepted by legacy planners."
+                    },
+                    "part_number": {
+                        "type": "string",
+                        "maxLength": 128,
+                        "nullable": true,
+                        "description": "SKU or part number identifier."
+                    },
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 128,
+                        "nullable": true,
+                        "description": "Alternate string identifier that maps to part_number."
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "item_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "part_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "part_number"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "sku"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetPaymentArguments": {
+                "type": "object",
+                "properties": {
+                    "payment_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "payment_reference": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "payment_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "payment_reference"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetPoArguments": {
+                "type": "object",
+                "properties": {
+                    "po_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Internal purchase order id."
+                    },
+                    "po_number": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true,
+                        "description": "Purchase order number or external reference."
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "po_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "po_number"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetReceiptArguments": {
+                "type": "object",
+                "properties": {
+                    "receipt_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true
+                    },
+                    "receipt_number": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "receipt_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "receipt_number"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceGetRfqArguments": {
+                "type": "object",
+                "properties": {
+                    "rfq_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Primary key of the RFQ to fetch."
+                    }
+                },
+                "required": [
+                    "rfq_id"
+                ],
+                "additionalProperties": false
+            },
+            "WorkspaceGetSupplierArguments": {
+                "type": "object",
+                "properties": {
+                    "supplier_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Primary key of the supplier to fetch."
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true,
+                        "description": "Case-insensitive supplier name match fallback."
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "supplier_id"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "name"
+                        ]
+                    }
+                ]
+            },
+            "WorkspaceProcurementSnapshotArguments": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 5,
+                        "description": "Maximum number of latest entities to include per module (capped at 10)."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchContractsArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchInvoicesArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter across invoice numbers, suppliers, or PO references."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Invoice status whitelist.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchItemsArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter across part numbers, names, descriptions, or categories."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Optional item status whitelist.",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    "categories": {
+                        "type": "array",
+                        "description": "Optional list of categories to include.",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "category": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "nullable": true,
+                        "description": "Legacy single-category filter (use categories when possible)."
+                    },
+                    "uom": {
+                        "type": "string",
+                        "maxLength": 32,
+                        "nullable": true,
+                        "description": "Filters items by unit of measure code."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10,
+                        "description": "Maximum number of matching items to return."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchPaymentsArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchPosArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter across PO numbers, suppliers, or descriptions."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Optional PO status whitelist.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Only include purchase orders updated on/after this timestamp."
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Only include purchase orders updated on/before this timestamp."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10,
+                        "description": "Maximum number of purchase orders to return."
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true,
+                        "description": "Opaque pagination cursor supplied by previous responses."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchReceiptsArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter across receipt numbers, PO links, or suppliers."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Optional receiving status whitelist.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchRfqsArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter applied to RFQ numbers, titles, or sourcing methods."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Optional RFQ status whitelist.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Only include RFQs updated on/after this timestamp."
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Only include RFQs updated on/before this timestamp."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 10,
+                        "description": "Maximum number of RFQs to return."
+                    },
+                    "cursor": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true,
+                        "description": "Opaque cursor used for pagination."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSearchSuppliersArguments": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Keyword filter applied to supplier names, emails, or locations."
+                    },
+                    "statuses": {
+                        "type": "array",
+                        "description": "Optional supplier status whitelist.",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "rejected",
+                                "suspended"
+                            ]
+                        }
+                    },
+                    "methods": {
+                        "type": "array",
+                        "description": "Manufacturing method capabilities to match.",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "capabilities": {
+                        "type": "array",
+                        "description": "Legacy alias for methods.",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "materials": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "finishes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "tolerances": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "industries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "certifications": {
+                        "type": "array",
+                        "description": "Certificate/document types the supplier must have on file.",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 120
+                        }
+                    },
+                    "country": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "nullable": true
+                    },
+                    "city": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true,
+                        "description": "Fuzzy location string matched against city or country."
+                    },
+                    "rating_min": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true,
+                        "description": "Minimum average star rating required."
+                    },
+                    "lead_time_max": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "nullable": true,
+                        "description": "Max acceptable lead time in days."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 25,
+                        "default": 5,
+                        "description": "Maximum number of suppliers to return."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "WorkspaceSupplierRiskSnapshotArguments": {
+                "type": "object",
+                "properties": {
+                    "supplier_id": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Primary key of the supplier to summarize."
+                    }
+                },
+                "required": [
+                    "supplier_id"
+                ],
+                "additionalProperties": false
             }
         },
         "responses": {
@@ -11233,6 +12062,50 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/intent-plan": {
+            "post": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Run Copilot intent planner",
+                "description": "Evaluates a natural language prompt plus optional transcript context and returns the recommended Copilot tool or clarification question.",
+                "operationId": "aiIntentPlan",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiIntentPlanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Intent planner output describing the next tool to execute.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiIntentPlanResult"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

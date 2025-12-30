@@ -2,7 +2,9 @@
 
 namespace App\Services\Ai;
 
+use App\Enums\RiskGrade;
 use App\Exceptions\AiWorkflowException;
+use App\Models\AiApprovalRequest;
 use App\Models\AiWorkflow;
 use App\Models\AiWorkflowStep;
 use App\Models\User;
@@ -11,7 +13,9 @@ use App\Services\Ai\Workflow\PurchaseOrderDraftConverter;
 use App\Services\Ai\Workflow\QuoteComparisonDraftConverter;
 use App\Services\Ai\Workflow\PaymentProcessConverter;
 use App\Services\Ai\Workflow\ReceivingQualityDraftConverter;
+use App\Support\Permissions\RoleTemplateDefinitions;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -311,9 +315,17 @@ class WorkflowService
         return $model;
     }
 
-    private function refreshWorkflowSnapshot(AiWorkflow $workflow): void
+    public function refreshWorkflowSnapshot(AiWorkflow $workflow): void
     {
         $steps = $workflow->steps()->orderBy('step_index')->get();
+
+        $pendingRequests = AiApprovalRequest::query()
+            ->where('workflow_id', $workflow->workflow_id)
+            ->where('status', AiApprovalRequest::STATUS_PENDING)
+            ->pluck('step_index')
+            ->filter(static fn ($index) => $index !== null)
+            ->mapWithKeys(static fn ($index) => [(int) $index => true])
+            ->all();
 
         $snapshot = $steps->map(fn (AiWorkflowStep $step): array => [
             'step_index' => $step->step_index,
@@ -322,11 +334,43 @@ class WorkflowService
             'approved_at' => optional($step->approved_at)->toIso8601String(),
             'approved_by' => $step->approved_by,
             'name' => $this->resolveStepName($workflow, $step),
+            'approval_requirements' => $this->resolveRequiredApprovals($step),
+            'has_pending_approval_request' => $pendingRequests[$step->step_index] ?? false,
         ])->all();
 
         $workflow->forceFill([
             'steps_json' => ['steps' => $snapshot],
         ])->save();
+    }
+
+    /**
+     * @param AiWorkflowStep|array<string, mixed> $step
+     * @return array{permissions: list<string>, roles: list<array{slug: string, name: string}>}
+     */
+    public function resolveRequiredApprovals(AiWorkflowStep|array $step): array
+    {
+        $actionType = $step instanceof AiWorkflowStep
+            ? $step->action_type
+            : (string) ($step['action_type'] ?? '');
+
+        if ($actionType === '') {
+            return [
+                'permissions' => [],
+                'roles' => [],
+            ];
+        }
+
+        $globalPermissions = $this->sanitizePermissionList(config('ai_workflows.approve_permissions', []));
+        $basePermissions = $this->stepPermissions($actionType);
+        $permissions = array_values(array_unique(array_merge($globalPermissions, $basePermissions)));
+
+        $payload = $this->extractStepPayload($step);
+        $permissions = $this->applyDynamicApprovalRules($actionType, $permissions, $payload);
+
+        return [
+            'permissions' => $permissions,
+            'roles' => $this->resolveRolesForPermissions($permissions),
+        ];
     }
 
     private function resolveStepName(AiWorkflow $workflow, AiWorkflowStep $step): string
@@ -387,6 +431,268 @@ class WorkflowService
         if ($step->action_type === 'payment_process') {
             $this->paymentProcessConverter->convert($step);
         }
+    }
+
+    /**
+     * @param AiWorkflowStep|array<string, mixed> $step
+     * @return array<string, mixed>
+     */
+    private function extractStepPayload(AiWorkflowStep|array $step): array
+    {
+        if ($step instanceof AiWorkflowStep) {
+            $inputs = is_array($step->input_json) ? $step->input_json : [];
+            $draft = is_array($step->draft_json) ? $step->draft_json : [];
+            $output = is_array($step->output_json) ? $step->output_json : [];
+        } else {
+            $inputs = is_array($step['input_json'] ?? null)
+                ? $step['input_json']
+                : (is_array($step['required_inputs'] ?? null) ? $step['required_inputs'] : []);
+            $draft = is_array($step['draft_json'] ?? null)
+                ? $step['draft_json']
+                : (is_array($step['draft'] ?? null) ? $step['draft'] : (is_array($step['draft_output'] ?? null) ? $step['draft_output'] : []));
+            $output = is_array($step['output_json'] ?? null)
+                ? $step['output_json']
+                : (is_array($step['output'] ?? null) ? $step['output'] : []);
+        }
+
+        $payload = is_array($draft['payload'] ?? null) ? $draft['payload'] : (is_array($draft) ? $draft : []);
+        $outputPayload = is_array($output['payload'] ?? null) ? $output['payload'] : (is_array($output) ? $output : []);
+
+        $context = is_array($inputs) ? $inputs : [];
+
+        if ($payload !== []) {
+            $context = array_merge($context, $payload);
+        }
+
+        if ($outputPayload !== []) {
+            $context = array_merge($context, $outputPayload);
+        }
+
+        return $context;
+    }
+
+    /**
+     * @param list<string> $permissions
+     * @param array<string, mixed> $payload
+     * @return list<string>
+     */
+    private function applyDynamicApprovalRules(string $actionType, array $permissions, array $payload): array
+    {
+        $normalized = Str::of($actionType)->lower()->value();
+
+        if (str_contains($normalized, 'po') && $this->requiresFinanceEscalation($payload)) {
+            $permissions[] = 'finance.write';
+        }
+
+        if ($actionType === 'award_quote' && $this->requiresSupplierEscalation($payload)) {
+            $permissions[] = 'suppliers.write';
+        }
+
+        return $this->sanitizePermissionList($permissions);
+    }
+
+    private function requiresFinanceEscalation(array $payload): bool
+    {
+        $threshold = (float) config('policy.thresholds.purchase_order_high_value', 50000);
+
+        if ($threshold <= 0) {
+            return false;
+        }
+
+        $amount = $this->extractNumeric($payload, [
+            'totals.grand_total',
+            'totals.total',
+            'summary.total_value',
+            'summary.total',
+            'total_value',
+            'grand_total',
+            'total',
+        ]);
+
+        return $amount !== null && $amount >= $threshold;
+    }
+
+    private function requiresSupplierEscalation(array $payload): bool
+    {
+        $riskGrade = strtolower((string) (
+            Arr::get($payload, 'supplier.risk_grade')
+                ?? Arr::get($payload, 'supplier.profile.risk_grade')
+                ?? Arr::get($payload, 'risk_grade')
+                ?? ''
+        ));
+
+        $maxGrade = strtolower((string) config('policy.supplier.max_risk_grade', RiskGrade::Medium->value));
+        $gradeOrder = ['low' => 1, 'medium' => 2, 'high' => 3];
+
+        if ($riskGrade !== '' && isset($gradeOrder[$riskGrade], $gradeOrder[$maxGrade]) && $gradeOrder[$riskGrade] > $gradeOrder[$maxGrade]) {
+            return true;
+        }
+
+        $riskScore = $this->normalizeRiskScore(
+            Arr::get($payload, 'supplier.risk_score')
+                ?? Arr::get($payload, 'supplier.risk.overall_score')
+                ?? Arr::get($payload, 'risk_score')
+                ?? null
+        );
+
+        if ($riskScore === null) {
+            return false;
+        }
+
+        $maxRiskIndex = (float) config('policy.supplier.max_risk_index', 0.25);
+
+        return (1 - $riskScore) > $maxRiskIndex;
+    }
+
+    private function extractNumeric(array $payload, array $paths): ?float
+    {
+        foreach ($paths as $path) {
+            $value = Arr::get($payload, $path);
+            $numeric = $this->toFloat($value);
+
+            if ($numeric !== null) {
+                return $numeric;
+            }
+        }
+
+        return null;
+    }
+
+    private function toFloat(mixed $value): ?float
+    {
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        if (is_string($value)) {
+            $clean = preg_replace('/[^0-9.\-]/', '', $value);
+
+            if ($clean === '' || ! is_numeric($clean)) {
+                return null;
+            }
+
+            return (float) $clean;
+        }
+
+        if (is_array($value)) {
+            if (isset($value['amount']) && is_numeric($value['amount'])) {
+                return (float) $value['amount'];
+            }
+
+            if (isset($value['value']) && is_numeric($value['value'])) {
+                return (float) $value['value'];
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeRiskScore(mixed $value): ?float
+    {
+        $numeric = $this->toFloat($value);
+
+        if ($numeric === null) {
+            return null;
+        }
+
+        if ($numeric > 1) {
+            $numeric = $numeric / 100;
+        }
+
+        if ($numeric < 0 || $numeric > 1) {
+            return null;
+        }
+
+        return $numeric;
+    }
+
+    /**
+     * @param list<string> $permissions
+     * @return list<array{slug: string, name: string}>
+     */
+    private function resolveRolesForPermissions(array $permissions): array
+    {
+        if ($permissions === []) {
+            return [];
+        }
+
+        $roles = [];
+
+        foreach (RoleTemplateDefinitions::all() as $role) {
+            $slug = $role['slug'] ?? null;
+            $name = $role['name'] ?? null;
+            $rolePermissions = $role['permissions'] ?? [];
+
+            if (! is_string($slug) || $slug === '' || ! is_string($name) || $name === '' || ! is_array($rolePermissions) || $rolePermissions === []) {
+                continue;
+            }
+
+            if (array_diff($permissions, $rolePermissions) !== []) {
+                continue;
+            }
+
+            $roles[] = [
+                'slug' => $slug,
+                'name' => $name,
+            ];
+        }
+
+        return $roles;
+    }
+
+    /**
+     * @param mixed $permissions
+     * @return list<string>
+     */
+    private function sanitizePermissionList(mixed $permissions): array
+    {
+        if (! is_array($permissions)) {
+            return [];
+        }
+
+        $list = [];
+
+        foreach ($permissions as $permission) {
+            if (! is_string($permission)) {
+                continue;
+            }
+
+            $permission = trim($permission);
+
+            if ($permission === '') {
+                continue;
+            }
+
+            $list[] = $permission;
+        }
+
+        return array_values(array_unique($list));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stepPermissions(string $actionType): array
+    {
+        $templates = config('ai_workflows.templates', []);
+
+        if (! is_array($templates)) {
+            return [];
+        }
+
+        foreach ($templates as $steps) {
+            if (! is_array($steps)) {
+                continue;
+            }
+
+            foreach ($steps as $step) {
+                if (($step['action_type'] ?? null) === $actionType) {
+                    return $this->sanitizePermissionList($step['approval_permissions'] ?? []);
+                }
+            }
+        }
+
+        return [];
     }
 
     /**

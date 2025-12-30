@@ -36,6 +36,9 @@ class Supplier extends CompanyScopedModel
     'rating_avg',
     'verified_at',
     'risk_grade',
+        'payment_terms',
+        'tax_id',
+        'onboarding_notes',
     ];
 
     protected $casts = [
@@ -57,6 +60,11 @@ class Supplier extends CompanyScopedModel
     public function documents(): HasMany
     {
         return $this->hasMany(SupplierDocument::class);
+    }
+
+    public function documentTasks(): HasMany
+    {
+        return $this->hasMany(SupplierDocumentTask::class);
     }
 
     public function contacts(): HasMany

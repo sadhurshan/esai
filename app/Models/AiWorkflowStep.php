@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AiWorkflowStep extends CompanyScopedModel
@@ -54,6 +56,18 @@ class AiWorkflowStep extends CompanyScopedModel
     public function workflow(): BelongsTo
     {
         return $this->belongsTo(AiWorkflow::class, 'workflow_id', 'workflow_id');
+    }
+
+    public function approvalRequests(): HasMany
+    {
+        return $this->hasMany(AiApprovalRequest::class, 'workflow_step_id');
+    }
+
+    public function pendingApprovalRequest(): HasOne
+    {
+        return $this->hasOne(AiApprovalRequest::class, 'workflow_step_id')
+            ->where('status', AiApprovalRequest::STATUS_PENDING)
+            ->latestOfMany();
     }
 
     public function isPending(): bool

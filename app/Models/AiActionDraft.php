@@ -15,8 +15,15 @@ class AiActionDraft extends CompanyScopedModel
     public const TYPE_SUPPLIER_MESSAGE = 'supplier_message';
     public const TYPE_MAINTENANCE_CHECKLIST = 'maintenance_checklist';
     public const TYPE_INVENTORY_WHATIF = 'inventory_whatif';
+    public const TYPE_ITEM_DRAFT = 'item_draft';
     public const TYPE_INVOICE_DRAFT = 'invoice_draft';
     public const TYPE_APPROVE_INVOICE = 'approve_invoice';
+    public const TYPE_RECEIPT_DRAFT = 'receipt_draft';
+    public const TYPE_INVOICE_MATCH = 'invoice_match';
+    public const TYPE_INVOICE_MISMATCH_RESOLUTION = 'invoice_mismatch_resolution';
+    public const TYPE_PAYMENT_DRAFT = 'payment_draft';
+    public const TYPE_SUPPLIER_ONBOARD_DRAFT = 'supplier_onboard_draft';
+    public const TYPE_INVOICE_DISPUTE_DRAFT = 'invoice_dispute_draft';
 
     /**
      * @var list<string>
@@ -26,8 +33,15 @@ class AiActionDraft extends CompanyScopedModel
         self::TYPE_SUPPLIER_MESSAGE,
         self::TYPE_MAINTENANCE_CHECKLIST,
         self::TYPE_INVENTORY_WHATIF,
+        self::TYPE_ITEM_DRAFT,
         self::TYPE_INVOICE_DRAFT,
         self::TYPE_APPROVE_INVOICE,
+        self::TYPE_RECEIPT_DRAFT,
+        self::TYPE_INVOICE_MATCH,
+        self::TYPE_INVOICE_MISMATCH_RESOLUTION,
+        self::TYPE_PAYMENT_DRAFT,
+        self::TYPE_SUPPLIER_ONBOARD_DRAFT,
+        self::TYPE_INVOICE_DISPUTE_DRAFT,
     ];
 
     public const STATUS_DRAFTED = 'drafted';

@@ -71,6 +71,11 @@ class AiWorkflow extends CompanyScopedModel
             ->orderBy('step_index');
     }
 
+    public function approvalRequests(): HasMany
+    {
+        return $this->hasMany(AiApprovalRequest::class, 'workflow_id', 'workflow_id');
+    }
+
     public function stepMetadata(int $stepIndex): ?array
     {
         $steps = $this->steps_json;

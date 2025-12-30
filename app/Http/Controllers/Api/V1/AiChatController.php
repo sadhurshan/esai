@@ -313,6 +313,12 @@ class AiChatController extends ApiController
             ]);
         }
 
+        if ($this->requiresDisputeDraftPermission($toolCalls) && ! $this->permissionRegistry->userHasAny($user, ['billing.write'], $companyId)) {
+            return $this->fail('You are not authorized to draft invoice disputes.', Response::HTTP_FORBIDDEN, [
+                'code' => 'workspace_dispute_draft_forbidden',
+            ]);
+        }
+
         $model = $this->chatService->getThreadWithMessages($thread, $companyId, $this->messageLimit($request));
 
         if (! $model instanceof AiChatThread) {
@@ -395,6 +401,22 @@ class AiChatController extends ApiController
             $toolName = (string) ($call['tool_name'] ?? '');
 
             if ($toolName === AiChatToolCall::Help->value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<array{tool_name:string,call_id:string,arguments?:array<string,mixed>}>|list<array{tool_name:string,call_id:string}> $toolCalls
+     */
+    private function requiresDisputeDraftPermission(array $toolCalls): bool
+    {
+        foreach ($toolCalls as $call) {
+            $toolName = (string) ($call['tool_name'] ?? '');
+
+            if ($toolName === AiChatToolCall::CreateDisputeDraft->value) {
                 return true;
             }
         }

@@ -38,6 +38,10 @@ class UpdateInventoryItemAction
                 $updates['category'] = $payload['category'];
             }
 
+            if (array_key_exists('spec', $payload)) {
+                $updates['spec'] = $payload['spec'];
+            }
+
             if (array_key_exists('uom', $payload)) {
                 $updates['uom'] = $payload['uom'];
                 $updates['base_uom_id'] = $this->resolveUomId($payload['uom']);

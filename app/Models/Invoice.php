@@ -115,6 +115,11 @@ class Invoice extends CompanyScopedModel
         return $this->hasMany(InvoiceMatch::class);
     }
 
+    public function disputeTasks(): HasMany
+    {
+        return $this->hasMany(InvoiceDisputeTask::class);
+    }
+
     public function creditNotes(): HasMany
     {
         return $this->hasMany(CreditNote::class);

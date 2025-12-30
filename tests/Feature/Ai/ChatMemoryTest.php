@@ -33,6 +33,13 @@ it('persists cross-session memory and injects it into chat payloads', function (
     ]);
 
     $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('intentPlan')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Planner skipped for unit test.',
+            'data' => [],
+        ]);
     $client->shouldReceive('chatRespond')
         ->once()
         ->with(Mockery::on(function (array $payload): bool {

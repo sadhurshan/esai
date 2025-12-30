@@ -1,0 +1,1280 @@
+[
+  {
+    "id": "clarify_rfq_title",
+    "category": "clarification",
+    "prompt": "Draft an RFQ",
+    "intent": {
+      "tool": "clarification",
+      "target_tool": "build_rfq_draft",
+      "missing_args": ["rfq_title"],
+      "question": "What should we name this RFQ?",
+      "args": {
+        "scope_summary": "General sourcing request"
+      }
+    },
+    "expect": {
+      "type": "clarification",
+      "assertions": [
+        {"path": "response.clarification.missing_args.0", "contains": "rfq_title"},
+        {"path": "response.assistant_message_markdown", "contains": "name"}
+      ]
+    }
+  },
+  {
+    "id": "clarify_supplier_contact",
+    "category": "clarification",
+    "prompt": "Send a supplier reminder",
+    "intent": {
+      "tool": "clarification",
+      "target_tool": "build_supplier_message",
+      "missing_args": ["supplier_name"],
+      "question": "Which supplier should receive this reminder?",
+      "args": {
+        "goal": "Share delivery reminder",
+        "tone": "supportive"
+      }
+    },
+    "expect": {
+      "type": "clarification",
+      "assertions": [
+        {"path": "response.clarification.tool", "contains": "supplier"},
+        {"path": "response.assistant_message_markdown", "contains": "supplier"}
+      ]
+    }
+  },
+  {
+    "id": "draft_rfq_rotar_blades",
+    "category": "draft",
+    "prompt": "Draft RFQ named Rotar Blades",
+    "intent": {
+      "tool": "build_rfq_draft",
+      "args": {
+        "rfq_title": "Rotar Blades",
+        "scope_summary": "Source high-temp rotor blades for Q2 builds"
+      }
+    },
+    "plan_action": {
+      "action_type": "rfq_draft",
+      "summary": "RFQ Rotar Blades ready",
+      "payload": {
+        "rfq_title": "Rotar Blades",
+        "scope_summary": "Source high-temp rotor blades for Q2 builds",
+        "questions_for_suppliers": ["Confirm coating availability"]
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": false,
+      "confidence": 0.82
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "rfq_draft",
+      "assertions": [
+        {"path": "response.draft.payload.rfq_title", "contains": "Rotar"},
+        {"path": "response.assistant_message_markdown", "contains": "RFQ"}
+      ]
+    }
+  },
+  {
+    "id": "draft_supplier_message_titan",
+    "category": "draft",
+    "prompt": "Draft a supplier message for Titan Foundry about late castings",
+    "intent": {
+      "tool": "build_supplier_message",
+      "args": {
+        "supplier_name": "Titan Foundry",
+        "goal": "Request expedited casting delivery",
+        "tone": "firm",
+        "constraints": "Need arrival before March 15"
+      }
+    },
+    "plan_action": {
+      "action_type": "supplier_message",
+      "summary": "Supplier note for Titan Foundry ready",
+      "payload": {
+        "supplier_name": "Titan Foundry",
+        "goal": "Request expedited casting delivery",
+        "tone": "firm",
+        "constraints": "Need arrival before March 15"
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": true,
+      "confidence": 0.61
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "supplier_message",
+      "assertions": [
+        {"path": "response.draft.payload.supplier_name", "contains": "Titan"},
+        {"path": "response.draft.summary", "contains": "Titan"}
+      ]
+    }
+  },
+  {
+    "id": "draft_supplier_onboard_orion",
+    "category": "draft",
+    "prompt": "Onboard Orion Manufacturing as a supplier",
+    "intent": {
+      "tool": "build_supplier_onboard_draft",
+      "args": {
+        "legal_name": "Orion Manufacturing",
+        "country": "US",
+        "email": "sourcing@orion.example",
+        "phone": "+1-555-112-8899",
+        "payment_terms": "Net 30",
+        "tax_id": "12-3456789",
+        "documents_needed": [
+          {"type": "iso9001", "required": true},
+          {"type": "insurance", "required": true}
+        ]
+      }
+    },
+    "plan_action": {
+      "action_type": "supplier_onboard_draft",
+      "summary": "Supplier onboarding packet for Orion ready",
+      "payload": {
+        "legal_name": "Orion Manufacturing",
+        "country": "US",
+        "email": "sourcing@orion.example",
+        "phone": "+1-555-112-8899",
+        "payment_terms": "Net 30",
+        "tax_id": "12-3456789",
+        "documents_needed": [
+          {"type": "iso9001", "required": true},
+          {"type": "insurance", "required": true}
+        ]
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": true,
+      "confidence": 0.73
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "supplier_onboard_draft",
+      "assertions": [
+        {"path": "response.draft.payload.legal_name", "contains": "Orion"}
+      ]
+    }
+  },
+  {
+    "id": "compare_quotes_apex_beacon",
+    "category": "draft",
+    "prompt": "Compare quotes from Apex Aero and Beacon Plastics",
+    "intent": {
+      "tool": "compare_quotes",
+      "args": {
+        "quotes": [
+          {
+            "supplier_id": "apex",
+            "supplier_name": "Apex Aero",
+            "price": 125000,
+            "lead_time_days": 35,
+            "quality_rating": 0.9,
+            "risk_score": 0.2
+          },
+          {
+            "supplier_id": "beacon",
+            "supplier_name": "Beacon Plastics",
+            "price": 118000,
+            "lead_time_days": 45,
+            "quality_rating": 0.85,
+            "risk_score": 0.3
+          }
+        ]
+      }
+    },
+    "plan_action": {
+      "action_type": "compare_quotes",
+      "summary": "Compared Apex Aero vs Beacon Plastics",
+      "payload": {
+        "quotes": [
+          {"supplier_name": "Apex Aero", "score": 0.78},
+          {"supplier_name": "Beacon Plastics", "score": 0.74}
+        ],
+        "recommendation": "Select Apex Aero for shorter lead time"
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": false,
+      "confidence": 0.69
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "compare_quotes",
+      "assertions": [
+        {"path": "response.draft.payload.recommendation", "contains": "Apex"}
+      ]
+    }
+  },
+  {
+    "id": "draft_po_nova_dynamics",
+    "category": "draft",
+    "prompt": "Create a PO for Nova Dynamics",
+    "intent": {
+      "tool": "draft_purchase_order",
+      "args": {
+        "supplier": {
+          "supplier_id": "nova",
+          "name": "Nova Dynamics",
+          "contact": "orders@nova.example"
+        },
+        "currency": "USD",
+        "line_items": [
+          {
+            "item_id": "BLD-44",
+            "description": "Blade sub-assembly",
+            "quantity": 20,
+            "unit_price": 4800
+          }
+        ]
+      }
+    },
+    "plan_action": {
+      "action_type": "po_draft",
+      "summary": "PO draft for Nova Dynamics ready",
+      "payload": {
+        "supplier": {
+          "name": "Nova Dynamics"
+        },
+        "currency": "USD",
+        "line_items": [
+          {
+            "description": "Blade sub-assembly",
+            "quantity": 20,
+            "unit_price": 4800
+          }
+        ]
+      },
+      "citations": [],
+      "warnings": ["Confirm tax handling"],
+      "needs_human_review": true,
+      "confidence": 0.64
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "po_draft",
+      "assertions": [
+        {"path": "response.draft.payload.supplier.name", "contains": "Nova"}
+      ]
+    }
+  },
+  {
+    "id": "award_quote_atlas",
+    "category": "draft",
+    "prompt": "Award the fasteners quote to Atlas",
+    "intent": {
+      "tool": "build_award_quote",
+      "args": {
+        "rfq_id": "RFQ-447",
+        "selected_quote_id": "Q-ATLAS-1",
+        "supplier_id": "atlas",
+        "delivery_date": "2025-02-15",
+        "justification": "Lowest landed cost"
+      }
+    },
+    "plan_action": {
+      "action_type": "award_quote",
+      "summary": "Award recommendation prepared for Atlas",
+      "payload": {
+        "rfq_id": "RFQ-447",
+        "selected_quote_id": "Q-ATLAS-1",
+        "supplier_id": "atlas",
+        "delivery_date": "2025-02-15",
+        "justification": "Lowest landed cost"
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": true,
+      "confidence": 0.71
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "award_quote",
+      "assertions": [
+        {"path": "response.draft.payload.supplier_id", "contains": "atlas"}
+      ]
+    }
+  },
+  {
+    "id": "draft_invoice_for_po7788",
+    "category": "draft",
+    "prompt": "Draft an invoice for PO-7788",
+    "intent": {
+      "tool": "build_invoice_draft",
+      "args": {
+        "po_id": "PO-7788",
+        "invoice_date": "2025-01-05",
+        "due_date": "2025-02-04",
+        "line_items": [
+          {"description": "Machined shells", "quantity": 50, "unit_price": 740}
+        ]
+      }
+    },
+    "plan_action": {
+      "action_type": "invoice_draft",
+      "summary": "Invoice draft for PO-7788 ready",
+      "payload": {
+        "po_id": "PO-7788",
+        "invoice_date": "2025-01-05",
+        "due_date": "2025-02-04",
+        "line_items": [
+          {"description": "Machined shells", "quantity": 50, "unit_price": 740}
+        ]
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": false,
+      "confidence": 0.67
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "invoice_draft",
+      "assertions": [
+        {"path": "response.draft.payload.po_id", "contains": "7788"}
+      ]
+    }
+  },
+  {
+    "id": "draft_invoice_dispute_inv554",
+    "category": "draft",
+    "prompt": "Create a dispute for invoice INV-554 due to short shipment",
+    "intent": {
+      "tool": "build_invoice_dispute_draft",
+      "args": {
+        "invoice_id": "INV-554",
+        "reason": "Short shipment",
+        "requested_credit": 2200
+      }
+    },
+    "plan_action": {
+      "action_type": "invoice_dispute_draft",
+      "summary": "Dispute draft for INV-554 ready",
+      "payload": {
+        "invoice_id": "INV-554",
+        "reason": "Short shipment",
+        "requested_credit": 2200
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": true,
+      "confidence": 0.66
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "invoice_dispute_draft",
+      "assertions": [
+        {"path": "response.draft.payload.invoice_id", "contains": "INV-554"}
+      ]
+    }
+  },
+  {
+    "id": "draft_item_rotor_blade",
+    "category": "draft",
+    "prompt": "Add a rotor blade item to the catalog",
+    "intent": {
+      "tool": "build_item_draft",
+      "args": {
+        "item_code": "RB-8800",
+        "name": "Rotor Blade",
+        "uom": "ea",
+        "status": "active",
+        "category": "Airframe",
+        "preferred_suppliers": [
+          {"name": "Atlas Aero", "priority": 1}
+        ]
+      }
+    },
+    "plan_action": {
+      "action_type": "item_draft",
+      "summary": "Item draft RB-8800 ready",
+      "payload": {
+        "item_code": "RB-8800",
+        "name": "Rotor Blade",
+        "uom": "ea",
+        "status": "active",
+        "category": "Airframe",
+        "preferred_suppliers": [
+          {"name": "Atlas Aero", "priority": 1}
+        ]
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": false,
+      "confidence": 0.7
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "item_draft",
+      "assertions": [
+        {"path": "response.draft.payload.item_code", "contains": "RB-8800"}
+      ]
+    }
+  },
+  {
+    "id": "resolve_invoice_mismatch_inv600",
+    "category": "draft",
+    "prompt": "Resolve the mismatch on INV-600 for tax variance",
+    "intent": {
+      "tool": "resolve_invoice_mismatch",
+      "args": {
+        "invoice_id": "INV-600",
+        "issue": "tax",
+        "po_id": "PO-600"
+      }
+    },
+    "plan_action": {
+      "action_type": "invoice_mismatch_resolution",
+      "summary": "Invoice mismatch plan for INV-600",
+      "payload": {
+        "invoice_id": "INV-600",
+        "resolution": "Request updated invoice",
+        "notes": "Tax variance exceeds threshold"
+      },
+      "citations": [],
+      "warnings": [],
+      "needs_human_review": true,
+      "confidence": 0.6
+    },
+    "expect": {
+      "type": "draft_action",
+      "action_type": "invoice_mismatch_resolution",
+      "assertions": [
+        {"path": "response.draft.payload.invoice_id", "contains": "INV-600"}
+      ]
+    }
+  },
+  {
+    "id": "search_rfqs_rotor_program",
+    "category": "search",
+    "prompt": "Find RFQs for the rotor program",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_rfqs",
+            "args": {
+              "query": "rotor",
+              "status": ["published"],
+              "limit": 5
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_rfqs",
+        "result": {
+          "items": [
+            {"rfq_id": 101, "title": "Rotor Program Phase 1", "status": "published"},
+            {"rfq_id": 102, "title": "Rotor Program Phase 2", "status": "draft"}
+          ],
+          "meta": {"query": "rotor", "total_count": 24}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "Found 2 rotor program RFQs.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "RFQs"}
+      ]
+    }
+  },
+  {
+    "id": "search_pos_pending_confirmation",
+    "category": "search",
+    "prompt": "List purchase orders awaiting confirmation",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_pos",
+            "args": {
+              "status": ["sent", "acknowledged"],
+              "limit": 5
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_pos",
+        "result": {
+          "items": [
+            {"po_number": "PO-550", "status": "sent"},
+            {"po_number": "PO-551", "status": "acknowledged"}
+          ],
+          "meta": {"total_count": 2}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "Tracked 2 purchase orders awaiting confirmation.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "purchase orders"}
+      ]
+    }
+  },
+  {
+    "id": "search_invoices_due_next_week",
+    "category": "search",
+    "prompt": "Show invoices due next week",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_invoices",
+            "args": {
+              "due_within_days": 7,
+              "status": ["submitted"],
+              "limit": 5
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_invoices",
+        "result": {
+          "items": [
+            {"invoice_number": "INV-901", "status": "submitted", "total": "$14,200"},
+            {"invoice_number": "INV-905", "status": "submitted", "total": "$8,450"}
+          ],
+          "meta": {"total_count": 2}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "2 invoices are due within 7 days.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "invoices"}
+      ]
+    }
+  },
+  {
+    "id": "search_items_carbon_seals",
+    "category": "search",
+    "prompt": "Look up carbon seal items",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_items",
+            "args": {
+              "query": "carbon seal",
+              "status": ["active"],
+              "limit": 3
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_items",
+        "result": {
+          "items": [
+            {"item_code": "CS-10", "name": "Carbon Seal 10"},
+            {"item_code": "CS-11", "name": "Carbon Seal 11"}
+          ],
+          "meta": {"total_count": 2}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "Listed carbon seal items in the catalog.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "carbon"}
+      ]
+    }
+  },
+  {
+    "id": "search_suppliers_mexico",
+    "category": "search",
+    "prompt": "List approved suppliers in Mexico",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_suppliers",
+            "args": {
+              "country": "MX",
+              "status": ["approved"],
+              "limit": 5
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_suppliers",
+        "result": {
+          "items": [
+            {"supplier_id": 20, "name": "Monterrey Metals", "status": "approved"},
+            {"supplier_id": 21, "name": "Guadalajara Plastics", "status": "approved"}
+          ],
+          "meta": {"total_count": 2}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "2 approved suppliers operate in Mexico.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "Mexico"}
+      ]
+    }
+  },
+  {
+    "id": "search_disputes_inv44",
+    "category": "search",
+    "prompt": "Find the dispute related to INV-44",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.search_disputes",
+            "args": {
+              "query": "INV-44",
+              "limit": 3
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.search_disputes",
+        "result": {
+          "items": [
+            {"dispute_id": 77, "invoice": "INV-44", "status": "open"}
+          ],
+          "meta": {"total_count": 1}
+        }
+      }
+    ],
+    "chat": {
+      "type": "answer",
+      "assistant_message_markdown": "Located the dispute tracking INV-44.",
+      "citations": []
+    },
+    "expect": {
+      "type": "answer",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "INV-44"}
+      ]
+    }
+  },
+  {
+    "id": "review_rfq_forgings",
+    "category": "review",
+    "prompt": "Review the forging RFQ",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.review_rfq",
+            "args": {
+              "rfq_id": "RFQ-909"
+            }
+          }
+        ]
+      }
+    },
+    "review_call": {
+      "method": "reviewRfqTool",
+      "data": {
+        "summary": "Checklist ready for forging RFQ",
+        "payload": {
+          "checklist": [
+            {"label": "Scope defined", "status": "ok"},
+            {"label": "Timeline included", "status": "warning"}
+          ]
+        },
+        "citations": []
+      }
+    },
+    "chat": {
+      "type": "review_rfq",
+      "assistant_message_markdown": "Review checklist prepared for RFQ-909.",
+      "review": {
+        "entity_type": "rfq",
+        "entity_id": "RFQ-909",
+        "checklist": [
+          {"label": "Scope defined", "status": "ok", "detail": "Complete"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "review_rfq",
+      "assertions": [
+        {"path": "response.review.entity_id", "contains": "RFQ-909"}
+      ]
+    }
+  },
+  {
+    "id": "review_quote_beacon",
+    "category": "review",
+    "prompt": "Review Beacon Plastics quote",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.review_quote",
+            "args": {
+              "quote_id": "Q-445"
+            }
+          }
+        ]
+      }
+    },
+    "review_call": {
+      "method": "reviewQuoteTool",
+      "data": {
+        "summary": "Quote review ready",
+        "payload": {
+          "checklist": [
+            {"label": "Lead time acceptable", "status": "ok"},
+            {"label": "Pricing variance", "status": "risk"}
+          ]
+        },
+        "citations": []
+      }
+    },
+    "chat": {
+      "type": "review_quote",
+      "assistant_message_markdown": "Quote Q-445 review generated.",
+      "review": {
+        "entity_type": "quote",
+        "entity_id": "Q-445",
+        "checklist": [
+          {"label": "Pricing variance", "status": "risk", "detail": "Above target"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "review_quote",
+      "assertions": [
+        {"path": "response.review.entity_id", "contains": "Q-445"}
+      ]
+    }
+  },
+  {
+    "id": "review_po_5567",
+    "category": "review",
+    "prompt": "Review PO-5567",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.review_po",
+            "args": {
+              "po_id": "PO-5567",
+              "po_number": "PO-5567"
+            }
+          }
+        ]
+      }
+    },
+    "review_call": {
+      "method": "reviewPoTool",
+      "data": {
+        "summary": "PO review raised",
+        "payload": {
+          "checklist": [
+            {"label": "Supplier confirmed", "status": "ok"},
+            {"label": "Schedule coverage", "status": "warning"}
+          ]
+        },
+        "citations": []
+      }
+    },
+    "chat": {
+      "type": "review_po",
+      "assistant_message_markdown": "Reviewed PO-5567 for readiness.",
+      "review": {
+        "entity_type": "po",
+        "entity_id": "PO-5567",
+        "checklist": [
+          {"label": "Schedule coverage", "status": "warning", "detail": "Need supplier confirmation"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "review_po",
+      "assertions": [
+        {"path": "response.review.entity_id", "contains": "PO-5567"}
+      ]
+    }
+  },
+  {
+    "id": "review_invoice_8841",
+    "category": "review",
+    "prompt": "Review invoice INV-8841",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.review_invoice",
+            "args": {
+              "invoice_number": "INV-8841"
+            }
+          }
+        ]
+      }
+    },
+    "review_call": {
+      "method": "reviewInvoiceTool",
+      "data": {
+        "summary": "Invoice review ready",
+        "payload": {
+          "checklist": [
+            {"label": "3-way match", "status": "ok"},
+            {"label": "Tax variance", "status": "risk"}
+          ]
+        },
+        "citations": []
+      }
+    },
+    "chat": {
+      "type": "review_invoice",
+      "assistant_message_markdown": "Invoice INV-8841 review completed.",
+      "review": {
+        "entity_type": "invoice",
+        "entity_id": "INV-8841",
+        "checklist": [
+          {"label": "Tax variance", "status": "risk", "detail": "Needs correction"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "review_invoice",
+      "assertions": [
+        {"path": "response.review.entity_id", "contains": "INV-8841"}
+      ]
+    }
+  },
+  {
+    "id": "forecast_spend_q3",
+    "category": "forecast",
+    "prompt": "Forecast direct spend for Q3",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.procurement_snapshot",
+            "args": {
+              "metric": "forecast_spend",
+              "window": "Q3"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.procurement_snapshot",
+        "result": {
+          "metrics": {
+            "forecast_spend": {
+              "period": "Q3",
+              "value": 4200000,
+              "currency": "USD"
+            }
+          }
+        }
+      }
+    ],
+    "chat": {
+      "type": "forecast_spend",
+      "assistant_message_markdown": "Projected Q3 spend is $4.2M.",
+      "analytics_cards": [
+        {
+          "metric": "forecast_spend",
+          "title": "Q3 Spend Forecast",
+          "summary": "Projected at $4.2M"
+        }
+      ],
+      "citations": []
+    },
+    "expect": {
+      "type": "forecast_spend",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "$4.2M"}
+      ]
+    }
+  },
+  {
+    "id": "forecast_supplier_performance",
+    "category": "forecast",
+    "prompt": "Forecast supplier performance for rotor suppliers",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.procurement_snapshot",
+            "args": {
+              "metric": "forecast_supplier_performance",
+              "segment": "rotor"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.procurement_snapshot",
+        "result": {
+          "metrics": {
+            "forecast_supplier_performance": {
+              "segment": "rotor",
+              "on_time": 0.92,
+              "defect_rate": 0.01
+            }
+          }
+        }
+      }
+    ],
+    "chat": {
+      "type": "forecast_supplier_performance",
+      "assistant_message_markdown": "Rotor suppliers projected to deliver 92% on time.",
+      "citations": []
+    },
+    "expect": {
+      "type": "forecast_supplier_performance",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "92%"}
+      ]
+    }
+  },
+  {
+    "id": "forecast_inventory_fans",
+    "category": "forecast",
+    "prompt": "Forecast inventory for fan modules",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.procurement_snapshot",
+            "args": {
+              "metric": "forecast_inventory",
+              "item_group": "fan"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.procurement_snapshot",
+        "result": {
+          "metrics": {
+            "forecast_inventory": {
+              "item_group": "fan",
+              "weeks_of_cover": 7
+            }
+          }
+        }
+      }
+    ],
+    "chat": {
+      "type": "forecast_inventory",
+      "assistant_message_markdown": "Fan module inventory covers 7 weeks of demand.",
+      "citations": []
+    },
+    "expect": {
+      "type": "forecast_inventory",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "7 weeks"}
+      ]
+    }
+  },
+  {
+    "id": "analytics_procurement_snapshot",
+    "category": "forecast",
+    "prompt": "Show the procurement snapshot",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.procurement_snapshot",
+            "args": {
+              "metric": "analytics_overview"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.procurement_snapshot",
+        "result": {
+          "metrics": {
+            "open_rfq_count": 8,
+            "pending_invoices": 12
+          }
+        }
+      }
+    ],
+    "chat": {
+      "type": "analytics",
+      "assistant_message_markdown": "Procurement snapshot updated with RFQ and invoice metrics.",
+      "analytics_cards": [
+        {
+          "metric": "cycle_time",
+          "title": "Average cycle time",
+          "summary": "28 days"
+        }
+      ],
+      "citations": []
+    },
+    "expect": {
+      "type": "analytics",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "snapshot"}
+      ]
+    }
+  },
+  {
+    "id": "help_po_approvals",
+    "category": "help",
+    "prompt": "How do I approve a purchase order?",
+    "intent": {
+      "tool": "get_help",
+      "args": {
+        "topic": "approve purchase order",
+        "locale": "en"
+      }
+    },
+    "help_response": {
+      "summary": "Follow these steps to approve a PO.",
+      "payload": {
+        "title": "Approve purchase order",
+        "description": "Checklist for PO approval",
+        "steps": [
+          "Open the PO detail page",
+          "Verify line items",
+          "Click Approve"
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "help",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "approve"}
+      ]
+    }
+  },
+  {
+    "id": "help_rfq_publish",
+    "category": "help",
+    "prompt": "Need instructions to publish an RFQ",
+    "intent": {
+      "tool": "get_help",
+      "args": {
+        "topic": "publish rfq",
+        "locale": "en"
+      }
+    },
+    "help_response": {
+      "summary": "Publishing guidance ready.",
+      "payload": {
+        "title": "Publish RFQ",
+        "description": "Steps to publish",
+        "steps": [
+          "Fill scope",
+          "Attach suppliers",
+          "Publish"
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "help",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "Publish"}
+      ]
+    }
+  },
+  {
+    "id": "next_best_quotes_focus",
+    "category": "next_best_action",
+    "prompt": "What should I tackle next?",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.next_best_action",
+            "args": {
+              "focus": "quotes"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.next_best_action",
+        "result": {
+          "recommendations": [
+            {
+              "title": "Review 3 pending quotes",
+              "reason": "Quotes waiting over 5 days",
+              "module": "quote",
+              "action": "list"
+            }
+          ]
+        }
+      }
+    ],
+    "chat": {
+      "type": "workflow_suggestion",
+      "assistant_message_markdown": "Top next step: Review 3 pending quotes.",
+      "workflow": {
+        "workflow_type": "next_best_action",
+        "steps": [
+          {"title": "Review quote queue", "summary": "3 suppliers waiting"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "workflow_suggestion",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "pending quotes"}
+      ]
+    }
+  },
+  {
+    "id": "next_best_receiving",
+    "category": "next_best_action",
+    "prompt": "Give me the next best action for receiving",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.next_best_action",
+            "args": {
+              "focus": "receipts"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.next_best_action",
+        "result": {
+          "recommendations": [
+            {
+              "title": "Inspect 2 receipts",
+              "reason": "Both waiting over 48 hours",
+              "module": "receipt",
+              "action": "list"
+            }
+          ]
+        }
+      }
+    ],
+    "chat": {
+      "type": "workflow_suggestion",
+      "assistant_message_markdown": "Inspect 2 receipts awaiting inspection.",
+      "workflow": {
+        "workflow_type": "next_best_action",
+        "steps": [
+          {"title": "Inspect receipts", "summary": "2 pending"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "workflow_suggestion",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "receipts"}
+      ]
+    }
+  },
+  {
+    "id": "next_best_invoices",
+    "category": "next_best_action",
+    "prompt": "Suggest the next finance task",
+    "intent": {
+      "plan": {
+        "steps": [
+          {
+            "tool": "workspace.next_best_action",
+            "args": {
+              "focus": "invoices"
+            }
+          }
+        ]
+      }
+    },
+    "workspace_tools": [
+      {
+        "tool_name": "workspace.next_best_action",
+        "result": {
+          "recommendations": [
+            {
+              "title": "Approve 4 invoices",
+              "reason": "Invoices idle for 7 days",
+              "module": "invoice",
+              "action": "list"
+            }
+          ]
+        }
+      }
+    ],
+    "chat": {
+      "type": "workflow_suggestion",
+      "assistant_message_markdown": "Approve 4 invoices that have been idle.",
+      "workflow": {
+        "workflow_type": "next_best_action",
+        "steps": [
+          {"title": "Approve invoices", "summary": "4 waiting"}
+        ]
+      },
+      "citations": []
+    },
+    "expect": {
+      "type": "workflow_suggestion",
+      "assertions": [
+        {"path": "response.assistant_message_markdown", "contains": "invoices"}
+      ]
+    }
+  }
+]

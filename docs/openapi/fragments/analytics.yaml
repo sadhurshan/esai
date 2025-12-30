@@ -306,6 +306,66 @@ components:
         provider:
           type: string
           description: Identifier for the model or fallback generator.
+    AiIntentPlanMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          description: Chat role associated with the transcript entry.
+          enum: [user, assistant, system]
+        content:
+          type: string
+          description: Natural language text included in the planner context.
+    AiIntentPlanRequest:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          maxLength: 4000
+          description: Latest user prompt that should be evaluated by the planner.
+        thread_id:
+          type: string
+          nullable: true
+          description: Optional chat thread identifier for correlating planner sessions.
+        context:
+          type: array
+          description: Recent ordered chat turns supplied to the planner.
+          items:
+            $ref: '#/components/schemas/AiIntentPlanMessage'
+    AiIntentPlanResult:
+      type: object
+      description: Intent planner output describing which tool to execute next or what clarification is needed.
+      properties:
+        tool:
+          type: string
+          description: Selected tool identifier such as build_rfq_draft or clarification.
+        target_tool:
+          type: string
+          nullable: true
+          description: Original tool that requires clarification before execution.
+        args:
+          type: object
+          description: Structured argument map to pass to the downstream tool.
+          additionalProperties: true
+        missing_args:
+          type: array
+          description: Arguments the planner still needs before it can proceed.
+          items:
+            type: string
+        question:
+          type: string
+          nullable: true
+          description: Clarification question to present to the end user.
+        confidence:
+          type: number
+          format: float
+          nullable: true
+          description: Optional confidence score assigned by the planner for the selected tool.
 paths:
   /api/dashboard/metrics:
     get:
@@ -463,6 +523,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiSuccessResponse'
+  /api/ai/intent-plan:
+    post:
+      tags:
+        - Analytics
+      summary: Run Copilot intent planner
+      description: Evaluates a natural language prompt plus optional transcript context and returns the recommended Copilot tool or clarification question.
+      operationId: aiIntentPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiIntentPlanRequest'
+      responses:
+        '200':
+          description: Intent planner output describing the next tool to execute.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiIntentPlanResult'
   /api/v1/analytics/forecast-report:
     post:
       tags:

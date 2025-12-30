@@ -17,7 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { CopilotActionDraft, CopilotActionType } from '@/services/ai';
 
 const ACTION_EFFECTS: Record<
-    CopilotActionType,
+    string,
     {
         title: string;
         description: string;
@@ -38,6 +38,26 @@ const ACTION_EFFECTS: Record<
     inventory_whatif: {
         title: 'Stores an inventory what-if snapshot',
         description: 'Approval archives this simulation so planners can compare policy deltas and risk forecasts.',
+    },
+    receipt_draft: {
+        title: 'Creates a goods receipt',
+        description: 'Approval posts the received quantities, inspector, and quality notes to the PO receiving log.',
+    },
+    invoice_match: {
+        title: 'Stores a three-way match summary',
+        description: 'Approval saves this reconciliation so AP can resolve mismatches before paying the invoice.',
+    },
+    payment_process: {
+        title: 'Creates a payment request',
+        description: 'Approval schedules the AP payment record with the proposed amount, method, and reference.',
+    },
+    payment_draft: {
+        title: 'Creates a payment request',
+        description: 'Approval schedules the AP payment record with the proposed amount, method, and reference.',
+    },
+    approve_invoice: {
+        title: 'Marks an invoice as paid',
+        description: 'Approval records the payment details and closes out the outstanding invoice balance.',
     },
 };
 

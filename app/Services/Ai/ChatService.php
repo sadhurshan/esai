@@ -11,6 +11,7 @@ use App\Models\AiChatMessage;
 use App\Models\AiChatThread;
 use App\Models\AiEvent;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -43,6 +44,54 @@ class ChatService
         'lead time',
         'award',
         'shipment',
+    ];
+    private const INTENT_TOOL_ACTION_MAP = [
+        'build_rfq_draft' => 'rfq_draft',
+        'build_supplier_message' => 'supplier_message',
+        'build_supplier_onboard_draft' => 'supplier_onboard_draft',
+        'compare_quotes' => 'compare_quotes',
+        'draft_purchase_order' => 'po_draft',
+        'build_award_quote' => 'award_quote',
+        'build_invoice_draft' => 'invoice_draft',
+        'build_invoice_dispute_draft' => 'invoice_dispute_draft',
+        'build_item_draft' => 'item_draft',
+        'resolve_invoice_mismatch' => 'invoice_mismatch_resolution',
+    ];
+    private const INTENT_HELP_TOOLS = ['get_help'];
+
+    private const ENTITY_PICKER_CONFIG = [
+        AiChatToolCall::SearchInvoices->value => [
+            'target_tool' => AiChatToolCall::GetInvoice->value,
+            'entity_type' => 'invoice',
+            'formatter' => 'formatInvoicePickerCandidates',
+        ],
+        AiChatToolCall::SearchPos->value => [
+            'target_tool' => AiChatToolCall::GetPo->value,
+            'entity_type' => 'purchase order',
+            'formatter' => 'formatPurchaseOrderPickerCandidates',
+        ],
+        AiChatToolCall::SearchRfqs->value => [
+            'target_tool' => AiChatToolCall::GetRfq->value,
+            'entity_type' => 'RFQ',
+            'formatter' => 'formatRfqPickerCandidates',
+        ],
+        AiChatToolCall::SearchSuppliers->value => [
+            'target_tool' => AiChatToolCall::GetSupplier->value,
+            'entity_type' => 'supplier',
+            'formatter' => 'formatSupplierPickerCandidates',
+        ],
+        AiChatToolCall::SearchItems->value => [
+            'target_tool' => AiChatToolCall::GetItem->value,
+            'entity_type' => 'item',
+            'formatter' => 'formatItemPickerCandidates',
+        ],
+    ];
+
+    private const UNSAFE_DRAFT_ACTION_TYPES = [
+        AiActionDraft::TYPE_APPROVE_INVOICE,
+        AiActionDraft::TYPE_PAYMENT_DRAFT,
+        'payment_process',
+        'award_quote',
     ];
 
     private int $historyLimit;
@@ -110,6 +159,19 @@ class ChatService
             'tool_results_json' => $toolResults,
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
+
+        $entityPickerResponse = $this->maybeRespondWithEntityPicker(
+            $thread,
+            $user,
+            $toolCalls,
+            $toolResults,
+            $structuredContext,
+            $toolMessage,
+        );
+
+        if ($entityPickerResponse !== null) {
+            return $entityPickerResponse;
+        }
 
         $structuredContext = $this->withMemoryContext($thread, $structuredContext);
 
@@ -247,12 +309,110 @@ class ChatService
         $structuredContext = $this->normalizeContext($context);
         $allowGeneral = $this->shouldAllowGeneralAnswers($message, $structuredContext);
 
+        $messageContextPayload = $structuredContext;
+        unset($messageContextPayload['clarification'], $messageContextPayload['entity_picker']);
+
         $userMessage = $thread->appendMessage(AiChatMessage::ROLE_USER, [
             'user_id' => $user->id,
             'content_text' => $message,
-            'content_json' => $structuredContext === [] ? null : ['context' => $structuredContext],
+            'content_json' => $messageContextPayload === [] ? null : ['context' => $messageContextPayload],
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
+
+        $pendingClarification = $this->pendingClarification($thread);
+        $clarificationReply = $structuredContext['clarification'] ?? null;
+
+        if ($clarificationReply !== null && $pendingClarification !== null) {
+            $clarificationResponse = $this->handleClarificationReply(
+                $thread,
+                $user,
+                $message,
+                $structuredContext,
+                $clarificationReply,
+                $pendingClarification,
+                $userMessage,
+            );
+
+            if ($clarificationResponse !== null) {
+                return $clarificationResponse;
+            }
+        } elseif ($clarificationReply === null && $pendingClarification !== null) {
+            $this->clearPendingClarification($thread);
+        }
+
+        unset($structuredContext['clarification']);
+
+        $pendingEntityPicker = $this->pendingEntityPicker($thread);
+        $entityPickerReply = $structuredContext['entity_picker'] ?? null;
+
+        if ($entityPickerReply !== null && $pendingEntityPicker !== null) {
+            $entityPickerResponse = $this->handleEntityPickerReply(
+                $thread,
+                $user,
+                $message,
+                $structuredContext,
+                $entityPickerReply,
+                $pendingEntityPicker,
+                $userMessage,
+            );
+
+            if ($entityPickerResponse !== null) {
+                return $entityPickerResponse;
+            }
+        } elseif ($entityPickerReply === null && $pendingEntityPicker !== null) {
+            $this->clearPendingEntityPicker($thread);
+        }
+
+        unset($structuredContext['entity_picker']);
+
+        $conversationHistory = $this->conversationHistory($thread);
+        $plannerResult = $this->runIntentPlanner($thread, $user, $message, $conversationHistory);
+        if ($plannerResult !== null) {
+            if ($this->hasPlannerSteps($plannerResult)) {
+                $planResponse = $this->handlePlannerPlan(
+                    $thread,
+                    $user,
+                    $message,
+                    $structuredContext,
+                    $plannerResult,
+                    $userMessage,
+                );
+
+                if ($planResponse !== null) {
+                    return $planResponse;
+                }
+            }
+
+            $plannerTool = $this->stringValue($plannerResult['tool'] ?? null);
+
+            if ($plannerTool === 'clarification') {
+                $clarificationResponse = $this->handlePlannerClarification(
+                    $thread,
+                    $user,
+                    $message,
+                    $structuredContext,
+                    $plannerResult,
+                    $userMessage,
+                );
+
+                if ($clarificationResponse !== null) {
+                    return $clarificationResponse;
+                }
+            } elseif ($plannerTool !== null && $plannerTool !== 'plan') {
+                $plannerResponse = $this->handlePlannedTool(
+                    $thread,
+                    $user,
+                    $message,
+                    $structuredContext,
+                    $plannerResult,
+                    $userMessage,
+                );
+
+                if ($plannerResponse !== null) {
+                    return $plannerResponse;
+                }
+            }
+        }
 
         $structuredContext = $this->withMemoryContext($thread, $structuredContext);
 
@@ -261,7 +421,7 @@ class ChatService
             'company_id' => $thread->company_id,
             'user_id' => $user->id,
             'user_id_hash' => $this->hashUser($user),
-            'messages' => $this->conversationHistory($thread),
+            'messages' => $conversationHistory,
             'context' => $this->encodeContextPayload($structuredContext),
             'thread_summary' => $this->normalizeThreadSummary($thread->thread_summary),
             'allow_general' => $allowGeneral,
@@ -887,6 +1047,26 @@ class ChatService
                 continue;
             }
 
+            if ($toolName === AiChatToolCall::CreateDisputeDraft->value) {
+                $resultsByIndex[$index] = [
+                    'tool_name' => $toolName,
+                    'call_id' => $callId,
+                    'result' => $this->resolveDisputeDraftTool($thread, $user, $arguments, $context),
+                ];
+
+                continue;
+            }
+
+            if ($toolName === AiChatToolCall::ResolveInvoiceMismatch->value) {
+                $resultsByIndex[$index] = [
+                    'tool_name' => $toolName,
+                    'call_id' => $callId,
+                    'result' => $this->resolveInvoiceMismatchTool($thread, $user, $arguments, $context),
+                ];
+
+                continue;
+            }
+
             if (in_array($toolName, [
                 AiChatToolCall::ReviewRfq->value,
                 AiChatToolCall::ReviewQuote->value,
@@ -970,6 +1150,415 @@ class ChatService
             'assistant_message' => $assistantMessage->fresh(),
             'response' => $assistantPayload,
         ];
+    }
+
+    private function maybeRespondWithEntityPicker(
+        AiChatThread $thread,
+        User $user,
+        array $toolCalls,
+        array $toolResults,
+        array $context,
+        AiChatMessage $toolMessage
+    ): ?array {
+        if (count($toolResults) !== 1) {
+            return null;
+        }
+
+        $result = $toolResults[0];
+        $toolName = $this->stringValue($result['tool_name'] ?? null);
+
+        if ($toolName === null || ! isset(self::ENTITY_PICKER_CONFIG[$toolName])) {
+            return null;
+        }
+
+        $config = self::ENTITY_PICKER_CONFIG[$toolName];
+        $payload = is_array($result['result'] ?? null) ? $result['result'] : [];
+        $items = isset($payload['items']) && is_array($payload['items']) ? $payload['items'] : [];
+
+        if (count($items) < 2) {
+            return null;
+        }
+
+        $meta = isset($payload['meta']) && is_array($payload['meta']) ? $payload['meta'] : [];
+        $query = $this->stringValue($meta['query'] ?? null) ?? '';
+
+        if ($query === '' || strlen($query) < 2) {
+            return null;
+        }
+
+        $totalCount = isset($meta['total_count']) ? (int) $meta['total_count'] : count($items);
+        if ($totalCount > 20) {
+            return null;
+        }
+
+        $formatter = $config['formatter'] ?? null;
+        $candidates = [];
+
+        if (is_string($formatter) && method_exists($this, $formatter)) {
+            /** @var array<int, array<string, mixed>> $candidates */
+            $candidates = $this->{$formatter}($items);
+        }
+
+        $candidates = array_values(array_filter($candidates, static function ($candidate): bool {
+            if (! is_array($candidate)) {
+                return false;
+            }
+
+            $candidateId = $candidate['candidate_id'] ?? null;
+            $args = $candidate['args'] ?? null;
+
+            return is_scalar($candidateId) && $candidateId !== '' && is_array($args);
+        }));
+
+        if (count($candidates) < 2) {
+            return null;
+        }
+
+        $candidates = array_slice($candidates, 0, 5);
+
+        $entityType = $this->stringValue($config['entity_type'] ?? null) ?? 'record';
+        $targetTool = $this->stringValue($config['target_tool'] ?? null);
+
+        if ($targetTool === null || $targetTool === '') {
+            return null;
+        }
+
+        $promptId = (string) Str::uuid();
+        $publicCandidates = array_map(static function (array $candidate): array {
+            return [
+                'candidate_id' => (string) $candidate['candidate_id'],
+                'label' => $candidate['label'] ?? (string) $candidate['candidate_id'],
+                'description' => $candidate['description'] ?? null,
+                'status' => $candidate['status'] ?? null,
+                'meta' => array_values(array_filter($candidate['meta'] ?? [])),
+            ];
+        }, $candidates);
+
+        if (count($publicCandidates) < 2) {
+            return null;
+        }
+
+        $assistantPayload = [
+            'type' => 'entity_picker',
+            'assistant_message_markdown' => $this->formatEntityPickerMarkdown($entityType, $query, count($publicCandidates)),
+            'citations' => [],
+            'suggested_quick_replies' => [],
+            'entity_picker' => [
+                'id' => $promptId,
+                'title' => sprintf('Select %s', strtolower(Str::plural($entityType))),
+                'description' => 'Pick the record that matches so Copilot can continue.',
+                'query' => $query,
+                'entity_type' => $entityType,
+                'search_tool' => $toolName,
+                'target_tool' => $targetTool,
+                'candidates' => $publicCandidates,
+            ],
+            'tool_results' => $toolResults,
+            'warnings' => [],
+            'needs_human_review' => false,
+            'confidence' => 0.0,
+        ];
+
+        $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
+            'content_text' => (string) ($assistantPayload['assistant_message_markdown'] ?? ''),
+            'content_json' => $assistantPayload,
+            'citations_json' => [],
+            'tool_calls_json' => [],
+            'tool_results_json' => $toolResults,
+            'latency_ms' => null,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $this->clearPendingEntityPicker($thread);
+
+        $this->storePendingEntityPicker($thread, [
+            'id' => $promptId,
+            'search_tool' => $toolName,
+            'target_tool' => $targetTool,
+            'entity_type' => $entityType,
+            'query' => $query,
+            'created_at' => now()->toIso8601String(),
+            'candidates' => array_map(static function (array $candidate): array {
+                return [
+                    'candidate_id' => (string) $candidate['candidate_id'],
+                    'args' => $candidate['args'],
+                ];
+            }, $candidates),
+        ]);
+
+        $this->recordToolEvent($thread, $user, $toolCalls, $context, null, $assistantPayload, null);
+
+        return [
+            'tool_message' => $toolMessage->fresh(),
+            'assistant_message' => $assistantMessage->fresh(),
+            'response' => $assistantPayload,
+        ];
+    }
+
+    private function formatEntityPickerMarkdown(string $entityType, string $query, int $count): string
+    {
+        $pluralType = $count === 1 ? $entityType : Str::plural($entityType);
+        $intro = sprintf('I found %d %s matching "%s".', $count, strtolower($pluralType), $query);
+
+        return $intro . ' Select the correct record so I can continue.';
+    }
+
+    private function formatInvoicePickerCandidates(array $items): array
+    {
+        $candidates = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $invoiceId = $this->idValue($item['invoice_id'] ?? $item['id'] ?? null);
+
+            if ($invoiceId === null) {
+                continue;
+            }
+
+            $invoiceNumber = $this->stringValue($item['invoice_number'] ?? null) ?? sprintf('Invoice %d', $invoiceId);
+            $status = $this->stringValue($item['status'] ?? null);
+
+            $supplierName = null;
+            if (isset($item['supplier']) && is_array($item['supplier'])) {
+                $supplierName = $this->stringValue($item['supplier']['name'] ?? null);
+            } elseif (isset($item['supplier_name'])) {
+                $supplierName = $this->stringValue($item['supplier_name']);
+            }
+
+            $purchaseOrder = null;
+            if (isset($item['purchase_order']) && is_array($item['purchase_order'])) {
+                $purchaseOrder = $this->stringValue($item['purchase_order']['po_number'] ?? null);
+            } elseif (isset($item['po_number'])) {
+                $purchaseOrder = $this->stringValue($item['po_number']);
+            }
+
+            $total = $this->stringValue($item['total'] ?? null);
+            $descriptionParts = array_values(array_filter([$supplierName, $total], static fn ($value) => $value !== null && $value !== ''));
+            $description = $descriptionParts === [] ? null : implode(' • ', $descriptionParts);
+
+            $meta = array_values(array_filter([
+                $this->formatPickerDate($item['due_date'] ?? null, 'Due'),
+                $purchaseOrder !== null ? sprintf('PO %s', $purchaseOrder) : null,
+                isset($item['exceptions']) && is_array($item['exceptions']) && $item['exceptions'] !== []
+                    ? sprintf('%d exception%s', count($item['exceptions']), count($item['exceptions']) === 1 ? '' : 's')
+                    : null,
+            ], static fn ($value) => $value !== null && $value !== ''));
+
+            $candidates[] = [
+                'candidate_id' => (string) $invoiceId,
+                'label' => $invoiceNumber,
+                'description' => $description,
+                'status' => $status,
+                'meta' => $meta,
+                'args' => [
+                    'invoice_id' => $invoiceId,
+                    'invoice_number' => $invoiceNumber,
+                ],
+            ];
+        }
+
+        return $candidates;
+    }
+
+    private function formatPurchaseOrderPickerCandidates(array $items): array
+    {
+        $candidates = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $poId = $this->idValue($item['po_id'] ?? $item['id'] ?? null);
+            if ($poId === null) {
+                continue;
+            }
+
+            $poNumber = $this->stringValue($item['po_number'] ?? null) ?? sprintf('PO-%d', $poId);
+            $status = $this->stringValue($item['status'] ?? null);
+            $supplierName = null;
+            if (isset($item['supplier']) && is_array($item['supplier'])) {
+                $supplierName = $this->stringValue($item['supplier']['name'] ?? null);
+            }
+
+            $total = $this->stringValue($item['total'] ?? null);
+            $descriptionParts = array_values(array_filter([$supplierName, $total], static fn ($value) => $value !== null && $value !== ''));
+            $description = $descriptionParts === [] ? null : implode(' • ', $descriptionParts);
+
+            $meta = array_values(array_filter([
+                $this->formatPickerDate($item['ordered_at'] ?? null, 'Ordered'),
+                $this->formatPickerDate($item['expected_at'] ?? null, 'Expected'),
+            ], static fn ($value) => $value !== null && $value !== ''));
+
+            $candidates[] = [
+                'candidate_id' => (string) $poId,
+                'label' => $poNumber,
+                'description' => $description,
+                'status' => $status,
+                'meta' => $meta,
+                'args' => [
+                    'po_id' => $poId,
+                    'po_number' => $poNumber,
+                ],
+            ];
+        }
+
+        return $candidates;
+    }
+
+    private function formatRfqPickerCandidates(array $items): array
+    {
+        $candidates = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $rfqId = $this->idValue($item['rfq_id'] ?? $item['id'] ?? null);
+            if ($rfqId === null) {
+                continue;
+            }
+
+            $number = $this->stringValue($item['number'] ?? null) ?? sprintf('RFQ-%d', $rfqId);
+            $title = $this->stringValue($item['title'] ?? null);
+            $status = $this->stringValue($item['status'] ?? null);
+
+            $meta = array_values(array_filter([
+                $this->formatPickerDate($item['due_at'] ?? null, 'Due'),
+                $this->formatPickerDate($item['close_at'] ?? null, 'Close'),
+            ], static fn ($value) => $value !== null && $value !== ''));
+
+            $candidates[] = [
+                'candidate_id' => (string) $rfqId,
+                'label' => $number,
+                'description' => $title,
+                'status' => $status,
+                'meta' => $meta,
+                'args' => [
+                    'rfq_id' => $rfqId,
+                ],
+            ];
+        }
+
+        return $candidates;
+    }
+
+    private function formatSupplierPickerCandidates(array $items): array
+    {
+        $candidates = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $supplierId = $this->idValue($item['supplier_id'] ?? $item['id'] ?? null);
+            if ($supplierId === null) {
+                continue;
+            }
+
+            $name = $this->stringValue($item['name'] ?? null) ?? sprintf('Supplier %d', $supplierId);
+            $status = $this->stringValue($item['status'] ?? null);
+            $location = $this->stringValue($item['location'] ?? null);
+            $leadTime = isset($item['lead_time_days']) && is_numeric($item['lead_time_days'])
+                ? sprintf('Lead time %d days', (int) $item['lead_time_days'])
+                : null;
+            $rating = isset($item['rating']) && is_numeric($item['rating'])
+                ? sprintf('Rating %.1f', (float) $item['rating'])
+                : null;
+
+            $meta = array_values(array_filter([
+                $location,
+                $leadTime,
+                $rating,
+            ], static fn ($value) => $value !== null && $value !== ''));
+
+            $capabilities = isset($item['capability_highlights']) && is_array($item['capability_highlights'])
+                ? array_values(array_filter($item['capability_highlights'], static fn ($entry) => is_string($entry) && $entry !== ''))
+                : [];
+
+            $description = $capabilities === [] ? null : implode(', ', array_slice($capabilities, 0, 3));
+
+            $candidates[] = [
+                'candidate_id' => (string) $supplierId,
+                'label' => $name,
+                'description' => $description,
+                'status' => $status,
+                'meta' => $meta,
+                'args' => [
+                    'supplier_id' => $supplierId,
+                ],
+            ];
+        }
+
+        return $candidates;
+    }
+
+    private function formatItemPickerCandidates(array $items): array
+    {
+        $candidates = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $itemId = $this->idValue($item['part_id'] ?? $item['item_id'] ?? $item['id'] ?? null);
+            if ($itemId === null) {
+                continue;
+            }
+
+            $partNumber = $this->stringValue($item['part_number'] ?? null) ?? sprintf('Item-%d', $itemId);
+            $name = $this->stringValue($item['name'] ?? null);
+            $status = $this->stringValue($item['status'] ?? null);
+            $category = $this->stringValue($item['category'] ?? null);
+            $uom = $this->stringValue($item['uom'] ?? null);
+
+            $description = array_values(array_filter([$name, $category], static fn ($value) => $value !== null && $value !== ''));
+            $meta = array_values(array_filter([
+                $uom !== null ? sprintf('UOM %s', $uom) : null,
+                $this->formatPickerDate($item['updated_at'] ?? null, 'Updated'),
+            ], static fn ($value) => $value !== null && $value !== ''));
+
+            $candidates[] = [
+                'candidate_id' => (string) $itemId,
+                'label' => $partNumber,
+                'description' => $description === [] ? null : implode(' • ', $description),
+                'status' => $status,
+                'meta' => $meta,
+                'args' => [
+                    'item_id' => $itemId,
+                    'part_number' => $partNumber,
+                ],
+            ];
+        }
+
+        return $candidates;
+    }
+
+    private function formatPickerDate(mixed $value, string $prefix): ?string
+    {
+        $timestamp = $this->stringValue($value);
+
+        if ($timestamp === null) {
+            return null;
+        }
+
+        try {
+            $date = Carbon::parse($timestamp);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        $formatted = $date->isoFormat('MMM D, YYYY');
+
+        return $prefix !== '' ? sprintf('%s %s', $prefix, $formatted) : $formatted;
     }
 
     private function buildHelpToolResult(
@@ -1254,6 +1843,86 @@ class ChatService
      * @param array<string, mixed> $context
      * @return array<string, mixed>
      */
+    private function resolveDisputeDraftTool(
+        AiChatThread $thread,
+        User $user,
+        array $arguments,
+        array $context
+    ): array {
+        $inputs = $this->extractDisputeDraftInputs($arguments, $context);
+
+        $requestPayload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => $this->normalizeToolContextBlocks($arguments['context'] ?? $context['context'] ?? []),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = $this->client->buildInvoiceDisputeDraftTool($requestPayload);
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Invoice dispute drafting service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to build invoice dispute draft.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Invoice dispute draft generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function resolveInvoiceMismatchTool(
+        AiChatThread $thread,
+        User $user,
+        array $arguments,
+        array $context
+    ): array {
+        $inputs = $this->extractInvoiceMismatchInputs($arguments, $context);
+
+        $requestPayload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => $this->normalizeToolContextBlocks($arguments['context'] ?? $context['context'] ?? []),
+            'inputs' => $inputs,
+        ];
+
+        try {
+            $response = $this->client->resolveInvoiceMismatchTool($requestPayload);
+        } catch (AiServiceUnavailableException $exception) {
+            throw new AiChatException('Invoice mismatch resolution service is unavailable. Please try again later.', null, 0, $exception);
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            throw new AiChatException($response['message'] ?? 'Failed to build invoice mismatch resolution.', $response['errors'] ?? null);
+        }
+
+        $data = $response['data'];
+
+        return [
+            'summary' => is_string($data['summary'] ?? null) ? $data['summary'] : 'Invoice mismatch resolution generated.',
+            'payload' => is_array($data['payload'] ?? null) ? $data['payload'] : [],
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
     private function resolveReviewTool(
         AiChatThread $thread,
         User $user,
@@ -1457,6 +2126,249 @@ class ChatService
      * @param array<string, mixed> $context
      * @return array<string, mixed>
      */
+    private function extractDisputeDraftInputs(array $arguments, array $context): array
+    {
+        $contextPayload = isset($context['context']) && is_array($context['context']) ? $context['context'] : [];
+        $invoiceBlock = isset($contextPayload['invoice']) && is_array($contextPayload['invoice']) ? $contextPayload['invoice'] : [];
+        $contextDisputeRef = isset($contextPayload['dispute_reference']) && is_array($contextPayload['dispute_reference'])
+            ? $contextPayload['dispute_reference']
+            : [];
+
+        $inputs = [];
+
+        $invoiceId = $this->stringValue(
+            $arguments['invoice_id']
+            ?? $contextPayload['invoice_id']
+            ?? ($invoiceBlock['invoice_id'] ?? $invoiceBlock['id'] ?? null)
+            ?? ($contextDisputeRef['invoice']['id'] ?? null)
+        );
+
+        $invoiceNumber = $this->stringValue(
+            $arguments['invoice_number']
+            ?? $contextPayload['invoice_number']
+            ?? ($invoiceBlock['invoice_number'] ?? $invoiceBlock['number'] ?? null)
+            ?? ($contextDisputeRef['invoice']['number'] ?? null)
+        );
+
+        if ($invoiceId === null && $invoiceNumber === null) {
+            throw new AiChatException('Invoice dispute draft tool requires invoice_id or invoice_number argument.');
+        }
+
+        if ($invoiceId !== null) {
+            $inputs['invoice_id'] = $invoiceId;
+        }
+
+        if ($invoiceNumber !== null) {
+            $inputs['invoice_number'] = $invoiceNumber;
+        }
+
+        $poBlockFromContext = isset($contextPayload['purchase_order']) && is_array($contextPayload['purchase_order'])
+            ? $contextPayload['purchase_order']
+            : (isset($invoiceBlock['purchase_order']) && is_array($invoiceBlock['purchase_order']) ? $invoiceBlock['purchase_order'] : []);
+        $poReference = isset($contextDisputeRef['purchase_order']) && is_array($contextDisputeRef['purchase_order'])
+            ? $contextDisputeRef['purchase_order']
+            : [];
+
+        $purchaseOrderId = $this->stringValue(
+            $arguments['purchase_order_id']
+            ?? $arguments['po_id']
+            ?? $contextPayload['purchase_order_id']
+            ?? ($poBlockFromContext['purchase_order_id'] ?? $poBlockFromContext['id'] ?? null)
+            ?? ($poReference['id'] ?? null)
+        );
+        $purchaseOrderNumber = $this->stringValue(
+            $arguments['purchase_order_number']
+            ?? $arguments['po_number']
+            ?? $contextPayload['purchase_order_number']
+            ?? ($poBlockFromContext['po_number'] ?? $poBlockFromContext['number'] ?? null)
+            ?? ($poReference['number'] ?? null)
+        );
+
+        if ($purchaseOrderId !== null) {
+            $inputs['purchase_order_id'] = $purchaseOrderId;
+        }
+
+        if ($purchaseOrderNumber !== null) {
+            $inputs['purchase_order_number'] = $purchaseOrderNumber;
+        }
+
+        $receiptBlock = isset($contextPayload['receipt']) && is_array($contextPayload['receipt'])
+            ? $contextPayload['receipt']
+            : [];
+        if ($receiptBlock === [] && isset($contextPayload['receipts']) && is_array($contextPayload['receipts'])) {
+            $firstReceipt = $contextPayload['receipts'][0] ?? null;
+            $receiptBlock = is_array($firstReceipt) ? $firstReceipt : [];
+        }
+        $receiptReference = isset($contextDisputeRef['receipt']) && is_array($contextDisputeRef['receipt'])
+            ? $contextDisputeRef['receipt']
+            : [];
+
+        $receiptId = $this->stringValue(
+            $arguments['receipt_id']
+            ?? $contextPayload['receipt_id']
+            ?? ($receiptBlock['receipt_id'] ?? $receiptBlock['id'] ?? null)
+            ?? ($receiptReference['id'] ?? null)
+        );
+        $receiptNumber = $this->stringValue(
+            $arguments['receipt_number']
+            ?? $contextPayload['receipt_number']
+            ?? ($receiptBlock['number'] ?? null)
+            ?? ($receiptReference['number'] ?? null)
+        );
+
+        if ($receiptId !== null) {
+            $inputs['receipt_id'] = $receiptId;
+        }
+
+        if ($receiptNumber !== null) {
+            $inputs['receipt_number'] = $receiptNumber;
+        }
+
+        if (isset($arguments['dispute_reference']) && is_array($arguments['dispute_reference'])) {
+            $inputs['dispute_reference'] = $arguments['dispute_reference'];
+        } elseif ($contextDisputeRef !== []) {
+            $inputs['dispute_reference'] = $contextDisputeRef;
+        }
+
+        $matchResult = $arguments['match_result']
+            ?? $contextPayload['match_result']
+            ?? ($invoiceBlock['match_result'] ?? null);
+        if (is_array($matchResult) && $matchResult !== []) {
+            $inputs['match_result'] = $matchResult;
+        }
+
+        $mismatches = $arguments['mismatches']
+            ?? ($matchResult['mismatches'] ?? null)
+            ?? $contextPayload['mismatches']
+            ?? null;
+        $normalizedMismatches = $this->normalizeMismatchEntries($mismatches);
+        if ($normalizedMismatches !== []) {
+            $inputs['mismatches'] = $normalizedMismatches;
+        }
+
+        $issueSummary = $this->stringValue($arguments['issue_summary'] ?? $contextPayload['issue_summary'] ?? null);
+        if ($issueSummary !== null) {
+            $inputs['issue_summary'] = $issueSummary;
+        }
+
+        $issueCategory = $this->stringValue($arguments['issue_category'] ?? $contextPayload['issue_category'] ?? null);
+        if ($issueCategory !== null) {
+            $inputs['issue_category'] = $issueCategory;
+        }
+
+        $resolutionType = $this->stringValue($arguments['resolution_type'] ?? $contextPayload['resolution_type'] ?? null);
+        if ($resolutionType !== null) {
+            $inputs['resolution_type'] = $resolutionType;
+        }
+
+        $ownerRole = $this->stringValue($arguments['owner_role'] ?? $contextPayload['owner_role'] ?? null);
+        if ($ownerRole !== null) {
+            $inputs['owner_role'] = $ownerRole;
+        }
+
+        $requiresHoldValue = $arguments['requires_hold'] ?? $contextPayload['requires_hold'] ?? null;
+        if (is_bool($requiresHoldValue)) {
+            $inputs['requires_hold'] = $requiresHoldValue;
+        }
+
+        $dueInDaysValue = $arguments['due_in_days'] ?? $contextPayload['due_in_days'] ?? null;
+        if (is_numeric($dueInDaysValue)) {
+            $inputs['due_in_days'] = max(0, min(120, (int) $dueInDaysValue));
+        }
+
+        $reasonCodes = $this->normalizeStringList($arguments['reason_codes'] ?? $contextPayload['reason_codes'] ?? null, 10);
+        if ($reasonCodes !== []) {
+            $inputs['reason_codes'] = $reasonCodes;
+        }
+
+        $actions = $this->normalizeDisputeActions($arguments['actions'] ?? $contextPayload['actions'] ?? null);
+        if ($actions !== []) {
+            $inputs['actions'] = $actions;
+        }
+
+        $impacts = $this->normalizeDisputeImpacts($arguments['impacted_lines'] ?? $contextPayload['impacted_lines'] ?? null);
+        if ($impacts !== []) {
+            $inputs['impacted_lines'] = $impacts;
+        }
+
+        $nextSteps = $this->normalizeStringList($arguments['next_steps'] ?? $contextPayload['next_steps'] ?? null, 10);
+        if ($nextSteps !== []) {
+            $inputs['next_steps'] = $nextSteps;
+        }
+
+        $notes = $this->normalizeStringList($arguments['notes'] ?? $contextPayload['notes'] ?? null, 10);
+        if ($notes !== []) {
+            $inputs['notes'] = $notes;
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    private function extractInvoiceMismatchInputs(array $arguments, array $context): array
+    {
+        $contextPayload = isset($context['context']) && is_array($context['context']) ? $context['context'] : [];
+        $invoiceBlock = isset($contextPayload['invoice']) && is_array($contextPayload['invoice']) ? $contextPayload['invoice'] : [];
+
+        $invoiceId = $this->stringValue(
+            $arguments['invoice_id']
+            ?? $contextPayload['invoice_id']
+            ?? $contextPayload['entity_id']
+            ?? ($invoiceBlock['invoice_id'] ?? $invoiceBlock['id'] ?? null)
+        );
+
+        if ($invoiceId === null) {
+            throw new AiChatException('Invoice mismatch resolution tool requires invoice_id argument.');
+        }
+
+        $inputs = ['invoice_id' => $invoiceId];
+
+        $matchResult = $arguments['match_result'] ?? $contextPayload['match_result'] ?? null;
+        if (is_array($matchResult)) {
+            $inputs['match_result'] = $matchResult;
+        }
+
+        $mismatches = $arguments['mismatches']
+            ?? (is_array($matchResult) ? ($matchResult['mismatches'] ?? null) : null)
+            ?? $contextPayload['mismatches']
+            ?? null;
+        $normalizedMismatches = $this->normalizeMismatchEntries($mismatches);
+        if ($normalizedMismatches !== []) {
+            $inputs['mismatches'] = $normalizedMismatches;
+        }
+
+        $preferredResolution = $this->stringValue($arguments['preferred_resolution'] ?? $contextPayload['preferred_resolution'] ?? null);
+        if ($preferredResolution !== null) {
+            $inputs['preferred_resolution'] = $preferredResolution;
+        }
+
+        $summary = $this->stringValue($arguments['summary'] ?? $contextPayload['summary'] ?? null);
+        if ($summary !== null) {
+            $inputs['summary'] = $summary;
+        }
+
+        $reasonCodes = $this->normalizeStringList($arguments['reason_codes'] ?? $contextPayload['reason_codes'] ?? null, 6);
+        if ($reasonCodes !== []) {
+            $inputs['reason_codes'] = $reasonCodes;
+        }
+
+        $notes = $this->normalizeStringList($arguments['notes'] ?? $contextPayload['notes'] ?? null, 5);
+        if ($notes !== []) {
+            $inputs['notes'] = $notes;
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
     private function buildReviewInputs(string $toolName, array $arguments, array $context): array
     {
         $inputs = is_array($arguments) ? $arguments : [];
@@ -1512,6 +2424,177 @@ class ChatService
         return null;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function normalizeMismatchEntries(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $entries = [];
+
+        foreach ($value as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $normalized = [];
+
+            foreach (['type', 'line_reference', 'severity', 'detail'] as $key) {
+                $stringValue = $this->stringValue($entry[$key] ?? null);
+                if ($stringValue !== null) {
+                    $normalized[$key] = $stringValue;
+                }
+            }
+
+            if (array_key_exists('variance', $entry) && is_numeric($entry['variance'])) {
+                $normalized['variance'] = (float) $entry['variance'];
+            }
+
+            foreach (['expected', 'actual'] as $numericKey) {
+                if (array_key_exists($numericKey, $entry) && $entry[$numericKey] !== null) {
+                    $normalized[$numericKey] = $entry[$numericKey];
+                }
+            }
+
+            if ($normalized === []) {
+                continue;
+            }
+
+            $entries[] = $normalized;
+
+            if (count($entries) >= 25) {
+                break;
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * @return list<array{type:string,description:string,owner_role:?string,due_in_days:?int,requires_hold:bool}>
+     */
+    private function normalizeDisputeActions(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $actions = [];
+
+        foreach ($value as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $type = $this->stringValue($entry['type'] ?? null);
+            $description = $this->stringValue($entry['description'] ?? null);
+
+            if ($type === null || $description === null) {
+                continue;
+            }
+
+            $action = [
+                'type' => $type,
+                'description' => $description,
+                'requires_hold' => (bool) ($entry['requires_hold'] ?? false),
+            ];
+
+            $ownerRole = $this->stringValue($entry['owner_role'] ?? null);
+            if ($ownerRole !== null) {
+                $action['owner_role'] = $ownerRole;
+            }
+
+            if (isset($entry['due_in_days']) && is_numeric($entry['due_in_days'])) {
+                $action['due_in_days'] = max(0, min(120, (int) $entry['due_in_days']));
+            }
+
+            $actions[] = $action;
+
+            if (count($actions) >= 10) {
+                break;
+            }
+        }
+
+        return $actions;
+    }
+
+    /**
+     * @return list<array{reference:string,issue:string,severity:?string,variance:?float,recommended_action:string}>
+     */
+    private function normalizeDisputeImpacts(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $impacts = [];
+
+        foreach ($value as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $reference = $this->stringValue($entry['reference'] ?? $entry['line_reference'] ?? null);
+            $issue = $this->stringValue($entry['issue'] ?? null);
+            $recommendation = $this->stringValue($entry['recommended_action'] ?? null);
+
+            if ($reference === null || $issue === null || $recommendation === null) {
+                continue;
+            }
+
+            $impact = [
+                'reference' => $reference,
+                'issue' => $issue,
+                'recommended_action' => $recommendation,
+            ];
+
+            $severity = $this->stringValue($entry['severity'] ?? null);
+            if ($severity !== null) {
+                $impact['severity'] = $severity;
+            }
+
+            if (isset($entry['variance']) && is_numeric($entry['variance'])) {
+                $impact['variance'] = (float) $entry['variance'];
+            }
+
+            $impacts[] = $impact;
+
+            if (count($impacts) >= 10) {
+                break;
+            }
+        }
+
+        return $impacts;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizeStringList(mixed $value, int $limit = 10): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($value as $entry) {
+            $stringValue = $this->stringValue($entry);
+            if ($stringValue !== null) {
+                $normalized[] = $stringValue;
+            }
+
+            if (count($normalized) >= $limit) {
+                break;
+            }
+        }
+
+        return $normalized;
+    }
+
     private function stringValue(mixed $value): ?string
     {
         if (is_string($value)) {
@@ -1522,6 +2605,21 @@ class ChatService
 
         if (is_int($value) || is_float($value)) {
             return (string) $value;
+        }
+
+        return null;
+    }
+
+    private function idValue(mixed $value): ?int
+    {
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '' && ctype_digit($value)) {
+            $normalized = (int) $value;
+
+            return $normalized > 0 ? $normalized : null;
         }
 
         return null;
@@ -1599,9 +2697,261 @@ class ChatService
                 : null,
             'attachments' => isset($context['attachments']) && is_array($context['attachments']) ? $context['attachments'] : [],
             'locale' => $this->sanitizeLocale($context['locale'] ?? null),
+            'clarification' => $this->normalizeClarificationReply($context['clarification'] ?? null),
+            'entity_picker' => $this->normalizeEntityPickerReply($context['entity_picker'] ?? null),
         ], static fn ($value) => $value !== null && $value !== []);
 
         return $normalized;
+    }
+
+    private function normalizeClarificationReply(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $identifier = $this->stringValue($value['id'] ?? null);
+
+        if ($identifier === null) {
+            return null;
+        }
+
+        return ['id' => $identifier];
+    }
+
+    private function normalizeEntityPickerReply(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $identifier = $this->stringValue($value['id'] ?? null);
+        $candidate = $this->stringValue($value['candidate_id'] ?? $value['candidate'] ?? null);
+
+        if ($identifier === null || $candidate === null) {
+            return null;
+        }
+
+        return [
+            'id' => $identifier,
+            'candidate_id' => $candidate,
+        ];
+    }
+
+    private function normalizeClarificationArgs(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($value as $argument) {
+            if (! is_string($argument)) {
+                continue;
+            }
+
+            $trimmed = trim($argument);
+
+            if ($trimmed === '') {
+                continue;
+            }
+
+            $normalized[] = $trimmed;
+
+            if (count($normalized) >= 5) {
+                break;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function clarificationAnswerValue(string $answer): string
+    {
+        $normalized = trim($answer);
+
+        if ($normalized === '') {
+            return $answer;
+        }
+
+        $patterns = [
+            '/^(?:let\'s\s+call\s+it)\s+/i',
+            '/^(?:call\s+it)\s+/i',
+            '/^(?:name\s+it)\s+/i',
+            '/^(?:title\s+it)\s+/i',
+            '/^(?:it\s+should\s+be)\s+/i',
+            '/^(?:make\s+it)\s+/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $count = 0;
+            $stripped = preg_replace($pattern, '', $normalized, 1, $count);
+            if (is_string($stripped) && $count > 0) {
+                $normalized = $stripped;
+                break;
+            }
+        }
+
+        $normalized = trim($normalized);
+
+        return $normalized === '' ? $answer : $normalized;
+    }
+
+    private function pendingClarification(AiChatThread $thread): ?array
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata)) {
+            return null;
+        }
+
+        $clarification = $metadata['pending_clarification'] ?? null;
+
+        if (! is_array($clarification)) {
+            return null;
+        }
+
+        $identifier = $this->stringValue($clarification['id'] ?? null);
+
+        if ($identifier === null) {
+            return null;
+        }
+
+        $clarification['id'] = $identifier;
+
+        return $clarification;
+    }
+
+    private function storePendingClarification(AiChatThread $thread, array $clarification): void
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata)) {
+            $metadata = [];
+        }
+
+        $metadata['pending_clarification'] = $clarification;
+
+        $thread->forceFill(['metadata_json' => $metadata])->save();
+    }
+
+    private function clearPendingClarification(AiChatThread $thread): void
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata) || ! array_key_exists('pending_clarification', $metadata)) {
+            return;
+        }
+
+        unset($metadata['pending_clarification']);
+
+        $thread->forceFill(['metadata_json' => $metadata])->save();
+    }
+
+    private function pendingEntityPicker(AiChatThread $thread): ?array
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata)) {
+            return null;
+        }
+
+        $picker = $metadata['pending_entity_picker'] ?? null;
+
+        if (! is_array($picker)) {
+            return null;
+        }
+
+        $identifier = $this->stringValue($picker['id'] ?? null);
+        $targetTool = $this->stringValue($picker['target_tool'] ?? null);
+        $candidates = isset($picker['candidates']) && is_array($picker['candidates']) ? $picker['candidates'] : [];
+
+        if ($identifier === null || $targetTool === null || $candidates === []) {
+            return null;
+        }
+
+        $normalizedCandidates = [];
+        foreach ($candidates as $candidate) {
+            if (! is_array($candidate)) {
+                continue;
+            }
+
+            $candidateId = $this->stringValue($candidate['candidate_id'] ?? null);
+            if ($candidateId === null) {
+                continue;
+            }
+
+            $arguments = isset($candidate['args']) && is_array($candidate['args']) ? $candidate['args'] : [];
+            $normalizedCandidates[] = [
+                'candidate_id' => $candidateId,
+                'args' => $arguments,
+            ];
+        }
+
+        if ($normalizedCandidates === []) {
+            return null;
+        }
+
+        $picker['id'] = $identifier;
+        $picker['target_tool'] = $targetTool;
+        $picker['candidates'] = $normalizedCandidates;
+
+        return $picker;
+    }
+
+    private function storePendingEntityPicker(AiChatThread $thread, array $picker): void
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata)) {
+            $metadata = [];
+        }
+
+        $metadata['pending_entity_picker'] = $picker;
+
+        $thread->forceFill(['metadata_json' => $metadata])->save();
+    }
+
+    private function clearPendingEntityPicker(AiChatThread $thread): void
+    {
+        $metadata = $thread->metadata_json;
+
+        if (! is_array($metadata) || ! array_key_exists('pending_entity_picker', $metadata)) {
+            return;
+        }
+
+        unset($metadata['pending_entity_picker']);
+
+        $thread->forceFill(['metadata_json' => $metadata])->save();
+    }
+
+    private function matchPendingEntityCandidate(mixed $candidates, string $candidateId): ?array
+    {
+        if (! is_array($candidates)) {
+            return null;
+        }
+
+        foreach ($candidates as $candidate) {
+            if (! is_array($candidate)) {
+                continue;
+            }
+
+            $identifier = $this->stringValue($candidate['candidate_id'] ?? null);
+
+            if ($identifier === null || $identifier !== $candidateId) {
+                continue;
+            }
+
+            $arguments = isset($candidate['args']) && is_array($candidate['args']) ? $candidate['args'] : [];
+
+            return [
+                'candidate_id' => $identifier,
+                'args' => $arguments,
+            ];
+        }
+
+        return null;
     }
 
     /**
@@ -1703,6 +3053,8 @@ class ChatService
             return $assistantPayload;
         }
 
+        $requiresUnsafeConfirmation = $this->isUnsafeDraftAction($actionType);
+
         $citations = $this->normalizeList($assistantPayload['citations'] ?? []);
 
         try {
@@ -1726,7 +3078,858 @@ class ChatService
             'status' => $draftModel->status,
         ]);
 
+        if ($requiresUnsafeConfirmation) {
+            $assistantPayload['type'] = 'unsafe_action_confirmation';
+            $assistantPayload['unsafe_action'] = $this->buildUnsafeActionPrompt($actionType, $draftPayload);
+        }
+
         return $assistantPayload;
+    }
+
+    private function isUnsafeDraftAction(string $actionType): bool
+    {
+        return in_array($actionType, self::UNSAFE_DRAFT_ACTION_TYPES, true);
+    }
+
+    private function buildUnsafeActionPrompt(string $actionType, array $draftPayload): array
+    {
+        $payload = isset($draftPayload['payload']) && is_array($draftPayload['payload']) ? $draftPayload['payload'] : [];
+        $actionLabel = $this->formatActionLabel($actionType);
+        $entityLabel = $this->unsafeEntityLabel($actionType, $payload);
+        $summary = $this->stringValue($draftPayload['summary'] ?? null)
+            ?? sprintf('%s requires your confirmation before Copilot runs it.', $actionLabel);
+
+        return [
+            'id' => (string) Str::uuid(),
+            'action_type' => $actionType,
+            'action_label' => $actionLabel,
+            'headline' => $this->unsafeActionHeadline($actionType, $entityLabel),
+            'summary' => $summary,
+            'description' => $this->unsafeActionDescription($actionType, $payload, $entityLabel),
+            'impact' => $this->unsafeActionImpact($actionType, $payload),
+            'entity' => $entityLabel,
+            'acknowledgement' => $this->unsafeActionAcknowledgement($actionType, $entityLabel),
+            'confirm_label' => $this->unsafeActionConfirmLabel($actionType),
+            'risks' => $this->unsafeActionRisks($actionType),
+        ];
+    }
+
+    private function unsafeEntityLabel(string $actionType, array $payload): ?string
+    {
+        if ($actionType === AiActionDraft::TYPE_APPROVE_INVOICE) {
+            $invoice = $this->stringValue($payload['invoice_number'] ?? $payload['invoice_id'] ?? null);
+
+            return $invoice !== null ? sprintf('Invoice %s', $invoice) : null;
+        }
+
+        if (in_array($actionType, [AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process'], true)) {
+            $reference = $this->stringValue($payload['payment_reference'] ?? $payload['reference'] ?? null);
+
+            if ($reference !== null) {
+                return sprintf('Payment %s', $reference);
+            }
+
+            $invoice = $this->stringValue($payload['invoice_id'] ?? null);
+
+            return $invoice !== null ? sprintf('Invoice %s', $invoice) : null;
+        }
+
+        if ($actionType === 'award_quote') {
+            $rfqId = $this->stringValue($payload['rfq_id'] ?? null);
+
+            return $rfqId !== null ? sprintf('RFQ %s', $rfqId) : null;
+        }
+
+        return null;
+    }
+
+    private function unsafeActionHeadline(string $actionType, ?string $entityLabel): string
+    {
+        return match ($actionType) {
+            AiActionDraft::TYPE_APPROVE_INVOICE => $entityLabel
+                ? sprintf('Confirm payment for %s', $entityLabel)
+                : 'Confirm invoice payment',
+            AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process' => $entityLabel
+                ? sprintf('Confirm release for %s', $entityLabel)
+                : 'Confirm payment release',
+            'award_quote' => 'Confirm supplier award',
+            default => sprintf('Confirm %s', Str::lower($this->formatActionLabel($actionType))),
+        };
+    }
+
+    private function unsafeActionDescription(string $actionType, array $payload, ?string $entityLabel): string
+    {
+        if ($actionType === AiActionDraft::TYPE_APPROVE_INVOICE) {
+            $reference = $this->stringValue($payload['payment_reference'] ?? $payload['reference'] ?? null);
+
+            if ($entityLabel !== null && $reference !== null) {
+                return sprintf('Copilot will mark %s as paid and log payment reference %s.', $entityLabel, $reference);
+            }
+
+            if ($entityLabel !== null) {
+                return sprintf('Copilot will mark %s as paid in Accounts Payable.', $entityLabel);
+            }
+
+            return 'Copilot will mark the invoice as paid and close out the balance.';
+        }
+
+        if (in_array($actionType, [AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process'], true)) {
+            $reference = $this->stringValue($payload['payment_reference'] ?? $payload['reference'] ?? null);
+            $invoice = $this->stringValue($payload['invoice_id'] ?? null);
+
+            if ($reference !== null && $invoice !== null) {
+                return sprintf('Copilot will release payment %s against invoice %s.', $reference, $invoice);
+            }
+
+            if ($reference !== null) {
+                return sprintf('Copilot will release payment %s.', $reference);
+            }
+
+            return 'Copilot will create a payment ready for disbursement.';
+        }
+
+        if ($actionType === 'award_quote') {
+            $rfqId = $this->stringValue($payload['rfq_id'] ?? null);
+            $supplier = $this->stringValue($payload['supplier_id'] ?? null);
+            $quoteId = $this->stringValue($payload['selected_quote_id'] ?? null);
+
+            if ($rfqId !== null && $supplier !== null && $quoteId !== null) {
+                return sprintf('Copilot will award RFQ %s to supplier %s using quote %s.', $rfqId, $supplier, $quoteId);
+            }
+
+            return 'Copilot will finalize the supplier award and lock the chosen quote.';
+        }
+
+        return sprintf('Copilot will execute the %s action.', $this->formatActionLabel($actionType));
+    }
+
+    private function unsafeActionImpact(string $actionType, array $payload): ?string
+    {
+        if (in_array($actionType, [AiActionDraft::TYPE_APPROVE_INVOICE, AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process'], true)) {
+            $amount = $this->formatCurrencyAmount(
+                $payload['payment_amount'] ?? $payload['amount'] ?? null,
+                $payload['payment_currency'] ?? $payload['currency'] ?? null,
+            );
+
+            if ($amount !== null) {
+                return sprintf('%s will be recorded immediately.', $amount);
+            }
+
+            return 'Funds will be recorded immediately.';
+        }
+
+        if ($actionType === 'award_quote') {
+            $deliveryDate = $this->stringValue($payload['delivery_date'] ?? null);
+
+            if ($deliveryDate !== null) {
+                return sprintf('Award locks the quote and sets delivery for %s.', $deliveryDate);
+            }
+
+            return 'Award locks pricing, delivery commitments, and supplier capacity.';
+        }
+
+        return null;
+    }
+
+    private function unsafeActionAcknowledgement(string $actionType, ?string $entityLabel): string
+    {
+        if ($actionType === AiActionDraft::TYPE_APPROVE_INVOICE) {
+            return $entityLabel !== null
+                ? sprintf('I understand approving this will mark %s as paid.', $entityLabel)
+                : 'I understand this will mark the invoice as paid.';
+        }
+
+        if (in_array($actionType, [AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process'], true)) {
+            return 'I understand this will release a payment request to finance.';
+        }
+
+        if ($actionType === 'award_quote') {
+            return 'I understand this commits the RFQ award to the selected supplier.';
+        }
+
+        return 'I understand Copilot will execute this action immediately.';
+    }
+
+    private function unsafeActionConfirmLabel(string $actionType): string
+    {
+        return match ($actionType) {
+            AiActionDraft::TYPE_APPROVE_INVOICE => 'Confirm payment release',
+            AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process' => 'Confirm payment request',
+            'award_quote' => 'Confirm supplier award',
+            default => 'Confirm action',
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function unsafeActionRisks(string $actionType): array
+    {
+        if ($actionType === AiActionDraft::TYPE_APPROVE_INVOICE) {
+            return [
+                'Updates the invoice status to Paid immediately.',
+                'Posts payment details to the finance ledger.',
+            ];
+        }
+
+        if (in_array($actionType, [AiActionDraft::TYPE_PAYMENT_DRAFT, 'payment_process'], true)) {
+            return [
+                'Creates a payment request ready for disbursement.',
+                'May notify the supplier depending on AP automation rules.',
+            ];
+        }
+
+        if ($actionType === 'award_quote') {
+            return [
+                'Commits the RFQ to the selected supplier and pricing.',
+                'Downstream PO drafting will use this award immediately.',
+            ];
+        }
+
+        return [];
+    }
+
+    private function formatActionLabel(string $value): string
+    {
+        $normalized = str_replace(['_', '-'], ' ', strtolower($value));
+
+        return Str::title($normalized);
+    }
+
+    private function formatCurrencyAmount(mixed $amount, ?string $currency): ?string
+    {
+        $value = $this->floatValue($amount);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $code = $currency !== null ? strtoupper($currency) : 'USD';
+
+        return sprintf('%s %s', $code, number_format($value, 2, '.', ','));
+    }
+
+    private function runIntentPlanner(
+        AiChatThread $thread,
+        User $user,
+        string $prompt,
+        array $conversationHistory
+    ): ?array {
+        $plannerContext = $this->plannerContext($conversationHistory);
+        if ($plannerContext === []) {
+            $plannerContext = [
+                [
+                    'role' => 'user',
+                    'content' => $prompt,
+                ],
+            ];
+        }
+
+        $payload = [
+            'prompt' => $prompt,
+            'context' => $plannerContext,
+            'company_id' => $thread->company_id,
+            'thread_id' => (string) $thread->id,
+            'user_id' => $user->id,
+        ];
+
+        try {
+            $response = $this->client->intentPlan($payload);
+        } catch (AiServiceUnavailableException $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            return null;
+        }
+
+        return $response['data'];
+    }
+
+    private function plannerContext(array $messages): array
+    {
+        $window = array_slice($messages, -12);
+        $context = [];
+
+        foreach ($window as $message) {
+            $role = $message['role'] ?? null;
+            $content = $message['content'] ?? null;
+
+            if (! is_string($role) || ! is_string($content)) {
+                continue;
+            }
+
+            $normalizedRole = strtolower(trim($role));
+
+            if (! in_array($normalizedRole, ['user', 'assistant', 'system'], true)) {
+                continue;
+            }
+
+            $trimmedContent = trim($content);
+            if ($trimmedContent === '') {
+                continue;
+            }
+
+            $context[] = [
+                'role' => $normalizedRole,
+                'content' => $trimmedContent,
+            ];
+        }
+
+        return $context;
+    }
+
+    private function handlePlannerClarification(
+        AiChatThread $thread,
+        User $user,
+        string $message,
+        array $structuredContext,
+        array $plan,
+        AiChatMessage $userMessage
+    ): ?array {
+        $targetTool = $this->stringValue($plan['target_tool'] ?? null);
+        if ($targetTool === null) {
+            return null;
+        }
+
+        $missingArgs = $this->normalizeClarificationArgs($plan['missing_args'] ?? []);
+        if ($missingArgs === []) {
+            return null;
+        }
+
+        $question = $this->stringValue($plan['question'] ?? null) ?? 'Could you clarify one more detail?';
+        $arguments = isset($plan['args']) && is_array($plan['args']) ? $plan['args'] : [];
+
+        $clarificationPayload = [
+            'id' => (string) Str::uuid(),
+            'tool' => $targetTool,
+            'question' => $question,
+            'missing_args' => $missingArgs,
+            'args' => $arguments,
+        ];
+
+        $assistantPayload = [
+            'type' => 'clarification',
+            'assistant_message_markdown' => $question,
+            'citations' => [],
+            'draft' => null,
+            'workflow' => null,
+            'tool_calls' => null,
+            'needs_human_review' => false,
+            'confidence' => 0.0,
+            'warnings' => [],
+            'clarification' => $clarificationPayload,
+            'planner' => [
+                'tool' => 'clarification',
+                'args' => $arguments,
+            ],
+        ];
+
+        $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
+            'content_text' => $question,
+            'content_json' => $assistantPayload,
+            'citations_json' => [],
+            'tool_calls_json' => [],
+            'tool_results_json' => [],
+            'latency_ms' => 0,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $this->recordChatEvent($thread, $user, $message, $structuredContext, 0, $assistantPayload, null);
+
+        $this->storePendingClarification($thread, array_merge($clarificationPayload, [
+            'prompt' => $message,
+            'created_at' => now()->toIso8601String(),
+        ]));
+
+        return [
+            'user_message' => $userMessage->fresh(),
+            'assistant_message' => $assistantMessage->fresh(),
+            'response' => $assistantPayload,
+        ];
+    }
+
+    private function handleClarificationReply(
+        AiChatThread $thread,
+        User $user,
+        string $message,
+        array $structuredContext,
+        array $clarificationContext,
+        ?array $pendingClarification,
+        AiChatMessage $userMessage
+    ): ?array {
+        $clarificationId = $this->stringValue($clarificationContext['id'] ?? null);
+        if ($clarificationId === null) {
+            return null;
+        }
+
+        $pending = $pendingClarification ?? $this->pendingClarification($thread);
+
+        if ($pending === null) {
+            return null;
+        }
+
+        $pendingId = $this->stringValue($pending['id'] ?? null);
+        if ($pendingId === null || $pendingId !== $clarificationId) {
+            return null;
+        }
+
+        $this->clearPendingClarification($thread);
+
+        $toolName = $this->stringValue($pending['tool'] ?? null);
+        if ($toolName === null) {
+            return null;
+        }
+
+        $arguments = isset($pending['args']) && is_array($pending['args']) ? $pending['args'] : [];
+        $missingArgs = $this->normalizeClarificationArgs($pending['missing_args'] ?? []);
+        $primaryArg = $missingArgs[0] ?? null;
+
+        $answer = trim($message) !== '' ? trim($message) : $message;
+        if ($primaryArg !== null) {
+            $arguments[$primaryArg] = $this->clarificationAnswerValue($answer);
+        }
+
+        $plan = [
+            'tool' => $toolName,
+            'args' => $arguments,
+        ];
+
+        $contextWithoutClarification = $structuredContext;
+        unset($contextWithoutClarification['clarification']);
+
+        $response = $this->handlePlannedTool(
+            $thread,
+            $user,
+            $message,
+            $contextWithoutClarification,
+            $plan,
+            $userMessage,
+        );
+
+        if ($response !== null) {
+            return $response;
+        }
+
+        return null;
+    }
+
+    private function handleEntityPickerReply(
+        AiChatThread $thread,
+        User $user,
+        string $message,
+        array $structuredContext,
+        array $pickerContext,
+        ?array $pendingPicker,
+        AiChatMessage $userMessage
+    ): ?array {
+        $pickerId = $this->stringValue($pickerContext['id'] ?? null);
+        $candidateId = $this->stringValue($pickerContext['candidate_id'] ?? null);
+
+        if ($pickerId === null || $candidateId === null) {
+            return null;
+        }
+
+        $pending = $pendingPicker ?? $this->pendingEntityPicker($thread);
+
+        if ($pending === null) {
+            return null;
+        }
+
+        $pendingId = $this->stringValue($pending['id'] ?? null);
+
+        if ($pendingId === null || $pendingId !== $pickerId) {
+            return null;
+        }
+
+        $candidate = $this->matchPendingEntityCandidate($pending['candidates'] ?? null, $candidateId);
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        $this->clearPendingEntityPicker($thread);
+
+        $toolName = $this->stringValue($pending['target_tool'] ?? null);
+
+        if ($toolName === null || $toolName === '') {
+            return null;
+        }
+
+        $arguments = isset($candidate['args']) && is_array($candidate['args']) ? $candidate['args'] : [];
+        $contextWithoutPicker = $structuredContext;
+        unset($contextWithoutPicker['entity_picker']);
+
+        $toolResponse = $this->resolveTools($thread, $user, [[
+            'tool_name' => $toolName,
+            'call_id' => (string) Str::uuid(),
+            'arguments' => $arguments,
+        ]], $contextWithoutPicker);
+
+        return [
+            'user_message' => $userMessage->fresh(),
+            'assistant_message' => $toolResponse['assistant_message'],
+            'response' => $toolResponse['response'],
+        ];
+    }
+
+    private function handlePlannedTool(
+        AiChatThread $thread,
+        User $user,
+        string $message,
+        array $structuredContext,
+        array $plan,
+        AiChatMessage $userMessage
+    ): ?array {
+        $toolName = isset($plan['tool']) && is_string($plan['tool']) ? trim($plan['tool']) : '';
+        if ($toolName === '' || $toolName === 'clarification') {
+            return null;
+        }
+
+        $arguments = isset($plan['args']) && is_array($plan['args']) ? $plan['args'] : [];
+
+        if (isset(self::INTENT_TOOL_ACTION_MAP[$toolName])) {
+            return $this->handlePlannerActionType(
+                $thread,
+                $user,
+                $userMessage,
+                $message,
+                $structuredContext,
+                self::INTENT_TOOL_ACTION_MAP[$toolName],
+                $toolName,
+                $arguments,
+            );
+        }
+
+        if (in_array($toolName, self::INTENT_HELP_TOOLS, true)) {
+            return $this->handlePlannerHelpTool(
+                $thread,
+                $user,
+                $userMessage,
+                $message,
+                $structuredContext,
+                $toolName,
+                $arguments,
+            );
+        }
+
+        return null;
+    }
+
+    private function handlePlannerPlan(
+        AiChatThread $thread,
+        User $user,
+        string $message,
+        array $structuredContext,
+        array $plan,
+        AiChatMessage $userMessage
+    ): ?array {
+        $steps = $this->normalizePlannerSteps($plan);
+
+        if ($steps === []) {
+            return null;
+        }
+
+        $finalResponse = null;
+
+        foreach ($steps as $step) {
+            $toolName = $this->stringValue($step['tool'] ?? null);
+
+            if ($toolName === null || $toolName === '' || $toolName === 'plan') {
+                continue;
+            }
+
+            if ($toolName === 'clarification') {
+                $clarificationPlan = [
+                    'tool' => 'clarification',
+                    'target_tool' => $step['target_tool'] ?? null,
+                    'missing_args' => $step['missing_args'] ?? [],
+                    'question' => $step['question'] ?? null,
+                    'args' => $step['args'] ?? [],
+                ];
+
+                return $this->handlePlannerClarification(
+                    $thread,
+                    $user,
+                    $message,
+                    $structuredContext,
+                    $clarificationPlan,
+                    $userMessage,
+                );
+            }
+
+            $arguments = isset($step['args']) && is_array($step['args']) ? $step['args'] : [];
+
+            if ($this->isWorkspaceToolName($toolName)) {
+                $response = $this->handlePlannerWorkspaceToolStep(
+                    $thread,
+                    $user,
+                    $structuredContext,
+                    $toolName,
+                    $arguments,
+                    $userMessage,
+                );
+            } else {
+                $response = $this->handlePlannedTool(
+                    $thread,
+                    $user,
+                    $message,
+                    $structuredContext,
+                    [
+                        'tool' => $toolName,
+                        'args' => $arguments,
+                    ],
+                    $userMessage,
+                );
+            }
+
+            if ($response !== null) {
+                $finalResponse = $response;
+            }
+        }
+
+        return $finalResponse;
+    }
+
+    private function handlePlannerWorkspaceToolStep(
+        AiChatThread $thread,
+        User $user,
+        array $structuredContext,
+        string $toolName,
+        array $arguments,
+        AiChatMessage $userMessage
+    ): ?array {
+        $toolCalls = [[
+            'tool_name' => $toolName,
+            'call_id' => (string) Str::uuid(),
+            'arguments' => $arguments,
+        ]];
+
+        try {
+            $result = $this->resolveTools($thread, $user, $toolCalls, $structuredContext);
+        } catch (AiChatException | AiServiceUnavailableException $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        return [
+            'user_message' => $userMessage->fresh(),
+            'assistant_message' => $result['assistant_message'],
+            'response' => $result['response'],
+        ];
+    }
+
+    private function handlePlannerActionType(
+        AiChatThread $thread,
+        User $user,
+        AiChatMessage $userMessage,
+        string $latestPrompt,
+        array $structuredContext,
+        string $actionType,
+        string $toolName,
+        array $arguments
+    ): ?array {
+        $payload = [
+            'company_id' => $thread->company_id,
+            'action_type' => $actionType,
+            'query' => $latestPrompt,
+            'inputs' => $arguments,
+            'user_context' => $this->chatUserContext($user),
+        ];
+
+        $startedAt = microtime(true);
+
+        try {
+            $response = $this->client->planAction($payload);
+        } catch (AiServiceUnavailableException $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            return null;
+        }
+
+        $draft = $response['data'];
+        if (! isset($draft['action_type'])) {
+            $draft['action_type'] = $actionType;
+        }
+
+        $assistantPayload = [
+            'type' => 'draft_action',
+            'assistant_message_markdown' => (string) ($draft['summary'] ?? sprintf('Draft ready for %s.', Str::title(str_replace('_', ' ', $actionType)))),
+            'citations' => $this->normalizeList($draft['citations'] ?? []),
+            'draft' => $draft,
+            'workflow' => null,
+            'tool_calls' => null,
+            'needs_human_review' => (bool) ($draft['needs_human_review'] ?? true),
+            'confidence' => (float) ($draft['confidence'] ?? 0.0),
+            'warnings' => $this->normalizeList($draft['warnings'] ?? []),
+            'planner' => [
+                'tool' => $toolName,
+                'args' => $arguments,
+            ],
+        ];
+
+        $assistantPayload = $this->attachDraftSnapshot($thread, $user, $assistantPayload, $latestPrompt, $structuredContext);
+
+        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+        $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
+            'content_text' => (string) ($assistantPayload['assistant_message_markdown'] ?? ''),
+            'content_json' => $assistantPayload,
+            'citations_json' => $this->normalizeList($assistantPayload['citations'] ?? []),
+            'tool_calls_json' => $this->normalizeList($assistantPayload['tool_calls'] ?? []),
+            'tool_results_json' => $this->normalizeList($assistantPayload['tool_results'] ?? []),
+            'latency_ms' => $latency,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $this->recordChatEvent($thread, $user, $latestPrompt, $structuredContext, $latency, $assistantPayload, null);
+
+        return [
+            'user_message' => $userMessage->fresh(),
+            'assistant_message' => $assistantMessage->fresh(),
+            'response' => $assistantPayload,
+        ];
+    }
+
+    private function handlePlannerHelpTool(
+        AiChatThread $thread,
+        User $user,
+        AiChatMessage $userMessage,
+        string $latestPrompt,
+        array $structuredContext,
+        string $toolName,
+        array $arguments
+    ): ?array {
+        $inputs = array_merge(['topic' => $arguments['topic'] ?? $latestPrompt], $arguments);
+        $payload = [
+            'company_id' => $thread->company_id,
+            'thread_id' => $thread->id,
+            'user_id' => $user->id,
+            'context' => [],
+            'inputs' => $inputs,
+        ];
+
+        $startedAt = microtime(true);
+
+        try {
+            $response = $this->client->helpTool($payload);
+        } catch (AiServiceUnavailableException $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        if ($response['status'] !== 'success' || ! is_array($response['data'])) {
+            return null;
+        }
+
+        $data = $response['data'];
+        $payloadData = isset($data['payload']) && is_array($data['payload']) ? $data['payload'] : [];
+        $summary = (string) ($data['summary'] ?? ($payloadData['description'] ?? 'Here is a help guide.'));
+        $steps = [];
+        if (isset($payloadData['steps']) && is_array($payloadData['steps'])) {
+            $steps = array_values(array_filter($payloadData['steps'], static fn ($step) => is_string($step) && $step !== ''));
+        }
+
+        if ($steps !== []) {
+            $stepBullets = array_map(static fn ($step) => sprintf('- %s', $step), array_slice($steps, 0, 6));
+            $summary = trim($summary . "\n" . implode("\n", $stepBullets));
+        }
+
+        $assistantPayload = [
+            'type' => 'help',
+            'assistant_message_markdown' => $summary,
+            'citations' => $this->normalizeList($data['citations'] ?? []),
+            'draft' => null,
+            'workflow' => null,
+            'tool_calls' => null,
+            'needs_human_review' => false,
+            'confidence' => 0.4,
+            'warnings' => [],
+            'help' => $payloadData,
+            'planner' => [
+                'tool' => $toolName,
+                'args' => $arguments,
+            ],
+        ];
+
+        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+        $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
+            'content_text' => $assistantPayload['assistant_message_markdown'],
+            'content_json' => $assistantPayload,
+            'citations_json' => $this->normalizeList($assistantPayload['citations'] ?? []),
+            'tool_calls_json' => $this->normalizeList($assistantPayload['tool_calls'] ?? []),
+            'tool_results_json' => $this->normalizeList($assistantPayload['tool_results'] ?? []),
+            'latency_ms' => $latency,
+            'status' => AiChatMessage::STATUS_COMPLETED,
+        ]);
+
+        $this->recordChatEvent($thread, $user, $latestPrompt, $structuredContext, $latency, $assistantPayload, null);
+
+        return [
+            'user_message' => $userMessage->fresh(),
+            'assistant_message' => $assistantMessage->fresh(),
+            'response' => $assistantPayload,
+        ];
+    }
+
+    private function hasPlannerSteps(array $plan): bool
+    {
+        $nestedPlan = $plan['plan'] ?? null;
+
+        if (is_array($nestedPlan) && isset($nestedPlan['steps']) && is_array($nestedPlan['steps']) && $nestedPlan['steps'] !== []) {
+            return true;
+        }
+
+        return isset($plan['steps']) && is_array($plan['steps']) && $plan['steps'] !== [];
+    }
+
+    private function normalizePlannerSteps(array $plan): array
+    {
+        $rawSteps = null;
+
+        if (isset($plan['plan']) && is_array($plan['plan']) && isset($plan['plan']['steps'])) {
+            $rawSteps = $plan['plan']['steps'];
+        } elseif (isset($plan['steps'])) {
+            $rawSteps = $plan['steps'];
+        }
+
+        if (! is_array($rawSteps) || $rawSteps === []) {
+            return [];
+        }
+
+        $steps = [];
+
+        foreach ($rawSteps as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $tool = $this->stringValue($entry['tool'] ?? null);
+
+            if ($tool === null || $tool === '') {
+                continue;
+            }
+
+            $step = $entry;
+            $step['tool'] = $tool;
+            $step['args'] = isset($entry['args']) && is_array($entry['args']) ? $entry['args'] : [];
+
+            $steps[] = $step;
+        }
+
+        return $steps;
+    }
+
+    private function isWorkspaceToolName(string $toolName): bool
+    {
+        return str_starts_with($toolName, 'workspace.');
     }
 
     /**

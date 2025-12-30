@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import {
     AlertTriangle,
     ArrowRight,
+    BellRing,
     CheckCircle2,
     ChevronDown,
     ChevronRight,
@@ -30,6 +31,7 @@ import { useResolveAiWorkflowStep } from '@/hooks/api/ai/use-resolve-ai-workflow
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type {
+    AiWorkflowApprovalRequest,
     AiWorkflowListResponse,
     AiWorkflowStatus,
     AiWorkflowStepDetail,
@@ -117,6 +119,81 @@ interface AwardQuoteDraft {
     terms: string[];
 }
 
+interface ReceivingQualityChecklistItem {
+    label: string;
+    detail: string | null;
+    status: 'ok' | 'warning' | 'risk';
+    value: string | null;
+}
+
+interface ReceivingQualityDraft {
+    title: string | null;
+    summary: string | null;
+    entity_label: string | null;
+    highlights: string[];
+    checklist: ReceivingQualityChecklistItem[];
+    warnings: string[];
+    metadata: Array<{ key: string; value: string }>;
+}
+
+interface ReceiptDraftLine {
+    reference: string;
+    lineNumber: number | null;
+    description: string;
+    uom: string | null;
+    expectedQty: number | null;
+    receivedQty: number | null;
+    acceptedQty: number | null;
+    rejectedQty: number | null;
+    issues: string[];
+    notes: string | null;
+}
+
+interface ReceiptDraftDetails {
+    poId: string | null;
+    reference: string | null;
+    inspectedBy: string | null;
+    receivedDate: string | null;
+    status: string | null;
+    totalReceivedQty: number | null;
+    notes: string | null;
+    lineItems: ReceiptDraftLine[];
+    warnings: string[];
+}
+
+type InvoiceMatchSeverity = 'info' | 'warning' | 'risk';
+
+interface InvoiceMatchMismatch {
+    type: string;
+    lineReference: string | null;
+    severity: InvoiceMatchSeverity;
+    detail: string;
+    expected: number | null;
+    actual: number | null;
+}
+
+interface InvoiceMatchDraft {
+    invoiceId: string | null;
+    poId: string | null;
+    receiptIds: string[];
+    matchScore: number | null;
+    recommendation: { status: string | null; explanation: string | null } | null;
+    mismatches: InvoiceMatchMismatch[];
+    analysisNotes: string[];
+    warnings: string[];
+}
+
+interface PaymentDraftDetails {
+    invoiceId: string | null;
+    scheduledDate: string | null;
+    paymentMethod: string | null;
+    reference: string | null;
+    amount: number | null;
+    currency: string;
+    notes: string | null;
+    warnings: string[];
+}
+
 interface CursorMeta {
     next: string | null;
     prev: string | null;
@@ -133,6 +210,7 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
     const [reviewNotes, setReviewNotes] = useState('');
     const [quoteSelection, setQuoteSelection] = useState<string | null>(null);
     const [poAcknowledged, setPoAcknowledged] = useState(false);
+    const [invoiceMatchAcknowledged, setInvoiceMatchAcknowledged] = useState(false);
 
     useEffect(() => {
         setCursor(null);
@@ -174,17 +252,23 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
     const quoteDraft = useMemo(() => parseQuoteDraft(step?.draft), [step]);
     const poDraft = useMemo(() => parsePoDraft(step?.draft), [step]);
     const awardDraft = useMemo(() => parseAwardDraft(step?.draft), [step]);
+    const receivingQualityDraft = useMemo(() => parseReceivingQualityDraft(step?.draft), [step]);
+    const receiptDraft = useMemo(() => parseReceiptDraft(step?.draft), [step]);
+    const invoiceMatchDraft = useMemo(() => parseInvoiceMatchDraft(step?.draft), [step]);
+    const paymentDraft = useMemo(() => parsePaymentDraft(step?.draft), [step]);
 
     useEffect(() => {
         if (!step) {
             setReviewNotes('');
             setPoAcknowledged(false);
             setQuoteSelection(null);
+            setInvoiceMatchAcknowledged(false);
             return;
         }
 
         setReviewNotes('');
         setPoAcknowledged(false);
+        setInvoiceMatchAcknowledged(false);
 
         if (step.action_type === 'compare_quotes') {
             setQuoteSelection(quoteDraft.recommendation ?? (quoteDraft.rankings[0]?.supplier_id ?? null));
@@ -223,7 +307,8 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
         resolveStep.isPending ||
         !step ||
         (step.action_type === 'compare_quotes' && !quoteSelection) ||
-        (step.action_type === 'po_draft' && !poAcknowledged);
+        (step.action_type === 'po_draft' && !poAcknowledged) ||
+        (step.action_type === 'invoice_match' && !invoiceMatchAcknowledged);
 
     const rejectDisabled = !canResolveStep || resolveStep.isPending || !step;
 
@@ -239,6 +324,11 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
 
         if (step.action_type === 'po_draft' && !poAcknowledged) {
             errorToast('Confirm that you reviewed the PO draft before approving.');
+            return;
+        }
+
+        if (step.action_type === 'invoice_match' && !invoiceMatchAcknowledged) {
+            errorToast('Confirm that you reviewed the invoice match before approving.');
             return;
         }
 
@@ -264,7 +354,19 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
         } catch (error) {
             handleMutationError(error, 'Unable to approve step.');
         }
-    }, [awardDraft, poDraft, poAcknowledged, quoteDraft, quoteSelection, resolveStep, reviewNotes, selectedWorkflowId, step, stepQuery]);
+    }, [
+        awardDraft,
+        invoiceMatchAcknowledged,
+        poDraft,
+        poAcknowledged,
+        quoteDraft,
+        quoteSelection,
+        resolveStep,
+        reviewNotes,
+        selectedWorkflowId,
+        step,
+        stepQuery,
+    ]);
 
     const handleReject = useCallback(async () => {
         if (!step || !selectedWorkflowId) {
@@ -473,33 +575,47 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
                                 <div className="space-y-2 text-sm">
                                     <p className="font-semibold text-foreground">Step tracker</p>
                                     <div className="space-y-1">
-                                        {selectedWorkflow.steps.map((workflowStep) => (
-                                            <div
-                                                key={`${workflowStep.step_index}-${workflowStep.action_type}`}
-                                                className={cn(
-                                                    'flex items-center justify-between rounded-lg px-3 py-1.5 text-xs',
-                                                    workflowStep.step_index === step.step_index
-                                                        ? 'bg-primary/5 text-foreground'
-                                                        : 'text-muted-foreground',
-                                                )}
-                                            >
-                                                <span>
-                                                    Step {(workflowStep.step_index ?? 0) + 1}: {workflowStep.name ?? formatActionLabel(workflowStep.action_type)}
-                                                </span>
-                                                <Badge
-                                                    variant="secondary"
+                                        {selectedWorkflow.steps.map((workflowStep) => {
+                                            const hasPendingApproval = Boolean(workflowStep.has_pending_approval_request);
+
+                                            return (
+                                                <div
+                                                    key={`${workflowStep.step_index}-${workflowStep.action_type}`}
                                                     className={cn(
-                                                        'text-[0.7rem]',
-                                                        STEP_STATUS_STYLES[workflowStep.approval_status ?? 'pending'] ?? STEP_STATUS_STYLES.pending,
+                                                        'flex items-center justify-between rounded-lg px-3 py-1.5 text-xs',
+                                                        workflowStep.step_index === step.step_index
+                                                            ? 'bg-primary/5 text-foreground'
+                                                            : 'text-muted-foreground',
                                                     )}
                                                 >
-                                                    {workflowStep.approval_status ?? 'pending'}
-                                                </Badge>
-                                            </div>
-                                        ))}
+                                                    <div className="flex flex-col">
+                                                        <span>
+                                                            Step {(workflowStep.step_index ?? 0) + 1}: {workflowStep.name ?? formatActionLabel(workflowStep.action_type)}
+                                                        </span>
+                                                        {hasPendingApproval && (
+                                                            <span className="mt-0.5 flex items-center gap-1 text-[0.7rem] text-amber-700 dark:text-amber-200">
+                                                                <BellRing className="size-3" aria-hidden="true" />
+                                                                Approval requested
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className={cn(
+                                                            'text-[0.7rem]',
+                                                            STEP_STATUS_STYLES[workflowStep.approval_status ?? 'pending'] ?? STEP_STATUS_STYLES.pending,
+                                                        )}
+                                                    >
+                                                        {workflowStep.approval_status ?? 'pending'}
+                                                    </Badge>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
+
+                            {step.approval_request && <ApprovalRequestBanner request={step.approval_request} />}
 
                             {step.action_type === 'compare_quotes' ? (
                                 <QuoteComparisonPreview
@@ -515,6 +631,31 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
                                     acknowledged={poAcknowledged}
                                     onAcknowledgeChange={setPoAcknowledged}
                                 />
+                            ) : step.action_type === 'receiving_quality' ? (
+                                receivingQualityDraft ? (
+                                    <ReceivingQualityPreview draft={receivingQualityDraft} />
+                                ) : (
+                                    <GenericDraftPreview payload={step.draft} />
+                                )
+                            ) : step.action_type === 'receipt_draft' ? (
+                                receiptDraft ? (
+                                    <ReceiptDraftPreview draft={receiptDraft} />
+                                ) : (
+                                    <GenericDraftPreview payload={step.draft} />
+                                )
+                            ) : step.action_type === 'invoice_match' ? (
+                                <InvoiceMatchPreview
+                                    draft={invoiceMatchDraft}
+                                    rawPayload={step.draft}
+                                    confirmed={invoiceMatchAcknowledged}
+                                    onConfirmChange={setInvoiceMatchAcknowledged}
+                                />
+                            ) : step.action_type === 'payment_process' ? (
+                                paymentDraft ? (
+                                    <PaymentDraftPreview draft={paymentDraft} />
+                                ) : (
+                                    <GenericDraftPreview payload={step.draft} />
+                                )
                             ) : (
                                 <GenericDraftPreview payload={step.draft} />
                             )}
@@ -557,6 +698,51 @@ export function WorkflowPanel({ className }: WorkflowPanelProps) {
                     )}
                 </CardContent>
             </Card>
+        </div>
+    );
+}
+
+function ApprovalRequestBanner({ request }: { request: AiWorkflowApprovalRequest }) {
+    const approverLabel = request.approver_user?.name ?? (request.approver_role ? humanizeLabel(request.approver_role) : 'Approver');
+    const requesterLabel = request.requested_by?.name ?? 'Unknown teammate';
+    const statusLabel = humanizeLabel(request.status ?? 'pending');
+
+    return (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-amber-900 dark:border-amber-300/60 dark:bg-amber-400/10 dark:text-amber-50">
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                    <BellRing className="size-4" aria-hidden="true" />
+                    <div>
+                        <p className="text-sm font-semibold">Approval requested</p>
+                        <p className="text-xs text-amber-900/70 dark:text-amber-100/70">Waiting on {approverLabel}</p>
+                    </div>
+                </div>
+                <Badge
+                    variant="outline"
+                    className="ml-auto border-amber-200 bg-white/60 text-[0.7rem] font-semibold uppercase tracking-wide text-amber-900 dark:border-amber-300/80 dark:bg-transparent dark:text-amber-100"
+                >
+                    {statusLabel}
+                </Badge>
+            </div>
+            <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
+                <ApprovalRequestMetadata label="Requested by" value={requesterLabel} />
+                <ApprovalRequestMetadata label="Requested" value={formatRelativeTime(request.created_at)} />
+                <ApprovalRequestMetadata label="Approver" value={approverLabel} />
+            </div>
+            {request.message ? (
+                <div className="mt-4 rounded-lg border border-amber-200/70 bg-white/80 p-3 text-sm text-amber-900 dark:border-amber-300/40 dark:bg-transparent dark:text-amber-50">
+                    {request.message}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function ApprovalRequestMetadata({ label, value }: { label: string; value: ReactNode }) {
+    return (
+        <div>
+            <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-amber-900/70 dark:text-amber-100/60">{label}</p>
+            <p className="text-sm font-medium text-amber-950 dark:text-amber-50">{value}</p>
         </div>
     );
 }
@@ -855,6 +1041,379 @@ function PoDraftPreview({
     );
 }
 
+function ReceivingQualityPreview({ draft }: { draft: ReceivingQualityDraft }) {
+    return (
+        <div className="space-y-4">
+            <div className="rounded-xl border bg-card/60 p-4">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase text-muted-foreground">
+                    <span>Receiving &amp; Quality</span>
+                    {draft.entity_label ? <Badge variant="outline">{draft.entity_label}</Badge> : null}
+                </div>
+                <p className="mt-2 text-base font-semibold text-foreground">{draft.title ?? 'Receiving & Quality review'}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {draft.summary ?? 'Copilot did not include a summary for this review.'}
+                </p>
+                {draft.highlights.length ? (
+                    <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                        {draft.highlights.slice(0, 4).map((highlight, index) => (
+                            <li key={`${highlight}-${index}`}>{highlight}</li>
+                        ))}
+                    </ul>
+                ) : null}
+            </div>
+
+            {draft.metadata.length ? (
+                <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    {draft.metadata.map((entry) => (
+                        <div key={entry.key} className="rounded-lg border bg-muted/30 p-3">
+                            <p className="text-xs uppercase text-muted-foreground">{humanizeLabel(entry.key)}</p>
+                            <p className="font-semibold text-foreground">{entry.value}</p>
+                        </div>
+                    ))}
+                </div>
+            ) : null}
+
+            {draft.checklist.length ? (
+                <div className="space-y-3">
+                    <p className="text-sm font-semibold text-foreground">Quality checklist</p>
+                    <div className="space-y-3">
+                        {draft.checklist.map((item, index) => (
+                            <div key={`${item.label}-${index}`} className="rounded-xl border bg-muted/40 p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                                    <Badge
+                                        variant="outline"
+                                        className={cn('text-[10px] uppercase tracking-wide', receivingStatusBadgeClass(item.status))}
+                                    >
+                                        {item.status}
+                                    </Badge>
+                                </div>
+                                {item.value ? <p className="text-xs text-muted-foreground">{item.value}</p> : null}
+                                {item.detail ? <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p> : null}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
+            {draft.warnings.length ? (
+                <Alert variant="warning">
+                    <AlertTitle className="flex items-center gap-2 text-sm font-semibold">
+                        <AlertTriangle className="size-4" /> Warnings
+                    </AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-5 text-sm">
+                            {draft.warnings.map((warning, index) => (
+                                <li key={`${warning}-${index}`}>{warning}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+        </div>
+    );
+}
+
+function ReceiptDraftPreview({ draft }: { draft: ReceiptDraftDetails }) {
+    const visibleLines = draft.lineItems.slice(0, 10);
+    const hiddenLines = Math.max(0, draft.lineItems.length - visibleLines.length);
+
+    return (
+        <div className="space-y-4">
+            <div className="grid gap-3 text-sm md:grid-cols-3">
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Purchase order</p>
+                    <p className="font-semibold text-foreground">{draft.poId ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Receipt reference</p>
+                    <p className="font-semibold text-foreground">{draft.reference ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Received date</p>
+                    <p className="font-semibold text-foreground">{formatDateLabel(draft.receivedDate)}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Inspector</p>
+                    <p className="font-semibold text-foreground">{draft.inspectedBy ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Status</p>
+                    <p className="font-semibold text-foreground">{draft.status ?? 'Draft'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Total qty received</p>
+                    <p className="font-semibold text-foreground">{formatQuantityValue(draft.totalReceivedQty)}</p>
+                </div>
+            </div>
+
+            <div>
+                <p className="text-sm font-semibold text-foreground">Receipt lines</p>
+                {visibleLines.length ? (
+                    <div className="mt-2 space-y-2">
+                        {visibleLines.map((line, index) => {
+                            const key = `${line.reference}-${line.lineNumber ?? index}`;
+                            const isFlagged = line.issues.length > 0 || Boolean(line.rejectedQty);
+                            return (
+                                <div
+                                    key={key}
+                                    className={cn(
+                                        'rounded-xl border bg-muted/40 p-3 text-sm',
+                                        isFlagged ? 'border-amber-300/40' : 'border-muted',
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold text-foreground">{line.description}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Line {line.lineNumber ?? line.reference}
+                                            </p>
+                                        </div>
+                                        <span className="text-sm font-semibold text-foreground">
+                                            {formatQuantityValue(line.receivedQty, line.uom)}
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Expected {formatQuantityValue(line.expectedQty, line.uom)} · Accepted{' '}
+                                        {formatQuantityValue(line.acceptedQty, line.uom)}
+                                        {line.rejectedQty ? ` · Rejected ${formatQuantityValue(line.rejectedQty, line.uom)}` : ''}
+                                    </p>
+                                    {line.issues.length ? (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {line.issues.map((issue, issueIndex) => (
+                                                <Badge key={`${key}-issue-${issueIndex}`} variant="outline" className="text-[11px] uppercase">
+                                                    {issue}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                    {line.notes ? <p className="mt-2 text-xs text-muted-foreground">{line.notes}</p> : null}
+                                </div>
+                            );
+                        })}
+                        {hiddenLines > 0 ? (
+                            <p className="text-xs text-muted-foreground">+{hiddenLines} more receipt lines not shown.</p>
+                        ) : null}
+                    </div>
+                ) : (
+                    <EmptyState title="No receipt lines" description="Copilot did not return individual receipt lines." />
+                )}
+            </div>
+
+            {draft.notes ? (
+                <div className="rounded-xl border bg-muted/30 p-3 text-sm text-muted-foreground">
+                    <p className="text-xs uppercase text-muted-foreground">Notes</p>
+                    <p className="mt-1 text-foreground">{draft.notes}</p>
+                </div>
+            ) : null}
+
+            {draft.warnings.length ? (
+                <Alert variant="warning">
+                    <AlertTitle className="flex items-center gap-2 text-sm font-semibold">
+                        <AlertTriangle className="size-4" /> Warnings
+                    </AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-5 text-sm">
+                            {draft.warnings.map((warning, index) => (
+                                <li key={`${warning}-${index}`}>{warning}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+        </div>
+    );
+}
+
+function InvoiceMatchPreview({
+    draft,
+    rawPayload,
+    confirmed,
+    onConfirmChange,
+}: {
+    draft: InvoiceMatchDraft | null;
+    rawPayload: Record<string, unknown>;
+    confirmed: boolean;
+    onConfirmChange: (value: boolean) => void;
+}) {
+    if (!draft) {
+        return (
+            <div className="space-y-4">
+                <EmptyState
+                    title="No invoice match summary"
+                    description="Copilot did not include structured match data. Review the raw payload below."
+                />
+                <GenericDraftPreview payload={rawPayload} />
+                <label className="flex items-center gap-3 text-sm font-medium text-foreground">
+                    <Checkbox checked={confirmed} onCheckedChange={(value) => onConfirmChange(Boolean(value))} />
+                    I reviewed the invoice data and want to continue.
+                </label>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="grid gap-3 text-sm md:grid-cols-2">
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Invoice</p>
+                    <p className="font-semibold text-foreground">{draft.invoiceId ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Matching PO</p>
+                    <p className="font-semibold text-foreground">{draft.poId ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Receipts</p>
+                    <p className="font-semibold text-foreground">
+                        {draft.receiptIds.length ? draft.receiptIds.join(', ') : '—'}
+                    </p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Match score</p>
+                    <p className="font-semibold text-foreground">{formatPercent(draft.matchScore)}</p>
+                </div>
+            </div>
+
+            <div className="rounded-xl border bg-card/70 p-4 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                        variant="outline"
+                        className={cn('text-[10px] uppercase tracking-wide', matchRecommendationBadgeClass(draft.recommendation?.status ?? null))}
+                    >
+                        {formatMatchRecommendation(draft.recommendation?.status ?? null)}
+                    </Badge>
+                    <span className="text-xs uppercase text-muted-foreground">Recommendation</span>
+                </div>
+                <p className="mt-2 text-foreground">
+                    {draft.recommendation?.explanation ?? 'Copilot did not include a recommendation note.'}
+                </p>
+            </div>
+
+            <div>
+                <p className="text-sm font-semibold text-foreground">Mismatches</p>
+                {draft.mismatches.length ? (
+                    <div className="mt-2 space-y-2">
+                        {draft.mismatches.map((mismatch, index) => (
+                            <div key={`${mismatch.type}-${mismatch.lineReference ?? index}`} className="rounded-xl border bg-muted/40 p-3 text-sm">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="font-semibold text-foreground">
+                                        {mismatch.lineReference ? `Line ${mismatch.lineReference}` : mismatch.type}
+                                    </p>
+                                    <Badge
+                                        variant="outline"
+                                        className={cn('text-[10px] uppercase tracking-wide', matchSeverityBadgeClass(mismatch.severity))}
+                                    >
+                                        {mismatch.severity}
+                                    </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{mismatch.type}</p>
+                                <p className="mt-1 text-sm text-foreground">{mismatch.detail}</p>
+                                {mismatch.expected !== null || mismatch.actual !== null ? (
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {mismatch.expected !== null ? `Expected ${formatQuantityValue(mismatch.expected)}` : null}
+                                        {mismatch.expected !== null && mismatch.actual !== null ? ' · ' : null}
+                                        {mismatch.actual !== null ? `Actual ${formatQuantityValue(mismatch.actual)}` : null}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="mt-2 rounded-xl border border-emerald-300/40 bg-emerald-950/10 p-3 text-sm text-emerald-900 dark:text-emerald-200">
+                        No mismatches detected.
+                    </div>
+                )}
+            </div>
+
+            {draft.analysisNotes.length ? (
+                <div>
+                    <p className="text-sm font-semibold text-foreground">Analysis notes</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                        {draft.analysisNotes.slice(0, 4).map((note, index) => (
+                            <li key={`${note}-${index}`}>{note}</li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+
+            {draft.warnings.length ? (
+                <Alert variant="warning">
+                    <AlertTitle className="flex items-center gap-2 text-sm font-semibold">
+                        <AlertTriangle className="size-4" /> Warnings
+                    </AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-5 text-sm">
+                            {draft.warnings.map((warning, index) => (
+                                <li key={`${warning}-${index}`}>{warning}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
+            <label className="flex items-center gap-3 text-sm font-medium text-foreground">
+                <Checkbox checked={confirmed} onCheckedChange={(value) => onConfirmChange(Boolean(value))} />
+                I reviewed the mismatches above and confirm this invoice match.
+            </label>
+        </div>
+    );
+}
+
+function PaymentDraftPreview({ draft }: { draft: PaymentDraftDetails }) {
+    return (
+        <div className="space-y-4">
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Invoice</p>
+                    <p className="font-semibold text-foreground">{draft.invoiceId ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Scheduled date</p>
+                    <p className="font-semibold text-foreground">{formatDateLabel(draft.scheduledDate)}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Payment method</p>
+                    <p className="font-semibold text-foreground">{draft.paymentMethod ?? '—'}</p>
+                </div>
+                <div className="rounded-xl border bg-muted/30 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">Reference</p>
+                    <p className="font-semibold text-foreground">{draft.reference ?? '—'}</p>
+                </div>
+            </div>
+
+            <div className="rounded-xl border bg-muted/20 p-4 text-center">
+                <p className="text-xs uppercase text-muted-foreground">Planned amount</p>
+                <p className="mt-2 text-3xl font-semibold text-foreground">
+                    {draft.amount === null ? '—' : formatCurrency(draft.amount, draft.currency)}
+                </p>
+            </div>
+
+            {draft.notes ? (
+                <div className="rounded-xl border bg-muted/30 p-3 text-sm text-muted-foreground">
+                    <p className="text-xs uppercase text-muted-foreground">Notes</p>
+                    <p className="mt-1 text-foreground">{draft.notes}</p>
+                </div>
+            ) : null}
+
+            {draft.warnings.length ? (
+                <Alert variant="warning">
+                    <AlertTitle className="flex items-center gap-2 text-sm font-semibold">
+                        <AlertTriangle className="size-4" /> Warnings
+                    </AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-5 text-sm">
+                            {draft.warnings.map((warning, index) => (
+                                <li key={`${warning}-${index}`}>{warning}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+        </div>
+    );
+}
+
 function GenericDraftPreview({ payload }: { payload: Record<string, unknown> | undefined }) {
     if (!payload || Object.keys(payload).length === 0) {
         return (
@@ -1138,6 +1697,190 @@ function parseAwardDraft(raw: Record<string, unknown> | undefined | null): Award
     };
 }
 
+function parseReceivingQualityDraft(raw: Record<string, unknown> | undefined | null): ReceivingQualityDraft | null {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
+        return null;
+    }
+
+    const highlights = extractStringList(source.highlights ?? source.summary_points ?? []);
+    const warnings = extractStringList(source.warnings ?? source.alerts ?? []);
+
+    const metadataEntries = Array.isArray(source.metadata)
+        ? source.metadata
+              .map((entry) => {
+                  if (!isRecord(entry) || typeof entry.key !== 'string' || typeof entry.value !== 'string') {
+                      return null;
+                  }
+                  return { key: entry.key, value: entry.value };
+              })
+              .filter((entry): entry is { key: string; value: string } => entry !== null)
+        : isRecord(source.metadata)
+          ? Object.entries(source.metadata as Record<string, unknown>)
+                .filter(([, value]) => typeof value === 'string' || typeof value === 'number')
+                .map(([key, value]) => ({ key, value: String(value) }))
+          : [];
+
+    const checklist = Array.isArray(source.checklist)
+        ? source.checklist
+              .map((entry) => {
+                  if (!isRecord(entry) || typeof entry.label !== 'string') {
+                      return null;
+                  }
+                  const statusRaw = typeof entry.status === 'string' ? (entry.status as string).toLowerCase() : 'ok';
+                  const status: ReceivingQualityChecklistItem['status'] = ['warning', 'risk'].includes(statusRaw as string)
+                      ? (statusRaw as ReceivingQualityChecklistItem['status'])
+                      : 'ok';
+                  return {
+                      label: entry.label,
+                      detail: typeof entry.detail === 'string' ? entry.detail : null,
+                      status,
+                      value: typeof entry.value === 'string' ? entry.value : null,
+                  } satisfies ReceivingQualityChecklistItem;
+              })
+              .filter((entry): entry is ReceivingQualityChecklistItem => entry !== null)
+        : [];
+
+    return {
+        title: typeof source.title === 'string' ? source.title : null,
+        summary: typeof source.summary === 'string' ? source.summary : null,
+        entity_label: typeof source.entity_label === 'string' ? source.entity_label : null,
+        highlights,
+        checklist,
+        warnings,
+        metadata: metadataEntries,
+    };
+}
+
+function parseReceiptDraft(raw: Record<string, unknown> | undefined | null): ReceiptDraftDetails | null {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
+        return null;
+    }
+
+    const warnings = extractStringList(source.warnings ?? source.alerts ?? []);
+
+    const lineItemsSource = Array.isArray(source.line_items)
+        ? source.line_items
+        : Array.isArray(source.lines)
+          ? source.lines
+          : [];
+
+    const lineItems = lineItemsSource
+        .map((entry, index) => {
+            if (!isRecord(entry)) {
+                return null;
+            }
+            const issues = extractStringList(entry.issues ?? entry.flags ?? []);
+            return {
+                reference: typeof entry.reference === 'string' ? entry.reference : `line-${index + 1}`,
+                lineNumber: toNumber(entry.line_number ?? entry.lineNumber),
+                description: typeof entry.description === 'string' ? entry.description : `Line item ${index + 1}`,
+                uom: typeof entry.uom === 'string' ? entry.uom : null,
+                expectedQty: toNumber(entry.expected_qty ?? entry.expectedQty),
+                receivedQty: toNumber(entry.received_qty ?? entry.receivedQty),
+                acceptedQty: toNumber(entry.accepted_qty ?? entry.acceptedQty ?? entry.received_qty ?? entry.receivedQty),
+                rejectedQty: toNumber(entry.rejected_qty ?? entry.rejectedQty),
+                issues,
+                notes: typeof entry.notes === 'string' ? entry.notes : null,
+            } satisfies ReceiptDraftLine;
+        })
+        .filter((entry): entry is ReceiptDraftLine => entry !== null);
+
+    return {
+        poId: normalizeId(source.po_id ?? source.purchase_order_id ?? source.poId),
+        reference: typeof source.reference === 'string' ? source.reference : null,
+        inspectedBy: typeof source.inspected_by === 'string' ? source.inspected_by : typeof source.inspector === 'string' ? source.inspector : null,
+        receivedDate: typeof source.received_date === 'string' ? source.received_date : typeof source.receivedDate === 'string' ? source.receivedDate : null,
+        status: typeof source.status === 'string' ? source.status : null,
+        totalReceivedQty: toNumber(source.total_received_qty ?? source.total_received_quantity ?? source.totalReceivedQty),
+        notes: typeof source.notes === 'string' ? source.notes : null,
+        lineItems,
+        warnings,
+    };
+}
+
+function parseInvoiceMatchDraft(raw: Record<string, unknown> | undefined | null): InvoiceMatchDraft | null {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
+        return null;
+    }
+
+    const receiptSource = (source.receipt_ids ?? source.receipts) as unknown;
+    const receiptIds = Array.isArray(receiptSource)
+        ? receiptSource
+              .map((entry) => normalizeId(entry))
+              .filter((value): value is string => Boolean(value))
+        : [];
+
+    const mismatches = Array.isArray(source.mismatches)
+        ? source.mismatches
+              .map((entry) => {
+                  if (!isRecord(entry)) {
+                      return null;
+                  }
+                  const severityRaw = typeof entry.severity === 'string' ? entry.severity.toLowerCase() : 'info';
+                  const severity: InvoiceMatchSeverity = ['warning', 'risk'].includes(severityRaw)
+                      ? (severityRaw as InvoiceMatchSeverity)
+                      : 'info';
+                  return {
+                      type: typeof entry.type === 'string' ? entry.type : 'mismatch',
+                      lineReference: typeof entry.line_reference === 'string' ? entry.line_reference : typeof entry.line === 'string' ? entry.line : null,
+                      severity,
+                      detail: typeof entry.detail === 'string' ? entry.detail : 'Mismatch detected',
+                      expected: toNumber(entry.expected),
+                      actual: toNumber(entry.actual),
+                  } satisfies InvoiceMatchMismatch;
+              })
+              .filter((entry): entry is InvoiceMatchMismatch => entry !== null)
+        : [];
+
+    const recommendation = isRecord(source.recommendation)
+        ? {
+              status: typeof source.recommendation.status === 'string' ? source.recommendation.status : null,
+              explanation:
+                  typeof source.recommendation.explanation === 'string'
+                      ? source.recommendation.explanation
+                      : typeof source.recommendation.note === 'string'
+                        ? source.recommendation.note
+                        : null,
+          }
+        : null;
+
+    return {
+        invoiceId: normalizeId(source.invoice_id ?? source.invoiceId),
+        poId: normalizeId(source.po_id ?? source.purchase_order_id ?? source.poId),
+        receiptIds,
+        matchScore: toNumber(source.match_score ?? source.score),
+        recommendation,
+        mismatches,
+        analysisNotes: extractStringList(source.analysis_notes ?? source.notes ?? []),
+        warnings: extractStringList(source.warnings ?? source.alerts ?? []),
+    };
+}
+
+function parsePaymentDraft(raw: Record<string, unknown> | undefined | null): PaymentDraftDetails | null {
+    const source = unwrapPayload(raw);
+
+    if (!source) {
+        return null;
+    }
+
+    return {
+        invoiceId: normalizeId(source.invoice_id ?? source.invoiceId),
+        scheduledDate: typeof source.scheduled_date === 'string' ? source.scheduled_date : typeof source.payment_date === 'string' ? source.payment_date : null,
+        paymentMethod: typeof source.payment_method === 'string' ? source.payment_method : typeof source.method === 'string' ? source.method : null,
+        reference: typeof source.reference === 'string' ? source.reference : null,
+        amount: toNumber(source.amount),
+        currency: typeof source.currency === 'string' ? source.currency : 'USD',
+        notes: typeof source.notes === 'string' ? source.notes : null,
+        warnings: extractStringList(source.warnings ?? source.alerts ?? []),
+    };
+}
+
 function buildCompletionOutput(
     step: AiWorkflowStepDetail,
     approval: boolean,
@@ -1232,5 +1975,119 @@ function handleMutationError(error: unknown, fallback: string) {
         errorToast(fallback, error.message);
     } else {
         errorToast(fallback);
+    }
+}
+
+function extractStringList(value: unknown): string[] {
+    if (typeof value === 'string' && value.trim().length > 0) {
+        return [value.trim()];
+    }
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value
+        .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+        .map((entry) => entry.trim());
+}
+
+function humanizeLabel(value: string): string {
+    const text = value.replace(/[_-]+/g, ' ').trim();
+    if (!text) {
+        return value;
+    }
+    return text
+        .split(' ')
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(' ');
+}
+
+function formatDateLabel(value: string | null | undefined): string {
+    if (!value) {
+        return '—';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+    try {
+        return new Intl.DateTimeFormat(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        }).format(date);
+    } catch (error) {
+        void error;
+        return date.toISOString().slice(0, 10);
+    }
+}
+
+function formatQuantityValue(value: number | null | undefined, uom?: string | null): string {
+    if (!(typeof value === 'number' && Number.isFinite(value))) {
+        return uom ? `— ${uom}` : '—';
+    }
+    const formatted = value.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+    });
+    return uom ? `${formatted} ${uom}` : formatted;
+}
+
+function formatPercent(value: number | null | undefined): string {
+    if (!(typeof value === 'number' && Number.isFinite(value))) {
+        return '—';
+    }
+    const percentage = value <= 1 ? value * 100 : value;
+    const decimals = percentage % 1 === 0 ? 0 : 1;
+    return `${percentage.toFixed(decimals)}%`;
+}
+
+function receivingStatusBadgeClass(status: ReceivingQualityChecklistItem['status']): string {
+    if (status === 'risk') {
+        return 'border-destructive/40 text-destructive';
+    }
+    if (status === 'warning') {
+        return 'border-amber-300/60 text-amber-900 dark:text-amber-200';
+    }
+    return 'border-emerald-300/60 text-emerald-900 dark:text-emerald-200';
+}
+
+function matchRecommendationBadgeClass(status: string | null): string {
+    switch (status) {
+        case 'auto_approve':
+        case 'approve':
+            return 'border-emerald-300/60 text-emerald-900 dark:text-emerald-200';
+        case 'hold':
+        case 'manual_review':
+            return 'border-amber-300/60 text-amber-900 dark:text-amber-200';
+        case 'reject':
+            return 'border-destructive/40 text-destructive';
+        default:
+            return 'border-muted-foreground/40 text-muted-foreground';
+    }
+}
+
+function matchSeverityBadgeClass(severity: InvoiceMatchSeverity): string {
+    if (severity === 'risk') {
+        return 'border-destructive/40 text-destructive';
+    }
+    if (severity === 'warning') {
+        return 'border-amber-300/60 text-amber-900 dark:text-amber-200';
+    }
+    return 'border-muted-foreground/40 text-muted-foreground';
+}
+
+function formatMatchRecommendation(status: string | null): string {
+    switch (status) {
+        case 'auto_approve':
+        case 'approve':
+            return 'Auto approve';
+        case 'manual_review':
+            return 'Manual review';
+        case 'hold':
+            return 'Hold payment';
+        case 'reject':
+            return 'Reject invoice';
+        default:
+            return 'Review required';
     }
 }

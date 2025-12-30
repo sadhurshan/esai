@@ -49,26 +49,39 @@ from ai_microservice import chat_router
 from ai_microservice.chunking import chunk_text
 from ai_microservice.context_packer import pack_context_hits
 from ai_microservice.embedding_provider import EmbeddingProvider, get_embedding_provider
+from ai_microservice.intent_planner import plan_action_from_prompt
 from ai_microservice.llm_provider import DummyLLMProvider, LLMProviderError, LLMProvider, build_llm_provider
 from ai_microservice.schemas import (
     ANSWER_SCHEMA,
     AWARD_QUOTE_SCHEMA,
     CHAT_RESPONSE_SCHEMA,
     INVENTORY_WHATIF_SCHEMA,
+    ITEM_DRAFT_SCHEMA,
     INVOICE_DRAFT_SCHEMA,
+    INVOICE_DISPUTE_DRAFT_SCHEMA,
+    INVOICE_MATCH_SCHEMA,
+    INVOICE_MISMATCH_RESOLUTION_SCHEMA,
     MAINTENANCE_CHECKLIST_SCHEMA,
     PO_DRAFT_SCHEMA,
+    PAYMENT_DRAFT_SCHEMA,
+    RECEIPT_DRAFT_SCHEMA,
     REPORT_SUMMARY_SCHEMA,
     QUOTE_COMPARISON_SCHEMA,
     RFQ_DRAFT_SCHEMA,
+    SUPPLIER_ONBOARD_DRAFT_SCHEMA,
     SUPPLIER_MESSAGE_SCHEMA,
 )
 from ai_microservice.supplier_scraper import SupplierScraper
 from ai_microservice.tools_contract import (
     build_award_quote,
+    build_item_draft,
     build_invoice_draft,
+    build_invoice_dispute_draft,
     build_maintenance_checklist,
+    build_payment_draft,
+    build_receipt_draft,
     build_rfq_draft,
+    build_supplier_onboard_draft,
     build_supplier_message,
     compare_quotes,
     draft_purchase_order,
@@ -76,6 +89,8 @@ from ai_microservice.tools_contract import (
     forecast_spend,
     forecast_supplier_performance,
     get_help,
+    match_invoice_to_po_and_receipt,
+    resolve_invoice_mismatch,
     review_invoice,
     review_po,
     review_quote,
@@ -421,6 +436,7 @@ CHAT_SUMMARY_TARGET_CHARS = int(os.getenv("AI_CHAT_SUMMARY_TARGET_CHARS", "1800"
 CHAT_TOOL_ROUND_LIMIT = int(os.getenv("AI_CHAT_TOOL_ROUND_LIMIT", "3"))
 CHAT_MEMORY_CONTEXT_CHAR_LIMIT = int(os.getenv("AI_CHAT_MEMORY_CONTEXT_CHARS", "1600"))
 WORKFLOW_TEMPLATE_FILE = Path(__file__).resolve().parent / "config" / "workflow_templates.yaml"
+INTENT_PLAN_CONTEXT_LIMIT = int(os.getenv("AI_INTENT_CONTEXT_LIMIT", "12"))
 
 REVIEW_TOOL_TYPE_MAP = {
     "workspace.review_rfq": "review_rfq",
@@ -445,6 +461,14 @@ ACTION_TYPE_LABELS: Dict[str, str] = {
     "po_draft": "Purchase Order Draft",
     "award_quote": "Award Quote",
     "invoice_draft": "Invoice Draft",
+    "invoice_dispute_draft": "Invoice Dispute Draft",
+    "item_draft": "Item Draft",
+    "supplier_onboard_draft": "Supplier Onboarding Draft",
+    "receipt_draft": "Receipt Draft",
+    "payment_draft": "Payment Draft",
+    "invoice_match": "Invoice Match",
+    "invoice_mismatch_resolution": "Invoice Mismatch Resolution",
+    "payment_process": "Payment Processing",
 }
 
 ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
@@ -456,6 +480,21 @@ ACTION_SCHEMA_BY_TYPE: Dict[str, Dict[str, Any]] = {
     "po_draft": PO_DRAFT_SCHEMA,
     "award_quote": AWARD_QUOTE_SCHEMA,
     "invoice_draft": INVOICE_DRAFT_SCHEMA,
+    "invoice_dispute_draft": INVOICE_DISPUTE_DRAFT_SCHEMA,
+    "item_draft": ITEM_DRAFT_SCHEMA,
+    "supplier_onboard_draft": SUPPLIER_ONBOARD_DRAFT_SCHEMA,
+    "receipt_draft": RECEIPT_DRAFT_SCHEMA,
+    "payment_draft": PAYMENT_DRAFT_SCHEMA,
+    "invoice_match": INVOICE_MATCH_SCHEMA,
+    "invoice_mismatch_resolution": INVOICE_MISMATCH_RESOLUTION_SCHEMA,
+    "payment_process": PAYMENT_DRAFT_SCHEMA,
+}
+
+WORKFLOW_TOOL_ONLY_ACTIONS = {"receipt_draft", "invoice_match", "payment_process"}
+
+ACTION_RESPONSE_VALIDATORS: Dict[str, Draft202012Validator] = {
+    action_type: Draft202012Validator(schema)
+    for action_type, schema in ACTION_SCHEMA_BY_TYPE.items()
 }
 
 DEFAULT_WORKFLOW_STEP_TEMPLATES: Dict[str, List[Dict[str, Any]]] = {
@@ -774,6 +813,14 @@ class ActionPlanRequest(BaseModel):
         "inventory_whatif",
         "compare_quotes",
         "po_draft",
+        "award_quote",
+        "invoice_draft",
+        "item_draft",
+        "supplier_onboard_draft",
+        "receipt_draft",
+        "payment_draft",
+        "invoice_match",
+        "invoice_mismatch_resolution",
     ]
     query: str = Field(..., min_length=1)
     inputs: Dict[str, Any] = Field(default_factory=dict)
@@ -984,6 +1031,26 @@ class InvoiceDraftToolRequest(WorkspaceToolRequest):
     pass
 
 
+class InvoiceDisputeDraftToolRequest(WorkspaceToolRequest):
+    pass
+
+
+class ItemDraftToolRequest(WorkspaceToolRequest):
+    pass
+
+
+class SupplierOnboardDraftToolRequest(WorkspaceToolRequest):
+    pass
+
+
+class ReceiptDraftToolRequest(WorkspaceToolRequest):
+    pass
+
+
+class PaymentDraftToolRequest(WorkspaceToolRequest):
+    pass
+
+
 class ChatContinueRequest(BaseModel):
     company_id: int = Field(..., ge=1)
     thread_id: str = Field(..., min_length=1)
@@ -1013,6 +1080,38 @@ class ChatContinueRequest(BaseModel):
         sanitized = value.strip()
         return sanitized or None
 
+
+class IntentPlanMessage(BaseModel):
+    role: Literal["user", "assistant", "system"]
+    content: str = Field(..., min_length=1)
+
+    @field_validator("content", mode="before")
+    @classmethod
+    def normalize_content(cls, value: Any) -> str:  # noqa: D417
+        if not isinstance(value, str):
+            raise ValueError("content must be a string")
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("content cannot be empty")
+        return normalized
+
+
+class IntentPlanRequest(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    context: List[IntentPlanMessage] = Field(default_factory=list, max_length=INTENT_PLAN_CONTEXT_LIMIT)
+    company_id: Optional[int] = Field(default=None, ge=1)
+    thread_id: Optional[str] = Field(default=None, min_length=1)
+    user_id: Optional[int] = Field(default=None, ge=1)
+
+    @field_validator("prompt", mode="before")
+    @classmethod
+    def normalize_prompt(cls, value: Any) -> str:  # noqa: D417
+        if not isinstance(value, str):
+            raise ValueError("prompt must be a string")
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("prompt cannot be empty")
+        return normalized
 
 def resolve_llm_provider(override: Optional[str]) -> tuple[str, "LLMProvider"]:
     requested = (override or DEFAULT_LLM_PROVIDER_NAME or "dummy").strip().lower()
@@ -1680,6 +1779,25 @@ async def plan_action(payload: ActionPlanRequest) -> Dict[str, Any]:
     return await _execute_action_plan(payload)
 
 
+@app.post("/v1/ai/intent-plan")
+async def intent_plan(payload: IntentPlanRequest) -> Dict[str, Any]:
+    context_messages = [message.model_dump() for message in payload.context]
+    plan = plan_action_from_prompt(payload.prompt, context_messages)
+    LOGGER.info(
+        "intent_plan_generated",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+            tool=plan.get("tool"),
+        ),
+    )
+    return {
+        "status": "ok",
+        "data": plan,
+    }
+
+
 @app.post("/chat/respond")
 async def chat_respond(payload: ChatRespondRequest) -> Dict[str, Any]:
     started_at = time.perf_counter()
@@ -1860,6 +1978,181 @@ async def build_invoice_draft_tool(payload: InvoiceDraftToolRequest) -> Dict[str
     summary = "Invoice draft generated."
     LOGGER.info(
         "tool_invoice_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_invoice_dispute_draft")
+async def build_invoice_dispute_draft_tool(payload: InvoiceDisputeDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_invoice_dispute_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Invoice dispute draft generated."
+    LOGGER.info(
+        "tool_invoice_dispute_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_item_draft")
+async def build_item_draft_tool(payload: ItemDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_item_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Inventory item draft generated."
+    LOGGER.info(
+        "tool_item_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_supplier_onboard_draft")
+async def build_supplier_onboard_draft_tool(payload: SupplierOnboardDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_supplier_onboard_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Supplier onboarding draft generated."
+    LOGGER.info(
+        "tool_supplier_onboard_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_receipt_draft")
+async def build_receipt_draft_tool(payload: ReceiptDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_receipt_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Receipt draft generated."
+    LOGGER.info(
+        "tool_receipt_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/build_payment_draft")
+async def build_payment_draft_tool(payload: PaymentDraftToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = build_payment_draft(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Payment draft generated."
+    LOGGER.info(
+        "tool_payment_draft_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/match_invoice")
+async def match_invoice_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = match_invoice_to_po_and_receipt(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Invoice match analysis generated."
+    LOGGER.info(
+        "tool_invoice_match_built",
+        extra=log_extra(
+            company_id=payload.company_id,
+            thread_id=payload.thread_id,
+            user_id=payload.user_id,
+        ),
+    )
+    return {
+        "status": "ok",
+        "message": summary,
+        "data": {
+            "summary": summary,
+            "payload": tool_payload,
+            "citations": citations,
+        },
+    }
+
+
+@app.post("/v1/ai/tools/resolve_invoice_mismatch")
+async def resolve_invoice_mismatch_tool(payload: WorkspaceToolRequest) -> Dict[str, Any]:
+    context_blocks = payload.context[:CHAT_TOOL_RESULTS_LIMIT]
+    tool_payload = resolve_invoice_mismatch(context_blocks, payload.inputs)
+    citations = _build_tool_citations(context_blocks)
+    summary = "Invoice mismatch resolution generated."
+    LOGGER.info(
+        "tool_invoice_mismatch_resolution",
         extra=log_extra(
             company_id=payload.company_id,
             thread_id=payload.thread_id,
@@ -3788,14 +4081,82 @@ def _serialize_step(step: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
 
 async def _execute_workflow_step(workflow: Dict[str, Any], step: Dict[str, Any]) -> Dict[str, Any]:
     step_inputs = _prepare_step_inputs(workflow, step)
+    action_type = step.get("action_type")
+    if action_type in WORKFLOW_TOOL_ONLY_ACTIONS:
+        return _execute_tool_only_workflow_step(workflow, step, step_inputs)
+
     action_request = ActionPlanRequest(
         company_id=int(workflow.get("company_id") or 0),
-        action_type=step.get("action_type"),
+        action_type=action_type,
         query=_workflow_step_query(workflow, step),
         inputs=step_inputs,
         user_context=workflow.get("user_context") or {},
     )
     return await _execute_action_plan(action_request)
+
+
+def _execute_tool_only_workflow_step(
+    workflow: Dict[str, Any],
+    step: Dict[str, Any],
+    step_inputs: Dict[str, Any],
+) -> Dict[str, Any]:
+    action_type = step.get("action_type")
+    context_blocks = _workflow_step_context_blocks(step_inputs)
+    tool_payload = _invoke_tool_contract(action_type, context_blocks, step_inputs)
+    payload_value = tool_payload if isinstance(tool_payload, dict) else {}
+    warnings: List[str] = []
+    if not payload_value:
+        warnings.append("Tool payload missing; verify step inputs")
+
+    response = {
+        "action_type": action_type,
+        "summary": _workflow_tool_only_summary(workflow, step),
+        "payload": payload_value,
+        "citations": _build_tool_citations(context_blocks),
+        "confidence": 0.65 if payload_value else 0.35,
+        "needs_human_review": True,
+        "warnings": warnings,
+    }
+    _validate_action_response(action_type, response)
+    return response
+
+
+def _workflow_tool_only_summary(workflow: Dict[str, Any], step: Dict[str, Any]) -> str:
+    label = ACTION_TYPE_LABELS.get(step.get("action_type"), step.get("action_type", "Workflow Step").title())
+    workflow_goal = (workflow.get("metadata") or {}).get("goal")
+    if workflow_goal:
+        return f"{label} generated for '{workflow_goal}'"
+    return f"{label} generated for workflow {workflow.get('workflow_id')}"
+
+
+def _workflow_step_context_blocks(step_inputs: Dict[str, Any]) -> List[Dict[str, Any]]:
+    raw_context = step_inputs.get("context_blocks") or step_inputs.get("context")
+    if not isinstance(raw_context, list):
+        return []
+    context_blocks: List[Dict[str, Any]] = []
+    for block in raw_context:
+        if not isinstance(block, dict):
+            continue
+        context_blocks.append(block)
+        if len(context_blocks) >= ACTION_CONTEXT_MAX_CHUNKS:
+            break
+    return context_blocks
+
+
+def _validate_action_response(action_type: Optional[str], response: Dict[str, Any]) -> None:
+    if not action_type:
+        return
+    validator = ACTION_RESPONSE_VALIDATORS.get(action_type)
+    if not validator:
+        return
+    try:
+        validator.validate(response)
+    except ValidationError as exc:
+        LOGGER.error(
+            "workflow_step_payload_invalid",
+            extra=log_extra(action_type=action_type, error=str(exc)),
+        )
+        raise WorkflowEngineError(f"Workflow step payload validation failed for '{action_type}'") from exc
 
 
 def _prepare_step_inputs(workflow: Dict[str, Any], step: Dict[str, Any]) -> Dict[str, Any]:
@@ -3961,6 +4322,14 @@ def _invoke_tool_contract(
         "po_draft": draft_purchase_order,
         "award_quote": build_award_quote,
         "invoice_draft": build_invoice_draft,
+        "invoice_dispute_draft": build_invoice_dispute_draft,
+        "item_draft": build_item_draft,
+        "supplier_onboard_draft": build_supplier_onboard_draft,
+        "receipt_draft": build_receipt_draft,
+        "payment_draft": build_payment_draft,
+        "invoice_match": match_invoice_to_po_and_receipt,
+        "invoice_mismatch_resolution": resolve_invoice_mismatch,
+        "payment_process": build_payment_draft,
     }
     tool = tool_mapping.get(action_type)
     if not tool:
@@ -4066,6 +4435,7 @@ def _placeholder_payload_for_action(action_type: str, inputs: Dict[str, Any]) ->
         "supplier_message": _placeholder_supplier_message_payload,
         "maintenance_checklist": _placeholder_maintenance_checklist_payload,
         "inventory_whatif": _placeholder_inventory_whatif_payload,
+        "invoice_dispute_draft": _placeholder_invoice_dispute_payload,
     }
     builder = builders.get(action_type)
     if not builder:
@@ -4287,6 +4657,85 @@ def _placeholder_inventory_whatif_payload(inputs: Dict[str, Any]) -> Dict[str, A
         "expected_holding_cost_change": expected_holding_cost_change,
         "recommendation": recommendation,
         "assumptions": assumptions,
+    }
+
+
+def _placeholder_invoice_dispute_payload(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    invoice_id = _normalize_string(inputs.get("invoice_id"), "invoice")
+    invoice_number = _normalize_string(inputs.get("invoice_number"), invoice_id)
+    po_id = _normalize_string(inputs.get("purchase_order_id"), "")
+    po_number = _normalize_string(inputs.get("purchase_order_number"), po_id)
+    receipt_id = _normalize_string(inputs.get("receipt_id"), "")
+    receipt_number = _normalize_string(inputs.get("receipt_number"), receipt_id)
+    issue_summary = _normalize_string(
+        inputs.get("issue_summary"),
+        f"Invoice {invoice_number} variance requires dispute review.",
+    )
+    issue_category = _normalize_string(inputs.get("issue_category"), "workflow_dispute")
+    owner_role = _normalize_string(inputs.get("owner_role"), "buyer_admin")
+    requires_hold = bool(inputs.get("requires_hold", True))
+
+    dispute_reference: Dict[str, Any] = {
+        "invoice": {"id": invoice_id, "number": invoice_number},
+    }
+    if po_id:
+        dispute_reference["purchase_order"] = {
+            "id": po_id,
+            "number": po_number or po_id,
+        }
+    if receipt_id:
+        dispute_reference["receipt"] = {
+            "id": receipt_id,
+            "number": receipt_number or receipt_id,
+        }
+
+    actions = [
+        {
+            "type": "investigate_variance",
+            "description": "Investigate mismatched lines and notify supplier of the dispute.",
+            "owner_role": owner_role,
+            "due_in_days": 3,
+            "requires_hold": True,
+        }
+    ]
+
+    impacted_lines = [
+        {
+            "reference": "line-1",
+            "issue": "Variance detected between invoice and receipts.",
+            "severity": "warning",
+            "variance": None,
+            "recommended_action": "Reconcile quantities and request supplier response.",
+        }
+    ]
+
+    next_steps = [
+        "Share dispute summary with Accounts Payable",
+        "Document outcome in dispute tracker",
+    ]
+    notes = [
+        "Placeholder dispute draft generated; update references before approval.",
+    ]
+    reason_codes = [issue_category or "workflow_dispute"]
+
+    return {
+        "dispute_reference": dispute_reference,
+        "invoice_id": invoice_id,
+        "invoice_number": invoice_number,
+        "purchase_order_id": po_id or None,
+        "purchase_order_number": po_number or None,
+        "receipt_id": receipt_id or None,
+        "receipt_number": receipt_number or None,
+        "issue_summary": issue_summary,
+        "issue_category": issue_category or "workflow_dispute",
+        "owner_role": owner_role,
+        "requires_hold": requires_hold,
+        "due_in_days": 3,
+        "actions": actions,
+        "impacted_lines": impacted_lines,
+        "next_steps": next_steps,
+        "notes": notes,
+        "reason_codes": reason_codes,
     }
 
 

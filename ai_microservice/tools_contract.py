@@ -122,8 +122,14 @@ def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: Mutable
         normalized_inputs = inputs or {}
         today = datetime.now(timezone.utc).date().isoformat()
 
-        rfq_title = _text(normalized_inputs.get("rfq_title")) or _text(normalized_inputs.get("category"))
-        rfq_title = rfq_title or f"RFQ Draft - {today}"
+        rfq_title = None
+        for key in ("rfq_title", "rfq_name", "name", "title", "category"):
+            candidate = _text(normalized_inputs.get(key))
+            if candidate:
+                rfq_title = candidate
+                break
+        if not rfq_title:
+            rfq_title = f"RFQ Draft - {today}"
         scope_summary = _text(normalized_inputs.get("scope_summary")) or "Scope derived from retrieved documents."
 
         line_items = _build_line_items(normalized_inputs.get("items"), normalized_context, today)
@@ -649,6 +655,599 @@ def build_invoice_draft(
         }
 
 
+def build_item_draft(context: Sequence[MutableMapping[str, Any]], inputs: MutableMapping[str, Any]) -> Dict[str, Any]:
+    """Draft an inventory item definition with specs and preferred suppliers."""
+
+    with _SideEffectGuard("build_item_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        today = datetime.now(timezone.utc).strftime("%Y%m%d")
+
+        item_code = (
+            _text(normalized_inputs.get("item_code"))
+            or _text(normalized_inputs.get("sku"))
+            or _infer_from_context(normalized_context, ("item_code", "part_number", "sku"))
+            or f"ITEM-{today}"
+        )
+
+        name = (
+            _text(normalized_inputs.get("name"))
+            or _infer_from_context(normalized_context, ("name", "item_name", "title", "part_name"))
+            or item_code
+        )
+
+        uom = (
+            _text(normalized_inputs.get("uom"))
+            or _infer_from_context(normalized_context, ("uom", "unit", "unit_of_measure"))
+            or "ea"
+        )
+
+        category = _text(normalized_inputs.get("category")) or _infer_from_context(
+            normalized_context,
+            ("category", "family", "commodity"),
+        )
+
+        description = _text(normalized_inputs.get("description")) or _item_description_from_context(
+            normalized_context,
+            fallback=name,
+        )
+
+        spec = _text(normalized_inputs.get("spec")) or _infer_from_context(
+            normalized_context,
+            ("spec", "standard", "drawing", "revision"),
+        )
+
+        status = _normalize_item_status(_text(normalized_inputs.get("status")))
+        attributes = _build_item_attributes(normalized_inputs.get("attributes"), normalized_context)
+        preferred_suppliers = _build_preferred_suppliers(normalized_inputs, normalized_context)
+
+        return {
+            "item_code": item_code,
+            "name": name,
+            "uom": uom,
+            "status": status,
+            "category": category or None,
+            "description": description or None,
+            "spec": spec or None,
+            "attributes": attributes,
+            "preferred_suppliers": preferred_suppliers,
+        }
+
+
+def build_supplier_onboard_draft(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Draft a supplier onboarding payload with document requirements."""
+
+    with _SideEffectGuard("build_supplier_onboard_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        today = datetime.now(timezone.utc).strftime("%Y%m%d")
+
+        legal_name = (
+            _text(normalized_inputs.get("legal_name"))
+            or _infer_from_context(normalized_context, ("legal_name", "supplier_name", "company"))
+            or f"Supplier Prospect {today}"
+        )
+
+        email = (
+            _text(normalized_inputs.get("email"))
+            or _infer_from_context(normalized_context, ("email", "contact_email"))
+        )
+        if not email:
+            email = f"{_slugify_identifier(legal_name)}@prospect.suppliers.local"
+
+        phone = (
+            _text(normalized_inputs.get("phone"))
+            or _infer_from_context(normalized_context, ("phone", "contact_phone"))
+            or "+1-555-0100"
+        )
+
+        country = (
+            _text(normalized_inputs.get("country"))
+            or _infer_from_context(normalized_context, ("country", "country_code"))
+            or "US"
+        ).upper()[:64]
+
+        payment_terms = _text(normalized_inputs.get("payment_terms")) or "Net 30"
+        tax_id = _text(normalized_inputs.get("tax_id")) or f"TAX-{today}"
+
+        website = _text(normalized_inputs.get("website")) or _infer_from_context(
+            normalized_context,
+            ("website", "url", "site"),
+        )
+        address = _text(normalized_inputs.get("address")) or _infer_from_context(
+            normalized_context,
+            ("address", "location", "hq"),
+        )
+
+        documents_needed = _build_document_requirements(
+            normalized_inputs.get("documents_needed"),
+            normalized_context,
+        )
+        notes = _text(normalized_inputs.get("notes"))
+
+        return {
+            "legal_name": legal_name,
+            "country": country,
+            "email": email,
+            "phone": phone,
+            "payment_terms": payment_terms,
+            "tax_id": tax_id,
+            "website": website or None,
+            "address": address or None,
+            "documents_needed": documents_needed,
+            "notes": notes or None,
+        }
+
+
+def build_receipt_draft(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic goods receipt draft tied to a purchase order."""
+
+    with _SideEffectGuard("build_receipt_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+
+        po_id = _text(normalized_inputs.get("po_id"))
+        if not po_id:
+            for block in normalized_context:
+                metadata = block.get("metadata") or {}
+                candidate = metadata.get("po_id") or metadata.get("purchase_order_id") or metadata.get("po_number")
+                po_id = _text(candidate)
+                if po_id:
+                    break
+        if not po_id:
+            po_id = "PO-TBD"
+
+        received_date_obj = _parse_iso_date(_text(normalized_inputs.get("received_date")))
+        if received_date_obj is None:
+            received_date_obj = datetime.now(timezone.utc).date()
+        received_date = received_date_obj.isoformat()
+
+        line_items = _build_receipt_line_items(normalized_inputs.get("line_items"), normalized_context)
+        total_received_qty = round(sum(float(item.get("received_qty", 0.0)) for item in line_items), 4)
+
+        inspector = _text(
+            normalized_inputs.get("inspected_by")
+            or normalized_inputs.get("receiver_name")
+            or normalized_inputs.get("inspector")
+        ) or "Receiving Team"
+
+        reference = _text(
+            normalized_inputs.get("reference")
+            or normalized_inputs.get("asn")
+            or normalized_inputs.get("shipment_reference")
+        )
+        if not reference:
+            citations = _format_source_labels(normalized_context, limit=1)
+            reference = citations[0] if citations else f"{po_id}-RECEIPT"
+
+        status = _text(normalized_inputs.get("status")) or "draft"
+
+        notes = _text(normalized_inputs.get("notes"))
+        if not notes:
+            insights = _contextual_insights(normalized_context, limit=1)
+            notes = insights[0] if insights else "Draft goods receipt generated from workflow context."
+
+        return {
+            "po_id": po_id,
+            "received_date": received_date,
+            "reference": reference,
+            "inspected_by": inspector,
+            "status": status,
+            "total_received_qty": total_received_qty,
+            "line_items": line_items,
+            "notes": notes,
+        }
+
+
+def build_payment_draft(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic payment draft aligned to AP workflows."""
+
+    with _SideEffectGuard("build_payment_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+
+        invoice_id = _text(normalized_inputs.get("invoice_id") or normalized_inputs.get("id"))
+        if not invoice_id:
+            for block in normalized_context:
+                metadata = block.get("metadata") or {}
+                candidate = metadata.get("invoice_id") or metadata.get("invoice_number")
+                invoice_id = _text(candidate)
+                if invoice_id:
+                    break
+        if not invoice_id:
+            invoice_id = "INV-TBD"
+
+        amount = _safe_float(
+            normalized_inputs.get("amount")
+            or normalized_inputs.get("open_balance")
+            or normalized_inputs.get("total")
+            or normalized_inputs.get("grand_total"),
+            default=0.0,
+        )
+        amount = round(max(amount, 0.01), 2)
+
+        currency = (_text(normalized_inputs.get("currency")) or "USD").upper()
+        payment_method = _text(normalized_inputs.get("payment_method") or normalized_inputs.get("method")) or "ach"
+
+        scheduled_date_obj = _parse_iso_date(
+            _text(normalized_inputs.get("scheduled_date") or normalized_inputs.get("payment_date"))
+        )
+        if scheduled_date_obj is None:
+            scheduled_date_obj = datetime.now(timezone.utc).date()
+        scheduled_date = scheduled_date_obj.isoformat()
+
+        reference = _text(normalized_inputs.get("reference") or normalized_inputs.get("payment_reference"))
+        if not reference:
+            reference = f"{invoice_id}-{scheduled_date}"
+
+        notes = _text(normalized_inputs.get("notes"))
+        if not notes:
+            insights = _contextual_insights(normalized_context, limit=1)
+            notes = insights[0] if insights else "Draft payment generated from workflow context."
+
+        return {
+            "invoice_id": invoice_id,
+            "amount": amount,
+            "currency": currency,
+            "payment_method": payment_method,
+            "scheduled_date": scheduled_date,
+            "reference": reference,
+            "notes": notes,
+        }
+
+
+def match_invoice_to_po_and_receipt(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a deterministic three-way match summary for AP approval."""
+
+    with _SideEffectGuard("match_invoice_to_po_and_receipt"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+
+        invoice_id = _text(normalized_inputs.get("invoice_id") or normalized_inputs.get("id"))
+        if not invoice_id:
+            invoice_id = _infer_from_context(normalized_context, ("invoice_id", "invoice_number")) or "invoice"
+
+        po_id = _text(normalized_inputs.get("po_id") or normalized_inputs.get("purchase_order_id"))
+        if not po_id:
+            po_id = _infer_from_context(normalized_context, ("po_id", "purchase_order_id", "po_number")) or "PO-TBD"
+
+        receipt_ids = _string_list(normalized_inputs.get("receipt_ids"))
+        if not receipt_ids:
+            receipt_ids = _infer_receipt_ids_from_context(normalized_context)
+
+        invoice_lines = _normalize_match_lines(
+            normalized_inputs.get("invoice_lines") or normalized_inputs.get("lines"),
+            default_prefix="INV",
+            quantity_keys=("qty", "quantity", "billed_qty"),
+            price_keys=("unit_price", "price", "unit_cost"),
+            tax_keys=("tax_rate", "tax"),
+        )
+        po_lines = _normalize_match_lines(
+            normalized_inputs.get("po_lines") or normalized_inputs.get("purchase_order_lines"),
+            default_prefix="PO",
+            quantity_keys=("qty", "quantity", "ordered_qty"),
+            price_keys=("unit_price", "price", "unit_cost"),
+            tax_keys=("tax_rate", "tax"),
+        )
+        receipt_lines = _normalize_match_lines(
+            normalized_inputs.get("receipt_lines") or normalized_inputs.get("receipts"),
+            default_prefix="RCPT",
+            quantity_keys=("accepted_qty", "received_qty", "qty"),
+            price_keys=("unit_price", "price"),
+            tax_keys=(),
+        )
+
+        po_lookup = _build_match_lookup(po_lines)
+        receipt_lookup = _build_match_lookup(receipt_lines)
+
+        mismatches: List[Dict[str, Any]] = []
+        for line in invoice_lines:
+            line_key = line["line_reference"]
+            po_line = _resolve_match_line(line, po_lookup)
+            if not po_line:
+                mismatches.append(
+                    {
+                        "type": "missing_line",
+                        "line_reference": line_key,
+                        "severity": "risk",
+                        "detail": f"Invoice line {line_key} not found on PO {po_id}.",
+                    }
+                )
+                continue
+
+            qty_diff = line["qty"] - po_line["qty"]
+            qty_threshold = max(0.01, po_line["qty"] * 0.02)
+            if abs(qty_diff) > qty_threshold:
+                mismatches.append(
+                    {
+                        "type": "qty",
+                        "line_reference": line_key,
+                        "severity": "warning" if abs(qty_diff) <= po_line["qty"] * 0.1 else "risk",
+                        "detail": f"Invoice qty {line['qty']:.2f} vs PO {po_line['qty']:.2f}",
+                        "expected": round(po_line["qty"], 4),
+                        "actual": round(line["qty"], 4),
+                    }
+                )
+
+            receipt_line = _resolve_match_line(line, receipt_lookup)
+            if receipt_line:
+                receipt_diff = line["qty"] - receipt_line["qty"]
+                receipt_threshold = max(0.01, receipt_line["qty"] * 0.02)
+                if receipt_diff > receipt_threshold:
+                    mismatches.append(
+                        {
+                            "type": "qty",
+                            "line_reference": line_key,
+                            "severity": "warning",
+                            "detail": f"Invoice qty exceeds received qty ({line['qty']:.2f} vs {receipt_line['qty']:.2f})",
+                            "expected": round(receipt_line["qty"], 4),
+                            "actual": round(line["qty"], 4),
+                        }
+                    )
+
+            price_diff = line["unit_price"] - po_line["unit_price"]
+            price_threshold = max(0.01, po_line["unit_price"] * 0.01)
+            if abs(price_diff) > price_threshold:
+                mismatches.append(
+                    {
+                        "type": "price",
+                        "line_reference": line_key,
+                        "severity": "warning" if abs(price_diff) <= po_line["unit_price"] * 0.05 else "risk",
+                        "detail": f"Unit price {line['unit_price']:.2f} vs PO {po_line['unit_price']:.2f}",
+                        "expected": round(po_line["unit_price"], 4),
+                        "actual": round(line["unit_price"], 4),
+                    }
+                )
+
+            tax_diff = line["tax_rate"] - po_line["tax_rate"]
+            if abs(tax_diff) > 0.005:
+                mismatches.append(
+                    {
+                        "type": "tax",
+                        "line_reference": line_key,
+                        "severity": "info" if abs(tax_diff) <= 0.02 else "warning",
+                        "detail": f"Tax rate {line['tax_rate']:.2%} vs PO {po_line['tax_rate']:.2%}",
+                        "expected": round(po_line["tax_rate"], 4),
+                        "actual": round(line["tax_rate"], 4),
+                    }
+                )
+
+        match_score = max(0.0, 1.0 - min(0.8, 0.15 * len(mismatches)))
+        recommendation_status = "approve" if not mismatches else "hold"
+        if mismatches:
+            explanation = "Hold for review: " + "; ".join(mismatch["detail"] for mismatch in mismatches[:3])
+        else:
+            explanation = "Invoice quantities, pricing, and tax rates align with PO and receipts."
+
+        insights = _contextual_insights(normalized_context, limit=2)
+        analysis_notes = insights if insights else ["Three-way match executed deterministically."]
+
+        return {
+            "invoice_id": invoice_id,
+            "matched_po_id": po_id,
+            "matched_receipt_ids": receipt_ids,
+            "match_score": round(match_score, 4),
+            "mismatches": mismatches,
+            "recommendation": {
+                "status": recommendation_status,
+                "explanation": explanation,
+            },
+            "analysis_notes": analysis_notes,
+        }
+
+
+def resolve_invoice_mismatch(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Recommend the best resolution for invoice mismatches."""
+
+    with _SideEffectGuard("resolve_invoice_mismatch"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+
+        invoice_id = _text(normalized_inputs.get("invoice_id")) or _infer_from_context(
+            normalized_context,
+            ("invoice_id", "invoice_number", "id"),
+        )
+        if not invoice_id:
+            invoice_id = "invoice"
+
+        raw_mismatches = normalized_inputs.get("mismatches")
+        if not raw_mismatches:
+            match_result = _mapping(normalized_inputs.get("match_result"))
+            raw_mismatches = match_result.get("mismatches") or _extract_context_mismatches(normalized_context)
+
+        mismatches = _normalize_mismatch_summaries(raw_mismatches)
+        severity_score = _score_mismatch_severity(mismatches)
+
+        preferred_resolution = _text(normalized_inputs.get("preferred_resolution"))
+        resolution_type = _determine_resolution_type(mismatches, preferred_resolution)
+
+        summary = _text(normalized_inputs.get("summary"))
+        if not summary:
+            summary = _default_resolution_summary(resolution_type, invoice_id, mismatches)
+
+        reason_codes = _string_list(normalized_inputs.get("reason_codes"))
+        if not reason_codes:
+            reason_codes = sorted({
+                f"{entry['type']}_{entry.get('severity') or 'info'}"
+                for entry in mismatches
+            })[:6]
+
+        actions = _build_resolution_actions(resolution_type, invoice_id)
+        impacted_lines = _build_impacted_line_entries(mismatches, resolution_type)
+        next_steps = _build_resolution_next_steps(resolution_type, invoice_id)
+
+        notes = _string_list(normalized_inputs.get("notes"))
+        if not notes:
+            notes = _contextual_insights(normalized_context, limit=2)
+        if not notes:
+            notes = [summary]
+
+        return {
+            "invoice_id": invoice_id,
+            "resolution": {
+                "type": resolution_type,
+                "summary": summary,
+                "reason_codes": reason_codes,
+                "confidence": round(max(0.15, 1.0 - severity_score), 4),
+            },
+            "actions": actions,
+            "impacted_lines": impacted_lines,
+            "next_steps": next_steps,
+            "notes": notes[:10],
+        }
+
+
+def build_invoice_dispute_draft(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+) -> Dict[str, Any]:
+    """Return a dispute draft referencing invoice, PO, and receipt context."""
+
+    with _SideEffectGuard("build_invoice_dispute_draft"):
+        normalized_context = _normalize_context(context)
+        normalized_inputs = inputs or {}
+        match_result = _mapping(normalized_inputs.get("match_result"))
+
+        invoice_reference = _resolve_invoice_reference_block(normalized_context, normalized_inputs, match_result)
+        purchase_order_reference = _resolve_purchase_order_reference_block(
+            normalized_context,
+            normalized_inputs,
+            match_result,
+        )
+        receipt_reference = _resolve_receipt_reference_block(normalized_context, normalized_inputs, match_result)
+
+        invoice_label = invoice_reference.get("number") or invoice_reference.get("id") or "invoice"
+        raw_mismatches = (
+            normalized_inputs.get("mismatches")
+            or match_result.get("mismatches")
+            or _extract_context_mismatches(normalized_context)
+        )
+        mismatches = _normalize_mismatch_summaries(raw_mismatches)
+        if not mismatches:
+            fallback_issue = _text(normalized_inputs.get("issue_summary")) or "Variance detected during invoice review."
+            mismatches = [
+                {
+                    "type": "qty",
+                    "severity": "warning",
+                    "line_reference": "general",
+                    "detail": fallback_issue,
+                    "expected": None,
+                    "actual": None,
+                    "variance": 0.0,
+                    "impact_score": 0.1,
+                }
+            ]
+
+        resolution_pref = _text(
+            normalized_inputs.get("resolution_type") or normalized_inputs.get("preferred_resolution")
+        )
+        resolution_type = _determine_resolution_type(mismatches, resolution_pref)
+
+        issue_summary = _text(normalized_inputs.get("issue_summary")) or _build_dispute_issue_summary(
+            invoice_label,
+            mismatches,
+        )
+        issue_category = _text(normalized_inputs.get("issue_category")) or _infer_issue_category(
+            resolution_type,
+            mismatches,
+        )
+
+        reason_codes = _derive_dispute_reason_codes(
+            mismatches,
+            issue_category,
+            normalized_inputs.get("reason_codes"),
+        )
+
+        normalized_actions = _normalize_dispute_actions(normalized_inputs.get("actions"))
+        if not normalized_actions:
+            normalized_actions = _normalize_dispute_actions(_build_resolution_actions(resolution_type, invoice_label))
+        if not normalized_actions:
+            normalized_actions = [
+                {
+                    "type": "investigate_variance",
+                    "description": "Investigate invoice variance and share summary with supplier.",
+                    "owner_role": "buyer_admin",
+                    "due_in_days": 3,
+                    "requires_hold": True,
+                }
+            ]
+
+        owner_role = _text(normalized_inputs.get("owner_role")) or next(
+            (action.get("owner_role") for action in normalized_actions if action.get("owner_role")),
+            None,
+        )
+        owner_role = owner_role or "buyer_admin"
+
+        requires_hold_value = normalized_inputs.get("requires_hold")
+        if isinstance(requires_hold_value, bool):
+            requires_hold = requires_hold_value
+        else:
+            requires_hold = resolution_type in {"hold", "request_credit_note"}
+            if not requires_hold:
+                requires_hold = any(bool(action.get("requires_hold")) for action in normalized_actions)
+
+        due_in_days_value = normalized_inputs.get("due_in_days")
+        if due_in_days_value is not None:
+            due_in_days = max(0, min(120, int(round(_safe_float(due_in_days_value, default=0.0)))))
+        else:
+            due_in_days = 3 if requires_hold else 5
+
+        normalized_impacts = _normalize_dispute_impacts(normalized_inputs.get("impacted_lines"))
+        if not normalized_impacts:
+            normalized_impacts = _normalize_dispute_impacts(_build_impacted_line_entries(mismatches, resolution_type))
+
+        next_steps = _string_list(normalized_inputs.get("next_steps"))
+        if not next_steps:
+            next_steps = _build_resolution_next_steps(resolution_type, invoice_label)
+
+        notes = _string_list(normalized_inputs.get("notes"))
+        if not notes:
+            notes = _contextual_insights(normalized_context, limit=2)
+        if not notes:
+            notes = [issue_summary]
+
+        dispute_reference = _build_dispute_reference_payload(
+            invoice_reference,
+            purchase_order_reference,
+            receipt_reference,
+        )
+
+        return {
+            "dispute_reference": dispute_reference,
+            "invoice_id": invoice_reference.get("id"),
+            "invoice_number": invoice_reference.get("number"),
+            "purchase_order_id": purchase_order_reference.get("id"),
+            "purchase_order_number": purchase_order_reference.get("number"),
+            "receipt_id": receipt_reference.get("id"),
+            "receipt_number": receipt_reference.get("number"),
+            "issue_summary": issue_summary,
+            "issue_category": issue_category or "workflow_dispute",
+            "owner_role": owner_role,
+            "requires_hold": requires_hold,
+            "due_in_days": due_in_days,
+            "actions": normalized_actions[:8],
+            "impacted_lines": normalized_impacts[:8],
+            "next_steps": next_steps[:10],
+            "notes": notes[:10],
+            "reason_codes": reason_codes[:10],
+        }
+
+
 def build_award_quote(
     context: Sequence[MutableMapping[str, Any]],
     inputs: MutableMapping[str, Any],
@@ -1001,6 +1600,11 @@ def _text(value: Any) -> str:
     return ""
 
 
+def _slugify_identifier(value: str, fallback: str = "supplier") -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return normalized or fallback
+
+
 def _mapping(value: Any) -> Dict[str, Any]:
     if isinstance(value, MutableMapping):
         return dict(value)
@@ -1077,6 +1681,301 @@ def _collect_rubric(inputs: MutableMapping[str, Any]) -> List[Dict[str, Any]]:
             },
         ]
     return rubric_entries[:6]
+
+
+    def _item_description_from_context(
+        context: Sequence[MutableMapping[str, Any]],
+        fallback: str,
+    ) -> str:
+        for block in context:
+            snippet = _text(block.get("snippet"))
+            if snippet:
+                return snippet[:320]
+            metadata = block.get("metadata") or {}
+            summary = _text(metadata.get("summary") or metadata.get("description"))
+            if summary:
+                return summary[:320]
+        return f"{fallback} drafted from Copilot context."
+
+
+    def _normalize_item_status(value: str) -> str:
+        if not value:
+            return "active"
+        normalized = value.lower()
+        if normalized in {"inactive", "retired", "archived", "obsolete", "discontinued"}:
+            return "inactive"
+        return "active"
+
+
+    def _build_item_attributes(
+        raw_attributes: Any,
+        context: Sequence[MutableMapping[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        attributes = _normalize_attribute_mapping(raw_attributes)
+        if attributes:
+            return attributes
+
+        for block in context:
+            metadata = block.get("metadata") or {}
+            for key in ("attributes", "specs", "dimensions"):
+                candidate = metadata.get(key)
+                normalized = _normalize_attribute_mapping(candidate)
+                if normalized:
+                    attributes.update(normalized)
+            if attributes:
+                break
+
+        return attributes or None
+
+
+    def _normalize_attribute_mapping(candidate: Any) -> Dict[str, Any]:
+        attributes: Dict[str, Any] = {}
+        if isinstance(candidate, MutableMapping):
+            iterator = candidate.items()
+        elif isinstance(candidate, Iterable) and not isinstance(candidate, (str, bytes)):
+            iterator = []
+            for entry in candidate:
+                if isinstance(entry, MutableMapping):
+                    key = _text(entry.get("name") or entry.get("key") or entry.get("attribute"))
+                    if not key or key in attributes:
+                        continue
+                    value = entry.get("value") or entry.get("val") or entry.get("content")
+                    if isinstance(value, (MutableMapping, list, tuple)):
+                        continue
+                    attributes[key] = value if isinstance(value, (int, float)) else _text(value) or value
+            return dict(list(attributes.items())[:12])
+        else:
+            return {}
+
+        for key, value in iterator:
+            text_key = _text(key)
+            if not text_key or text_key in attributes:
+                continue
+            if isinstance(value, (MutableMapping, list, tuple)):
+                continue
+            attributes[text_key] = value if isinstance(value, (int, float)) else _text(value) or value
+
+        return dict(list(attributes.items())[:12])
+
+
+    def _build_preferred_suppliers(
+        inputs: MutableMapping[str, Any],
+        context: Sequence[MutableMapping[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        suppliers = _normalize_preferred_supplier_entries(inputs.get("preferred_suppliers"))
+
+        if not suppliers:
+            for block in context:
+                metadata = block.get("metadata") or {}
+                meta_suppliers = metadata.get("preferred_suppliers") or metadata.get("suppliers")
+                suppliers = _normalize_preferred_supplier_entries(meta_suppliers)
+                if suppliers:
+                    break
+                supplier_meta = metadata.get("supplier")
+                if supplier_meta:
+                    suppliers = _normalize_preferred_supplier_entries([supplier_meta])
+                    if suppliers:
+                        break
+
+        return suppliers[:5]
+
+
+    def _normalize_preferred_supplier_entries(raw: Any) -> List[Dict[str, Any]]:
+        if raw is None:
+            return []
+
+        if isinstance(raw, MutableMapping):
+            iterable: Iterable[Any] = [raw]
+        elif isinstance(raw, Iterable) and not isinstance(raw, (str, bytes)):
+            iterable = raw
+        else:
+            return []
+
+        normalized: List[Dict[str, Any]] = []
+        seen_keys: set[str] = set()
+
+        for idx, entry in enumerate(iterable):
+            if not isinstance(entry, MutableMapping):
+                continue
+            supplier_id = _text(entry.get("supplier_id") or entry.get("id") or entry.get("supplier")) or None
+            name = _text(entry.get("name") or entry.get("supplier_name") or entry.get("company"))
+            if not name and not supplier_id:
+                continue
+
+            key = supplier_id or name
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+
+            priority = _normalize_priority(entry.get("priority"), idx + 1)
+            notes = _text(entry.get("notes") or entry.get("summary") or entry.get("reason"))
+
+            normalized.append(
+                {
+                    "supplier_id": supplier_id,
+                    "name": name or key,
+                    "priority": priority,
+                    "notes": notes or None,
+                }
+            )
+
+        return normalized
+
+
+def _build_document_requirements(
+    raw_requirements: Any,
+    context: Sequence[MutableMapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    requirements: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    next_priority = 1
+
+    def append_requirement(
+        doc_type: str,
+        description: Optional[str],
+        *,
+        required: bool = True,
+        due_in_days: Optional[int] = None,
+        notes: Optional[str] = None,
+        priority: Optional[int] = None,
+    ) -> None:
+        normalized_type = doc_type.lower()
+        if not normalized_type or normalized_type in seen:
+            return
+        seen.add(normalized_type)
+        entry: Dict[str, Any] = {
+            "type": normalized_type,
+            "description": description or None,
+            "required": required,
+        }
+        if due_in_days is not None and due_in_days > 0:
+            entry["due_in_days"] = due_in_days
+        if priority is not None:
+            entry["priority"] = priority
+        if notes:
+            entry["notes"] = notes
+        requirements.append(entry)
+
+    def handle_entry(entry: Any) -> None:
+        nonlocal next_priority
+        prior_len = len(requirements)
+        if isinstance(entry, MutableMapping):
+            doc_type = _text(entry.get("type") or entry.get("document_type") or entry.get("code"))
+            if not doc_type:
+                return
+            description = _text(entry.get("description")) or None
+            notes = _text(entry.get("notes") or entry.get("instructions")) or None
+            due_value = entry.get("due_in_days") or entry.get("due_days")
+            due_in_days: Optional[int] = None
+            if due_value is not None:
+                due_in_days = int(
+                    _clamp(
+                        _safe_float(due_value, default=0.0),
+                        1,
+                        365,
+                    )
+                )
+            required_flag = entry.get("required")
+            required = bool(required_flag) if required_flag is not None else True
+            priority = _normalize_priority(entry.get("priority"), next_priority)
+            append_requirement(
+                doc_type,
+                description,
+                required=required,
+                due_in_days=due_in_days,
+                notes=notes,
+                priority=priority,
+            )
+        else:
+            doc_type = _text(entry)
+            if doc_type:
+                append_requirement(
+                    doc_type,
+                    f"Provide {doc_type.upper()} documentation.",
+                    priority=next_priority,
+                )
+        if len(requirements) > prior_len:
+            next_priority += 1
+
+    if isinstance(raw_requirements, MutableMapping):
+        iterable: Iterable[Any] = [raw_requirements]
+    elif isinstance(raw_requirements, Iterable) and not isinstance(raw_requirements, (str, bytes)):
+        iterable = raw_requirements
+    elif raw_requirements is None:
+        iterable = []
+    else:
+        iterable = _string_list(raw_requirements)
+
+    for entry in iterable:
+        handle_entry(entry)
+
+    if not requirements:
+        contextual_entries: List[Any] = []
+        extractor_keys = (
+            "documents_needed",
+            "required_documents",
+            "document_requirements",
+            "certifications",
+        )
+        for block in context:
+            if not isinstance(block, MutableMapping):
+                continue
+            sources = [block]
+            metadata = block.get("metadata")
+            if isinstance(metadata, MutableMapping):
+                sources.append(metadata)
+            for source in sources:
+                for key in extractor_keys:
+                    candidate = source.get(key) if isinstance(source, MutableMapping) else None
+                    if not candidate:
+                        continue
+                    if isinstance(candidate, MutableMapping):
+                        contextual_entries.append(candidate)
+                    elif isinstance(candidate, Iterable) and not isinstance(candidate, (str, bytes)):
+                        contextual_entries.extend(candidate)
+                    else:
+                        contextual_entries.append(candidate)
+        if contextual_entries:
+            for entry in contextual_entries:
+                handle_entry(entry)
+
+    if not requirements:
+        defaults = [
+            {
+                "type": "iso9001",
+                "description": "ISO 9001 certificate",
+                "due_in_days": 45,
+                "required": True,
+            },
+            {
+                "type": "insurance",
+                "description": "Certificate of insurance",
+                "due_in_days": 30,
+                "required": True,
+            },
+            {
+                "type": "nda",
+                "description": "Signed mutual NDA",
+                "due_in_days": 7,
+                "required": True,
+            },
+        ]
+        for entry in defaults:
+            handle_entry(entry)
+
+    return requirements[:8]
+
+
+def _normalize_priority(value: Any, default: int) -> Optional[int]:
+        try:
+            candidate = int(value)
+        except (TypeError, ValueError):
+            candidate = None
+
+        if candidate is not None and 1 <= candidate <= 5:
+            return candidate
+
+        return min(max(default, 1), 5) if default else None
 
 
 def _build_line_items(
@@ -1160,6 +2059,690 @@ def _format_source_label(block: MutableMapping[str, Any]) -> str:
     chunk_suffix = f"#c{chunk_id}" if isinstance(chunk_id, (int, float)) else ""
     version_suffix = f"@{doc_version}" if doc_version else ""
     return f"doc:{doc_id}{version_suffix}{chunk_suffix}"
+
+
+def _infer_from_context(
+    context: Sequence[MutableMapping[str, Any]],
+    keys: Sequence[str],
+) -> str:
+    for block in context:
+        metadata = block.get("metadata") or {}
+        for key in keys:
+            candidate = _text(metadata.get(key))
+            if candidate:
+                return candidate
+    return ""
+
+
+def _infer_receipt_ids_from_context(context: Sequence[MutableMapping[str, Any]]) -> List[str]:
+    for block in context:
+        metadata = block.get("metadata") or {}
+        for key in ("receipt_ids", "receipts"):
+            candidates = metadata.get(key)
+            ids = _string_list(candidates)
+            if ids:
+                return ids
+    return []
+
+
+def _normalize_match_lines(
+    raw_lines: Any,
+    *,
+    default_prefix: str,
+    quantity_keys: Sequence[str],
+    price_keys: Sequence[str],
+    tax_keys: Sequence[str],
+) -> List[Dict[str, Any]]:
+    lines: List[Dict[str, Any]] = []
+    if isinstance(raw_lines, MutableMapping):
+        iterable: Iterable[Any] = raw_lines.values()
+    elif isinstance(raw_lines, Iterable) and not isinstance(raw_lines, (str, bytes)):
+        iterable = raw_lines
+    else:
+        iterable = []
+
+    for idx, entry in enumerate(iterable):
+        if not isinstance(entry, MutableMapping):
+            continue
+        line_ref = _text(
+            entry.get("line_reference")
+            or entry.get("line_number")
+            or entry.get("line_id")
+            or entry.get("item_code")
+            or entry.get("sku")
+        ) or f"{default_prefix}-{idx + 1}"
+        item_code = _text(entry.get("item_code") or entry.get("sku") or entry.get("part_number")) or None
+        qty_value = _safe_float(_first_present(entry, quantity_keys), default=0.0)
+        price_value = _safe_float(_first_present(entry, price_keys), default=0.0) if price_keys else 0.0
+        tax_value = _safe_float(_first_present(entry, tax_keys), default=0.0) if tax_keys else 0.0
+        lines.append(
+            {
+                "line_reference": line_ref,
+                "item_code": item_code,
+                "qty": round(max(qty_value, 0.0), 4),
+                "unit_price": round(max(price_value, 0.0), 4),
+                "tax_rate": round(max(tax_value, 0.0), 4),
+            }
+        )
+    return lines
+
+
+def _first_present(entry: MutableMapping[str, Any], keys: Sequence[str]) -> Any:
+    for key in keys:
+        if key in entry:
+            return entry.get(key)
+    return None
+
+
+def _build_match_lookup(lines: Sequence[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    lookup: Dict[str, Dict[str, Any]] = {}
+    for line in lines:
+        lookup[line["line_reference"]] = line
+        item_code = line.get("item_code")
+        if item_code and item_code not in lookup:
+            lookup[item_code] = line
+    return lookup
+
+
+def _resolve_match_line(line: Dict[str, Any], lookup: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    candidate = lookup.get(line["line_reference"])
+    if candidate:
+        return candidate
+    item_code = line.get("item_code")
+    if item_code:
+        return lookup.get(item_code)
+    return None
+
+
+def _extract_context_mismatches(context: Sequence[MutableMapping[str, Any]]) -> List[Any]:
+    extracted: List[Any] = []
+    mismatch_keys = ("mismatches", "invoice_mismatches", "invoice_variances", "match_mismatches")
+    for block in context:
+        if not isinstance(block, MutableMapping):
+            continue
+        sources: List[Any] = [block]
+        metadata = block.get("metadata")
+        if isinstance(metadata, MutableMapping):
+            sources.append(metadata)
+        for source in sources:
+            for key in mismatch_keys:
+                candidate = source.get(key) if isinstance(source, MutableMapping) else None
+                if not candidate:
+                    continue
+                if isinstance(candidate, MutableMapping):
+                    if any(k in candidate for k in ("type", "line_reference", "mismatch_type")):
+                        extracted.append(candidate)
+                    else:
+                        nested = candidate.get("items") or candidate.get("mismatches")
+                        if isinstance(nested, MutableMapping):
+                            extracted.append(nested)
+                        elif isinstance(nested, Iterable) and not isinstance(nested, (str, bytes)):
+                            extracted.extend(nested)
+                elif isinstance(candidate, Iterable) and not isinstance(candidate, (str, bytes)):
+                    extracted.extend(candidate)
+                else:
+                    extracted.append(candidate)
+    return extracted
+
+
+def _normalize_mismatch_summaries(raw_mismatches: Any) -> List[Dict[str, Any]]:
+    if isinstance(raw_mismatches, MutableMapping):
+        iterable: Iterable[Any] = raw_mismatches.get("mismatches") or raw_mismatches.get("items") or [raw_mismatches]
+    elif isinstance(raw_mismatches, Iterable) and not isinstance(raw_mismatches, (str, bytes)):
+        iterable = raw_mismatches
+    elif raw_mismatches:
+        iterable = [raw_mismatches]
+    else:
+        iterable = []
+
+    normalized: List[Dict[str, Any]] = []
+    for idx, entry in enumerate(iterable):
+        if not isinstance(entry, MutableMapping):
+            continue
+        mismatch_type = _text(entry.get("type") or entry.get("mismatch_type") or entry.get("code")) or "qty"
+        severity = _text(entry.get("severity")) or "warning"
+        line_reference = _text(
+            entry.get("line_reference")
+            or entry.get("line")
+            or entry.get("line_number")
+            or entry.get("item")
+        ) or f"line-{idx + 1}"
+        detail = _text(entry.get("detail") or entry.get("description") or entry.get("reason"))
+        expected = entry.get("expected") or entry.get("expected_value")
+        actual = entry.get("actual") or entry.get("actual_value")
+        variance = entry.get("variance") or entry.get("difference") or entry.get("delta")
+        if variance is None:
+            expected_num = _safe_float(expected, default=None)
+            actual_num = _safe_float(actual, default=None)
+            if expected_num is not None and actual_num is not None:
+                variance = round(actual_num - expected_num, 4)
+        impact_score = _safe_float(entry.get("impact") or entry.get("impact_score"), default=None)
+        if impact_score is None and isinstance(variance, (int, float)):
+            impact_score = min(0.5, abs(float(variance)))
+        normalized.append(
+            {
+                "type": mismatch_type,
+                "severity": severity,
+                "line_reference": line_reference,
+                "detail": detail or f"{mismatch_type.title()} variance detected",
+                "expected": expected,
+                "actual": actual,
+                "variance": variance,
+                "impact_score": impact_score or 0.0,
+            }
+        )
+
+    return normalized
+
+
+def _score_mismatch_severity(mismatches: Sequence[Dict[str, Any]]) -> float:
+    if not mismatches:
+        return 0.0
+
+    severity_weights = {
+        "info": 0.05,
+        "warning": 0.18,
+        "risk": 0.35,
+    }
+    score = 0.0
+    for mismatch in mismatches:
+        severity = mismatch.get("severity") or "warning"
+        base = severity_weights.get(severity, 0.2)
+        variance = _safe_float(mismatch.get("variance"), default=0.0) or 0.0
+        impact = _safe_float(mismatch.get("impact_score"), default=0.0) or 0.0
+        score += base + min(0.2, abs(variance) * 0.05) + min(0.1, abs(impact))
+    score += 0.05 * max(0, len(mismatches) - 2)
+    return min(0.85, round(score, 4))
+
+
+def _determine_resolution_type(
+    mismatches: Sequence[Dict[str, Any]],
+    preferred_resolution: Optional[str],
+) -> str:
+    allowed = {"hold", "partial_approve", "request_credit_note", "adjust_po"}
+    alias_map = {
+        "credit": "request_credit_note",
+        "credit_note": "request_credit_note",
+        "request_credit": "request_credit_note",
+        "adjust": "adjust_po",
+        "change_po": "adjust_po",
+        "partial": "partial_approve",
+    }
+
+    normalized_preference = (_text(preferred_resolution) or "").replace(" ", "_")
+    if normalized_preference in allowed:
+        return normalized_preference
+    if normalized_preference in alias_map:
+        return alias_map[normalized_preference]
+
+    if not mismatches:
+        return "partial_approve"
+
+    has_risk = any(entry.get("severity") == "risk" for entry in mismatches)
+    over_billed = any((_safe_float(entry.get("variance"), default=0.0) or 0.0) > 0 for entry in mismatches)
+    under_billed = any((_safe_float(entry.get("variance"), default=0.0) or 0.0) < 0 for entry in mismatches)
+    qty_only = all(entry.get("type") == "qty" for entry in mismatches)
+
+    if has_risk or len(mismatches) >= 3:
+        return "hold"
+    if over_billed:
+        return "request_credit_note"
+    if qty_only or under_billed:
+        return "adjust_po"
+    return "partial_approve"
+
+
+def _default_resolution_summary(
+    resolution_type: str,
+    invoice_id: str,
+    mismatches: Sequence[Dict[str, Any]],
+) -> str:
+    if mismatches:
+        headline_issue = mismatches[0].get("detail") or f"{mismatches[0].get('type', 'variance')} variance"
+    else:
+        headline_issue = "detected variance"
+
+    if resolution_type == "hold":
+        return f"Hold invoice {invoice_id} until {headline_issue} is reviewed."
+    if resolution_type == "request_credit_note":
+        return f"Request supplier credit for invoice {invoice_id} due to {headline_issue}."
+    if resolution_type == "adjust_po":
+        return f"Adjust PO before approving invoice {invoice_id} because of {headline_issue}."
+    return f"Approve clean lines on invoice {invoice_id} and short-pay for {headline_issue}."
+
+
+def _build_resolution_actions(resolution_type: str, invoice_id: str) -> List[Dict[str, Any]]:
+    label = invoice_id or "invoice"
+    action_templates = {
+        "hold": [
+            {
+                "type": "place_hold",
+                "description": f"Place {label} on AP hold until discrepancies are resolved.",
+                "owner_role": "ap_specialist",
+                "due_in_days": 1,
+                "requires_hold": True,
+            },
+            {
+                "type": "notify_buyer",
+                "description": "Notify buyer and receiving team to investigate mismatched lines.",
+                "owner_role": "buyer",
+                "due_in_days": 2,
+                "requires_hold": True,
+            },
+        ],
+        "partial_approve": [
+            {
+                "type": "short_pay",
+                "description": f"Approve matched lines on {label} and short-pay disputed amounts.",
+                "owner_role": "ap_specialist",
+                "due_in_days": 2,
+                "requires_hold": False,
+            },
+            {
+                "type": "document_variance",
+                "description": "Document variance reasons for audit readiness.",
+                "owner_role": "ap_manager",
+                "due_in_days": 3,
+                "requires_hold": False,
+            },
+        ],
+        "request_credit_note": [
+            {
+                "type": "request_credit_note",
+                "description": f"Request supplier credit note referencing {label} for over-billed amounts.",
+                "owner_role": "buyer",
+                "due_in_days": 2,
+                "requires_hold": True,
+            },
+            {
+                "type": "pause_payment",
+                "description": "Pause payment until the credit memo is received and applied.",
+                "owner_role": "ap_specialist",
+                "due_in_days": 1,
+                "requires_hold": True,
+            },
+        ],
+        "adjust_po": [
+            {
+                "type": "adjust_po",
+                "description": "Issue a PO change order so quantities and pricing reflect actual receipts.",
+                "owner_role": "buyer",
+                "due_in_days": 3,
+                "requires_hold": False,
+            },
+            {
+                "type": "sync_receiving",
+                "description": "Coordinate with receiving and planning to update downstream systems.",
+                "owner_role": "planner",
+                "due_in_days": 4,
+                "requires_hold": False,
+            },
+        ],
+    }
+    return action_templates.get(resolution_type, action_templates["hold"])
+
+
+def _build_impacted_line_entries(
+    mismatches: Sequence[Dict[str, Any]],
+    resolution_type: str,
+) -> List[Dict[str, Any]]:
+    impacted: List[Dict[str, Any]] = []
+
+    def action_phrase(mismatch_type: str) -> str:
+        base = {
+            "qty": "Reconcile received vs invoiced quantities.",
+            "price": "Validate price variance against PO.",
+            "tax": "Confirm tax configuration with supplier.",
+        }
+        phrase = base.get(mismatch_type, "Document variance and follow resolution plan.")
+        if resolution_type == "request_credit_note":
+            return f"{phrase} Request credit note if over-billed."
+        if resolution_type == "adjust_po":
+            return f"{phrase} Update PO or receipts to mirror actuals."
+        if resolution_type == "partial_approve":
+            return f"{phrase} Short-pay disputed amount."
+        return f"{phrase} Keep invoice on hold until resolved."
+
+    for idx, mismatch in enumerate(mismatches[:8]):
+        line_reference = mismatch.get("line_reference") or f"line-{idx + 1}"
+        issue = mismatch.get("detail") or f"{mismatch.get('type', 'variance')} variance"
+        severity = mismatch.get("severity") or "info"
+        variance_value = mismatch.get("variance")
+        if not isinstance(variance_value, (int, float)):
+            variance_value = _safe_float(variance_value, default=None)
+        impacted.append(
+            {
+                "line_reference": line_reference,
+                "issue": issue,
+                "severity": severity,
+                "variance": None if variance_value is None else round(float(variance_value), 4),
+                "recommended_action": action_phrase(mismatch.get("type", "variance")),
+            }
+        )
+
+    if not impacted:
+        impacted.append(
+            {
+                "line_reference": "general",
+                "issue": "Variance not tied to a specific line",
+                "severity": "info",
+                "variance": None,
+                "recommended_action": action_phrase("summary"),
+            }
+        )
+
+    return impacted
+
+
+def _build_resolution_next_steps(resolution_type: str, invoice_id: str) -> List[str]:
+    label = invoice_id or "the invoice"
+    next_steps = {
+        "hold": [
+            f"Flag {label} with an AP hold code so payment cannot be released.",
+            "Share mismatch summary with buyer and receiving stakeholders.",
+            "Resume processing once updated invoice or credit memo is received.",
+        ],
+        "partial_approve": [
+            f"Approve clean lines on {label} in the ERP.",
+            "Record the short-pay amount with supporting reason codes.",
+            "Notify supplier that payment excludes disputed variances.",
+        ],
+        "request_credit_note": [
+            f"Send credit note request referencing {label} to the supplier.",
+            "Pause payment until the credit memo posts to the account.",
+            "Attach credit memo to invoice workflow for audit traceability.",
+        ],
+        "adjust_po": [
+            "Raise a PO change order that reflects actual receipts/invoice values.",
+            "Sync updated PO quantities with receiving and planning teams.",
+            f"Requeue {label} for approval after PO updates are confirmed.",
+        ],
+    }
+    return next_steps.get(resolution_type, next_steps["hold"])
+
+
+def _resolve_invoice_reference_block(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+    match_result: MutableMapping[str, Any],
+) -> Dict[str, Optional[str]]:
+    invoice_block = _mapping(
+        inputs.get("invoice")
+        or inputs.get("invoice_reference")
+        or inputs.get("invoice_details")
+        or inputs.get("entity")
+        or {}
+    )
+    invoice_id = _text(
+        inputs.get("invoice_id")
+        or invoice_block.get("id")
+        or invoice_block.get("invoice_id")
+        or match_result.get("invoice_id")
+        or inputs.get("entity_id")
+    )
+    invoice_number = _text(
+        inputs.get("invoice_number")
+        or invoice_block.get("invoice_number")
+        or invoice_block.get("number")
+        or match_result.get("invoice_number")
+    )
+    if not invoice_id:
+        invoice_id = _infer_from_context(context, ("invoice_id", "invoice", "invoice_number"))
+    if not invoice_number:
+        invoice_number = _infer_from_context(context, ("invoice_number", "invoice"))
+    if not invoice_id:
+        invoice_id = invoice_number or "invoice"
+    return {"id": invoice_id, "number": invoice_number or None}
+
+
+def _resolve_purchase_order_reference_block(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+    match_result: MutableMapping[str, Any],
+) -> Dict[str, Optional[str]]:
+    po_block = _mapping(inputs.get("purchase_order") or inputs.get("po") or {})
+    po_id = _text(
+        inputs.get("purchase_order_id")
+        or inputs.get("po_id")
+        or po_block.get("id")
+        or po_block.get("purchase_order_id")
+        or match_result.get("matched_po_id")
+    )
+    po_number = _text(
+        inputs.get("purchase_order_number")
+        or inputs.get("po_number")
+        or po_block.get("po_number")
+        or po_block.get("number")
+    )
+    if not po_id:
+        po_id = _infer_from_context(context, ("purchase_order_id", "po_id"))
+    if not po_number:
+        po_number = _infer_from_context(context, ("purchase_order_number", "po_number"))
+    if not po_id and po_number:
+        po_id = po_number
+    return {"id": po_id or None, "number": po_number or None}
+
+
+def _resolve_receipt_reference_block(
+    context: Sequence[MutableMapping[str, Any]],
+    inputs: MutableMapping[str, Any],
+    match_result: MutableMapping[str, Any],
+) -> Dict[str, Optional[str]]:
+    receipt_block = _mapping(inputs.get("receipt") or inputs.get("receipt_reference") or {})
+    receipt_candidates = _infer_receipt_ids_from_context(context)
+    receipt_id = _text(
+        inputs.get("receipt_id")
+        or receipt_block.get("id")
+        or match_result.get("matched_receipt_id")
+    )
+    matched_receipts = match_result.get("matched_receipt_ids")
+    if not receipt_id and isinstance(matched_receipts, Sequence):
+        for item in matched_receipts:
+            candidate = _text(item)
+            if candidate:
+                receipt_id = candidate
+                break
+    if not receipt_id and receipt_candidates:
+        receipt_id = receipt_candidates[0]
+    receipt_number = _text(inputs.get("receipt_number") or receipt_block.get("number"))
+    if not receipt_number and receipt_candidates:
+        receipt_number = receipt_candidates[0]
+    return {"id": receipt_id or None, "number": receipt_number or None}
+
+
+def _build_dispute_reference_payload(
+    invoice_reference: Dict[str, Optional[str]],
+    purchase_order_reference: Dict[str, Optional[str]],
+    receipt_reference: Dict[str, Optional[str]],
+) -> Dict[str, Any]:
+    invoice_payload: Dict[str, Any] = {"id": invoice_reference.get("id") or "invoice"}
+    if invoice_reference.get("number"):
+        invoice_payload["number"] = invoice_reference["number"]
+
+    payload: Dict[str, Any] = {"invoice": invoice_payload}
+
+    if purchase_order_reference.get("id") or purchase_order_reference.get("number"):
+        po_block: Dict[str, Any] = {}
+        if purchase_order_reference.get("id"):
+            po_block["id"] = purchase_order_reference["id"]
+        if purchase_order_reference.get("number"):
+            po_block["number"] = purchase_order_reference["number"]
+        payload["purchase_order"] = po_block
+
+    if receipt_reference.get("id") or receipt_reference.get("number"):
+        receipt_block: Dict[str, Any] = {}
+        if receipt_reference.get("id"):
+            receipt_block["id"] = receipt_reference["id"]
+        if receipt_reference.get("number"):
+            receipt_block["number"] = receipt_reference["number"]
+        payload["receipt"] = receipt_block
+
+    return payload
+
+
+def _normalize_dispute_actions(raw_actions: Any) -> List[Dict[str, Any]]:
+    if isinstance(raw_actions, MutableMapping):
+        iterable: Iterable[Any] = raw_actions.values()
+    elif isinstance(raw_actions, Iterable) and not isinstance(raw_actions, (str, bytes)):
+        iterable = raw_actions
+    else:
+        return []
+
+    normalized: List[Dict[str, Any]] = []
+    for entry in iterable:
+        if not isinstance(entry, MutableMapping):
+            continue
+        action_type = _text(entry.get("type") or entry.get("action"))
+        description = _text(entry.get("description") or entry.get("detail"))
+        if not action_type or not description:
+            continue
+        owner_role = _text(entry.get("owner_role") or entry.get("owner")) or None
+        due_value = entry.get("due_in_days") or entry.get("due_days") or entry.get("due")
+        if due_value is not None:
+            due_in_days = max(0, min(120, int(round(_safe_float(due_value, default=0.0)))))
+        else:
+            due_in_days = None
+        requires_hold = entry.get("requires_hold")
+        if not isinstance(requires_hold, bool):
+            requires_hold = bool(entry.get("hold") or entry.get("requiresHold"))
+        normalized.append(
+            {
+                "type": action_type,
+                "description": description,
+                "owner_role": owner_role,
+                "due_in_days": due_in_days,
+                "requires_hold": bool(requires_hold),
+            }
+        )
+    return normalized
+
+
+def _normalize_dispute_impacts(raw_impacts: Any) -> List[Dict[str, Any]]:
+    if isinstance(raw_impacts, MutableMapping):
+        iterable: Iterable[Any] = raw_impacts.values()
+    elif isinstance(raw_impacts, Iterable) and not isinstance(raw_impacts, (str, bytes)):
+        iterable = raw_impacts
+    else:
+        return []
+
+    normalized: List[Dict[str, Any]] = []
+    for idx, entry in enumerate(iterable):
+        if not isinstance(entry, MutableMapping):
+            continue
+        reference = _text(entry.get("reference") or entry.get("line_reference") or entry.get("line"))
+        if not reference:
+            reference = f"line-{idx + 1}"
+        issue = _text(entry.get("issue") or entry.get("detail")) or "Variance detected"
+        severity = _text(entry.get("severity")) or None
+        variance_value = entry.get("variance")
+        if variance_value is None:
+            variance = None
+        elif isinstance(variance_value, (int, float)):
+            variance = float(variance_value)
+        else:
+            try:
+                variance = float(variance_value)
+            except (TypeError, ValueError):
+                variance = None
+        recommended_action = _text(
+            entry.get("recommended_action")
+            or entry.get("action")
+            or entry.get("next_step")
+        ) or "Document variance and align on corrective action."
+        normalized.append(
+            {
+                "reference": reference,
+                "issue": issue,
+                "severity": severity,
+                "variance": None if variance is None else round(variance, 4),
+                "recommended_action": recommended_action,
+            }
+        )
+
+    if not normalized:
+        normalized.append(
+            {
+                "reference": "general",
+                "issue": "Variance not tied to a specific line",
+                "severity": "info",
+                "variance": None,
+                "recommended_action": "Investigate mismatch and notify supplier.",
+            }
+        )
+
+    return normalized
+
+
+def _build_dispute_issue_summary(
+    invoice_label: str,
+    mismatches: Sequence[Dict[str, Any]],
+) -> str:
+    if mismatches:
+        headline_issue = mismatches[0].get("detail") or f"{mismatches[0].get('type', 'variance')} variance"
+        additional = len(mismatches) - 1
+        suffix = f" (+{additional} more variance)" if additional > 0 else ""
+        return f"Invoice {invoice_label} has {headline_issue}{suffix}."
+    return f"Invoice {invoice_label} requires a supplier dispute due to detected variance."
+
+
+def _infer_issue_category(
+    resolution_type: str,
+    mismatches: Sequence[Dict[str, Any]],
+) -> str:
+    type_map = {
+        "qty": "quantity_variance",
+        "quantity": "quantity_variance",
+        "quantity_variance": "quantity_variance",
+        "price": "price_variance",
+        "cost": "price_variance",
+        "tax": "tax_exception",
+        "missing_line": "missing_line",
+        "duplicate": "duplicate_invoice",
+    }
+    primary_type = ""
+    if mismatches:
+        primary_type = _text(mismatches[0].get("type")).replace(" ", "_").lower()
+
+    if resolution_type == "request_credit_note":
+        return "overbilling"
+    if resolution_type == "adjust_po" and not primary_type:
+        return "po_alignment"
+    if resolution_type == "hold" and not primary_type:
+        return "requires_review"
+
+    return type_map.get(primary_type, "workflow_dispute")
+
+
+def _derive_dispute_reason_codes(
+    mismatches: Sequence[Dict[str, Any]],
+    issue_category: Optional[str],
+    provided_codes: Any,
+) -> List[str]:
+    ordered: List[str] = []
+
+    def _append(code: Optional[str]) -> None:
+        if not code:
+            return
+        normalized = code.strip().replace(" ", "_")
+        if not normalized:
+            return
+        if normalized not in ordered:
+            ordered.append(normalized)
+
+    for code in _string_list(provided_codes):
+        _append(code)
+
+    _append(issue_category)
+
+    for entry in mismatches[:5]:
+        mismatch_type = _text(entry.get("type")) or "variance"
+        severity = _text(entry.get("severity")) or "info"
+        _append(f"{mismatch_type}_{severity}")
+
+    if not ordered:
+        _append("workflow_dispute")
+
+    return ordered
 
 
 def _resolve_forecast_snapshot(
@@ -1395,6 +2978,67 @@ def _build_invoice_line_items(
                 "qty": 1.0,
                 "unit_price": 1.0,
                 "tax_rate": 0.0,
+            }
+        )
+    return items[:25]
+
+
+def _build_receipt_line_items(
+    raw_items: Any,
+    context: List[MutableMapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    items: List[Dict[str, Any]] = []
+    if isinstance(raw_items, MutableMapping):
+        iterable: Iterable[Any] = raw_items.values()
+    elif isinstance(raw_items, Iterable) and not isinstance(raw_items, (str, bytes)):
+        iterable = raw_items
+    else:
+        iterable = []
+
+    for idx, entry in enumerate(iterable):
+        if not isinstance(entry, MutableMapping):
+            continue
+        po_line_id = _text(entry.get("po_line_id") or entry.get("line_id") or entry.get("id")) or f"LINE-{idx + 1}"
+        description = _text(entry.get("description") or entry.get("item") or entry.get("part_number")) or "Received line"
+        expected_qty = max(_safe_float(entry.get("expected_qty") or entry.get("ordered_qty") or entry.get("qty"), default=0.0), 0.0)
+        received_qty = max(_safe_float(entry.get("received_qty") or entry.get("qty") or entry.get("accepted_qty"), default=1.0), 0.0)
+        accepted_seed = _safe_float(entry.get("accepted_qty"), default=received_qty)
+        accepted_qty = min(received_qty, max(accepted_seed, 0.0))
+        rejected_seed = _safe_float(entry.get("rejected_qty"), default=received_qty - accepted_qty)
+        rejected_qty = max(rejected_seed, 0.0)
+        uom = _text(entry.get("uom") or entry.get("unit")) or "ea"
+        issues = _string_list(entry.get("issues") or entry.get("defects") or entry.get("warnings"))
+        notes = _text(entry.get("notes") or entry.get("quality_notes"))
+
+        items.append(
+            {
+                "po_line_id": po_line_id,
+                "line_number": int(max(1, round(_safe_float(entry.get("line_number") or entry.get("line_no"), default=float(idx + 1))))),
+                "description": description,
+                "uom": uom,
+                "expected_qty": round(expected_qty, 4),
+                "received_qty": round(received_qty, 4),
+                "accepted_qty": round(accepted_qty, 4),
+                "rejected_qty": round(rejected_qty, 4),
+                "issues": issues,
+                "notes": notes or "",
+            }
+        )
+
+    if not items:
+        insights = _contextual_insights(context, limit=1)
+        items.append(
+            {
+                "po_line_id": "LINE-1",
+                "line_number": 1,
+                "description": insights[0] if insights else "Auto-generated receipt line",
+                "uom": "ea",
+                "expected_qty": 1.0,
+                "received_qty": 1.0,
+                "accepted_qty": 1.0,
+                "rejected_qty": 0.0,
+                "issues": [],
+                "notes": "Placeholder generated from workflow context.",
             }
         )
     return items[:25]
@@ -1828,6 +3472,12 @@ __all__ = [
     "compare_quotes",
     "draft_purchase_order",
     "build_invoice_draft",
+    "build_invoice_dispute_draft",
+    "build_item_draft",
+    "build_receipt_draft",
+    "build_payment_draft",
+    "match_invoice_to_po_and_receipt",
+    "resolve_invoice_mismatch",
     "build_award_quote",
     "forecast_spend",
     "forecast_supplier_performance",

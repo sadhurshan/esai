@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\Ai;
 
 use App\Http\Requests\ApiFormRequest;
+use Illuminate\Support\Arr;
 
 class AiChatSendMessageRequest extends ApiFormRequest
 {
@@ -12,6 +13,8 @@ class AiChatSendMessageRequest extends ApiFormRequest
             'message' => ['required', 'string', 'max:4000'],
             'context' => ['sometimes', 'array'],
             'context.locale' => ['sometimes', 'string', 'max:10'],
+            'context.clarification' => ['sometimes', 'array'],
+            'context.clarification.id' => ['required_with:context.clarification', 'string', 'max:100'],
             'ui_mode' => ['sometimes', 'string', 'max:50'],
             'attachments' => ['sometimes', 'array', 'max:10'],
             'attachments.*' => ['array'],
@@ -36,7 +39,11 @@ class AiChatSendMessageRequest extends ApiFormRequest
     {
         $payload = $this->validated()['context'] ?? [];
 
-        return is_array($payload) ? $payload : [];
+        if (! is_array($payload)) {
+            return [];
+        }
+
+        return Arr::except($payload, ['clarification']);
     }
 
     public function uiMode(): ?string
@@ -82,6 +89,7 @@ class AiChatSendMessageRequest extends ApiFormRequest
             'ui_mode' => $this->uiMode(),
             'attachments' => $this->attachments(),
             'locale' => $this->localePreference(),
+            'clarification' => $this->clarificationReference(),
         ], static fn ($value) => $value !== null && $value !== [] && $value !== '');
 
         return $payload;
@@ -107,5 +115,28 @@ class AiChatSendMessageRequest extends ApiFormRequest
         }
 
         return substr($normalized, 0, 10);
+    }
+
+    private function clarificationReference(): ?array
+    {
+        $payload = data_get($this->validated(), 'context.clarification');
+
+        if (! is_array($payload)) {
+            return null;
+        }
+
+        $identifier = data_get($payload, 'id');
+
+        if (! is_string($identifier)) {
+            return null;
+        }
+
+        $trimmed = trim($identifier);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        return ['id' => substr($trimmed, 0, 100)];
     }
 }

@@ -79,6 +79,9 @@ class SupplierFactory extends Factory
             'moq' => $this->faker->numberBetween(1, 500),
             'rating_avg' => $this->faker->randomFloat(2, 0, 5),
             'risk_grade' => null,
+            'payment_terms' => $this->faker->randomElement(['Net 30', 'Net 45', 'Net 60']),
+            'tax_id' => strtoupper($this->faker->bothify('SUP-####')),
+            'onboarding_notes' => $this->faker->optional()->sentence(10),
         ];
     }
 }

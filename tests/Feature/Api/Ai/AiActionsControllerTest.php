@@ -11,6 +11,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\Converters\AiDraftConversionService;
+use App\Support\Permissions\PermissionRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use function Pest\Laravel\actingAs;
@@ -336,4 +337,62 @@ it('prevents unauthorized users from submitting feedback', function (): void {
 
     $response->assertForbidden()
         ->assertJsonPath('status', 'error');
+});
+
+it('blocks high value purchase order approvals without finance permission', function (): void {
+    ['user' => $user] = provisionCopilotActionUser(role: 'buyer_admin');
+
+    config()->set('policy.thresholds.purchase_order_high_value', 5000);
+
+    $draft = createDraftForUser($user, [
+        'action_type' => AiActionDraft::TYPE_ITEM_DRAFT,
+        'output_json' => [
+            'action_type' => 'purchase_order.release',
+            'summary' => 'PO ready for release',
+            'payload' => [
+                'total_value' => 12500,
+                'supplier_id' => 44,
+            ],
+            'citations' => [],
+            'warnings' => [],
+        ],
+    ]);
+
+    $originalPermissionRegistry = app(PermissionRegistry::class);
+
+    $permissionRegistry = Mockery::mock(PermissionRegistry::class);
+    $permissionRegistry->shouldReceive('userHasAny')
+        ->andReturnUsing(function (User $subject, array $permissions, ?int $companyId = null): bool {
+            if ($permissions === []) {
+                return true;
+            }
+
+            if (in_array('finance.write', $permissions, true)) {
+                return false;
+            }
+
+            if (array_intersect($permissions, ['orders.write', 'inventory.write', 'rfqs.write']) !== []) {
+                return true;
+            }
+
+            return false;
+        });
+
+    app()->instance(PermissionRegistry::class, $permissionRegistry);
+
+    try {
+        actingAs($user);
+
+        $response = $this->postJson("/api/v1/ai/actions/{$draft->id}/approve");
+    } finally {
+        app()->instance(PermissionRegistry::class, $originalPermissionRegistry);
+    }
+
+    $response->assertStatus(422)
+        ->assertJsonPath('status', 'error')
+        ->assertJsonPath('errors.code', 'policy_check_blocked')
+        ->assertJsonPath('errors.policy.allowed', false)
+        ->assertJsonPath('errors.guided_resolution.type', 'guided_resolution');
+
+    expect($draft->fresh()->status)->toBe(AiActionDraft::STATUS_DRAFTED);
 });

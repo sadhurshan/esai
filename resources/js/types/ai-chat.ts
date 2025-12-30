@@ -8,8 +8,11 @@ export type AiActionDraftStatus = 'drafted' | 'approved' | 'rejected' | 'expired
 export type AiChatResponseType =
     | 'answer'
     | 'draft_action'
+    | 'unsafe_action_confirmation'
     | 'workflow_suggestion'
     | 'guided_resolution'
+    | 'clarification'
+    | 'entity_picker'
     | 'tool_request'
     | 'review_rfq'
     | 'review_quote'
@@ -48,6 +51,33 @@ export interface AiChatGuidedResolution {
     available_locales?: string[];
 }
 
+export interface AiChatClarificationPrompt {
+    id: string;
+    tool: string;
+    question: string;
+    missing_args: string[];
+    args?: Record<string, unknown>;
+}
+
+export interface AiChatEntityPickerCandidate {
+    candidate_id: string;
+    label: string;
+    description?: string | null;
+    status?: string | null;
+    meta?: string[];
+}
+
+export interface AiChatEntityPickerPrompt {
+    id: string;
+    title?: string | null;
+    description?: string | null;
+    query: string;
+    entity_type: string;
+    search_tool: string;
+    target_tool: string;
+    candidates: AiChatEntityPickerCandidate[];
+}
+
 export interface AiChatDraftSnapshot {
     draft_id?: number;
     action_type: string;
@@ -56,6 +86,20 @@ export interface AiChatDraftSnapshot {
     payload?: Record<string, unknown>;
     entity_type?: string | null;
     entity_id?: number | null;
+}
+
+export interface AiChatUnsafeActionPrompt {
+    id: string;
+    action_type: string;
+    action_label: string;
+    headline: string;
+    summary?: string | null;
+    description?: string | null;
+    impact?: string | null;
+    entity?: string | null;
+    acknowledgement?: string | null;
+    confirm_label?: string | null;
+    risks?: string[];
 }
 
 export interface AiChatCitation {
@@ -73,6 +117,7 @@ export interface AiChatAssistantResponse {
     citations?: AiChatCitation[];
     suggested_quick_replies?: string[];
     draft?: AiChatDraftSnapshot | null;
+    unsafe_action?: AiChatUnsafeActionPrompt | null;
     workflow?: AiChatWorkflowSuggestion | null;
     guided_resolution?: AiChatGuidedResolution | null;
     review?: AiChatReviewPayload | null;
@@ -82,6 +127,8 @@ export interface AiChatAssistantResponse {
     confidence?: number;
     warnings?: string[];
     analytics_cards?: AiAnalyticsCardPayload[] | null;
+    clarification?: AiChatClarificationPrompt | null;
+    entity_picker?: AiChatEntityPickerPrompt | null;
 }
 
 export interface AiChatReviewChecklistItem {
@@ -106,6 +153,8 @@ export interface AiChatMessageContextPayload {
     ui_mode?: string;
     attachments?: Array<Record<string, unknown>>;
     locale?: string;
+    clarification?: { id: string };
+    entity_picker?: { id: string; candidate_id: string };
 }
 
 export interface AiChatMessage {

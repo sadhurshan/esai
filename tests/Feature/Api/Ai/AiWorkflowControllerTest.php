@@ -13,6 +13,7 @@ use App\Models\RfqItem;
 use App\Models\RfqItemAward;
 use App\Models\RoleTemplate;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Support\Permissions\PermissionRegistry;
 use Symfony\Component\HttpFoundation\Response;
@@ -442,6 +443,196 @@ it('requires quote permissions to approve award quote steps', function (): void 
         ->assertJsonPath('message', 'You are not authorized to resolve this step.');
 
     expect($step->fresh()->isPending())->toBeTrue();
+});
+
+it('escalates high value purchase orders to finance approvers', function (): void {
+    ['user' => $approver, 'company' => $company] = provisionCopilotActionUser();
+
+    RoleTemplate::query()->create([
+        'slug' => 'workflow_tester',
+        'name' => 'Workflow Tester',
+        'description' => 'Limited workflow approver for tests',
+        'permissions' => ['ai.workflows.run', 'ai.workflows.approve', 'orders.write', 'rfqs.write'],
+    ]);
+
+    RoleTemplate::query()->create([
+        'slug' => 'workflow_finance',
+        'name' => 'Workflow Finance Approver',
+        'description' => 'Finance approver for workflows',
+        'permissions' => ['ai.workflows.run', 'ai.workflows.approve', 'orders.write', 'finance.write', 'rfqs.write'],
+    ]);
+
+    app(PermissionRegistry::class)->forgetRoleCache('workflow_tester');
+    app(PermissionRegistry::class)->forgetRoleCache('workflow_finance');
+
+    $approver->forceFill(['role' => 'workflow_tester'])->save();
+    $financeUser = User::factory()->for($company)->create(['role' => 'workflow_finance']);
+
+    $workflow = AiWorkflow::factory()->create([
+        'company_id' => $company->id,
+        'user_id' => $approver->id,
+        'workflow_id' => 'wf-high-value',
+        'workflow_type' => 'procurement',
+        'steps_json' => ['steps' => []],
+        'current_step' => 3,
+    ]);
+
+    $step = AiWorkflowStep::factory()->create([
+        'company_id' => $company->id,
+        'workflow_id' => $workflow->workflow_id,
+        'step_index' => 3,
+        'action_type' => 'po_draft',
+        'draft_json' => [
+            'summary' => 'High value PO draft',
+            'payload' => [
+                'total_value' => 125000,
+                'supplier' => [
+                    'supplier_id' => 'SUP-900',
+                    'name' => 'Acme Industries',
+                ],
+            ],
+        ],
+        'input_json' => ['rfq_id' => 'RFQ-500'],
+    ]);
+
+    $requirements = app(\App\Services\Ai\WorkflowService::class)->resolveRequiredApprovals($step->fresh());
+    expect($requirements['permissions'] ?? [])->toContain('finance.write');
+    $testerPermissions = app(PermissionRegistry::class)->permissionsForRole('workflow_tester');
+    expect($testerPermissions)->toContain('orders.write');
+    expect($testerPermissions)->not->toContain('finance.write');
+    expect(app(PermissionRegistry::class)->userHasAll($approver->fresh(), $requirements['permissions'], $company->id))->toBeFalse();
+    expect(app(PermissionRegistry::class)->userHasAll($approver->fresh(), ['finance.write'], $company->id))->toBeFalse();
+
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('completeWorkflowStep')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'ok',
+            'data' => [
+                'workflow_status' => 'in_progress',
+                'next_step' => null,
+            ],
+            'errors' => [],
+        ]);
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($approver);
+
+    $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['notes' => 'Looks fine'],
+    ])->assertForbidden()
+        ->assertJsonPath('errors.code', 'workflow_approval_forbidden');
+
+    expect($step->fresh()->isPending())->toBeTrue();
+
+    actingAs($financeUser);
+
+    $response = $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['notes' => 'Finance review complete'],
+    ])->assertOk();
+
+    expect($response->json('data.step.approval_requirements.permissions'))->toContain('finance.write');
+    expect($step->fresh()->approved_by)->toBe($financeUser->id);
+});
+
+it('requires supplier approvers for high risk awards', function (): void {
+    ['user' => $quoteApprover, 'company' => $company] = provisionCopilotActionUser();
+
+    RoleTemplate::query()->create([
+        'slug' => 'quote_approver',
+        'name' => 'Quote Approver',
+        'description' => 'Quote approver without supplier rights',
+        'permissions' => ['ai.workflows.run', 'ai.workflows.approve', 'quotes.write', 'rfqs.write'],
+    ]);
+
+    RoleTemplate::query()->create([
+        'slug' => 'supplier_manager',
+        'name' => 'Supplier Manager',
+        'description' => 'Supplier approver for workflows',
+        'permissions' => ['ai.workflows.run', 'ai.workflows.approve', 'quotes.write', 'suppliers.write', 'rfqs.write'],
+    ]);
+
+    app(PermissionRegistry::class)->forgetRoleCache('quote_approver');
+    app(PermissionRegistry::class)->forgetRoleCache('supplier_manager');
+
+    $quoteApprover->forceFill(['role' => 'quote_approver'])->save();
+    $supplierLead = User::factory()->for($company)->create(['role' => 'supplier_manager']);
+
+    $workflow = AiWorkflow::factory()->create([
+        'company_id' => $company->id,
+        'user_id' => $quoteApprover->id,
+        'workflow_id' => 'wf-supplier-risk',
+        'workflow_type' => 'procurement',
+        'steps_json' => ['steps' => []],
+        'current_step' => 2,
+    ]);
+
+    $step = AiWorkflowStep::factory()->create([
+        'company_id' => $company->id,
+        'workflow_id' => $workflow->workflow_id,
+        'step_index' => 2,
+        'action_type' => 'award_quote',
+        'draft_json' => [
+            'summary' => 'Award recommendation',
+            'payload' => [
+                'rfq_id' => 'RFQ-700',
+                'supplier' => [
+                    'supplier_id' => 'SUP-44',
+                    'name' => 'Nova Components',
+                    'risk_grade' => 'high',
+                    'risk_score' => 0.35,
+                ],
+            ],
+        ],
+        'input_json' => ['rfq_id' => 'RFQ-700'],
+    ]);
+
+    $supplierRequirements = app(\App\Services\Ai\WorkflowService::class)->resolveRequiredApprovals($step->fresh());
+    expect($supplierRequirements['permissions'] ?? [])->toContain('suppliers.write');
+    $quotePermissions = app(PermissionRegistry::class)->permissionsForRole('quote_approver');
+    expect($quotePermissions)->toContain('quotes.write');
+    expect($quotePermissions)->not->toContain('suppliers.write');
+    expect(app(PermissionRegistry::class)->userHasAll($quoteApprover->fresh(), $supplierRequirements['permissions'], $company->id))->toBeFalse();
+    expect(app(PermissionRegistry::class)->userHasAll($quoteApprover->fresh(), ['suppliers.write'], $company->id))->toBeFalse();
+
+    $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('completeWorkflowStep')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'ok',
+            'data' => [
+                'workflow_status' => 'in_progress',
+                'next_step' => null,
+            ],
+            'errors' => [],
+        ]);
+    $this->app->instance(AiClient::class, $client);
+
+    actingAs($quoteApprover);
+
+    $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['notes' => 'Looks good'],
+    ])->assertForbidden()
+        ->assertJsonPath('errors.code', 'workflow_approval_forbidden');
+
+    actingAs($supplierLead);
+
+    $response = $this->postJson('/api/v1/ai/workflows/' . $workflow->workflow_id . '/complete', [
+        'step_index' => $step->step_index,
+        'approval' => true,
+        'output' => ['notes' => 'Supplier risk approved'],
+    ])->assertOk();
+
+    expect($response->json('data.step.approval_requirements.permissions'))->toContain('suppliers.write');
+    expect($step->fresh()->approved_by)->toBe($supplierLead->id);
 });
 
 it('rejects workflow requests when plan disables ai workflows', function (): void {

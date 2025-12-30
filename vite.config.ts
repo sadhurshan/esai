@@ -44,5 +44,8 @@ export default defineConfig({
                 singleThread: true,
             },
         },
+        deps: {
+            inline: ['@reduxjs/toolkit', 'recharts'],
+        },
     },
 });

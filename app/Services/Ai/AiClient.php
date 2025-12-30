@@ -169,6 +169,20 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function buildInvoiceDisputeDraftTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/build_invoice_dispute_draft',
+            $payload,
+            'Invoice dispute draft generated.',
+            'tool_invoice_dispute_draft'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function forecastSpendTool(array $payload): array
     {
         return $this->send(
@@ -267,6 +281,20 @@ class AiClient
      * @param array<string, mixed> $payload
      * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
      */
+    public function resolveInvoiceMismatchTool(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/tools/resolve_invoice_mismatch',
+            $payload,
+            'Invoice mismatch resolution generated.',
+            'tool_invoice_mismatch_resolution'
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
     public function helpTool(array $payload): array
     {
         return $this->send(
@@ -294,6 +322,20 @@ class AiClient
             function (Response $response, string $successMessage): array {
                 return $this->formatActionPlanResponse($response, $successMessage);
             }
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string,message:string,data:array<string, mixed>|null,errors:array<string, mixed>}
+     */
+    public function intentPlan(array $payload): array
+    {
+        return $this->send(
+            'v1/ai/intent-plan',
+            $payload,
+            'Intent plan generated.',
+            'intent_plan'
         );
     }
 

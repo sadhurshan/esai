@@ -253,6 +253,8 @@ Route::prefix('ai')
 
         Route::post('supplier-risk', [AiController::class, 'supplierRisk'])
             ->middleware(['ensure.risk.access']);
+
+        Route::post('intent-plan', [AiController::class, 'intentPlan']);
     });
 
 Route::prefix('v1')->group(function (): void {

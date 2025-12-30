@@ -1,6 +1,7 @@
 """Tests for the FastAPI microservice endpoints."""
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Dict
 
 import pytest
@@ -95,6 +96,19 @@ class _StubLLMProvider:
             }
         )
         return dict(self.response)
+
+
+def _build_workflow(step: Dict[str, Any]) -> Dict[str, Any]:
+    workflow = {
+        "workflow_id": "wf-test",
+        "workflow_type": "procure_to_pay",
+        "company_id": 42,
+        "query": "Automate procure-to-pay",
+        "user_context": {"user_id": 1001},
+        "metadata": {"goal": "Verify downstream steps"},
+        "steps": [step],
+    }
+    return workflow
 
 
 @pytest.fixture
@@ -298,6 +312,40 @@ def test_forecast_supplier_performance_tool_endpoint_returns_projection(client: 
     assert data["citations"]
 
 
+def test_intent_plan_endpoint_returns_planner_result(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded: Dict[str, Any] = {}
+
+    def _fake_plan(prompt: str, context: list[dict[str, Any]]) -> Dict[str, Any]:  # pragma: no cover - injected stub
+        recorded["prompt"] = prompt
+        recorded["context"] = context
+        return {"tool": "build_rfq_draft", "args": {"rfq_title": "Rotor"}}
+
+    monkeypatch.setattr(app_module, "plan_action_from_prompt", _fake_plan)
+
+    payload = {
+        "prompt": "Draft an RFQ",
+        "company_id": 77,
+        "thread_id": "thread-1",
+        "user_id": 501,
+        "context": [
+            {"role": "user", "content": "Need sourcing support"},
+            {"role": "assistant", "content": "Sure, what part?"},
+        ],
+    }
+
+    response = client.post("/v1/ai/intent-plan", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["data"]["tool"] == "build_rfq_draft"
+    assert recorded["prompt"] == "Draft an RFQ"
+    assert isinstance(recorded["context"], list) and recorded["context"][0]["role"] == "user"
+
+
 def test_forecast_inventory_tool_endpoint_returns_usage(client: TestClient) -> None:
     payload = {
         "company_id": 3,
@@ -363,6 +411,102 @@ def test_index_document_endpoint_persists_chunks(
     stored_metadata = stub_vector_store.upsert_calls[0]["metadata"]
     assert stored_metadata["title"] == "Maintenance Manual"
     assert stored_metadata["acl"] == ["role:admin"]
+
+
+def test_workflow_receipt_draft_step_uses_tool_payload() -> None:
+    step = {
+        "step_index": 0,
+        "action_type": "receipt_draft",
+        "required_inputs": {
+            "po_id": "PO-100",
+            "received_date": "2024-07-01",
+            "line_items": [
+                {
+                    "line_reference": "1",
+                    "description": "Widget",
+                    "ordered_qty": 5,
+                    "received_qty": 5,
+                }
+            ],
+            "inspected_by": "QA Lead",
+        },
+        "metadata": {},
+    }
+    workflow = _build_workflow(step)
+
+    result = asyncio.run(app_module._execute_workflow_step(workflow, step))
+
+    assert result["action_type"] == "receipt_draft"
+    assert result["payload"]["po_id"] == "PO-100"
+    assert result["payload"]["line_items"], "receipt should include line items"
+    assert result["warnings"] == []
+
+
+def test_workflow_invoice_match_step_generates_comparison() -> None:
+    step = {
+        "step_index": 1,
+        "action_type": "invoice_match",
+        "required_inputs": {
+            "invoice_id": "INV-77",
+            "po_id": "PO-77",
+            "invoice_lines": [
+                {
+                    "line_reference": "1",
+                    "qty": 5,
+                    "unit_price": 12.5,
+                    "tax_rate": 0.07,
+                }
+            ],
+            "po_lines": [
+                {
+                    "line_reference": "1",
+                    "qty": 5,
+                    "unit_price": 12.5,
+                    "tax_rate": 0.07,
+                }
+            ],
+            "receipt_lines": [
+                {
+                    "line_reference": "1",
+                    "qty": 5,
+                    "unit_price": 12.5,
+                }
+            ],
+        },
+        "metadata": {},
+    }
+    workflow = _build_workflow(step)
+
+    result = asyncio.run(app_module._execute_workflow_step(workflow, step))
+
+    payload = result["payload"]
+    assert result["action_type"] == "invoice_match"
+    assert payload["invoice_id"] == "INV-77"
+    assert payload["mismatches"] == []
+    assert payload["match_score"] >= 0.9
+
+
+def test_workflow_payment_process_step_reuses_payment_tool() -> None:
+    step = {
+        "step_index": 2,
+        "action_type": "payment_process",
+        "required_inputs": {
+            "invoice_id": "INV-900",
+            "amount": 5120.33,
+            "currency": "eur",
+            "payment_method": "wire",
+        },
+        "metadata": {},
+    }
+    workflow = _build_workflow(step)
+
+    result = asyncio.run(app_module._execute_workflow_step(workflow, step))
+
+    payload = result["payload"]
+    assert result["action_type"] == "payment_process"
+    assert payload["invoice_id"] == "INV-900"
+    assert payload["currency"] == "EUR"
+    assert "scheduled_date" in payload
 
 
 def test_index_document_endpoint_returns_400_on_vector_store_error(

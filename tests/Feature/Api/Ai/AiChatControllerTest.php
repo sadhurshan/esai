@@ -63,6 +63,13 @@ it('sends a chat message and persists the assistant response', function (): void
     ];
 
     $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('intentPlan')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Planner skipped for tests.',
+            'data' => [],
+        ]);
     $client->shouldReceive('chatRespond')
         ->once()
         ->withArgs(function (array $payload) use ($thread): bool {
@@ -111,6 +118,13 @@ it('enables general answers for non workspace prompts', function (): void {
     ]);
 
     $client = Mockery::mock(AiClient::class);
+    $client->shouldReceive('intentPlan')
+        ->once()
+        ->andReturn([
+            'status' => 'success',
+            'message' => 'Planner skipped for tests.',
+            'data' => [],
+        ]);
     $client->shouldReceive('chatRespond')
         ->once()
         ->withArgs(function (array $payload) use ($thread): bool {

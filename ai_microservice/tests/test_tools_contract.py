@@ -5,10 +5,21 @@ from datetime import date
 
 import pytest
 
-from ai_microservice.schemas import AWARD_QUOTE_SCHEMA, INVOICE_DRAFT_SCHEMA
+from ai_microservice.schemas import (
+    AWARD_QUOTE_SCHEMA,
+    INVOICE_DRAFT_SCHEMA,
+    INVOICE_MATCH_SCHEMA,
+    INVOICE_MISMATCH_RESOLUTION_SCHEMA,
+    PAYMENT_DRAFT_SCHEMA,
+    RECEIPT_DRAFT_SCHEMA,
+)
 from ai_microservice.tools_contract import (
     build_award_quote,
     build_invoice_draft,
+    build_payment_draft,
+    build_receipt_draft,
+    build_rfq_draft,
+    match_invoice_to_po_and_receipt,
     forecast_inventory,
     forecast_spend,
     forecast_supplier_performance,
@@ -16,6 +27,7 @@ from ai_microservice.tools_contract import (
     review_po,
     review_quote,
     review_rfq,
+    resolve_invoice_mismatch,
 )
 
 
@@ -114,6 +126,203 @@ def test_build_invoice_draft_returns_expected_fields() -> None:
     assert payload["line_items"][0]["description"] == "Machining lot"
     assert payload["line_items"][0]["qty"] == 10
     assert payload["notes"] == "Match against PO-123 prior to approval."
+
+
+def test_receipt_draft_schema_declares_expected_payload_shape() -> None:
+    payload_schema = RECEIPT_DRAFT_SCHEMA["properties"]["payload"]
+
+    assert payload_schema["type"] == "object"
+    assert set(payload_schema["required"]) == {"po_id", "received_date", "line_items"}
+
+    line_schema = payload_schema["properties"]["line_items"]
+    assert line_schema["type"] == "array"
+    required_fields = set(line_schema["items"]["required"])
+    assert {"po_line_id", "description", "received_qty", "accepted_qty", "rejected_qty"}.issubset(required_fields)
+
+
+def test_build_receipt_draft_uses_context_po_and_totals() -> None:
+    context = [
+        {
+            "doc_id": "po-ctx",
+            "doc_version": "v1",
+            "chunk_id": 1,
+            "metadata": {"po_id": "PO-77"},
+            "snippet": "Line ready for inspection",
+        }
+    ]
+    inputs = {
+        "line_items": [
+            {
+                "po_line_id": "LINE-1",
+                "description": "Widget",
+                "expected_qty": 6,
+                "received_qty": 5,
+                "accepted_qty": 4,
+                "rejected_qty": 1,
+            }
+        ]
+    }
+
+    payload = build_receipt_draft(context, inputs)
+
+    assert payload["po_id"] == "PO-77"
+    assert payload["status"] == "draft"
+    assert payload["total_received_qty"] == pytest.approx(5.0)
+    assert payload["line_items"][0]["po_line_id"] == "LINE-1"
+
+
+def test_payment_draft_schema_declares_expected_payload_shape() -> None:
+    payload_schema = PAYMENT_DRAFT_SCHEMA["properties"]["payload"]
+
+    assert payload_schema["type"] == "object"
+    assert set(payload_schema["required"]) == {"invoice_id", "amount", "payment_method", "notes"}
+
+
+def test_build_payment_draft_respects_defaults() -> None:
+    context = [
+        {
+            "metadata": {"invoice_id": "INV-10"},
+            "snippet": "Invoice ready for payment",
+            "doc_id": "invoice",
+            "doc_version": "1",
+            "chunk_id": 0,
+        }
+    ]
+    inputs = {
+        "amount": 123.45,
+        "payment_method": "wire",
+        "notes": "Schedule wire transfer",
+    }
+
+    payload = build_payment_draft(context, inputs)
+
+    assert payload["invoice_id"] == "INV-10"
+    assert payload["amount"] == pytest.approx(123.45)
+    assert payload["currency"] == "USD"
+    assert isinstance(date.fromisoformat(payload["scheduled_date"]), date)
+    assert payload["payment_method"] == "wire"
+    assert payload["notes"] == "Schedule wire transfer"
+
+
+def test_invoice_match_schema_requires_core_fields() -> None:
+    payload_schema = INVOICE_MATCH_SCHEMA["properties"]["payload"]
+
+    assert set(payload_schema["required"]) == {
+        "invoice_id",
+        "matched_po_id",
+        "matched_receipt_ids",
+        "mismatches",
+        "recommendation",
+    }
+
+
+def test_invoice_mismatch_resolution_schema_requires_core_fields() -> None:
+    payload_schema = INVOICE_MISMATCH_RESOLUTION_SCHEMA["properties"]["payload"]
+
+    assert set(payload_schema["required"]) == {
+        "invoice_id",
+        "resolution",
+        "actions",
+        "impacted_lines",
+        "next_steps",
+    }
+
+
+def test_match_invoice_tool_detects_qty_and_price_mismatches() -> None:
+    context = [
+        {
+            "doc_id": "invoice-ctx",
+            "doc_version": "1",
+            "chunk_id": 0,
+            "metadata": {"po_id": "PO-77", "receipt_ids": ["RCPT-8"]},
+            "snippet": "Invoice INV-9 references PO-77",
+        }
+    ]
+    inputs = {
+        "invoice_id": "INV-9",
+        "po_id": "PO-77",
+        "invoice_lines": [
+            {"line_number": 1, "item_code": "A", "qty": 12, "unit_price": 11.5, "tax_rate": 0.08},
+        ],
+        "po_lines": [
+            {"line_number": 1, "item_code": "A", "qty": 10, "unit_price": 10.0, "tax_rate": 0.07},
+        ],
+        "receipt_lines": [
+            {"line_number": 1, "item_code": "A", "accepted_qty": 9.5},
+        ],
+    }
+
+    payload = match_invoice_to_po_and_receipt(context, inputs)
+
+    assert payload["matched_po_id"] == "PO-77"
+    assert payload["matched_receipt_ids"] == ["RCPT-8"]
+    mismatch_types = {entry["type"] for entry in payload["mismatches"]}
+    assert {"qty", "price"}.issubset(mismatch_types)
+    assert payload["recommendation"]["status"] == "hold"
+    assert payload["match_score"] < 1.0
+
+
+def test_match_invoice_tool_approves_when_lines_align() -> None:
+    inputs = {
+        "invoice_id": "INV-10",
+        "po_id": "PO-88",
+        "invoice_lines": [
+            {"line_number": 1, "item_code": "BK", "qty": 5, "unit_price": 20.0, "tax_rate": 0.05},
+        ],
+        "po_lines": [
+            {"line_number": 1, "item_code": "BK", "qty": 5, "unit_price": 20.0, "tax_rate": 0.05},
+        ],
+        "receipt_lines": [
+            {"line_number": 1, "item_code": "BK", "accepted_qty": 5},
+        ],
+    }
+
+    payload = match_invoice_to_po_and_receipt([], inputs)
+
+    assert payload["matched_po_id"] == "PO-88"
+    assert payload["mismatches"] == []
+    assert payload["recommendation"]["status"] == "approve"
+    assert payload["match_score"] == pytest.approx(1.0)
+
+
+def test_resolve_invoice_mismatch_returns_actions() -> None:
+    context = [
+        {
+            "doc_id": "invoice-match",
+            "doc_version": "1",
+            "chunk_id": 0,
+            "snippet": "Qty variance identified on INV-55",
+        }
+    ]
+    inputs = {
+        "invoice_id": "INV-55",
+        "mismatches": [
+            {
+                "type": "qty",
+                "line_reference": "Line 1",
+                "severity": "warning",
+                "detail": "Received quantity is 5 units short",
+                "variance": 5,
+            }
+        ],
+        "preferred_resolution": "hold",
+        "reason_codes": ["qty_warning"],
+    }
+
+    payload = resolve_invoice_mismatch(context, inputs)
+
+    assert payload["invoice_id"] == "INV-55"
+    assert payload["resolution"]["type"] in {"hold", "partial_approve", "request_credit_note", "adjust_po"}
+    assert payload["actions"], "Expected at least one follow-up action"
+    assert payload["impacted_lines"], "Expected impacted line entries"
+    assert payload["next_steps"], "Expected next steps guidance"
+    assert payload["notes"], "Expected supplemental notes"
+
+
+def test_build_rfq_draft_uses_name_alias_for_title() -> None:
+    payload = build_rfq_draft([], {"name": "Rotar Blades"})
+
+    assert payload["rfq_title"] == "Rotar Blades"
 
 
 def test_forecast_spend_returns_confidence_interval_and_drivers() -> None:

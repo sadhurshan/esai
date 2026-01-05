@@ -37,8 +37,17 @@ export function SupplierOrderListPage() {
     const [cursor, setCursor] = useState<string | null>(null);
 
     const buyerCompanyId = useMemo(() => {
+        if (!buyerFilter || buyerFilter.trim() === '') {
+            return undefined;
+        }
+
         const parsed = Number(buyerFilter);
-        return Number.isFinite(parsed) ? parsed : undefined;
+
+        if (!Number.isFinite(parsed)) {
+            return undefined;
+        }
+
+        return parsed > 0 ? parsed : undefined;
     }, [buyerFilter]);
 
     const supplierOrdersQuery = useSupplierOrders({

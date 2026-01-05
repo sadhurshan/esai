@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UomSeeder::class,
             RoleTemplateSeeder::class,
             DevTenantSeeder::class,
+            PresentationDemoSeeder::class,
             SuperAdminSeeder::class,
         ]);
     }

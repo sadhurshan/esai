@@ -127,7 +127,6 @@ export function SupplierInvoiceListPage() {
             {
                 key: 'totalMinor',
                 title: 'Total',
-                align: 'right',
                 render: (invoice) => (
                     <MoneyCell
                         amountMinor={invoice.totalMinor ?? Math.round((invoice.total ?? 0) * 100)}
@@ -139,10 +138,11 @@ export function SupplierInvoiceListPage() {
             {
                 key: 'status',
                 title: 'Status',
+                align: 'right',
                 render: (invoice) => {
                     const badge = STATUS_BADGES[invoice.status] ?? { variant: 'outline' };
                     return (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 items-end">
                             <Badge variant={badge.variant} className={cn('uppercase tracking-wide', badge.className)}>
                                 {formatStatus(invoice.status)}
                             </Badge>

@@ -116,7 +116,6 @@ export function SupplierQuoteListPage() {
             {
                 key: 'total',
                 title: 'Total',
-                align: 'right',
                 render: (quote) => <MoneyCell amountMinor={quote.totalMinor} currency={quote.currency} label="Quote total" />,
             },
             {
@@ -127,9 +126,10 @@ export function SupplierQuoteListPage() {
             {
                 key: 'submitted_at',
                 title: 'Submitted',
+                align: 'right',
                 render: (quote) =>
                     formatDate(quote.submittedAt, {
-                        dateStyle: 'medium',
+                        dateStyle: 'short',
                         timeStyle: 'short',
                     }) ?? '—',
             },

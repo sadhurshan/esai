@@ -33,6 +33,7 @@ import type {
     CompanyApprovalFilters,
     CompanyApprovalItem,
     CompanyApprovalResponse,
+    CompaniesHouseLookupResponse,
     CursorPaginatedResponse,
     CreateWebhookPayload,
     ListWebhookDeliveriesParams,
@@ -493,6 +494,24 @@ export class AdminConsoleApi extends BaseAPI {
             items: data.items ?? [],
             meta: toOffsetMeta(data.meta),
         } satisfies CompanyApprovalResponse;
+    }
+
+    async fetchCompaniesHouseProfile(
+        companyId: number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<CompaniesHouseLookupResponse> {
+        const headers: HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: `/api/admin/company-approvals/${companyId}/companies-house`,
+                method: 'GET',
+                headers,
+            },
+            initOverrides,
+        );
+
+        return parseEnvelope<CompaniesHouseLookupResponse>(response);
     }
 
     async listSupplierApplications(

@@ -24,12 +24,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/auth-context';
 import { useApproveCompany } from '@/hooks/api/admin/use-approve-company';
+import { useCompaniesHouseProfile } from '@/hooks/api/admin/use-companies-house-profile';
 import { useCompanyApprovals } from '@/hooks/api/admin/use-company-approvals';
 import { useCompanyDocuments } from '@/hooks/api/useCompanyDocuments';
 import { useRejectCompany } from '@/hooks/api/admin/use-reject-company';
 import { formatDate } from '@/lib/format';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { CompanyApprovalItem, CompanyStatusValue } from '@/types/admin';
+import type { CompanyApprovalItem, CompanyStatusValue, CompaniesHouseProfile } from '@/types/admin';
 
 type CompanyStatusFilter = CompanyStatusValue | 'all';
 
@@ -84,6 +85,18 @@ export function AdminCompanyApprovalsPage() {
         enabled: Boolean(documentsCompanyId),
     });
     const companyDocuments = companyDocumentsQuery.data?.items ?? [];
+    const selectedCompanyIsUk = selectedCompany ? isUkCountry(selectedCompany.country) : false;
+    const companiesHouseEligible = selectedCompanyIsUk && Boolean(selectedCompany?.registration_no);
+    const companiesHouseQuery = useCompaniesHouseProfile({
+        companyId: selectedCompany?.id ?? null,
+        enabled: Boolean(selectedCompany) && companiesHouseEligible,
+    });
+    const companiesHouseProfile = companiesHouseQuery.data?.profile ?? null;
+    const companiesHouseErrorMessage = companiesHouseQuery.isError
+        ? companiesHouseQuery.error instanceof Error
+            ? companiesHouseQuery.error.message
+            : 'Unable to load Companies House data.'
+        : null;
 
     const companies = data?.items ?? [];
     const pagination = data?.meta;
@@ -304,6 +317,24 @@ export function AdminCompanyApprovalsPage() {
                                     ) : null}
                                 </DetailSection>
 
+                                <DetailSection title="Companies House verification">
+                                    {!companiesHouseEligible ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            Available for United Kingdom companies that provided a registration number.
+                                        </p>
+                                    ) : companiesHouseQuery.isLoading ? (
+                                        <p className="text-sm text-muted-foreground">Fetching Companies House profile…</p>
+                                    ) : companiesHouseErrorMessage ? (
+                                        <p className="text-sm text-destructive">{companiesHouseErrorMessage}</p>
+                                    ) : companiesHouseProfile ? (
+                                        <CompaniesHouseProfileSummary profile={companiesHouseProfile} />
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            No Companies House record was found for registration #{selectedCompany.registration_no}
+                                        </p>
+                                    )}
+                                </DetailSection>
+
                                 <DetailSection title="Registration documents">
                                     {documentsLoading ? (
                                         <p className="text-sm text-muted-foreground">Loading submitted documents…</p>
@@ -449,6 +480,129 @@ function DetailField({ label, value }: { label: string; value: ReactNode }) {
             <div className="mt-1 text-sm text-foreground">{content}</div>
         </div>
     );
+}
+
+function CompaniesHouseProfileSummary({ profile }: { profile: CompaniesHouseProfile }) {
+    const address = formatCompaniesHouseAddress(profile.registered_office_address);
+    const previousNames = profile.previous_company_names ?? [];
+
+    return (
+        <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <DetailField label="Official name" value={profile.company_name ?? '—'} />
+                <DetailField label="Company number" value={profile.company_number ?? '—'} />
+                <DetailField label="Status" value={profile.company_status ?? '—'} />
+                <DetailField label="Type" value={profile.type ?? '—'} />
+                <DetailField label="Jurisdiction" value={profile.jurisdiction ?? '—'} />
+                <DetailField label="Date of incorporation" value={formatDate(profile.date_of_creation)} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+                <DetailField
+                    label="Registered office"
+                    value={address ? <span className="whitespace-pre-line">{address}</span> : '—'}
+                />
+                <DetailField label="SIC codes" value={formatSicCodes(profile.sic_codes)} />
+                <DetailField label="Can file" value={formatCompaniesHouseBoolean(profile.can_file)} />
+                <DetailField
+                    label="Has been liquidated"
+                    value={formatCompaniesHouseBoolean(profile.has_been_liquidated)}
+                />
+                <DetailField
+                    label="Undeliverable address"
+                    value={formatCompaniesHouseBoolean(profile.undeliverable_registered_office_address)}
+                />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+                <DetailField
+                    label="Accounts next due"
+                    value={formatDate(profile.accounts?.next_due ?? undefined)}
+                />
+                <DetailField
+                    label="Confirmation statement next due"
+                    value={formatDate(profile.confirmation_statement?.next_due ?? undefined)}
+                />
+            </div>
+            {previousNames.length ? (
+                <div className="rounded-lg border bg-muted/10 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Previous names</p>
+                    <ul className="mt-2 space-y-1 text-sm text-foreground">
+                        {previousNames.map((entry, index) => (
+                            <li key={`${entry.name ?? 'name'}-${index}`}>
+                                <span className="font-medium">{entry.name ?? 'Unknown'}</span>
+                                <span className="block text-xs text-muted-foreground">
+                                    {formatPreviousNameRange(entry)}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+            {profile.retrieved_at ? (
+                <p className="text-xs text-muted-foreground">Synced {formatDate(profile.retrieved_at)}</p>
+            ) : null}
+        </div>
+    );
+}
+
+const UK_COUNTRY_IDENTIFIERS = ['uk', 'united kingdom', 'great britain', 'gb', 'gbr', 'england', 'scotland', 'wales', 'northern ireland'];
+
+function isUkCountry(country?: string | null): boolean {
+    if (!country) {
+        return false;
+    }
+
+    const normalized = country.trim().toLowerCase();
+
+    return (
+        UK_COUNTRY_IDENTIFIERS.some((identifier) => normalized === identifier || normalized.includes(identifier))
+    );
+}
+
+function formatCompaniesHouseAddress(address?: CompaniesHouseProfile['registered_office_address']): string | null {
+    if (!address) {
+        return null;
+    }
+
+    const parts = [
+        address.address_line_1,
+        address.address_line_2,
+        address.locality,
+        address.region,
+        address.postal_code,
+        address.country,
+    ].filter((part) => Boolean(part && part.trim()));
+
+    return parts.length ? parts.join('\n') : null;
+}
+
+function formatCompaniesHouseBoolean(value?: boolean | null): string {
+    if (value === undefined || value === null) {
+        return 'Unknown';
+    }
+
+    return value ? 'Yes' : 'No';
+}
+
+function formatSicCodes(codes?: string[] | null): string {
+    if (!codes || codes.length === 0) {
+        return '—';
+    }
+
+    return codes.join(', ');
+}
+
+function formatPreviousNameRange(entry: NonNullable<CompaniesHouseProfile['previous_company_names']>[number]): string {
+    const parts: string[] = [];
+
+    if (entry.effective_from) {
+        parts.push(`From ${formatDate(entry.effective_from)}`);
+    }
+
+    if (entry.ceased_on) {
+        parts.push(`Until ${formatDate(entry.ceased_on)}`);
+    }
+
+    return parts.length ? parts.join(' · ') : 'Dates unavailable';
 }
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {

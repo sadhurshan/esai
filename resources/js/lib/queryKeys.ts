@@ -161,6 +161,8 @@ export const queryKeys = {
     },
     admin: {
         companyApprovals: () => ['admin', 'company-approvals'] as const,
+        companyApprovalsCompaniesHouse: (companyId: string | number) =>
+            ['admin', 'company-approvals', 'companies-house', String(companyId)] as const,
             supplierApplications: (params?: Record<string, unknown>) =>
                 ['admin', 'supplier-applications', params ?? {}] as const,
         supplierApplicationAuditLogs: (id: string | number, params?: Record<string, unknown>) =>

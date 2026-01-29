@@ -201,6 +201,7 @@ Route::middleware(['auth', 'admin.guard', \App\Http\Middleware\BypassCompanyCont
     Route::get('company-approvals', [CompanyApprovalController::class, 'index']);
     Route::post('company-approvals/{company}/approve', [CompanyApprovalController::class, 'approve']);
     Route::post('company-approvals/{company}/reject', [CompanyApprovalController::class, 'reject']);
+    Route::get('company-approvals/{company}/companies-house', [CompanyApprovalController::class, 'companiesHouseProfile']);
     Route::get('analytics/overview', [AdminAnalyticsController::class, 'overview']);
 
     Route::prefix('supplier-applications')->group(function (): void {

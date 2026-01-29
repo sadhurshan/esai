@@ -436,6 +436,59 @@ export interface CompanyApprovalResponse {
     meta?: OffsetPaginationMeta;
 }
 
+export interface CompaniesHouseAddress {
+    care_of?: string | null;
+    po_box?: string | null;
+    address_line_1?: string | null;
+    address_line_2?: string | null;
+    locality?: string | null;
+    region?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+}
+
+export interface CompaniesHouseAccounts {
+    accounting_reference_date?: Record<string, string | undefined> | null;
+    next_due?: string | null;
+    last_accounts?: Record<string, string | undefined> | null;
+    overdue?: boolean | null;
+}
+
+export interface CompaniesHouseConfirmationStatement {
+    next_due?: string | null;
+    next_made_up_to?: string | null;
+    overdue?: boolean | null;
+}
+
+export interface CompaniesHousePreviousName {
+    name?: string | null;
+    ceased_on?: string | null;
+    effective_from?: string | null;
+}
+
+export interface CompaniesHouseProfile {
+    company_name?: string | null;
+    company_number?: string | null;
+    company_status?: string | null;
+    type?: string | null;
+    jurisdiction?: string | null;
+    sic_codes?: string[];
+    date_of_creation?: string | null;
+    undeliverable_registered_office_address?: boolean | null;
+    has_been_liquidated?: boolean | null;
+    can_file?: boolean | null;
+    registered_office_address?: CompaniesHouseAddress | null;
+    accounts?: CompaniesHouseAccounts | null;
+    confirmation_statement?: CompaniesHouseConfirmationStatement | null;
+    previous_company_names?: CompaniesHousePreviousName[];
+    retrieved_at?: string | null;
+    raw?: Record<string, unknown> | null;
+}
+
+export interface CompaniesHouseLookupResponse {
+    profile?: CompaniesHouseProfile | null;
+}
+
 export type SupplierApplicationStatusValue = 'pending' | 'approved' | 'rejected';
 
 export interface SupplierApplicationFilters extends Record<string, unknown> {

@@ -123,21 +123,27 @@ export function LoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
-            <Helmet>
-                <title>Sign in • {Branding.name}</title>
-            </Helmet>
-            <Card className="w-full max-w-md shadow-lg">
+        <div
+            className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100"
+            style={{
+                backgroundImage: "url('/3d-rendering-big-red-coronavirus-cell-left-with-black-background.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
+        >
+            <Card className="w-full max-w-md border border-white/10 bg-slate-950/80 text-slate-100 shadow-lg backdrop-blur">
                 <CardHeader className="items-center text-center">
-                    <img src={Branding.logo.symbol} alt={Branding.name} className="h-10" />
-                    <CardTitle className="mt-2 text-2xl font-semibold text-foreground">Welcome back</CardTitle>
-                    <CardDescription>Sign in to continue to your Elements Supply workspace.</CardDescription>
+                    <img src={Branding.logo.symbol} alt={Branding.name} className="h-16" />
+                    <CardTitle className="mt-2 text-2xl font-semibold text-white">Welcome back</CardTitle>
+                    <CardDescription className="text-slate-400">
+                        Sign in to continue to your Elements Supply workspace.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form className="space-y-5" onSubmit={onSubmit}>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" autoComplete="email" {...register('email')} />
+                            <Input className='border-slate-500 rounded-sm py-6' id="email" type="email" autoComplete="email" {...register('email')} />
                             {errors.email ? (
                                 <p className="text-xs text-destructive">{errors.email.message}</p>
                             ) : null}
@@ -150,7 +156,7 @@ export function LoginPage() {
                                     Forgot password?
                                 </Link>
                             </div>
-                            <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
+                            <Input className='border-slate-500 rounded-sm py-6' id="password" type="password" autoComplete="current-password" {...register('password')} />
                             {errors.password ? (
                                 <p className="text-xs text-destructive">{errors.password.message}</p>
                             ) : null}
@@ -166,7 +172,7 @@ export function LoginPage() {
                                         checked={Boolean(field.value)}
                                         onCheckedChange={(checked) => field.onChange(Boolean(checked))}
                                     />
-                                    <Label htmlFor="remember" className="text-sm text-muted-foreground">
+                                    <Label htmlFor="remember" className="text-sm text-slate-400">
                                         Remember me on this device
                                     </Label>
                                 </div>
@@ -184,13 +190,16 @@ export function LoginPage() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-2 text-center text-xs text-muted-foreground">
+                <CardFooter className="flex flex-col gap-2 text-center text-xs text-slate-400">
                     <p>
                         Need help accessing your account? Contact your workspace administrator.
                     </p>
                     <p>
                         New to Elements Supply?{' '}
-                        <Link to="/register" className="font-medium text-brand-primary hover:underline">
+                        <Link
+                            to="/register"
+                            className="text-sm font-semibold text-white hover:text-brand-primary"
+                        >
                             Create a workspace
                         </Link>
                     </p>

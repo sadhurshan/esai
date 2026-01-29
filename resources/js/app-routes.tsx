@@ -96,6 +96,7 @@ import {
     RegisterPage,
 } from '@/pages/auth';
 import { PlanSelectionPage } from '@/pages/onboarding';
+import { LandingPage } from '@/pages/landing/landing-page';
 import { DigitalTwinLibraryPage, DigitalTwinDetailPage } from '@/pages/digital-twins';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { NotFoundPage } from '@/pages/errors/not-found-page';
@@ -107,6 +108,7 @@ import { isPlatformRole } from '@/constants/platform-roles';
 export function AppRoutes(): ReactElement {
     return (
         <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />

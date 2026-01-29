@@ -292,15 +292,19 @@ export function RegisterPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
-            <Helmet>
-                <title>Create workspace • {Branding.name}</title>
-            </Helmet>
-            <Card className="w-full max-w-4xl shadow-lg">
+        <div
+            className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100"
+            style={{
+                backgroundImage: "url('/3d-rendering-big-red-coronavirus-cell-left-with-black-background.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
+        >
+            <Card className="w-full max-w-4xl border border-white/10 bg-slate-950/80 text-slate-100 shadow-lg backdrop-blur">
                 <CardHeader className="items-center text-center space-y-2">
                     <img src={Branding.logo.symbol} alt={Branding.name} className="h-10" />
-                    <CardTitle className="text-2xl font-semibold text-foreground">Create your workspace</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-2xl font-semibold text-white">Create your workspace</CardTitle>
+                    <CardDescription className="text-slate-400">
                         The first user becomes the workspace owner. Buyer tools are enabled immediately; supplier features activate
                         after approval.
                     </CardDescription>
@@ -310,36 +314,36 @@ export function RegisterPage() {
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full name</Label>
-                                <Input id="name" autoComplete="name" placeholder="Casey Owner" {...register('name')} />
+                                <Input className='border-slate-500 rounded-sm py-6' id="name" autoComplete="name" placeholder="Casey Owner" {...register('name')} />
                                 {errors.name ? <p className="text-xs text-destructive">{errors.name.message}</p> : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Work email</Label>
-                                <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" {...register('email', {
+                                <Input className='border-slate-500 rounded-sm py-6' id="email" type="email" autoComplete="email" placeholder="you@example.com" {...register('email', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
                                 })} />
                                 {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="companyName">Company name</Label>
-                                <Input id="companyName" autoComplete="organization" placeholder="Elements Supply" {...register('companyName', {
+                                <Input className='border-slate-500 rounded-sm py-6' id="companyName" autoComplete="organization" placeholder="Elements Supply" {...register('companyName', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
                                 })} />
                                 {errors.companyName ? <p className="text-xs text-destructive">{errors.companyName.message}</p> : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="companyDomain">Company domain</Label>
-                                <Input id="companyDomain" placeholder="example.com" autoComplete="off" {...register('companyDomain', {
+                                <Input className='border-slate-500 rounded-sm py-6' id="companyDomain" placeholder="example.com" autoComplete="off" {...register('companyDomain', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim().toLowerCase() : value),
                                 })} />
-                                <p className="text-xs text-muted-foreground">Used for invitation policies and supplier vetting.</p>
+                                <p className="text-xs text-slate-400">Used for invitation policies and supplier vetting.</p>
                                 {errors.companyDomain ? (
                                     <p className="text-xs text-destructive">{errors.companyDomain.message}</p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="registrationNo">Registration number</Label>
-                                <Input
+                                <Input className='border-slate-500 rounded-sm py-6'
                                     id="registrationNo"
                                     placeholder="REG-123456"
                                     autoComplete="off"
@@ -351,7 +355,7 @@ export function RegisterPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="taxId">Tax ID</Label>
-                                <Input
+                                <Input className='border-slate-500 rounded-sm py-6'
                                     id="taxId"
                                     placeholder="TAX-999"
                                     autoComplete="off"
@@ -363,20 +367,20 @@ export function RegisterPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
-                                <Input id="password" type="password" autoComplete="new-password" {...register('password')} />
-                                <p className="text-xs text-muted-foreground">Min 8 chars with upper, lower, number & symbol.</p>
+                                <Input className='border-slate-500 rounded-sm py-6' id="password" type="password" autoComplete="new-password" {...register('password')} />
+                                <p className="text-xs text-slate-400">Min 8 chars with upper, lower, number & symbol.</p>
                                 {errors.password ? <p className="text-xs text-destructive">{errors.password.message}</p> : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="passwordConfirmation">Confirm password</Label>
-                                <Input id="passwordConfirmation" type="password" autoComplete="new-password" {...register('passwordConfirmation')} />
+                                <Input className='border-slate-500 rounded-sm py-6' id="passwordConfirmation" type="password" autoComplete="new-password" {...register('passwordConfirmation')} />
                                 {errors.passwordConfirmation ? (
                                     <p className="text-xs text-destructive">{errors.passwordConfirmation.message}</p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="website">Company website</Label>
-                                <Input
+                                <Input className='border-slate-500 rounded-sm py-6'
                                     id="website"
                                     type="url"
                                     autoComplete="url"
@@ -389,14 +393,14 @@ export function RegisterPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Company phone</Label>
-                                <Input id="phone" type="tel" autoComplete="tel" placeholder="+1 555-0100" {...register('phone', {
+                                <Input className='border-slate-500 rounded-sm py-6' id="phone" type="tel" autoComplete="tel" placeholder="+1 555-0100" {...register('phone', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
                                 })} />
                                 {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country (ISO code)</Label>
-                                <Input id="country" placeholder="US" maxLength={2} {...register('country', {
+                                <Input className='border-slate-500 rounded-sm py-6' id="country" placeholder="US" maxLength={2} {...register('country', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim().toUpperCase() : value),
                                 })} />
                                 {errors.country ? <p className="text-xs text-destructive">{errors.country.message}</p> : null}
@@ -404,7 +408,7 @@ export function RegisterPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="address">Company address (optional)</Label>
-                            <Textarea id="address" rows={3} placeholder="HQ location" {...register('address', {
+                            <Textarea className='border-slate-500 rounded-sm bg-transparent' id="address" rows={3} placeholder="HQ location" {...register('address', {
                                 setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
                             })} />
                             {errors.address ? <p className="text-xs text-destructive">{errors.address.message}</p> : null}
@@ -413,20 +417,23 @@ export function RegisterPage() {
                         <div className="space-y-3">
                             <div>
                                 <Label className="text-sm font-medium">Company documents</Label>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-slate-400">
                                     Upload incorporation, tax, ESG, or other compliance documents. {DOCUMENT_ACCEPT_LABEL}
                                 </p>
                             </div>
                             <div className="space-y-3">
                                 {documents.map((document) => (
-                                    <div key={document.id} className="grid gap-3 md:grid-cols-[240px,1fr,auto] items-end rounded-lg border p-4">
+                                    <div
+                                        key={document.id}
+                                        className="grid items-end gap-3 rounded-lg border border-white/10 bg-slate-900/40 p-4 md:grid-cols-[240px,1fr,auto]"
+                                    >
                                         <div className="space-y-2">
                                             <Label htmlFor={`document-type-${document.id}`}>Document type</Label>
                                             <Select
                                                 value={document.type}
                                                 onValueChange={(value) => handleDocumentTypeChange(document.id, value as DocumentType)}
                                             >
-                                                <SelectTrigger id={`document-type-${document.id}`}>
+                                                <SelectTrigger className='border-slate-500 rounded-sm py-4' id={`document-type-${document.id}`}>
                                                     <SelectValue placeholder="Select type" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -440,12 +447,20 @@ export function RegisterPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor={`document-file-${document.id}`}>Document file</Label>
-                                            <Input
-                                                id={`document-file-${document.id}`}
-                                                type="file"
-                                                accept={DOCUMENT_INPUT_ACCEPT}
-                                                onChange={(event) => handleDocumentFileChange(document.id, event.target.files?.[0] ?? null)}
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    id={`document-file-${document.id}`}
+                                                    className="peer h-12 cursor-pointer border-slate-500 bg-slate-900/40 text-slate-200 file:mr-4 file:cursor-pointer file:rounded-sm file:border-0 file:bg-brand-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-primary/90"
+                                                    type="file"
+                                                    accept={DOCUMENT_INPUT_ACCEPT}
+                                                    onChange={(event) =>
+                                                        handleDocumentFileChange(document.id, event.target.files?.[0] ?? null)
+                                                    }
+                                                />
+                                                <p className="mt-1 text-xs text-slate-400">
+                                                    PDF, DOCX, or image files. Max size per document applies.
+                                                </p>
+                                            </div>
                                         </div>
                                         <div className="flex justify-end">
                                             <Button
@@ -464,12 +479,13 @@ export function RegisterPage() {
                             {documentsError ? (
                                 <p className="text-xs text-destructive">{documentsError}</p>
                             ) : (
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-slate-400">
                                     Submit at least one document so the Elements Supply team can verify your company.
                                 </p>
                             )}
                             <Button
                                 type="button"
+                                className='text-black'
                                 variant="outline"
                                 onClick={handleAddDocument}
                                 disabled={documents.length >= MAX_DOCUMENTS}
@@ -489,7 +505,7 @@ export function RegisterPage() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="justify-center text-sm text-muted-foreground">
+                <CardFooter className="justify-center text-sm text-slate-400">
                     <span>
                         Already have a workspace?{' '}
                         <Link to="/login" className="font-medium text-brand-primary hover:underline">

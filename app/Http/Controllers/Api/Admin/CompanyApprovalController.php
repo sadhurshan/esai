@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Actions\Company\ApproveCompanyAction;
+use App\Actions\Company\FetchCompaniesHouseProfileAction;
 use App\Actions\Company\RejectCompanyAction;
+use App\Exceptions\CompaniesHouseLookupException;
 use App\Enums\CompanyStatus;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Company\RejectCompanyRequest;
@@ -22,6 +24,7 @@ class CompanyApprovalController extends ApiController
     public function __construct(
         private readonly ApproveCompanyAction $approveCompanyAction,
         private readonly RejectCompanyAction $rejectCompanyAction,
+        private readonly FetchCompaniesHouseProfileAction $companiesHouseProfileAction,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -105,6 +108,32 @@ class CompanyApprovalController extends ApiController
         $this->notifyRejection($company, $reason);
 
         return $this->ok((new CompanyResource($company))->toArray($request), 'Company rejected.');
+    }
+
+    public function companiesHouseProfile(Request $request, Company $company): JsonResponse
+    {
+        $user = $this->resolveRequestUser($request);
+        if ($user === null) {
+            return $this->fail('Authentication required.', 401);
+        }
+
+        if (! in_array($user->role, ['platform_super', 'platform_support'], true)) {
+            return $this->fail('Forbidden.', 403);
+        }
+
+        try {
+            $profile = $this->companiesHouseProfileAction->execute($company);
+        } catch (CompaniesHouseLookupException $exception) {
+            return $this->fail($exception->getMessage(), $exception->status);
+        } catch (\Throwable $throwable) {
+            report($throwable);
+
+            return $this->fail('Unable to retrieve Companies House data right now. Please try again later.', 502);
+        }
+
+        return $this->ok([
+            'profile' => $profile,
+        ], 'Companies House profile retrieved.');
     }
 
     private function notifyApproval(Company $company): void

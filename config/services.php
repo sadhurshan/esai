@@ -64,4 +64,11 @@ return [
         'timeout' => (int) env('AI_MICROSERVICE_TIMEOUT', 15),
     ],
 
+    'companies_house' => [
+        'base_url' => env('COMPANIES_HOUSE_BASE_URL', 'https://api.company-information.service.gov.uk'),
+        'api_key' => env('COMPANIES_HOUSE_API_KEY'),
+        'timeout' => (int) env('COMPANIES_HOUSE_TIMEOUT', 10),
+        'cache_ttl' => (int) env('COMPANIES_HOUSE_CACHE_SECONDS', 900),
+    ],
+
 ];

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\CompanyApproved;
 use App\Notifications\CompanyRejected;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use function Pest\Laravel\actingAs;
 
@@ -128,4 +129,81 @@ it('notifies owners and platform operators when a company is rejected', function
                 && $notification->audience === 'platform';
         }
     );
+});
+
+it('fetches companies house profile data for uk companies', function (): void {
+    config()->set('services.companies_house.api_key', 'test-key');
+
+    Http::fake([
+        'https://api.company-information.service.gov.uk/company/*' => Http::response([
+            'company_name' => 'ACME LTD',
+            'company_number' => '12345678',
+            'company_status' => 'active',
+            'registered_office_address' => [
+                'address_line_1' => '1 Main Street',
+                'postal_code' => 'AB1 2CD',
+            ],
+        ], 200),
+    ]);
+
+    $admin = User::factory()->create([
+        'role' => 'platform_super',
+        'company_id' => null,
+    ]);
+
+    $company = Company::factory()->create([
+        'country' => 'United Kingdom',
+        'registration_no' => '12345678',
+    ]);
+
+    actingAs($admin);
+
+    $response = $this->getJson("/api/admin/company-approvals/{$company->id}/companies-house");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.profile.company_name', 'ACME LTD')
+        ->assertJsonPath('data.profile.company_number', '12345678');
+});
+
+it('blocks non platform admins from fetching companies house data', function (): void {
+    config()->set('services.companies_house.api_key', 'test-key');
+
+    $user = User::factory()->create([
+        'role' => 'owner',
+    ]);
+
+    $company = Company::factory()->create([
+        'country' => 'United Kingdom',
+        'registration_no' => '12345678',
+    ]);
+
+    actingAs($user);
+
+    $response = $this->getJson("/api/admin/company-approvals/{$company->id}/companies-house");
+
+    $response->assertForbidden();
+});
+
+it('fails when the company is not registered in the united kingdom', function (): void {
+    config()->set('services.companies_house.api_key', 'test-key');
+
+    $admin = User::factory()->create([
+        'role' => 'platform_super',
+        'company_id' => null,
+    ]);
+
+    $company = Company::factory()->create([
+        'country' => 'Germany',
+        'registration_no' => 'DE123456',
+    ]);
+
+    actingAs($admin);
+
+    $response = $this->getJson("/api/admin/company-approvals/{$company->id}/companies-house");
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonPath('status', 'error');
 });

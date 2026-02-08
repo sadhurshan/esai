@@ -113,7 +113,7 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                     name={composeName(name, 'country')}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Country</FormLabel>
+                            <FormLabel>Country (2-letter code)</FormLabel>
                             <FormControl>
                                 <Input placeholder="US" {...field} disabled={disabled} />
                             </FormControl>

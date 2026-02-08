@@ -27,7 +27,7 @@ interface ApiClientProviderProps extends PropsWithChildren {
 }
 
 export function ApiClientProvider({ children, onQueryClientReady }: ApiClientProviderProps) {
-    const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit, activePersona } = useAuth();
+    const { getAccessToken, logout, notifyPlanLimit, clearPlanLimit, activePersona, state } = useAuth();
     const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,6 +47,14 @@ export function ApiClientProvider({ children, onQueryClientReady }: ApiClientPro
                 }
 
                 if (status === 402) {
+                    const supplierStatus = state.company?.supplier_status ?? null;
+                    const isSupplierStart =
+                        state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+
+                    if (isSupplierStart) {
+                        return;
+                    }
+
                     const details = (error.body ?? {}) as Record<string, unknown>;
                     const message =
                         (typeof details.message === 'string' && details.message.length > 0
@@ -96,7 +104,7 @@ export function ApiClientProvider({ children, onQueryClientReady }: ApiClientPro
                 });
             }
         },
-        [location.pathname, navigate, logout, notifyPlanLimit],
+        [location.pathname, navigate, logout, notifyPlanLimit, state.company?.start_mode, state.company?.supplier_status],
     );
 
     const queryClient = useMemo(() => {

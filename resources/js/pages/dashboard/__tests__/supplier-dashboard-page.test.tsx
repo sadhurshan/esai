@@ -11,9 +11,19 @@ vi.mock('@/contexts/auth-context');
 const mockUseSupplierDashboardMetrics = vi.mocked(useSupplierDashboardMetrics);
 const mockUseAuth = vi.mocked(useAuth);
 
-function mockPersona(type: 'buyer' | 'supplier') {
+function mockPersona(
+    type: 'buyer' | 'supplier',
+    startMode: 'buyer' | 'supplier' = 'buyer',
+    supplierStatus: 'none' | 'pending' | 'approved' = 'none',
+) {
     mockUseAuth.mockReturnValue({
         activePersona: type === 'supplier' ? { type: 'supplier' } : { type: 'buyer' },
+        state: {
+            company: {
+                start_mode: startMode,
+                supplier_status: supplierStatus,
+            },
+        },
     } as unknown as ReturnType<typeof useAuth>);
 
     mockUseSupplierDashboardMetrics.mockReturnValue({
@@ -30,8 +40,8 @@ function mockPersona(type: 'buyer' | 'supplier') {
 }
 
 describe('SupplierDashboardPage', () => {
-    it('shows metrics when supplier persona is active', () => {
-        mockPersona('supplier');
+    it('shows metrics when supplier persona is active and approved', () => {
+        mockPersona('supplier', 'buyer', 'approved');
 
         render(<SupplierDashboardPage />);
 
@@ -45,5 +55,13 @@ describe('SupplierDashboardPage', () => {
         render(<SupplierDashboardPage />);
 
         expect(screen.getByText('Switch to supplier persona')).toBeInTheDocument();
+    });
+
+    it('shows metrics when supplier-first company is pending', () => {
+        mockPersona('buyer', 'supplier', 'pending');
+
+        render(<SupplierDashboardPage />);
+
+        expect(screen.getByText('Complete your supplier application')).toBeInTheDocument();
     });
 });

@@ -12,7 +12,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Check, ChevronDown, Loader2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth-context';
 import { WorkspaceBreadcrumbs } from './breadcrumbs';
 import { NotificationBell } from '@/components/notifications/notification-bell';
@@ -20,6 +20,16 @@ import { useSwitchCompany, useUserCompanies } from '@/hooks/api/use-user-compani
 import { publishToast } from '@/components/ui/use-toast';
 import { ApiError } from '@/lib/api';
 import { isPlatformRole } from '@/constants/platform-roles';
+
+type PersonaType = 'buyer' | 'supplier';
+
+function toPersonaDisplay<T extends { type: string; company_name?: string | null; supplier_company_name?: string | null }>(
+    persona: T,
+    forceSupplier: boolean,
+): T & { type: PersonaType } {
+    const normalizedType: PersonaType = forceSupplier ? 'supplier' : persona.type === 'supplier' ? 'supplier' : 'buyer';
+    return { ...persona, type: normalizedType };
+}
 
 function formatPersonaTitle(persona: { type: 'buyer' | 'supplier'; company_name?: string | null; supplier_company_name?: string | null }): string {
     if (persona.type === 'buyer') {
@@ -67,20 +77,35 @@ export function TopBar() {
     }, [state.user?.email, state.user?.name]);
     const isPlatformOperator = isPlatformRole(state.user?.role);
     const isSupplierPersona = activePersona?.type === 'supplier';
+    const isSupplierFirst = state.company?.start_mode === 'supplier';
     const personaButtonLabel = useMemo(() => {
         if (!activePersona) {
             return 'Default persona';
         }
 
+        if (isSupplierFirst && activePersona.type !== 'supplier') {
+            return formatPersonaTitle({
+                ...activePersona,
+                type: 'supplier',
+            });
+        }
+
         return formatPersonaTitle(activePersona);
-    }, [activePersona]);
+    }, [activePersona, isSupplierFirst]);
     const personaButtonDescription = useMemo(() => {
         if (!activePersona) {
             return null;
         }
 
+        if (isSupplierFirst && activePersona.type !== 'supplier') {
+            return formatPersonaMeta({
+                ...activePersona,
+                type: 'supplier',
+            });
+        }
+
         return formatPersonaMeta(activePersona);
-    }, [activePersona]);
+    }, [activePersona, isSupplierFirst]);
     const supplierBadgeLabel = useMemo(() => {
         if (activePersona?.type !== 'supplier') {
             return null;
@@ -137,7 +162,9 @@ export function TopBar() {
                         <DropdownMenuContent align="end" className="w-64">
                             <DropdownMenuLabel>Switch persona</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {personas.map((persona) => (
+                            {personas
+                                .filter((persona) => !(isSupplierFirst && persona.type === 'buyer'))
+                                .map((persona) => (
                                 <DropdownMenuItem
                                     key={persona.key}
                                     disabled={
@@ -154,10 +181,14 @@ export function TopBar() {
 
                                         void switchPersona(persona.key)
                                             .then(() => {
+                                                const displayPersona = toPersonaDisplay(
+                                                    persona,
+                                                    isSupplierFirst && persona.type !== 'supplier',
+                                                );
                                                 publishToast({
                                                     variant: 'success',
                                                     title: 'Persona switched',
-                                                    description: `${formatPersonaTitle(persona)} activated.`,
+                                                    description: `${formatPersonaTitle(displayPersona)} activated.`,
                                                 });
                                                 handlePersonaLanding(persona.type);
                                             })
@@ -179,11 +210,23 @@ export function TopBar() {
                                     <div className="flex w-full items-center justify-between gap-2">
                                         <div>
                                             <p className="text-sm font-medium leading-none">
-                                                {formatPersonaTitle(persona)}
+                                                {formatPersonaTitle(
+                                                    isSupplierFirst && persona.type !== 'supplier'
+                                                        ? { ...persona, type: 'supplier' }
+                                                        : persona,
+                                                )}
                                             </p>
-                                            {formatPersonaMeta(persona) ? (
+                                            {formatPersonaMeta(
+                                                isSupplierFirst && persona.type !== 'supplier'
+                                                    ? { ...persona, type: 'supplier' }
+                                                    : persona,
+                                            ) ? (
                                                 <p className="text-xs text-muted-foreground">
-                                                    {formatPersonaMeta(persona)}
+                                                    {formatPersonaMeta(
+                                                        isSupplierFirst && persona.type !== 'supplier'
+                                                            ? { ...persona, type: 'supplier' }
+                                                            : persona,
+                                                    )}
                                                 </p>
                                             ) : null}
                                         </div>
@@ -305,12 +348,14 @@ export function TopBar() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => navigate('/app/settings')}>
-                            Profile & Settings
+                        <DropdownMenuItem asChild>
+                            <Link to="/app/settings">Profile & Settings</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => navigate('/app/settings/billing')}>
-                            Billing
-                        </DropdownMenuItem>
+                        {!isSupplierFirst ? (
+                            <DropdownMenuItem asChild>
+                                <Link to="/app/settings/billing">Billing</Link>
+                            </DropdownMenuItem>
+                        ) : null}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             onSelect={() => {

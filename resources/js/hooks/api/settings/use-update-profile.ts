@@ -20,7 +20,7 @@ export function useUpdateProfile(): UseMutationResult<User, ApiError, UpdateProf
 
     return useMutation<User, ApiError, UpdateProfilePayload>({
         mutationFn: async (payload) => {
-            const data = (await api.patch<User>('/me/profile', buildProfileFormData(payload))) as unknown as User;
+            const data = (await api.post<User>('/me/profile', buildProfileFormData(payload))) as unknown as User;
             return data;
         },
         onSuccess: (data) => {
@@ -32,6 +32,7 @@ export function useUpdateProfile(): UseMutationResult<User, ApiError, UpdateProf
 const buildProfileFormData = (payload: UpdateProfilePayload): FormData => {
     const formData = new FormData();
 
+    formData.append('_method', 'PATCH');
     formData.append('name', payload.name);
     formData.append('email', payload.email);
 

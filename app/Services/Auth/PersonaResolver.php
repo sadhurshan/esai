@@ -37,6 +37,19 @@ class PersonaResolver
             return null;
         }
 
+        $user->loadMissing('company');
+        $company = $user->company;
+
+        if ($company !== null && $company->start_mode === 'supplier') {
+            $supplierPreferred = $this->findPersona($personas, static function (array $persona): bool {
+                return $persona['type'] === 'supplier';
+            });
+
+            if ($supplierPreferred !== null) {
+                return $supplierPreferred;
+            }
+        }
+
         $preferred = null;
 
         if ($user->company_id !== null) {

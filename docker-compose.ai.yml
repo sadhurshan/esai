@@ -14,6 +14,9 @@ services:
       AI_SERVICE_DEFAULT_LEAD_TIME_DAYS: "7"
       AI_SERVICE_RISK_THRESHOLDS: "0.4,0.7"
       AI_CACHE_TTL_SECONDS: "300"
+      SUPPLIER_SCRAPER_GOOGLE_KEY: "${SUPPLIER_SCRAPER_GOOGLE_KEY}"
+      SUPPLIER_SCRAPER_GOOGLE_CX: "${SUPPLIER_SCRAPER_GOOGLE_CX}"
+      SUPPLIER_SCRAPER_GOOGLE_ENDPOINT: "${SUPPLIER_SCRAPER_GOOGLE_ENDPOINT:-https://www.googleapis.com/customsearch/v1}"
     volumes:
       - ai-model-storage:/app/storage
     ports:

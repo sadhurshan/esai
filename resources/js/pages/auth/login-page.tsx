@@ -73,6 +73,11 @@ export function LoginPage() {
                 return;
             }
 
+            if (result.needsSupplierApproval) {
+                navigate('/app/setup/supplier-waiting', { replace: true });
+                return;
+            }
+
             const postLoginRole = result.userRole ?? state.user?.role ?? null;
             const isPlatformOperator = isPlatformRole(postLoginRole);
 
@@ -109,10 +114,17 @@ export function LoginPage() {
             return <Navigate to="/verify-email" replace />;
         }
 
+        if (state.needsSupplierApproval || state.company?.supplier_status === 'pending') {
+            return <Navigate to="/app/setup/supplier-waiting" replace />;
+        }
+
         const role = state.user?.role ?? null;
         const isPlatformOperator = isPlatformRole(role);
+        const isSupplierStart =
+            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
         const needsPlan =
-            state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+            !isSupplierStart &&
+            (state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan);
 
         if (needsPlan && !isPlatformOperator) {
             return <Navigate to="/app/setup/plan" replace />;
@@ -126,7 +138,7 @@ export function LoginPage() {
         <div
             className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100"
             style={{
-                backgroundImage: "url('/3d-rendering-big-red-coronavirus-cell-left-with-black-background.jpg')",
+                backgroundImage: "url('/img/efa9c371-4ad2-49db-977f-098c4619ffc5-xxl.webp')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}

@@ -74,10 +74,10 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Orders', to: '/app/orders', icon: PackageSearch },
     { label: 'Suppliers', to: '/app/suppliers', icon: Users },
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
-    { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
+    // { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
     { label: 'Analytics', to: '/app/analytics', icon: LineChart, featureKey: 'analytics.access' },
-    { label: 'Inventory Forecast', to: '/app/analytics/forecast', icon: TrendingUp, featureKey: 'analytics.access' },
-    { label: 'Supplier Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
+    // { label: 'Inventory Forecast', to: '/app/analytics/forecast', icon: TrendingUp, featureKey: 'analytics.access' },
+    // { label: 'Supplier Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
     { label: 'Settings', to: '/app/settings', icon: Settings },
     { label: 'Admin Console', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true },
 ];
@@ -114,7 +114,7 @@ const SUPPLIER_NAV_ITEMS: NavItem[] = [
     { label: 'Invoices', to: '/app/supplier/invoices', icon: Wallet, featureKey: 'supplier_invoicing_enabled' },
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
     { label: 'Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
-    { label: 'Supplier Profile', to: '/app/supplier/company-profile', icon: Factory, matchExact: true },
+    { label: 'Profile & Settings', to: '/app/settings', icon: Settings, matchExact: true },
 ];
 
 export function SidebarNav() {
@@ -123,11 +123,13 @@ export function SidebarNav() {
     const role = state.user?.role ?? null;
     const isPlatformOperator = role ? PLATFORM_ROLES.has(role) : false;
     const isSupplierPersona = activePersona?.type === 'supplier';
+    const isSupplierStart = state.company?.start_mode === 'supplier';
+    const isSupplierMode = isSupplierPersona || isSupplierStart;
 
     const items = useMemo(() => {
         const sourceItems = isPlatformOperator
             ? ADMIN_NAV_ITEMS
-            : isSupplierPersona
+            : isSupplierMode
               ? SUPPLIER_NAV_ITEMS
               : WORKSPACE_NAV_ITEMS;
         return sourceItems.filter((item) => {
@@ -145,9 +147,9 @@ export function SidebarNav() {
 
             return true;
         });
-    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, isSupplierPersona, role]);
+    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, isSupplierMode, role]);
 
-    const sidebarLabel = isPlatformOperator ? 'Admin Console' : isSupplierPersona ? 'Supplier Workspace' : 'Workspace';
+    const sidebarLabel = isPlatformOperator ? 'Admin Console' : isSupplierMode ? 'Supplier Workspace' : 'Workspace';
 
     return (
         <SidebarContent>

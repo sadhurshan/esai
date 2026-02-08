@@ -50,6 +50,7 @@ class SelfRegistrationController extends ApiController
                 'tax_id' => $data['tax_id'] ?? null,
                 'country' => $data['country'] ?? null,
                 'email_domain' => $data['company_domain'],
+                'start_mode' => $data['start_mode'] ?? null,
                 'primary_contact_name' => $data['name'],
                 'primary_contact_email' => $data['email'],
                 'primary_contact_phone' => $data['phone'] ?? null,

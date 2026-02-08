@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\CompanyStatus;
+use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
 use App\Support\ActivePersonaContext;
 use App\Support\ApiResponse;
@@ -33,6 +34,15 @@ class EnsureSubscribed
         }
 
         $company->loadMissing(['plan', 'subscriptions']);
+
+        $supplierStatus = $company->supplier_status;
+        $isSupplierStart = $company->start_mode === 'supplier'
+            || ($supplierStatus instanceof CompanySupplierStatus && $supplierStatus !== CompanySupplierStatus::None)
+            || (is_string($supplierStatus) && $supplierStatus !== CompanySupplierStatus::None->value);
+
+        if ($isSupplierStart) {
+            return $next($request);
+        }
 
         $status = $company->status;
 

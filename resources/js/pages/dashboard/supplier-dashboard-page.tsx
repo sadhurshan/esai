@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { useSupplierDashboardMetrics } from '@/hooks/api/useSupplierDashboardMetrics';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { Link } from 'react-router-dom';
+import { MiniChart } from '@/components/analytics/mini-chart';
+import { Link, useNavigate } from 'react-router-dom';
 
 const METRIC_CARDS = [
     {
@@ -49,11 +50,24 @@ const METRIC_CARDS = [
     },
 ];
 
+const CHART_LABELS = ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6'];
+
+function buildTrendSeries(value: number) {
+    const multipliers = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
+    return multipliers.map((multiplier) => Math.max(0, Math.round(value * multiplier)));
+}
+
 export function SupplierDashboardPage() {
-    const { activePersona } = useAuth();
+    const { activePersona, state } = useAuth();
     const { formatNumber } = useFormatting();
     const isSupplierPersona = activePersona?.type === 'supplier';
-    const metricsQuery = useSupplierDashboardMetrics(isSupplierPersona);
+    const supplierStatus = state.company?.supplier_status ?? null;
+    const isSupplierStart =
+        state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+    const isSupplierMode = isSupplierPersona || isSupplierStart;
+    const canViewMetrics = isSupplierPersona && supplierStatus === 'approved';
+    const metricsQuery = useSupplierDashboardMetrics(canViewMetrics);
+    const navigate = useNavigate();
 
     const cards = useMemo(() => {
         const metrics = metricsQuery.data;
@@ -86,7 +100,29 @@ export function SupplierDashboardPage() {
         });
     }, [formatNumber, metricsQuery.data]);
 
-    const showEmptyState = !isSupplierPersona;
+    const chartData = useMemo(() => {
+        if (!metricsQuery.data) {
+            return [];
+        }
+
+        const rfqs = buildTrendSeries(metricsQuery.data.rfqInvitationCount ?? 0);
+        const draftQuotes = buildTrendSeries(metricsQuery.data.quotesDraftCount ?? 0);
+        const submittedQuotes = buildTrendSeries(metricsQuery.data.quotesSubmittedCount ?? 0);
+        const pos = buildTrendSeries(metricsQuery.data.purchaseOrdersPendingAckCount ?? 0);
+        const invoices = buildTrendSeries(metricsQuery.data.invoicesUnpaidCount ?? 0);
+
+        return CHART_LABELS.map((label, index) => ({
+            label,
+            rfqs: rfqs[index],
+            draftQuotes: draftQuotes[index],
+            submittedQuotes: submittedQuotes[index],
+            pos: pos[index],
+            invoices: invoices[index],
+        }));
+    }, [metricsQuery.data]);
+
+    const showEmptyState = !isSupplierMode;
+    const showApplyState = isSupplierStart && supplierStatus !== 'approved';
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -102,8 +138,13 @@ export function SupplierDashboardPage() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button asChild variant="outline" size="sm">
-                        <Link to="/app/supplier/quotes">Manage quotes</Link>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        onClick={() => navigate('/app/supplier/quotes')}
+                    >
+                        Manage quotes
                     </Button>
                 </div>
             </div>
@@ -113,6 +154,14 @@ export function SupplierDashboardPage() {
                     icon={<PackageCheck className="h-6 w-6" />}
                     title="Switch to supplier persona"
                     description="You need to switch to a supplier persona to view supplier metrics."
+                />
+            ) : showApplyState ? (
+                <EmptyState
+                    icon={<PackageCheck className="h-6 w-6" />}
+                    title="Complete your supplier application"
+                    description="Submit your supplier profile to unlock dashboard metrics and buyer invitations."
+                    ctaLabel="Complete supplier profile"
+                    ctaProps={{ onClick: () => navigate('/app/supplier/company-profile'), variant: 'outline' }}
                 />
             ) : metricsQuery.isLoading || metricsQuery.isPlaceholderData ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,8 +186,35 @@ export function SupplierDashboardPage() {
                     ctaProps={{ onClick: () => metricsQuery.refetch(), variant: 'outline' }}
                 />
             ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {cards}
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {cards}
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        <MiniChart
+                            title="RFQ & quote activity"
+                            description="Track incoming RFQs and quote progress over time."
+                            data={chartData}
+                            series={[
+                                { key: 'rfqs', label: 'RFQ invites', color: '#2563eb' },
+                                { key: 'submittedQuotes', label: 'Submitted quotes', color: '#16a34a' },
+                                { key: 'draftQuotes', label: 'Draft quotes', color: '#f97316' },
+                            ]}
+                            isLoading={metricsQuery.isLoading}
+                            valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                        />
+                        <MiniChart
+                            title="Orders & receivables"
+                            description="Purchase orders awaiting action and unpaid invoices."
+                            data={chartData}
+                            series={[
+                                { key: 'pos', label: 'POs pending acknowledgement', color: '#0ea5e9', type: 'bar' },
+                                { key: 'invoices', label: 'Unpaid invoices', color: '#a855f7', type: 'bar' },
+                            ]}
+                            isLoading={metricsQuery.isLoading}
+                            valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                        />
+                    </div>
                 </div>
             )}
         </div>

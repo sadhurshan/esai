@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img "Elements Supply AI" [ref=e6]
+      - generic [ref=e7]: Create your workspace
+      - generic [ref=e8]: The first user becomes the workspace owner. Buyer tools are enabled immediately; supplier features activate after approval.
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - text: Start as
+          - combobox "Start as" [ref=e13]:
+            - generic: Start as Buyer
+            - img
+          - combobox [ref=e14]
+          - paragraph [ref=e15]: Buyer tools are enabled immediately; suppliers activate after approval.
+        - generic [ref=e16]:
+          - text: Full name
+          - textbox "Full name" [ref=e17]:
+            - /placeholder: Casey Owner
+        - generic [ref=e18]:
+          - text: Work email
+          - textbox "Work email" [ref=e19]:
+            - /placeholder: you@example.com
+        - generic [ref=e20]:
+          - text: Company name
+          - textbox "Company name" [ref=e21]:
+            - /placeholder: Elements Supply
+        - generic [ref=e22]:
+          - text: Company domain
+          - textbox "Company domain" [ref=e23]:
+            - /placeholder: example.com
+          - paragraph [ref=e24]: Used for invitation policies and supplier vetting.
+        - generic [ref=e25]:
+          - text: Registration number
+          - textbox "Registration number" [ref=e26]:
+            - /placeholder: REG-123456
+        - generic [ref=e27]:
+          - text: Tax ID
+          - textbox "Tax ID" [ref=e28]:
+            - /placeholder: TAX-999
+        - generic [ref=e29]:
+          - text: Password
+          - textbox "Password" [ref=e30]
+          - paragraph [ref=e31]: Min 8 chars with upper, lower, number & symbol.
+        - generic [ref=e32]:
+          - text: Confirm password
+          - textbox "Confirm password" [ref=e33]
+        - generic [ref=e34]:
+          - text: Company website
+          - textbox "Company website" [ref=e35]:
+            - /placeholder: https://example.com
+        - generic [ref=e36]:
+          - text: Company phone
+          - textbox "Company phone" [ref=e37]:
+            - /placeholder: +1 555-0100
+        - generic [ref=e38]:
+          - text: Country (ISO code)
+          - textbox "Country (ISO code)" [ref=e39]:
+            - /placeholder: US
+      - generic [ref=e40]:
+        - text: Company address (optional)
+        - textbox "Company address (optional)" [ref=e41]:
+          - /placeholder: HQ location
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - text: Company documents
+          - paragraph [ref=e44]: Upload incorporation, tax, ESG, or other compliance documents. CAD, PDF, Office, and image files (50 MB max).
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - text: Document type
+            - combobox "Document type" [ref=e48]:
+              - generic: Registration certificate
+              - img
+            - combobox [ref=e49]
+          - generic [ref=e50]:
+            - text: Document file
+            - generic [ref=e51]:
+              - button "Document file" [ref=e52] [cursor=pointer]
+              - paragraph [ref=e53]: PDF, DOCX, or image files. Max size per document applies.
+          - button "Remove document" [ref=e55]:
+            - img
+        - paragraph [ref=e56]: Submit at least one document so the Elements Supply team can verify your company.
+        - button "Add another document" [ref=e57]
+      - button "Create workspace" [ref=e58]
+    - generic [ref=e60]:
+      - text: Already have a workspace?
+      - link "Sign in" [ref=e61] [cursor=pointer]:
+        - /url: /login
+  - region "Notifications (F8)":
+    - list
+```

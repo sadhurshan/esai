@@ -48,6 +48,7 @@ export interface RegisterRequest {
     password_confirmation: string;
     company_name: string;
     company_domain: string;
+    start_mode: 'buyer' | 'supplier';
     address?: string | null;
     phone?: string | null;
     country?: string | null;

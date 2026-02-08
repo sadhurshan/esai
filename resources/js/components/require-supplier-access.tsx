@@ -6,11 +6,15 @@ import { useAuth } from '@/contexts/auth-context';
 import { EmptyState } from '@/components/empty-state';
 
 export function RequireSupplierAccess() {
-    const { state } = useAuth();
+    const { state, activePersona } = useAuth();
     const navigate = useNavigate();
     const status = (state.company?.supplier_status ?? 'none') as string;
 
-    if (status !== 'approved') {
+    const isSupplierPersona = activePersona?.type === 'supplier';
+    const isSupplierStart =
+        state.company?.start_mode === 'supplier' || (status && status !== 'none');
+
+    if (!isSupplierPersona && !isSupplierStart && status !== 'approved') {
         return (
             <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-10">
                 <Helmet>

@@ -25,6 +25,7 @@ interface CompanySummary {
     id: number;
     name: string;
     status?: string;
+    start_mode?: string | null;
     plan?: string | null;
     supplier_status?: string | null;
     directory_visibility?: string | null;
@@ -67,6 +68,7 @@ interface StoredAuthState {
     plan?: string | null;
     requiresPlanSelection?: boolean;
     requiresEmailVerification?: boolean;
+    needsSupplierApproval?: boolean;
     personas?: Persona[];
     activePersonaKey?: string | null;
 }
@@ -82,6 +84,7 @@ interface AuthState {
     planLimit: PlanLimitNotice | null;
     requiresPlanSelection: boolean;
     requiresEmailVerification: boolean;
+    needsSupplierApproval: boolean;
     personas: Persona[];
     activePersonaKey: string | null;
 }
@@ -106,6 +109,7 @@ interface RegisterPayload {
     taxId: string;
     website: string;
     companyDocuments: RegisterDocumentPayload[];
+    startMode: 'buyer' | 'supplier';
 }
 
 interface AuthContextValue {
@@ -133,6 +137,7 @@ interface AuthContextValue {
 interface AuthFlowResult {
     requiresEmailVerification: boolean;
     requiresPlanSelection: boolean;
+    needsSupplierApproval: boolean;
     userRole?: string | null;
 }
 
@@ -148,6 +153,7 @@ type AuthAction =
               plan?: string | null;
               requiresPlanSelection?: boolean;
               requiresEmailVerification?: boolean;
+              needsSupplierApproval?: boolean;
               personas?: Persona[];
               activePersonaKey?: string | null;
           };
@@ -163,6 +169,7 @@ type AuthAction =
               plan?: string | null;
               requiresPlanSelection?: boolean;
               requiresEmailVerification?: boolean;
+              needsSupplierApproval?: boolean;
               personas?: Persona[];
               activePersonaKey?: string | null;
           };
@@ -183,6 +190,7 @@ const initialState: AuthState = {
     planLimit: null,
     requiresPlanSelection: false,
     requiresEmailVerification: false,
+    needsSupplierApproval: false,
     personas: [],
     activePersonaKey: null,
 };
@@ -209,6 +217,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 error: null,
                 requiresPlanSelection: action.payload.requiresPlanSelection ?? false,
                 requiresEmailVerification: action.payload.requiresEmailVerification ?? false,
+                needsSupplierApproval: action.payload.needsSupplierApproval ?? false,
                 personas,
                 activePersonaKey: alignActivePersonaKey(
                     personas,
@@ -228,6 +237,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 error: action.payload.error,
                 requiresPlanSelection: false,
                 requiresEmailVerification: false,
+                needsSupplierApproval: false,
                 personas: [],
                 activePersonaKey: null,
             };
@@ -251,6 +261,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                     action.payload.requiresPlanSelection ?? state.requiresPlanSelection,
                 requiresEmailVerification:
                     action.payload.requiresEmailVerification ?? state.requiresEmailVerification,
+                needsSupplierApproval:
+                    action.payload.needsSupplierApproval ?? state.needsSupplierApproval,
                 personas,
                 activePersonaKey: alignActivePersonaKey(personas, preferredPersonaKey),
             };
@@ -297,6 +309,7 @@ function readStoredState(): AuthState {
             planLimit: null,
             requiresPlanSelection: parsed.requiresPlanSelection ?? false,
             requiresEmailVerification: parsed.requiresEmailVerification ?? false,
+            needsSupplierApproval: parsed.needsSupplierApproval ?? false,
             personas: parsed.personas ?? [],
             activePersonaKey: parsed.activePersonaKey ?? null,
         };
@@ -320,6 +333,7 @@ function writeStateToStorage(state: AuthState) {
             plan: state.plan ?? undefined,
             requiresPlanSelection: state.requiresPlanSelection,
             requiresEmailVerification: state.requiresEmailVerification,
+            needsSupplierApproval: state.needsSupplierApproval,
             personas: state.personas,
             activePersonaKey: state.activePersonaKey ?? undefined,
         };
@@ -481,11 +495,12 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
         (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
     );
     const requiresEmailVerification = computeRequiresEmailVerification(data, user);
+    const needsSupplierApproval = (company?.supplier_status ?? null) === 'pending';
     const personas = normalizePersonas((data as { personas?: unknown }).personas);
-    const activePersonaKey = alignActivePersonaKey(
-        personas,
-        extractPersonaKey((data as { active_persona?: unknown }).active_persona),
-    );
+    const preferredKey = extractPersonaKey((data as { active_persona?: unknown }).active_persona);
+    const supplierFirst = company?.start_mode === 'supplier';
+    const supplierPersona = supplierFirst ? personas.find((persona) => persona.type === 'supplier') : undefined;
+    const activePersonaKey = supplierPersona?.key ?? alignActivePersonaKey(personas, preferredKey);
 
     return {
         token,
@@ -495,6 +510,7 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
         plan,
         requiresPlanSelection,
         requiresEmailVerification,
+        needsSupplierApproval,
         personas,
         activePersonaKey,
     };
@@ -579,8 +595,16 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
     );
 
     const notifyPlanLimit = useCallback((notice: PlanLimitNotice) => {
+        const supplierStatus = state.company?.supplier_status ?? null;
+        const isSupplierStart =
+            state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+
+        if (isSupplierStart) {
+            return;
+        }
+
         dispatch({ type: 'SET_PLAN_LIMIT', payload: notice });
-    }, []);
+    }, [state.company?.start_mode, state.company?.supplier_status]);
 
     const clearPlanLimit = useCallback(() => {
         dispatch({ type: 'SET_PLAN_LIMIT', payload: null });
@@ -625,6 +649,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    needsSupplierApproval,
                     personas,
                     activePersonaKey,
                 } = normalizeAuthResponse(data);
@@ -638,6 +663,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                         plan,
                         requiresPlanSelection,
                         requiresEmailVerification,
+                        needsSupplierApproval,
                         personas,
                         activePersonaKey,
                     },
@@ -685,6 +711,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    needsSupplierApproval,
                     personas,
                     activePersonaKey,
                 } = normalizeAuthResponse(envelope);
@@ -712,6 +739,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                         plan: plan ?? null,
                         requiresPlanSelection,
                         requiresEmailVerification,
+                        needsSupplierApproval,
                         personas,
                         activePersonaKey,
                     },
@@ -726,6 +754,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 return {
                     requiresEmailVerification,
                     requiresPlanSelection: requiresPlanSelection ?? false,
+                    needsSupplierApproval,
                     userRole: user.role ?? null,
                 };
             } catch (error) {
@@ -771,6 +800,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             taxId,
             website,
             companyDocuments,
+            startMode,
         }: RegisterPayload) => {
             dispatch({ type: 'LOGIN_REQUEST' });
 
@@ -787,6 +817,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 formData.append('registration_no', registrationNo.trim());
                 formData.append('tax_id', taxId.trim());
                 formData.append('website', website.trim());
+                formData.append('start_mode', startMode);
 
                 if (address?.trim()) {
                     formData.append('address', address.trim());
@@ -814,9 +845,14 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    needsSupplierApproval,
                     personas,
                     activePersonaKey,
                 } = normalizeAuthResponse(envelope);
+
+                const isSupplierStart = startMode === 'supplier';
+                const resolvedRequiresPlanSelection = isSupplierStart ? false : requiresPlanSelection ?? false;
+                const resolvedNeedsSupplierApproval = isSupplierStart || needsSupplierApproval;
 
                 if (!token || !user) {
                     dispatch({
@@ -839,8 +875,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                         company: company ?? null,
                         featureFlags,
                         plan: plan ?? null,
-                        requiresPlanSelection,
+                        requiresPlanSelection: resolvedRequiresPlanSelection,
                         requiresEmailVerification,
+                        needsSupplierApproval: resolvedNeedsSupplierApproval,
                         personas,
                         activePersonaKey,
                     },
@@ -854,7 +891,8 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
 
                 return {
                     requiresEmailVerification,
-                    requiresPlanSelection: requiresPlanSelection ?? false,
+                    requiresPlanSelection: resolvedRequiresPlanSelection,
+                    needsSupplierApproval: resolvedNeedsSupplierApproval,
                     userRole: user.role ?? null,
                 };
             } catch (error) {
@@ -895,6 +933,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         const snapshot: AuthFlowResult = {
             requiresEmailVerification: state.requiresEmailVerification,
             requiresPlanSelection: state.requiresPlanSelection,
+            needsSupplierApproval: state.needsSupplierApproval,
             userRole: state.user?.role ?? null,
         };
 
@@ -911,6 +950,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 plan,
                 requiresPlanSelection,
                 requiresEmailVerification,
+                needsSupplierApproval,
                 personas,
                 activePersonaKey,
             } = normalizeAuthResponse(data);
@@ -924,6 +964,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     plan,
                     requiresPlanSelection,
                     requiresEmailVerification,
+                    needsSupplierApproval,
                     personas,
                     activePersonaKey,
                 },
@@ -932,6 +973,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             return {
                 requiresEmailVerification,
                 requiresPlanSelection,
+                needsSupplierApproval,
                 userRole: user?.role ?? null,
             };
         } catch (error) {
@@ -940,6 +982,7 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 return {
                     requiresEmailVerification: false,
                     requiresPlanSelection: false,
+                    needsSupplierApproval: false,
                     userRole: null,
                 };
             }

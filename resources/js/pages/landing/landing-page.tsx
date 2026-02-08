@@ -57,7 +57,11 @@ export function LandingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100" style={{backgroundImage:`url('/3d-rendering-big-red-coronavirus-cell-left-with-black-background.jpg')`, backgroundSize:'cover', backgroundPosition:'center'}}>
+        <div className="min-h-screen bg-slate-950 text-slate-100" style={{
+            backgroundImage: 'url(/img/efa9c371-4ad2-49db-977f-098c4619ffc5-xxl.webp)',
+            backgroundSize:'cover', 
+            backgroundPosition:'bottom'
+            }}>
             <Helmet>
                 <title>Welcome • {Branding.name}</title>
             </Helmet>
@@ -90,18 +94,18 @@ export function LandingPage() {
                     </header>
 
                     <main className="flex flex-1 flex-col gap-8 py-8 lg:flex-row lg:items-center">
-                        <section className="max-w-2xl space-y-6">
+                        <section className="space-y-6 text-center lg:text-left">
                             <div className="py-1 text-xs font-medium text-[#4e7aff]">
                                 <span>Welcome to {Branding.name}</span>
                             </div>
-                            <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl">
+                            <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl lg:text-5xl">
                                 Orchestrate procurement, supplier intelligence, and digital twins in one AI-driven platform.
                             </h1>
-                            <p className="text-base text-slate-300 sm:text-lg">
+                            <p className="text-sm text-slate-300 sm:text-base lg:text-lg">
                                 {Branding.description} Launch RFQs, compare quotes, and manage orders with a single source of truth
                                 across every tenant.
                             </p>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
                                 <Button asChild size="lg" className="gap-2">
                                     <Link to="/register">
                                         Sign up
@@ -117,41 +121,60 @@ export function LandingPage() {
                             </p>
                         </section>
 
-                        <section className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-slate-900/70 to-slate-950/90 p-6 shadow-2xl backdrop-blur">
-                            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-primary/20 blur-3xl" />
-                            <div className="pointer-events-none absolute -bottom-12 left-6 h-32 w-32 rounded-full bg-cyan-400/10 blur-3xl" />
-
-                            <div className="relative flex items-start gap-4">
-                                <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-brand-primary shadow-lg">
-                                    <Sparkles className="h-5 w-5" />
+                        <section className="relative w-full min-h-[250px] flex items-center justify-center lg:justify-normal sm:min-h-[350px] lg:min-h-[400px]">
+                            <div className="relative w-full max-w-xs h-[250px] sm:max-w-md sm:h-[350px] lg:max-w-xl lg:h-[500px]">
+                                <div className="absolute top-[5%] right-[5%] sm:left-[10%] animate-float-slow">
+                                    <img 
+                                        src="/img/parts/part-1-lg.webp" 
+                                        alt="Machine part" 
+                                        className="h-[250px] sm:h-[400px] lg:h-[600px] object-contain drop-shadow-2xl"
+                                    />
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-white">AI workflow highlights</p>
-                                    <p className="text-sm text-slate-300">
-                                        Intelligent copilots surface pricing, lead-time, and risk insights in real time.
-                                    </p>
+                                <div className="absolute top-[25%] lg:top-[-5%] sm:top-[-10%] left-[5%] sm:left-[10%] animate-float-medium">
+                                    <img 
+                                        src="/img/parts/part-2-lg.webp" 
+                                        alt="Machine part" 
+                                        className="h-20 w-20 sm:h-32 sm:w-32 md:h-48 md:w-48 lg:h-52 lg:w-52 object-contain drop-shadow-2xl"
+                                    />
+                                </div>
+                                <div className="absolute bottom-[-10%] sm:bottom-[-20%] left-[10%] sm:left-[15%] animate-float-fast">
+                                    <img 
+                                        src="/img/parts/part-3-lg.webp" 
+                                        alt="Machine part" 
+                                        className="h-24 w-24 sm:h-36 sm:w-36 md:h-52 md:w-52 lg:h-60 lg:w-60 object-contain drop-shadow-2xl"
+                                    />
+                                </div>
+                                <div className="absolute hidden 2xl:block bottom-[15%] sm:bottom-[20%] right-[-15%] sm:right-[-30%] animate-float-slow">
+                                    <img 
+                                        src="/img/parts/part-4-lg.webp" 
+                                        alt="Machine part" 
+                                        className="h-[150px] sm:h-[200px] lg:h-[300px] object-contain drop-shadow-2xl"
+                                    />
                                 </div>
                             </div>
-
-                            <div className="relative mt-5 grid gap-3">
-                                {HIGHLIGHTS.map((item, index) => (
-                                    <div
-                                        key={item.title}
-                                        className="group flex gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 transition hover:border-white/20 hover:bg-slate-900/70"
-                                    >
-                                        <div className="mt-0.5 rounded-full bg-emerald-500/10 p-1 text-emerald-300 h-fit">
-                                            <CheckCircle2 className="h-4 w-4" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-semibold text-slate-400">0{index + 1}</span>
-                                                <p className="text-sm font-semibold text-white">{item.title}</p>
-                                            </div>
-                                            <p className="text-xs text-slate-300">{item.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <style>{`
+                                @keyframes float-slow {
+                                    0%, 100% { transform: translateY(0px) rotate(0deg); }
+                                    50% { transform: translateY(-12px) rotate(2deg); }
+                                }
+                                @keyframes float-medium {
+                                    0%, 100% { transform: translateY(0px) rotate(0deg); }
+                                    50% { transform: translateY(-18px) rotate(-2deg); }
+                                }
+                                @keyframes float-fast {
+                                    0%, 100% { transform: translateY(0px) rotate(0deg); }
+                                    50% { transform: translateY(-10px) rotate(1deg); }
+                                }
+                                .animate-float-slow {
+                                    animation: float-slow 4s ease-in-out infinite;
+                                }
+                                .animate-float-medium {
+                                    animation: float-medium 3s ease-in-out infinite;
+                                }
+                                .animate-float-fast {
+                                    animation: float-fast 2.5s ease-in-out infinite;
+                                }
+                            `}</style>
                         </section>
                     </main>
 

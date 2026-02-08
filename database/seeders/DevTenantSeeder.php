@@ -21,8 +21,10 @@ class DevTenantSeeder extends Seeder
     public function run(): void
     {
         $now = Carbon::now();
-        $buyerEmail = 'buyer.admin@example.com';
-        $supplierEmail = 'supplier.estimator@example.com';
+            $buyerEmail = env('UAT_BUYER_EMAIL', 'buyer.admin@example.com');
+            $supplierEmail = env('UAT_SUPPLIER_EMAIL', 'supplier.estimator@example.com');
+            $buyerPassword = env('UAT_BUYER_PASSWORD', 'password');
+            $supplierPassword = env('UAT_SUPPLIER_PASSWORD', 'password');
         $planIds = DB::table('plans')
             ->whereIn('code', ['growth', 'starter'])
             ->pluck('id', 'code');
@@ -32,13 +34,14 @@ class DevTenantSeeder extends Seeder
         }
 
         $buyerCompanyId = $this->seedBuyerCompany($now, (int) $planIds['growth'], $buyerEmail);
-        $buyerId = $this->seedBuyerUser($buyerCompanyId, $buyerEmail, $now);
+            $buyerId = $this->seedBuyerUser($buyerCompanyId, $buyerEmail, $buyerPassword, $now);
         $this->ensureBuyerSubscription($buyerCompanyId, $buyerId, $buyerEmail, $now);
 
         [$supplierCompanyId, $supplierUserId] = $this->seedSupplierTenant(
             $now,
             (int) $planIds['starter'],
-            $supplierEmail
+                $supplierEmail,
+                $supplierPassword
         );
 
         $this->seedSupplierProfile($supplierCompanyId, $supplierEmail, $now);
@@ -111,7 +114,7 @@ class DevTenantSeeder extends Seeder
         return (int) $company->id;
     }
 
-    private function seedBuyerUser(int $companyId, string $buyerEmail, Carbon $now): int
+    private function seedBuyerUser(int $companyId, string $buyerEmail, string $buyerPassword, Carbon $now): int
     {
         $buyer = DB::table('users')->where('email', $buyerEmail)->first();
 
@@ -119,7 +122,7 @@ class DevTenantSeeder extends Seeder
             $buyerId = (int) DB::table('users')->insertGetId([
                 'name' => 'Buyer Admin',
                 'email' => $buyerEmail,
-                'password' => Hash::make('password'),
+                    'password' => Hash::make($buyerPassword),
                 'role' => 'buyer_admin',
                 'company_id' => $companyId,
                 'remember_token' => Str::random(10),
@@ -132,6 +135,7 @@ class DevTenantSeeder extends Seeder
             DB::table('users')->where('id', $buyerId)->update([
                 'role' => 'buyer_admin',
                 'company_id' => $companyId,
+                    'password' => Hash::make($buyerPassword),
                 'updated_at' => $now,
             ]);
         }
@@ -205,7 +209,7 @@ class DevTenantSeeder extends Seeder
         }
     }
 
-    private function seedSupplierTenant(Carbon $now, int $planId, string $supplierEmail): array
+    private function seedSupplierTenant(Carbon $now, int $planId, string $supplierEmail, string $supplierPassword): array
     {
         $slug = 'precision-fabrication-partners';
         $company = DB::table('companies')->where('slug', $slug)->first();
@@ -252,7 +256,7 @@ class DevTenantSeeder extends Seeder
             $supplierId = (int) DB::table('users')->insertGetId([
                 'name' => 'Supplier Estimator',
                 'email' => $supplierEmail,
-                'password' => Hash::make('password'),
+                    'password' => Hash::make($supplierPassword),
                 'role' => 'supplier_estimator',
                 'company_id' => $companyId,
                 'remember_token' => Str::random(10),
@@ -265,6 +269,7 @@ class DevTenantSeeder extends Seeder
             DB::table('users')->where('id', $supplierId)->update([
                 'role' => 'supplier_estimator',
                 'company_id' => $companyId,
+                    'password' => Hash::make($supplierPassword),
                 'updated_at' => $now,
             ]);
         }

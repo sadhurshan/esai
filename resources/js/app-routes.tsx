@@ -43,6 +43,7 @@ import {
     BuyerOrderListPage,
     SupplierOrderDetailPage,
     SupplierOrderListPage,
+    SupplierPurchaseOrdersPage,
 } from '@/pages/orders';
 import { RiskPage } from '@/pages/risk';
 import { AnalyticsPage, ForecastReportPage, SupplierPerformancePage } from '@/pages/analytics';
@@ -96,6 +97,7 @@ import {
     RegisterPage,
 } from '@/pages/auth';
 import { PlanSelectionPage } from '@/pages/onboarding';
+import { SupplierWaitingPage } from '@/pages/setup/supplier-waiting-page';
 import { LandingPage } from '@/pages/landing/landing-page';
 import { DigitalTwinLibraryPage, DigitalTwinDetailPage } from '@/pages/digital-twins';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
@@ -124,6 +126,9 @@ export function AppRoutes(): ReactElement {
                         </FormattingProvider>
                     )}
                 />
+                <Route path="/app/setup/supplier-waiting" element={<AppLayout />}>
+                    <Route index element={<SupplierWaitingPage />} />
+                </Route>
                 <Route element={<RequireActivePlan />}>
                     <Route path="/app" element={<AppLayout />}>
                         <Route index element={<AppIndexRoute />} />
@@ -153,6 +158,7 @@ export function AppRoutes(): ReactElement {
                             <Route path="supplier/invoices/:invoiceId/edit" element={<SupplierInvoiceEditPage />} />
                             <Route path="supplier/invoices/:invoiceId" element={<SupplierInvoiceDetailPage />} />
                             <Route path="suppliers/pos/:purchaseOrderId" element={<SupplierPoDetailPage />} />
+                            <Route path="purchase-orders/supplier" element={<SupplierPurchaseOrdersPage />} />
                             <Route path="supplier/orders" element={<SupplierOrderListPage />} />
                             <Route path="supplier/orders/:soId" element={<SupplierOrderDetailPage />} />
                         </Route>
@@ -210,6 +216,7 @@ export function AppRoutes(): ReactElement {
                             <Route path="admin/ai-usage" element={<AdminAiUsageDashboardPage />} />
                             <Route path="admin/ai-training" element={<AdminAiTrainingPage />} />
                             <Route path="admin/ai-events" element={<AdminAiActivityLogPage />} />
+                            <Route path="admin/companies" element={<Navigate to="/app/admin/company-approvals" replace />} />
                             <Route path="admin/company-approvals" element={<AdminCompanyApprovalsPage />} />
                             <Route path="admin/supplier-applications" element={<AdminSupplierApplicationsPage />} />
                             <Route path="admin/supplier-scrapes" element={<AdminSupplierScrapePage />} />
@@ -229,11 +236,23 @@ export function AppRoutes(): ReactElement {
 }
 
 function AppIndexRoute(): ReactElement {
-    const { state } = useAuth();
+    const { state, activePersona } = useAuth();
     const role = state.user?.role ?? null;
+    const personas = state.personas ?? [];
+    const hasSupplierPersona = personas.some((persona) => persona.type === 'supplier');
+    const hasBuyerPersona = personas.some((persona) => persona.type === 'buyer');
+    const isSupplierRole = typeof role === 'string' && role.startsWith('supplier_');
+    const isSupplierStart = state.company?.start_mode === 'supplier';
 
     if (isPlatformRole(role)) {
         return <Navigate to="/app/admin" replace />;
+    }
+
+    if (activePersona?.type === 'supplier'
+        || (!hasBuyerPersona && hasSupplierPersona)
+        || isSupplierRole
+        || (hasSupplierPersona && isSupplierStart)) {
+        return <Navigate to="/app/supplier" replace />;
     }
 
     return <DashboardPage />;

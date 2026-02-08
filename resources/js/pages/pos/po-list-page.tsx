@@ -209,7 +209,7 @@ export function PoListPage() {
             <Card className="border-border/70">
                 <CardContent className="grid gap-4 py-6 md:grid-cols-5">
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Status</label>
+                        <label className="text-xs font-medium uppercase text-muted-foreground">PO status</label>
                         <Select
                             value={statusFilter}
                             onValueChange={(value) => {

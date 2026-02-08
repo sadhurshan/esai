@@ -206,7 +206,7 @@ export function BuyerOrderListPage() {
                     </div>
                     <div className="grid gap-4 md:grid-cols-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Supplier</label>
+                            <label className="text-xs font-medium uppercase text-muted-foreground">Supplier filter</label>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -263,7 +263,7 @@ export function BuyerOrderListPage() {
                 isLoading={buyerOrdersQuery.isLoading}
                 emptyState={
                     <EmptyState
-                        title="No orders yet"
+                        title="No activity yet"
                         description="Once suppliers acknowledge your POs you will see mirrored sales orders and shipment updates here."
                         icon={<PackageSearch className="h-12 w-12 text-muted-foreground" />}
                     />

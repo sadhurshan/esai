@@ -12,6 +12,12 @@ class SelfRegistrationRequest extends ApiFormRequest
 {
     protected function prepareForValidation(): void
     {
+        if ($this->has('start_mode')) {
+            $this->merge([
+                'start_mode' => strtolower((string) $this->input('start_mode')),
+            ]);
+        }
+
         if ($this->has('company_domain')) {
             $this->merge([
                 'company_domain' => strtolower((string) $this->input('company_domain')),
@@ -38,6 +44,7 @@ class SelfRegistrationRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
+            'start_mode' => ['required', 'string', Rule::in(['buyer', 'supplier'])],
             'name' => ['required', 'string', 'max:160'],
             'email' => ['required', 'email', 'max:191', Rule::unique(User::class, 'email')],
             'password' => ['required', Password::default(), 'confirmed'],

@@ -18,6 +18,7 @@ it('self registers a company owner and issues a session token', function (): voi
     Storage::fake();
 
     $payload = [
+        'start_mode' => 'buyer',
         'name' => 'Casey Owner',
         'email' => 'casey@example.com',
         'password' => 'Passw0rd!',
@@ -51,6 +52,7 @@ it('self registers a company owner and issues a session token', function (): voi
         ->assertJsonPath('data.user.role', 'owner')
         ->assertJsonPath('data.company.status', CompanyStatus::PendingVerification->value)
         ->assertJsonPath('data.company.name', 'Axiom Manufacturing')
+        ->assertJsonPath('data.company.start_mode', 'buyer')
         ->assertJsonStructure(['data' => ['token']]);
 
     $user = User::whereEmail('casey@example.com')->firstOrFail();
@@ -80,4 +82,49 @@ it('self registers a company owner and issues a session token', function (): voi
     Event::assertDispatched(Registered::class, function (Registered $event) use ($user): bool {
         return $event->user->is($user);
     });
+});
+
+it('self registers a supplier-first company owner without plan selection', function (): void {
+    Event::fake([CompanyPendingVerification::class, Registered::class]);
+
+    Storage::fake();
+
+    $payload = [
+        'start_mode' => 'supplier',
+        'name' => 'Sam Supplier',
+        'email' => 'sam@supplier.example',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
+        'company_name' => 'Supplier Forge',
+        'company_domain' => 'supplier.example',
+        'address' => '200 Supply Street',
+        'phone' => '+1-555-2000',
+        'country' => 'US',
+        'registration_no' => 'REG-SUP-001',
+        'tax_id' => 'TAX-SUP-999',
+        'website' => 'https://supplier.example',
+        'company_documents' => [
+            [
+                'type' => 'registration',
+                'file' => UploadedFile::fake()->create('registration.pdf', 300, 'application/pdf'),
+            ],
+        ],
+    ];
+
+    $response = $this->post('/api/auth/register', $payload, ['Accept' => 'application/json']);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('status', 'success')
+        ->assertJsonPath('data.user.email', 'sam@supplier.example')
+        ->assertJsonPath('data.company.start_mode', 'supplier')
+        ->assertJsonPath('data.company.supplier_status', CompanySupplierStatus::Pending->value)
+        ->assertJsonPath('data.requires_plan_selection', false);
+
+    $user = User::whereEmail('sam@supplier.example')->firstOrFail();
+    $company = $user->company()->firstOrFail();
+
+    expect($company->start_mode)->toBe('supplier')
+        ->and($company->supplier_status)->toBe(CompanySupplierStatus::Pending)
+        ->and($company->directory_visibility)->toBe('private');
 });

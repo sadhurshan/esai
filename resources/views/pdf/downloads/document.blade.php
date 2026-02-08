@@ -153,6 +153,29 @@
     $lineTable = $doc['line_table'] ?? null;
     $totals = is_array($doc['totals'] ?? null) ? $doc['totals'] : [];
     $platformLogo = asset('logo-colored-dark-text-transparent-bg.png');
+    $logoUrl = $doc['logo_url'] ?? null;
+    $resolvedLogo = null;
+
+    if (!empty($logoUrl)) {
+        if (filter_var($logoUrl, FILTER_VALIDATE_URL)) {
+            $resolvedLogo = $logoUrl;
+        } else {
+            $resolvedLogo = \Illuminate\Support\Facades\Storage::disk('public')->url($logoUrl);
+        }
+
+        $appStorageUrl = rtrim(config('app.url'), '/').'/storage/';
+
+        if (is_string($resolvedLogo) && str_starts_with($resolvedLogo, $appStorageUrl)) {
+            $relativePath = ltrim(substr($resolvedLogo, strlen($appStorageUrl)), '/');
+            $localPath = \Illuminate\Support\Facades\Storage::disk('public')->path($relativePath);
+
+            if (is_file($localPath)) {
+                $mimeType = mime_content_type($localPath) ?: 'image/png';
+                $encoded = base64_encode(file_get_contents($localPath));
+                $resolvedLogo = 'data:'.$mimeType.';base64,'.$encoded;
+            }
+        }
+    }
 @endphp
 
 <div class="brand-bar">
@@ -169,8 +192,8 @@
         </div>
     </div>
     <div style="text-align: right; min-width: 180px;">
-        @if(!empty($doc['logo_url']))
-            <img src="{{ url($doc['logo_url']) }}" alt="Company Logo" class="logo">
+        @if(!empty($resolvedLogo))
+            <img src="{{ $resolvedLogo }}" alt="Company Logo" class="logo">
         @endif
         @if(!empty($doc['status']))
             <div class="badge">{{ strtoupper($doc['status']) }}</div>

@@ -5,27 +5,42 @@ namespace App\Actions\Company;
 use App\Enums\CompanyStatus;
 use App\Enums\CompanySupplierStatus;
 use App\Models\Company;
+use App\Models\Supplier;
 use App\Models\User;
+use App\Services\SupplierPersonaService;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class RegisterCompanyAction
 {
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly SupplierPersonaService $supplierPersonaService,
+    ) {}
 
     public function execute(array $payload, User $owner): Company
     {
-        $attributes = $this->sanitizeAttributes($payload, $owner);
+        $startMode = $this->normalizeStartMode($payload['start_mode'] ?? null);
+        $attributes = $this->sanitizeAttributes($payload, $owner, $startMode);
 
-        return DB::transaction(function () use ($attributes, $owner): Company {
+        return DB::transaction(function () use ($attributes, $owner, $startMode): Company {
             $owner->loadMissing('company');
             $existingCompany = $owner->company()->lockForUpdate()->first();
 
             if ($existingCompany instanceof Company) {
                 $companyBefore = $existingCompany->getOriginal();
 
-                $existingCompany->fill(array_merge($attributes, [
+                $supplierUpdates = [];
+
+                if ($startMode === 'supplier' && $existingCompany->supplier_status === CompanySupplierStatus::None) {
+                    $supplierUpdates = [
+                        'supplier_status' => CompanySupplierStatus::Pending,
+                        'supplier_profile_completed_at' => null,
+                    ];
+                }
+
+                $existingCompany->fill(array_merge($attributes, $supplierUpdates, [
                     'status' => CompanyStatus::PendingVerification,
                     'owner_user_id' => $owner->id,
                     'rejection_reason' => null,
@@ -54,6 +69,10 @@ class RegisterCompanyAction
                     ]
                 );
 
+                if ($startMode === 'supplier') {
+                    $this->ensureSupplierPersona($existingCompany);
+                }
+
                 return $existingCompany->fresh();
             }
 
@@ -63,13 +82,19 @@ class RegisterCompanyAction
             $company->fill(array_merge($attributes, [
                 'slug' => $slug,
                 'status' => CompanyStatus::PendingVerification,
-                'supplier_status' => CompanySupplierStatus::None->value,
+                'supplier_status' => $startMode === 'supplier'
+                    ? CompanySupplierStatus::Pending->value
+                    : CompanySupplierStatus::None->value,
                 'directory_visibility' => 'private',
                 'supplier_profile_completed_at' => null,
                 'owner_user_id' => $owner->id,
             ]));
 
             $company->save();
+
+            if ($startMode === 'supplier') {
+                $this->ensureSupplierPersona($company);
+            }
 
             $owner->forceFill(['company_id' => $company->id])->save();
 
@@ -119,7 +144,7 @@ class RegisterCompanyAction
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function sanitizeAttributes(array $payload, User $owner): array
+    private function sanitizeAttributes(array $payload, User $owner, string $startMode): array
     {
         $country = $payload['country'] ?? null;
         $country = is_string($country) && $country !== '' ? strtoupper($country) : null;
@@ -129,6 +154,7 @@ class RegisterCompanyAction
 
         return [
             'name' => $payload['name'],
+            'start_mode' => $startMode,
             'registration_no' => $payload['registration_no'] ?? null,
             'tax_id' => $payload['tax_id'] ?? null,
             'country' => $country,
@@ -141,5 +167,39 @@ class RegisterCompanyAction
             'website' => $payload['website'] ?? null,
             'region' => $payload['region'] ?? null,
         ];
+    }
+
+    private function normalizeStartMode(mixed $value): string
+    {
+        if (! is_string($value)) {
+            return 'buyer';
+        }
+
+        $normalized = strtolower(trim($value));
+
+        return in_array($normalized, ['buyer', 'supplier'], true) ? $normalized : 'buyer';
+    }
+
+    private function ensureSupplierPersona(Company $company): void
+    {
+        $supplier = Supplier::query()->where('company_id', $company->id)->first();
+
+        if (! $supplier instanceof Supplier) {
+            $supplier = new Supplier([
+                'company_id' => $company->id,
+                'name' => $company->name,
+                'status' => 'pending',
+                'email' => $company->primary_contact_email,
+                'phone' => $company->primary_contact_phone,
+                'address' => $company->address,
+                'country' => $company->country,
+                'website' => $company->website,
+                'capabilities' => [],
+            ]);
+
+            $supplier->save();
+        }
+
+        $this->supplierPersonaService->ensureBuyerContact($supplier, $company->id, $company, false);
     }
 }

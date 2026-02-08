@@ -5,6 +5,7 @@ import { Bell, Building2, CreditCard, Globe, Hash, ShieldQuestion, UserPlus2, Us
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SupplierApplicationPanel } from './supplier-application-panel';
+import { useAuth } from '@/contexts/auth-context';
 
 interface SettingsCard {
     title: string;
@@ -72,6 +73,7 @@ const SETTINGS_CARDS: SettingsCard[] = [
 
 export function SettingsPage() {
     const navigate = useNavigate();
+    const { state } = useAuth();
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
@@ -79,6 +81,13 @@ export function SettingsPage() {
             navigate('/app/settings/billing', { replace: true });
         }
     }, [navigate, searchParams]);
+
+    const supplierStatus = state.company?.supplier_status ?? null;
+    const isSupplierStart =
+        state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+    const visibleCards = isSupplierStart
+        ? SETTINGS_CARDS.filter((card) => card.to !== '/app/settings/billing')
+        : SETTINGS_CARDS;
 
     return (
         <div className="space-y-8">
@@ -91,7 +100,7 @@ export function SettingsPage() {
             </div>
             <SupplierApplicationPanel />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {SETTINGS_CARDS.map((card) => {
+                {visibleCards.map((card) => {
                     const Icon = card.icon;
                     return (
                         <Card key={card.to} className="flex h-full flex-col justify-between">

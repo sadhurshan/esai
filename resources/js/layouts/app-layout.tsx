@@ -19,6 +19,7 @@ const SUPPLIER_ALLOWED_PREFIXES = [
     '/app/purchase-orders',
     '/app/pos',
     '/app/downloads',
+    '/app/settings',
 ];
 const SUPPLIER_ONLY_PREFIXES = ['/app/supplier/'];
 const SUPPLIER_REDIRECT_PATH = '/app/supplier';
@@ -31,6 +32,8 @@ export function AppLayout() {
     const role = state.user?.role ?? null;
     const isPlatformOperator = isPlatformRole(role);
     const isSupplierPersona = activePersona?.type === 'supplier';
+    const isSupplierStart = state.company?.start_mode === 'supplier';
+    const isSupplierMode = isSupplierPersona || isSupplierStart;
 
     useEffect(() => {
         if (!isPlatformOperator) {
@@ -47,7 +50,7 @@ export function AppLayout() {
             return;
         }
 
-        if (isSupplierPersona) {
+        if (isSupplierMode) {
             if (location.pathname === '/app' || location.pathname === '/app/') {
                 navigate('/app/supplier', { replace: true, state: { from: location.pathname } });
                 return;
@@ -69,7 +72,7 @@ export function AppLayout() {
         if (isSupplierRoute && location.pathname !== BUYER_REDIRECT_PATH) {
             navigate(BUYER_REDIRECT_PATH, { replace: true, state: { from: location.pathname } });
         }
-    }, [isPlatformOperator, isSupplierPersona, location.pathname, navigate]);
+    }, [isPlatformOperator, isSupplierMode, location.pathname, navigate]);
 
     return (
         <FormattingProvider>
@@ -78,7 +81,7 @@ export function AppLayout() {
                     <div className="flex min-h-screen w-full bg-muted/20">
                         <Sidebar variant="inset">
                             <SidebarHeader className="px-4 py-3">
-                                <img src={Branding.logo.default} alt={Branding.name} className="h-12 w-fit" />
+                                <img src={Branding.logo.whiteText} alt={Branding.name} className="h-12 w-fit" />
                             </SidebarHeader>
                             <SidebarNav />
                             <SidebarFooter className="px-4 py-6 text-xs text-muted-foreground">
@@ -95,7 +98,7 @@ export function AppLayout() {
                         </SidebarInset>
                     </div>
                 </SidebarProvider>
-                <CopilotChatWidget />
+                {/* <CopilotChatWidget /> */}
             </CopilotWidgetProvider>
         </FormattingProvider>
     );

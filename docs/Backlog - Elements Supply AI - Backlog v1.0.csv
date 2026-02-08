@@ -1,0 +1,1780 @@
+Issue Type,Summary,Epic Name,Epic Link,Story ID,Description,Labels,Fix Version/s
+Epic,"[AUTH] Authentication, Accounts & Roles",ESA-AUTH,,,,"auth,phase-1-core-procurement,security",Phase 1 - Core Procurement
+Story,AUTH1 — Register an account,,ESA-AUTH,AUTH1,"As a visitor, I can create an account to access the app.
+
+Acceptance Criteria:
+- Form: name, email, password.
+- Validation + error states.
+- Success logs in (or email-verify if enabled) and redirects to onboarding.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH2 — Log in / Log out,,ESA-AUTH,AUTH2,"As a user, I can securely log in and log out.
+
+Acceptance Criteria:
+- Valid creds → session established.
+- Invalid creds → error shown.
+- Logout clears session and returns to public/login.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH3 — Roles are enforced per company,,ESA-AUTH,AUTH3,"As the system, I enforce RBAC (owner, buyer_admin, buyer_requester, supplier_admin,
+supplier_estimator, finance, super_admin).
+
+Acceptance Criteria:
+- Role gates applied on routes/components.
+- Unauthorized → 403 (or redirect) + friendly message.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH4 — Multi-org switching,,ESA-AUTH,AUTH4,"As a user, I can belong to multiple companies and switch the active company.
+
+Acceptance Criteria:
+- “Switch organisation” menu shows all memberships.
+- Switching scopes data/permissions immediately.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH5 — Email verification & password reset,,ESA-AUTH,AUTH5,"Acceptance Criteria:
+- send verify email on signup; locked until verified; forgot-password email.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH6 — Signup creates buyer company + owner membership (buyer or supplier-first),,ESA-AUTH,AUTH6,"As the system, when a user signs up, I create a new company and make them the owner. The company’s initial mode (Buyer or Supplier) is set based on the user’s signup choice (defaulting to Buyer if not provided).
+
+Acceptance Criteria:
+- On successful signup, create:
+company record
+membership record for the user with role owner
+
+- Set initial company state:
+supplier_status = none (until super admin approves via SUPA2)
+company_profile_completed_at = null (until buyer wizard completed via ONB1)
+
+- If signup choice = Buyer (or choice not provided):
+Redirect to buyer onboarding wizard /onboarding/company (ONB1)
+Buyer features remain gated until onboarding completion (ONB2)
+
+- If signup choice = Supplier:
+Mark company as supplier-first (store onboarding/start mode on company)
+Do not redirect to buyer onboarding wizard
+Redirect to Supplier setup entry point (e.g., “Complete Supplier Application” / SUPA1)
+Supplier remains not visible in supplier directory until approved + public + profile complete (SUPD1/SUPD4)
+No plan selection / payment prompts are triggered for supplier-first onboarding (handled by BIL9)","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH7 — Signup captures company name,,ESA-AUTH,AUTH7,"As a visitor, I can enter company name during signup so onboarding is faster.
+
+Acceptance Criteria:
+- company name collected on signup OR prefilled in B1 wizard.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH8 — Verify company email domain,,ESA-AUTH,AUTH8,"As an owner, I can verify our corporate email domain to simplify onboarding and improve
+security.
+
+Acceptance Criteria:
+- Settings allow adding a domain (e.g., example.com) and give a DNS TXT or verification email method.
+- Once verified, domain is marked verified on company record.
+- Verification status affects invite and join flows (see next stories).","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH9 — Restrict invitations to verified domain (optional),,ESA-AUTH,AUTH9,"As an owner, I can restrict invitations to my verified domain.
+
+Acceptance Criteria:
+- Toggle in company settings: “Allow invites only for emails on verified domain(s)”.
+- When enabled, invites to external domains are blocked with clear error.
+- Owners/super admins can still override using a special flow if required (with audit entry).","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH10 — Join existing company by domain,,ESA-AUTH,AUTH10,"As a new user whose email matches a verified domain, I can request to join the existing
+company instead of creating a duplicate.
+
+Acceptance Criteria:
+- On signup, if email domain matches a verified company, user is offered “Request to join <Company>” instead of auto-creating a new tenant.
+- A join request is sent to that company’s admins (I1/I3 integration).
+- Admins can approve/deny join; approval attaches user to company and notifies them.
+- If denied, user may still create a separate company (with clear explanation).","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Story,AUTH11 — Choose Buyer vs Supplier at signup,,ESA-AUTH,AUTH11,"As a visitor, I can choose to start as a Buyer or as a Supplier during sign up so the platform onboards me correctly.
+
+Acceptance Criteria:
+- Signup form includes a required choice: “Start as Buyer” or “Start as Supplier”.
+- Buyer path follows existing flow (creates buyer company + owner membership; routes to buyer onboarding).
+- Supplier path creates a company flagged as supplier-first (supplier_status=pending; supplier_profile_completed_at is null) and routes to Supplier Onboarding/Apply flow.
+- The chosen start mode is stored on the company (e.g., company_type=buyer|supplier or onboarding_mode).
+- User is created as company owner; RBAC works as per AUTH3.","auth,phase-1-core-procurement,security,story",Phase 1 - Core Procurement
+Epic,[ONB] Buyer Company Onboarding,ESA-ONB,,,,"onboarding,phase-1-core-procurement",Phase 1 - Core Procurement
+Story,ONB1 — Company wizard after signup,,ESA-ONB,ONB1,"As a new user (owner), I must complete a company wizard to use buyer features.
+
+Acceptance Criteria:
+- Redirect to /onboarding/company until completed.
+- Fields include legal name, country, address, optional tax/registration, industry, default currency.
+- Completing sets company_profile_completed_at.","onboarding,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ONB2 — Guard buyer features until onboarding,,ESA-ONB,ONB2,"As the system, I block buyer routes until company onboarding is complete.
+
+Acceptance Criteria:
+- Middleware blocks access; shows banner/redirect to onboarding.
+- Invited users into an existing company bypass the wizard.","onboarding,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ONB3 — Supplier-first tenants bypass buyer onboarding + buyer feature gating,,,,"As the system, when a company starts as Supplier, I do not force buyer company onboarding and I keep buyer-only features gated until they intentionally enable Buyer mode later.
+
+Acceptance Criteria:
+- If company start mode = Supplier, do not redirect to /onboarding/company (buyer wizard).
+- Buyer-only routes/components are hidden or blocked with a clear message + CTA (e.g., “Switch to Buyer mode / Complete buyer onboarding”).
+- Supplier Onboarding/Apply flow remains accessible while supplier is pending approval.
+- If a Supplier-first company later enables Buyer mode, buyer onboarding wizard applies as normal (ONB1/ONB2).","onboarding,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ONB4 — Edit company profile,,ESA-ONB,ONB4,"As an owner, I can update company info.
+
+Acceptance Criteria:
+- Editable fields with validation.
+- Changes audit-logged (who/when).","onboarding,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Epic,[SUPA] Supplier Application & Approval,ESA-SUPA,,,,"phase-1-core-procurement,supplier-application",Phase 1 - Core Procurement
+Story,SUPA1 — Apply as Supplier (company-level),,ESA-SUPA,SUPA1,"As an owner, I can apply to act as a supplier.
+
+Acceptance Criteria:
+- “Apply as Supplier” entry point.
+- Collect supplier profile (capabilities, materials, locations, MOQ, lead time, certifications/quality standards, ESG/tax/bank docs).
+- Creates Supplier Application with status pending.
+- Sets supplier_profile_completed_at.","phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Story,SUPA2 — Admin reviews supplier applications,,ESA-SUPA,SUPA2,"As a super admin, I can review, approve, reject applications.
+
+Acceptance Criteria:
+- Review queue list + detail page with documents.
+- Approve → company supplier_status=approved, supplier_approved_at set; optional “List publicly” toggle.
+- Reject → supplier_status=rejected + reason + notification.","phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Story,SUPA3 — Block supplier features until approved,,ESA-SUPA,SUPA3,"As the system, I prevent supplier actions unless supplier_status=approved.
+
+Acceptance Criteria:
+- Middleware on supplier endpoints (RFQ respond, quotes, PO receive).
+- UI disables supplier actions with explanation banner.","phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Story,SUPA4 — Supplier directory visibility toggle,,ESA-SUPA,SUPA4,"As an approved supplier, I can set my directory visibility (public/hidden).
+
+Acceptance Criteria:
+- Toggle only if approved.
+- Directory uses approved + public + profile_completed filter.","c,phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Story,SUPA5 — Supplier-first post-login status + “Complete Supplier Application” CTA,,ESA-SUPA,SUPA5,"As a Supplier-first company owner, I see my approval/application status after login and I can complete my Supplier Application while I’m waiting for super admin approval.
+
+Acceptance Criteria:
+- After login, supplier-first companies see a persistent status banner/card: Not submitted / Submitted / Under review / Approved / Rejected.
+- Primary CTA: “Complete Supplier Application” → supplier application flow (reuses SUPA1 form/fields).
+- If Submitted/Under review: show “Please wait for approval” message + what’s allowed vs blocked.
+- If Rejected: show reason and CTA “Update & Resubmit”.
+- Supplier actions remain blocked until approved (SUPA3); directory listing remains hidden until approved + public + profile complete (SUPD1/SUPD4).","c,phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Story,"SUPA6 — Supplier Application supports draft save, submit, and resubmission",,ESA-SUPA,SUPA6,"As a supplier applicant, I can save my supplier profile as a draft, submit it for review, and resubmit if rejected.
+
+Acceptance Criteria:
+- Supplier application can be saved as Draft (manual save and/or auto-save).
+- Submit sets application status to pending and locks the record from editing (read-only) until a decision is made.
+- If rejected, applicant can edit and resubmit; previous submission is retained for audit/history.
+- Uploaded documents are stored with metadata (type, uploaded_at, version) for admin review.","c,phase-1-core-procurement,story,supplier-application",Phase 1 - Core Procurement
+Epic,[SUPD] Supplier Directory & Profiles,ESA-SUPD,,,,"phase-1-core-procurement,supplier-directory",Phase 1 - Core Procurement
+Story,SUPD1 — Public supplier directory list,,ESA-SUPD,SUPD1,"As a buyer, I can browse suppliers.
+
+Acceptance Criteria:
+- Lists only: supplier_status=approved AND visibility=public AND profile completed.
+- Search by text.
+- Filters: capability, material, country, industry, certification, max MOQ, max lead time.
+- Pagination.","d,phase-1-core-procurement,story,supplier-directory",Phase 1 - Core Procurement
+Story,SUPD2 — Public supplier profile page,,ESA-SUPD,SUPD2,"As a buyer, I can view supplier profiles.
+
+Acceptance Criteria:
+- Shows logo, tagline, capabilities, industries, certifications, locations, MOQ, lead-time.
+- “Send RFQ” CTA (leads to RFQ creation with supplier preselected if direct RFQ).","d,phase-1-core-procurement,story,supplier-directory",Phase 1 - Core Procurement
+Story,SUPD3 — Manage supplier directory profile,,ESA-SUPD,SUPD3,"As an approved supplier (owner/admin), I can edit my public profile.
+
+Acceptance Criteria:
+- Edit directory_* fields (logo/hero, tagline, chips for capabilities/industries, contacts).
+- Validation + preview.
+- Audit trail for changes.","d,phase-1-core-procurement,story,supplier-directory",Phase 1 - Core Procurement
+Story,SUPD4 — Only approved + public suppliers appear in directory,,ESA-SUPD,SUPD4,"As the system, I only show companies in the supplier directory that are approved
+suppliers and public.","d,phase-1-core-procurement,story,supplier-directory",Phase 1 - Core Procurement
+Epic,[RFQ] RFQ Creation & Distribution,ESA-RFQ,,,,"phase-1-core-procurement,rfq",Phase 1 - Core Procurement
+Story,RFQ1 — Create Ready-Made RFQ,,ESA-RFQ,RFQ1,"As a buyer, I can create an RFQ for off-the-shelf items.
+
+Acceptance Criteria:
+- Fields: item/part name, quantity, delivery timeline, notes, category/part no.
+- Submit adds RFQ to “Sent”.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQ2 — Create Manufacture RFQ with CAD,,ESA-RFQ,RFQ2,"As a buyer, I can create a custom/manufacture RFQ.
+
+Acceptance Criteria:
+- Fields: material, finish/tolerance, manufacturing method, notes.
+- CAD upload (validated types), stored securely.
+- Submit adds RFQ to “Sent”.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQ3 — Choose Direct vs Open Bidding,,ESA-RFQ,RFQ3,"As a buyer, I can send RFQ directly to suppliers or open for bidding.
+
+Acceptance Criteria:
+- Direct: pick supplier(s) by ID; send invitations.
+- Open: RFQ appears in “Open RFQs” feed for approved suppliers.
+- Deadlines supported.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQ4 — Attach special instructions & files,,ESA-RFQ,RFQ4,"As a buyer, I can add notes and supporting files.
+
+Acceptance Criteria:
+- Notes visible to recipients.
+- Files downloadable only by authorized users.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQ5 — Save RFQ as draft,,ESA-RFQ,RFQ5,"As a buyer, I can save an RFQ draft and continue later.
+
+Acceptance Criteria:
+- draft appears in RFQ list with Draft status; can edit and publish/send later.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQ6 — Edit a sent RFQ (restricted) (optional if you built it),,ESA-RFQ,RFQ6,"As a buyer, I can edit certain fields before any quotes are received (or only extend deadline
+once quotes exist).
+
+Acceptance Criteria:
+- rules enforced; suppliers notified if changes affect them.","e,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Epic,[RFQM] RFQ Management (Buyer & Supplier),ESA-RFQM,,,,"phase-1-core-procurement,rfq",Phase 1 - Core Procurement
+Story,RFQM1 — Sent RFQs (Buyer),,ESA-RFQM,RFQM1,"As a buyer, I can list my sent RFQs.
+
+Acceptance Criteria:
+- Columns: RFQ #, type, status, deadline, responses count.
+- Search + filters; pagination.
+- Row opens “RFQ Sent Details”.","f,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQM2 — Received RFQs (Supplier),,ESA-RFQM,RFQM2,"As a supplier, I can list RFQs received.
+
+Acceptance Criteria:
+- Columns: RFQ #, buyer, deadline, status (Not Quoted/Quoted/Declined).
+- Search + filters; pagination.
+- Row opens “RFQ Received Details”.","f,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQM3 — Open RFQs (Supplier),,ESA-RFQM,RFQM3,"As a supplier, I can browse open/bidding RFQs.
+
+Acceptance Criteria:
+- List of open RFQs.
+- Only visible to approved suppliers.
+- “Bid / View Details” actions.","f,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQM4 — RFQ details (Buyer view),,ESA-RFQM,RFQM4,"As a buyer, I can see RFQ details with responses.
+
+Acceptance Criteria:
+- RFQ metadata, attachments, notes.
+- Table of supplier responses (price, lead time, notes, files).
+- Link to compare view.","f,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Story,RFQM5 — RFQ details (Supplier view),,ESA-RFQM,RFQM5,"As a supplier, I can see details and choose to quote or decline.
+
+Acceptance Criteria:
+- CAD/file access if authorized.
+- Quote/decline actions available before deadline.","f,phase-1-core-procurement,rfq,story",Phase 1 - Core Procurement
+Epic,[QUO] Quotes (Supplier submission & Buyer comparison),ESA-QUO,,,,"phase-1-core-procurement,quotes",Phase 1 - Core Procurement
+Story,QUO1 — Submit quote,,ESA-QUO,QUO1,"As a supplier, I can submit a formal quote.
+
+Acceptance Criteria:
+- Fields: unit price (currency), lead time, remarks; optional attachments.
+- Validation; status changes to Quoted for that supplier.
+- Buyer sees it immediately.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO2 — Decline quote,,ESA-QUO,QUO2,"As a supplier, I can decline an RFQ.
+
+Acceptance Criteria:
+- Marked “Declined”.
+- Buyer sees decline reason (optional).","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO3 — Compare quotes,,ESA-QUO,QUO3,"As a buyer, I can compare quotes side-by-side.
+
+Acceptance Criteria:
+- Comparison grid: supplier, price, lead time, notes, files.
+- Sorting by price/lead-time.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO4 — Accept a quote,,ESA-QUO,QUO4,"As a buyer, I can accept one quote to proceed.
+
+Acceptance Criteria:
+- Accept action marks the winning quote.
+- Triggers PO creation flow.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO5 — Withdraw a submitted quote,,ESA-QUO,QUO5,"As a supplier, I can withdraw my quote before the deadline (and if not awarded), so I can
+correct mistakes.
+
+Acceptance Criteria:
+- status becomes Withdrawn; buyer sees it; optional reason; audit logged.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO6 — Revise/resubmit a quote (versioning),,ESA-QUO,QUO6,"As a supplier, I can revise my quote (price/lead time/notes/files) and resubmit before deadline.
+
+Acceptance Criteria:
+- version history kept; buyer sees latest + “view history”; compare uses latest by default.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO7 — Buyer can view quote revision history,,ESA-QUO,QUO7,"As a buyer, I can view all versions of a supplier’s quote and when they changed.
+
+Acceptance Criteria:
+- timestamp + changed fields; files tracked; audit.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO8 — Award selected RFQ lines,,ESA-QUO,QUO8,"As a buyer, I can award individual lines to one (or multiple) suppliers.
+
+Acceptance Criteria:
+- each line has awarded supplier + awarded qty; supports split awards.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO9 — Buyer can see supplier participation state per RFQ,,ESA-QUO,QUO9,"As a buyer, I can see which suppliers are Not Quoted / Quoted / Declined for a sent
+RFQ.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Story,QUO10 — Supplier can see their response state clearly,,ESA-QUO,QUO10,"As a supplier, I can see whether I already quoted/declined in the RFQ details page.","g,phase-1-core-procurement,quotes,story",Phase 1 - Core Procurement
+Epic,[PO] Purchase Orders & Orders,ESA-PO,,,,"orders,phase-1-core-procurement,purchase-orders",Phase 1 - Core Procurement
+Story,PO1 — Purchase Orders index (Buyer),,ESA-PO,PO1,"As a buyer, I can view my POs.
+
+Acceptance Criteria:
+- Columns: PO #, supplier, total, status, date.
+- Search + filters; pagination.
+- Row opens PO details.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO2 — Purchase Order detail (Buyer),,ESA-PO,PO2,"As a buyer, I can view PO details.
+
+Acceptance Criteria:
+- Shows items, qty, unit price/total, supplier info, status timeline.
+- Links back to RFQ/quote.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO3 — Orders: Requested (Buyer),,ESA-PO,PO3,"As a buyer, I can see requested orders and their status.
+
+Acceptance Criteria:
+- Orders page for requested orders.
+- Status: Pending/Confirmed/In Production/Delivered/Cancelled.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO4 — Orders: Received (Supplier),,ESA-PO,PO4,"As a supplier, I can see orders I’ve received.
+
+Acceptance Criteria:
+- Orders page for supplier side.
+- Same status lifecycle visibility.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO5 — Buyer can create a PO from an accepted quote,,ESA-PO,PO5,"As a buyer, I can convert the accepted quote into a Purchase Order, so that procurement is
+formalized.
+
+Acceptance Criteria:
+- “Create PO” is available after quote acceptance.
+- PO contains supplier, items, price, lead time, attachments/notes from quote.
+- PO status starts as “Issued” (or equivalent).","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO6 — Supplier can view PO details,,ESA-PO,PO6,"As a supplier, I can open a received PO detail page, so I can review what was ordered.
+
+Acceptance Criteria:
+- Supplier sees PO line items, totals, delivery dates, attachments.
+- Supplier only sees POs addressed to their company.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO7 — Supplier can update fulfillment status of an order,,ESA-PO,PO7,"As a supplier, I can update order status (Confirmed → In Production → Shipped/Delivered), so
+the buyer can track progress.
+
+Acceptance Criteria:
+- Status update actions exist on order detail.
+- Status changes are logged/audited.
+- Buyer sees the updated status immediately.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO8 — Buyer can view order details,,ESA-PO,PO8,"As a buyer, I can open an Order detail page from Orders Requested, so I can see timeline,
+items, and supplier updates.
+
+Acceptance Criteria:
+- Shows order timeline/history and current status.
+- Shows linked PO/RFQ/Quote if applicable.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO9 — Create PO(s) from awarded lines,,ESA-PO,PO9,"As a buyer, I can convert awarded lines into one or multiple POs grouped by supplier.
+
+Acceptance Criteria:
+- creates separate PO per supplier; totals correct; links back to RFQ/awards.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO10 — Buyer sends PO to supplier,,ESA-PO,PO10,"As a buyer, I can send a PO to the supplier (in-app notification + email + optional PDF link).
+
+Acceptance Criteria:
+- PO moves to “Sent” (or equivalent); delivery recorded (timestamp/channel).","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO11 — Supplier acknowledges PO (accept/decline),,ESA-PO,PO11,"As a supplier, I can accept or decline a PO with an optional reason.
+
+Acceptance Criteria:
+- PO/SO status updates; buyer notified; audit logged; decline prevents shipments/invoicing.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Story,PO12 — Buyer sees acknowledgement status,,ESA-PO,PO12,"As a buyer, I can see whether the supplier accepted/declined and when.
+
+Acceptance Criteria:
+- visible on PO detail + timeline; filters in PO list.","h,orders,phase-1-core-procurement,purchase-orders,story",Phase 1 - Core Procurement
+Epic,[INVT] Invitations & Team,ESA-INVT,,,Management,"phase-1-core-procurement,team",Phase 1 - Core Procurement
+Story,INVT1 — Invite users to company,,ESA-INVT,INVT1,"As an owner/admin, I can invite teammates.
+
+Acceptance Criteria:
+- Invite by email + assign role (buyer/supplier/finance).
+- Email invite with token; joining attaches user to company.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Story,INVT2 — Block supplier-role invites until approved,,ESA-INVT,INVT2,"As the system, I prevent supplier-role invites unless company is an approved supplier.
+
+Acceptance Criteria:
+- Attempt to invite supplier_admin/supplier_estimator before approval → 422 with message.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Story,INVT3 — Manage members,,ESA-INVT,INVT3,"As an owner/admin, I can list/remove/change roles.
+
+Acceptance Criteria:
+- Member list with role, last active.
+- Role change controls gated by permissions.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Story,INVT4 — Manage pending invitations (resend/revoke),,ESA-INVT,INVT4,"As an owner/admin, I can view pending invites, resend them, or revoke them, so onboarding is
+controllable.
+
+Acceptance Criteria:
+- “Pending invites” list with invited email, role, invited_at, invited_by, status.
+- Resend sends a new email and updates “last_sent_at”.
+- Revoke invalidates token immediately; invite becomes “revoked”.
+- Actions are audit-logged.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Story,INVT5 — Invitation expiry + invalid token handling,,ESA-INVT,INVT5,"As the system, invitations expire and users get a clear recovery path.
+
+Acceptance Criteria:
+- Invite tokens expire after configurable time (e.g., 7 days).
+- Visiting expired token shows friendly screen with “Request new invite”.
+- Expired/revoked token cannot be used to join.
+- Admin can resend to generate a fresh token.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Story,INVT6 — Join requests queue (for domain join + general access request),,ESA-INVT,INVT6,"As an owner/admin, I can approve/deny “request to join company” requests, so join-by-domain
+is complete.
+
+Acceptance Criteria:
+- Admin sees a “Join requests” queue with requester email, domain, requested role (optional), reason.
+- Approve attaches membership + role; deny records reason.
+- Requester is notified of outcome.
+- Audit logged.","i,phase-1-core-procurement,story,team",Phase 1 - Core Procurement
+Epic,"[DOC] Files, Docs & KYC",ESA-DOC,,,,"documents,files,phase-1-core-procurement",Phase 1 - Core Procurement
+Story,DOC1 — Upload company documents (KYC),,ESA-DOC,DOC1,"As an owner, I can upload KYC docs.
+
+Acceptance Criteria:
+- Types (tax cert, ISO, bank letter, ESG report, other).
+- Metadata: issued/expires/verified.
+- Secure storage & access control.","documents,files,j,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,DOC2 — Doc expiry management (baseline),,ESA-DOC,DOC2,"As the system, I record expiry and surface warnings.
+
+Acceptance Criteria:
+- Near-expiry banner on settings.
+- (Future: auto-suspend supplier if critical docs expire—tracked as next phase.)","documents,files,j,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,DOC3 — RFQ/Quote attachments (secure),,ESA-DOC,DOC3,"As the system, I secure RFQ/quote files.
+
+Acceptance Criteria:
+- Only authorized users can download.
+- Logged access (who/when).","documents,files,j,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,DOC4 — KYC document verification actions,,ESA-DOC,DOC4,"As a super admin/reviewer, I can mark KYC documents as verified/rejected with notes.
+
+Acceptance Criteria:
+- approval decision.","documents,files,j,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Epic,[ADM] Admin Console,ESA-ADM,,,,"admin,phase-1-core-procurement",Phase 1 - Core Procurement
+Story,ADM1 — Supplier application review queue,,ESA-ADM,ADM1,"As a super admin, I can manage all supplier applications.
+
+Acceptance Criteria:
+- Filter by status (pending/approved/rejected).
+- Search by company.
+- Approve/Reject with reason; email notifications.","admin,k,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM2 — Governance flags on companies,,ESA-ADM,ADM2,"As a super admin, I can set visibility and governance fields.
+
+Acceptance Criteria:
+- Toggle directory visibility.
+- View/edit supplier_status reason notes.","admin,k,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM3 — Tenant plan/features matrix (admin),,ESA-ADM,ADM3,"As a super admin (or tenant admin if you prefer), I can view/edit plan feature flags and limits.
+
+Acceptance Criteria:
+- matrix UI; validations; reduces require confirmation; audit logged.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM4 — Roles & permissions editor (admin),,ESA-ADM,ADM4,"As an admin, I can manage role permission sets.
+
+Acceptance Criteria:
+- prevents removing last admin capability; audit logged.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM5 — API Keys management,,ESA-ADM,ADM5,"As an admin, I can create/revoke API keys with scopes.
+
+Acceptance Criteria:
+- plaintext token shown once; last used shown; revoke confirm.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM6 — Webhooks endpoint management,,ESA-ADM,ADM6,"As an admin, I can create/update/delete webhook endpoints, rotate secrets, and send test
+events.
+
+Acceptance Criteria:
+- https-only; secret rotation invalidates old signature; test event supported.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM7 — Webhook delivery logs + retry/DLQ,,ESA-ADM,ADM7,"As an admin, I can view webhook delivery history and retry failed deliveries (and replay DLQ if
+present).
+
+Acceptance Criteria:
+- filters, status, attempt count, response code/latency; retry action.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM8 — Rate limit rules editor,,ESA-ADM,ADM8,"As an admin, I can view/update per-scope rate limit rules.
+
+Acceptance Criteria:
+- window + max req; immediate apply; audit logged.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM9 — Audit log viewer,,ESA-ADM,ADM9,"As an admin, I can filter and export audit logs (CSV).
+
+Acceptance Criteria:
+- filters by actor/event/resource/date; pagination; export.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM10 — Start impersonation,,ESA-ADM,ADM10,"As a super admin, I can impersonate a tenant admin/user to troubleshoot issues.
+
+Acceptance Criteria:
+- Only super admins can impersonate; action available from admin console.
+- When impersonating:
+- Banner clearly shows “Impersonating: [user@company]”.
+- All actions are logged against the impersonated user, but audit log notes “performed via impersonation by [super admin]”.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,ADM11 — Stop impersonation,,ESA-ADM,ADM11,"As a super admin, I can easily return to my own account with one click.
+
+Acceptance Criteria:
+- “Stop impersonation” button in header/banner.
+- Session immediately returns to original super admin identity.
+- Start/stop events are audit-logged.","admin,k2,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Epic,"[UX] Navigation, UX & Feedback",ESA-UX,,,,"phase-1-core-procurement,ux",Phase 1 - Core Procurement
+Story,UX1 — Role/context-aware sidebar,,ESA-UX,UX1,"As a user, I see only relevant menu items.
+
+Acceptance Criteria:
+- Buyers: Request Quote, RFQs (Sent), Suppliers (Directory), Orders Requested, Purchase Orders.
+- Suppliers (approved): RFQs (Received), Open RFQs, Orders Received.
+- Settings: Company, Supplier Profile/Visibility.
+- Admin: Supplier Review.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX2 — Empty states & errors,,ESA-UX,UX2,"As a user, I get helpful empty/error states.
+
+Acceptance Criteria:
+- All lists show empty-state messages with CTA where applicable.
+- Validation and server errors shown inline and non-blocking.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX3 — Sidebar shows “Complete Setup / Apply as Supplier” gating links,,ESA-UX,UX3,"As a user, I see setup-required actions when I’m gated, so I know what to do next.
+
+Acceptance Criteria:
+- If company onboarding incomplete → sidebar prominently shows “Complete Company Setup”.
+- If supplier not approved → shows “Apply as Supplier” (or “Supplier approval pending”).
+- Supplier-only menus hidden/disabled until approval.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX4 — All built pages are reachable via UI navigation,,ESA-UX,UX4,"As a user, I can reach all implemented pages from the sidebar or from contextual buttons, so I
+don’t need to type URLs manually.
+
+Acceptance Criteria:
+- Sidebar contains correct links for:
+- Supplier Directory
+- RFQ pages (Sent/Received/Open)
+- Quote compare page
+- Purchase Orders pages
+- Orders Requested/Received
+- Links are role + approval gated appropriately.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX5 — Contextual deep links exist between related pages,,ESA-UX,UX5,"As a buyer/supplier, I can move between RFQ → Quote → Compare → PO with clear CTAs,
+so the workflow is discoverable.
+
+Acceptance Criteria:
+- RFQ Sent Details shows “Compare Quotes” when quotes exist.
+- Quote Compare shows “Accept Quote” and then “Create/View PO” if implemented.
+- PO detail links back to originating RFQ/quote.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX6 — All implemented pages have routes and are accessible,,ESA-UX,UX6,"As a user, I can access each implemented screen through a valid route and navigation.
+
+Acceptance Criteria:
+- open/received/sent details.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,UX7 — Supplier can submit quote from RFQ details (not only from list),,ESA-UX,UX7,"As a supplier, I can start a quote from the RFQ detail screen, so I can work from the RFQ
+context.
+
+Acceptance Criteria:
+- “Submit Quote” action visible on RFQ Received Details / Open Bidding Details.
+- Submission returns to RFQ detail showing the submitted quote status.","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,"UX8 — When gated, user sees a clear “what to do next”",,ESA-UX,UX8,"As a user, when I’m blocked (onboarding incomplete / supplier not approved), I see an
+explanation and a single CTA.
+
+Acceptance Criteria:
+- Blocked buyer routes redirect to company onboarding with banner.
+- Supplier-only pages show approval status + CTA to apply (or “pending approval”).","l,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Epic,[DASH] Dashboard & Home,ESA-DASH,,,,"phase-1-core-procurement,ux",Phase 1 - Core Procurement
+Story,DASH1 — Home dashboard loads role-aware overview,,ESA-DASH,DASH1,"As a logged-in user, I can see a home/dashboard page relevant to my active company and
+role.
+
+Acceptance Criteria:
+- Buyer sees summary cards/links for Sent RFQs, Orders Requested, Purchase Orders, Supplier Directory.
+- Supplier (approved) sees Received RFQs, Open RFQs, Orders Received.
+- Links navigate to the correct pages.","o,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Story,DASH2 — Quick actions from dashboard,,ESA-DASH,DASH2,"As a user, I can launch common actions quickly.
+
+Acceptance Criteria:
+- Buyer: “Create RFQ”, “Browse Suppliers”.
+- Supplier: “View Open RFQs”, “View Received RFQs”.","o,phase-1-core-procurement,story,ux",Phase 1 - Core Procurement
+Epic,[SUPS] Supplier Application Status & Company Gating Pages,ESA-SUPS,,,,"phase-1-core-procurement,supplier-application",Phase 1 - Core Procurement
+Story,SUPS1 — Supplier applicant can view application status,,ESA-SUPS,SUPS1,"As a company owner, I can see whether my supplier application is Not Applied /
+Pending / Approved / Rejected, so I know what to do next.
+
+Acceptance Criteria:
+- rejected shows reason; pending shows “under review”.","phase-1-core-procurement,story,supplier-application,t",Phase 1 - Core Procurement
+Story,SUPS2 — Applicant can edit supplier application while Pending (if your code allows,,ESA-SUPS,SUPS2,"edits)
+As a company owner, I can update my supplier application fields/documents before
+approval, so I can fix missing info without waiting for rejection.","phase-1-core-procurement,story,supplier-application,t",Phase 1 - Core Procurement
+Story,SUPS3 — Supplier approval gating message page,,ESA-SUPS,SUPS3,"As a supplier user, when I try to access supplier-only pages while not approved, I see a
+dedicated “Approval required” screen (not just a silent redirect), so I understand why I’m
+blocked.","phase-1-core-procurement,story,supplier-application,t",Phase 1 - Core Procurement
+Epic,[DT] Digital Twin Library (Platform-Curated),ESA-DT,,,,"digital-twin,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,DT1 — Super Admin manages Digital Twin categories,,ESA-DT,DT1,"As a super admin, I can create/edit/archive Digital Twin categories and subcategories.
+
+Acceptance Criteria:
+- nested categories supported; slug uniqueness; active/inactive toggle.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT2 — Super Admin uploads a Digital Twin,,ESA-DT,DT2,"As a super admin, I can create a Digital Twin record with metadata, specs, tags, version, and
+publish it.
+
+Acceptance Criteria:
+- draft/published/archived; version + revision notes; audit history.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT3 — Super Admin uploads Digital Twin assets,,ESA-DT,DT3,"As a super admin, I can upload CAD/PDF/images/data files to a Digital Twin.
+
+Acceptance Criteria:
+- file type/size validation; secure storage; primary asset; virus-scan hook stub.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT4 — Buyer browses/searches Digital Twin Library,,ESA-DT,DT4,"As a buyer, I can browse published Digital Twins by category, tags, and search.
+
+Acceptance Criteria:
+- pagination; filters; detail view; only published shown.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT5 — Buyer “Use for RFQ” (prefill RFQ from DT),,ESA-DT,DT5,"As a buyer, I can select a Digital Twin and start an RFQ directly with prefilled fields and
+attachments.
+
+Acceptance Criteria:
+- RFQ wizard opens with DT context; DT assets attached as references; DT id stored on
+- RFQ.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT6 — Supplier cannot access Library listing,,ESA-DT,DT6,"As the system, I prevent suppliers from browsing the library.
+
+Acceptance Criteria:
+- only allows DT viewing when referenced inside RFQ/PO they are involved in (optional).","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT7 — RFQ stores & displays Digital Twin reference,,ESA-DT,DT7,"As a buyer, when an RFQ is created from a Digital Twin, the RFQ detail page shows the DT
+title/version/category and linked assets.
+
+Acceptance Criteria:
+- RFQ has digital_twin_id; DT summary shown in RFQ detail; DT assets visible
+- (permissioned).","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT8 — DT asset permissions when RFQ is shared,,ESA-DT,DT8,"As the system, DT assets attached to an RFQ are accessible only to authorized recipients
+(suppliers invited / bidding-eligible).
+
+Acceptance Criteria:
+- secure downloads; access logged; blocked otherwise.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT9 — Digital Twin Library plan gating,,ESA-DT,DT9,"As the system, I allow Digital Twin Library access only if the buyer company’s plan enables it.
+
+Acceptance Criteria:
+- if disabled, DT library routes show upgrade banner; API returns 403/402; sidebar hides
+- link.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT10 — Super admin Digital Twin management UI (explicit screens),,ESA-DT,DT10,"As a super admin, I can manage Digital Twins via dedicated admin pages
+(list/create/edit/publish/archive + asset upload).
+
+Acceptance Criteria:
+- admin routes exist; audit timeline visible; bulk publish/archive supported.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT11 — Clone Digital Twin (create new version from existing),,ESA-DT,DT11,"As a super admin, I can clone an existing DT to create a new version quickly.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT12 — Deprecate old versions + enforce “latest” in new RFQs,,ESA-DT,DT12,"As the system, I warn/prevent creating new RFQs from deprecated DT versions.
+
+Acceptance Criteria:
+- configurable.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT13 — Asset processing pipeline (thumbnails/preview + safety),,ESA-DT,DT13,"As the system, uploaded DT assets are processed for preview and safety checks.
+
+Acceptance Criteria:
+- to admin; retry.","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,DT14 — Digital Twin usage analytics,,ESA-DT,DT14,"As a super admin, I can see DT usage (views / “use for RFQ” count / most used).","digital-twin,dt,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[CL] Company Localization & Document,ESA-CL,,,Numbering,"localization,phase-2-platform-and-ops",Phase 2 - Platform & Ops
+Story,"CL1 — Company profile settings (addresses, contacts, branding)",,ESA-CL,CL1,"As an owner/admin, I can manage company profile used on documents.
+
+Acceptance Criteria:
+- validation; audit logged; logo optional.","cl,localization,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CL2 — Localization settings,,ESA-CL,CL2,"As an owner/admin, I can set timezone/locale/date-number formats and base currency.
+
+Acceptance Criteria:
+- live preview; applies across UI.","cl,localization,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CL3 — UoM mapping,,ESA-CL,CL3,"As an owner/admin, I can map/normalize units of measure used across RFQs/POs/Invoices.
+
+Acceptance Criteria:
+- prevents cycles; consistent display.","cl,localization,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CL4 — Document numbering rules,,ESA-CL,CL4,"As an owner/admin, I can configure numbering prefixes/sequence/reset policy for
+RFQ/Quote/PO/Invoice/GRN/Credit.
+
+Acceptance Criteria:
+- sample preview; server assigns final numbers; safe updates.","cl,localization,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[NC] Notifications Center (In-App + Email),ESA-NC,,,,"notifications,phase-2-platform-and-ops",Phase 2 - Platform & Ops
+Story,NC1 — Notification bell + unread count,,ESA-NC,NC1,"As a user, I see unread notification count and can open a drawer.
+
+Acceptance Criteria:
+- mark read; deep links.","n,notifications,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,NC2 — Notification Center page,,ESA-NC,NC2,"As a user, I can view/search/filter all notifications.
+
+Acceptance Criteria:
+- pagination; bulk mark read.","n,notifications,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,NC3 — Email notifications for key events,,ESA-NC,NC3,"As the system, I send emails for RFQ published, quote submitted/withdrawn, PO sent/ack,
+invoice posted, GRN posted, credit note posted.
+
+Acceptance Criteria:
+- uses localization formatting; configurable templates baseline.","n,notifications,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,NC4 — Notification template manager (admin UI),,ESA-NC,NC4,"As an admin, I can manage email templates (per event), with variables + preview.
+
+Acceptance Criteria:
+- (This supports your “configurable templates baseline” note in N3 .)","n,notifications,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,NC5 — Digest scheduler + batching job,,ESA-NC,NC5,"As the system, I generate daily/weekly digests based on UP3 settings
+.
+
+Acceptance Criteria:
+- retries; observability (logs/metrics).","n,notifications,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,"[EXP] Exports, PDFs, CSV & Download Center",ESA-EXP,,,,"exports,phase-2-platform-and-ops",Phase 2 - Platform & Ops
+Story,EXP1 — Request export (PDF/CSV) from document pages,,ESA-EXP,EXP1,"As a user, I can export RFQ/Quote/PO/Invoice/GRN/Credit as PDF/CSV.
+
+Acceptance Criteria:
+- job queued; toast + link to download center.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,EXP2 — Download Center,,ESA-EXP,EXP2,"As a user, I can see export jobs and download/retry.
+
+Acceptance Criteria:
+- status: queued/processing/ready/failed; expiry; polling.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,EXP3 — Branded PDF templates,,ESA-EXP,EXP3,"As the system, PDFs include company branding, numbering, and localized formatting.
+
+Acceptance Criteria:
+- consistent across document types.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,EXP4 — Secure download links (signed URL + expiry),,ESA-EXP,EXP4,"As the system, exported files and sensitive documents are downloaded via signed URLs that
+expire.
+
+Acceptance Criteria:
+- expiry enforced; download attempt logged; unauthorized access blocked.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,EXP5 — Export retention cleanup job,,ESA-EXP,EXP5,"As the system, I delete expired exports and revoke links after retention window.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,EXP6 — Export access logging + admin review,,ESA-EXP,EXP6,"As an admin, I can see who downloaded what export and when.","exp,exports,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[INV] Inventory & Stock (Movements + Low Stock),ESA-INV,,,,"inventory,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,INV1 — Item stock overview,,ESA-INV,INV1,"As a user, I can see stock on hand by item/location.
+
+Acceptance Criteria:
+- pagination; filters; permissions.","inv,inventory,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,INV2 — Stock movements ledger,,ESA-INV,INV2,"As a user, I can view stock movement history per item.
+
+Acceptance Criteria:
+- shows source doc (GRN/adjustment); audit.","inv,inventory,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,INV3 — Low-stock rules + alerts,,ESA-INV,INV3,"As a user, I can configure reorder thresholds and see low-stock flags.
+
+Acceptance Criteria:
+- warnings surfaced; optional notification.","inv,inventory,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,INV4 — Approve forecast-driven reorder setting updates (human-in-the-loop),,ESA-INV,INV4,"Acceptance Criteria:
+- reviews a draft; approval applies the change; all changes are audit-logged; rollback is possible (at least via edit history).","inv,inventory,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[FIN] Invoice + Credit Notes + 3-Way Match (PO↔GRN↔Invoice),ESA-FIN,,,"V6 covers RFQ→Quote→PO and mentions GRN/secure files, but doesn’t fully
+define invoice/3-way match.","finance,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,FIN1 — Supplier invoice creation/hand-off,,ESA-FIN,FIN1,"As a supplier, I can create/submit an invoice against a PO (and/or against delivered quantities).
+
+Acceptance Criteria:
+- line-level amounts; attachments; status.","fin,finance,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,FIN2 — Buyer invoice review & posting,,ESA-FIN,FIN2,"As a buyer/finance user, I can review and accept/reject invoices.
+
+Acceptance Criteria:
+- approvals; audit log.","fin,finance,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,FIN3 — GRN posting (Goods Receipt),,ESA-FIN,FIN3,"As a buyer, I can post GRN quantities received against PO lines.
+
+Acceptance Criteria:
+- partial receipts; attachments; audit.","fin,finance,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,FIN4 — 3-way match,,ESA-FIN,FIN4,"As the system, I can match PO vs GRN vs Invoice and flag mismatches.
+
+Acceptance Criteria:
+- tolerances; mismatch reasons; UI indicators.","fin,finance,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,FIN5 — Credit note flow,,ESA-FIN,FIN5,"As a supplier, I can issue a credit note to adjust an invoice; buyer can accept it.
+
+Acceptance Criteria:
+- links to invoice; audit; affects match status.","fin,finance,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[ORD] Orders Enhancements (Shipments),ESA-ORD,,,"Epic H mentions “Orders Requested/Received” and status updates, but not
+shipments/tracking.","orders,phase-3-procure-to-pay-expansion,purchase-orders",Phase 3 - Procure-to-Pay Expansion
+Story,ORD1 — Sales order mirror created from PO,,ESA-ORD,ORD1,"As the system, when PO is issued/sent, a supplier “Sales Order” record exists to track
+fulfillment.
+
+Acceptance Criteria:
+- links PO→SO; status pending_ack.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD2 — Supplier shipments (partial allowed),,ESA-ORD,ORD2,"As a supplier, I can create shipments with tracking numbers and shipped quantities per line.
+
+Acceptance Criteria:
+- cannot ship > remaining; supports multiple shipments.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD3 — Buyer shipment tracking,,ESA-ORD,ORD3,"As a buyer, I can view shipments and tracking status for an order.
+
+Acceptance Criteria:
+- read-only; timeline events.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD4 — Shipment status updates,,ESA-ORD,ORD4,"As a supplier, I can mark shipment in_transit/delivered.
+
+Acceptance Criteria:
+- delivered timestamp required; audit logged.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD5 — SO mirrors PO and requires acknowledgement,,ESA-ORD,ORD5,"As the system, a Sales Order is created when PO is sent and must be acknowledged by
+supplier.
+
+Acceptance Criteria:
+- SO status pending_ack → accepted|cancelled; ties into shipment creation rules.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD6 — “Create GRN from delivered shipment” shortcut (optional),,ESA-ORD,ORD6,"As a buyer, I can start a GRN from an Order/Shipment that’s marked delivered, to reduce
+manual entry.
+
+Acceptance Criteria:
+- prefilled PO + lines + remaining qty; user can adjust received qty and post.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,ORD7 — Prevent shipments until acknowledgement,,ESA-ORD,ORD7,"As the system, I prevent creating shipments until the supplier has acknowledged the PO/SO
+(accepted).
+
+Acceptance Criteria:
+- create shipment returns 422/403 if not accepted; UI shows explanation.","ord2,orders,phase-3-procure-to-pay-expansion,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Epic,"[OPS] Security Hardening, Monitoring & Operational Readiness",ESA-OPS,,,,"ops,phase-2-platform-and-ops,security",Phase 2 - Platform & Ops
+Story,OPS1 — Security headers/CSP baseline,,ESA-OPS,OPS1,"As the system, I enforce security headers and sensible CSP.
+
+Acceptance Criteria:
+- validated in staging.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS2 — Rate limiting + bot protection rules,,ESA-OPS,OPS2,"As the system, I apply rate limits to auth and high-risk endpoints.
+
+Acceptance Criteria:
+- documented; tested.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS3 — Sentry integration (FE+BE),,ESA-OPS,OPS3,"As the team, we can observe errors with user context and release tags.
+
+Acceptance Criteria:
+- test error captured.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS4 — Health endpoint + uptime checks,,ESA-OPS,OPS4,"As ops, we can verify service health via /health.
+
+Acceptance Criteria:
+- green checks; alert hooks.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS5 — Backups + retention + restore runbook,,ESA-OPS,OPS5,"As ops, we run scheduled backups and can restore.
+
+Acceptance Criteria:
+- restore steps documented and verified.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS6 — AI microservice health/readiness + dependency checks,,ESA-OPS,OPS6,"As ops, we can verify AI services are healthy (LLM provider, vector store, background jobs) via
+dedicated readiness endpoints and dashboards.
+
+Acceptance Criteria:
+- separate AI readiness checks; alerts; visible status in admin.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS7 — AI job worker monitoring (training/scraping/indexing),,ESA-OPS,OPS7,"As ops, I can see queue depth, worker health, job failure rates for AI background tasks.
+
+Acceptance Criteria:
+- dashboard cards; retry actions; failure reasons; retention.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,"OPS8 — Copilot tool execution safeguards (timeouts, retries, circuit breaker, caching)",,ESA-OPS,OPS8,"Acceptance Criteria:
+- Per-tool timeout + retry policy; circuit breaker trips on repeated failures.
+- Safe caching for read-only tools (list/search) with TTL.
+- Metrics: tool latency/error rate; surfaced in ops dashboard (pairs well with OPS6/OPS7).","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS9 — Privacy & scoping,,ESA-OPS,OPS9,"As the system, I ensure data isolation by company.
+
+Acceptance Criteria:
+- Queries scoped by active company/permissions.
+- Cross-company access blocked.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS10 — Event delivery logs page,,ESA-OPS,OPS10,"As an admin, I can view webhook delivery attempts with status, attempts, latency, last error.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS11 — Retry failed deliveries,,ESA-OPS,OPS11,"As an admin, I can retry a failed delivery.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Story,OPS12 — Replay DLQ (if enabled),,ESA-OPS,OPS12,"As an admin, I can replay dead-lettered events in bulk.","ops,phase-2-platform-and-ops,security,story",Phase 2 - Platform & Ops
+Epic,"[CI] Testing, Contract Tests & CI/CD",ESA-CI,,,,phase-2-platform-and-ops,Phase 2 - Platform & Ops
+Story,CI1 — OpenAPI ↔ SDK contract test pipeline,,ESA-CI,CI1,"As the system, CI fails when API spec and SDK drift.
+
+Acceptance Criteria:
+- auto-regenerate; checks enforced.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CI2 — Unit/component tests for hooks/forms,,ESA-CI,CI2,"As devs, we have tests for key hooks (RFQ/Quote/PO/Orders/DT).
+
+Acceptance Criteria:
+- runs in CI.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CI3 — E2E smoke path,,ESA-CI,CI3,"As devs, we run a minimal end-to-end smoke flow.
+
+Acceptance Criteria:
+- auth → RFQ → quote → award → PO → order/ship → GRN/match.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,"CI4 — Staging auto deploy, production manual approval",,ESA-CI,CI4,"As ops, main deploys to staging automatically; prod requires approval.
+
+Acceptance Criteria:
+- rollback documented.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CI5 — AI regression test suite (golden prompts → expected action type),,ESA-CI,CI5,"Acceptance Criteria:
+- “Draft an RFQ” must produce an RFQ draft action; “Create RFQ named X” must include X;
+- fails CI if broken.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CI6 — Tool contract tests for Copilot tools,,ESA-CI,CI6,"Acceptance Criteria:
+- tool schemas validated; changes require version bump (aligns with AI3.6 intent","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,CI7 — Workflow template ↔ action schema contract tests (end-to-end compatibility),,ESA-CI,CI7,"Acceptance Criteria:
+- CI fails if a workflow template references an unknown/unsupported action type.
+- CI fails if required fields for an action type are missing/mismatched between services/UI.
+- Includes a small fixture set that loads templates and validates against the current action JSON schema.","ci,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[GO] Launch Readiness & QA Sweep,ESA-GO,,,,phase-2-platform-and-ops,Phase 2 - Platform & Ops
+Story,GO1 — Remove legacy/unused frontend and routes,,ESA-GO,GO1,"As the team, we remove leftover legacy pages/components and dead routes.","go,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,GO2 — Global UX/a11y/error-state sweep,,ESA-GO,GO2,"As a user, all pages have consistent loading/empty/error states and accessible UI.","go,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,GO3 — Release/runbook documentation,,ESA-GO,GO3,"As ops, we have README + admin guide + support runbook (backup/restore, common issues,
+escalation).","go,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,GO4 — Production readiness checklist is enforced,,ESA-GO,GO4,"As the team, we have a launch checklist (env vars, queue, cron, storage, mail, logging,
+backups) that must pass before release.
+
+Acceptance Criteria:
+- checklist doc exists + verified in staging; smoke test passes.","go,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[SEC] Advanced Security Hardening (production checklist items),ESA-SEC,,,,"ops,phase-2-platform-and-ops,security",Phase 2 - Platform & Ops
+Story,SEC1 — Privileged accounts,,ESA-SEC,SEC1,"As the system, secrets are stored/rotated safely and never logged.","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC2 — Multi factor authentication,,ESA-SEC,SEC2,"As an admin/super admin, I must use MFA.","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC3 — Monitoring + alerting + log retention,,ESA-SEC,SEC3,"As ops, we have alerts and defined retention for logs/audit trails.","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC4 — Pen testing readiness,,ESA-SEC,SEC4,"As ops, the app supports pen testing (staging parity, test accounts, documented scope).","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC5 — Edge protection (WAF/CDN/SSL/DDoS),,ESA-SEC,SEC5,"As ops, the platform is protected behind WAF/CDN with enforced SSL and DDoS mitigation.
+SEC2-6 (or M2) — Copilot tool/action permission matrix enforcement + audit
+
+Acceptance Criteria:
+- Each tool/action type declares required permission(s) + plan gate (if any).
+- Runtime enforcement blocks unauthorized calls with a consistent error contract.
+- CI job validates “no tool/action without policy mapping”.","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC6 — Copilot tool/action permission matrix enforcement + audit,,ESA-SEC,SEC6,"AC (short):
+- Each tool/action type declares required permission(s) + plan gate (if any).
+- Runtime enforcement blocks unauthorized calls with a consistent error contract.
+- CI job validates “no tool/action without policy mapping”.","ops,phase-2-platform-and-ops,sec2,security,story",Phase 2 - Platform & Ops
+Story,SEC7 — Password policy + brute-force protection,,ESA-SEC,SEC7,"As the system, I enforce a strong password policy and protect against brute-force attempts.
+
+Acceptance Criteria:
+- Password rules are enforced.
+- Lockout/backoff for repeated failed attempts.
+- Suspicious login alerts.
+- Audit trail retained.","auth,phase-2-platform-and-ops,sec3,security,story",Phase 2 - Platform & Ops
+Story,SEC8 — Session management controls,,ESA-SEC,SEC8,,"auth,phase-2-platform-and-ops,sec3,security,story",Phase 2 - Platform & Ops
+Story,SEC9 — Privileged access protections (admin roles),,ESA-SEC,SEC9,"Acceptance Criteria:
+- procedure logged.","auth,phase-2-platform-and-ops,sec3,security,story",Phase 2 - Platform & Ops
+Story,SEC10 — Audit events emitted across core entities,,ESA-SEC,SEC10,"As the system, I record audit events for critical changes to
+RFQs/Quotes/POs/Shipments/GRNs/Invoices/Payments/Digital Twins.
+
+Acceptance Criteria:
+- Standard audit schema: actor, tenant, entity_type, entity_id, action, timestamp, metadata.
+- Captures create/update/status change/send/post/approve/reject actions.
+- PII/secrets redacted.","auth,phase-2-platform-and-ops,sec3,security,story",Phase 2 - Platform & Ops
+Story,SEC11 — Entity timeline view,,ESA-SEC,SEC11,"As a user, I can view an activity timeline on each document (RFQ/PO/Invoice/etc.).
+
+Acceptance Criteria:
+- Timeline shows events in chronological order with clear labels.
+- Each event links to related entities (RFQ → Quote → PO → Shipment → GRN → Invoice).
+- Permissions enforced (no leaking other tenants/roles).","auth,phase-2-platform-and-ops,sec3,security,story",Phase 2 - Platform & Ops
+Epic,[AI1] Copilot Conversational Assistant (Universal Chat),ESA-AI1,,,"As a user, I have secure session controls so I can stay safe across devices.
+
+Acceptance Criteria:
+- Idle timeout.
+- Revoke sessions.
+- “Logout all devices”.
+- Device/session list (optional).","ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI1.1 — Open Copilot from anywhere,,ESA-AI1,AI1.1,"As a user, I can open Copilot via a persistent chat bubble on any authenticated page.
+
+Acceptance Criteria:
+- bubble visible only when logged-in; opens/closes; persists state across navigation.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.2 — Chat threads (conversations),,ESA-AI1,AI1.2,"As a user, I can start a new chat thread and return to previous threads.
+
+Acceptance Criteria:
+- thread list; open thread shows history; thread is tenant-scoped.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.3 — Send message & get assistant response,,ESA-AI1,AI1.3,"As a user, I can ask questions and receive responses in a chat format.
+
+Acceptance Criteria:
+- messages stored; roles shown; errors handled; retries possible.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.4 — Streaming responses (optional if built),,ESA-AI1,AI1.4,"As a user, I see responses stream in real time.
+
+Acceptance Criteria:
+- SSE/stream fallback; cancel supported; no UI freeze.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.5 — Citations shown in answers,,ESA-AI1,AI1.5,"As a user, I can see where an answer came from (docs/workspace sources).
+
+Acceptance Criteria:
+- citation list per message; links are permissioned; no leaking cross-tenant info.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.6 — Quick replies & suggested actions,,ESA-AI1,AI1.6,"As a user, I can click suggested quick replies to continue.
+
+Acceptance Criteria:
+- suggested chips render; clicking sends.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.7 — Conversation memory management (thread summaries),,ESA-AI1,AI1.7,"As a user, Copilot keeps the conversation coherent even in long threads.
+
+Acceptance Criteria:
+- stable.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.8 — Manage conversations (rename / close / delete),,ESA-AI1,AI1.8,"As a user, I can rename, close, and delete my chat threads.
+
+Acceptance Criteria:
+- immediately.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.9 — Export conversation,,ESA-AI1,AI1.9,"As a user, I can export a conversation (PDF/JSON) for audits and sharing.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.10 — Keyboard shortcut to open Copilot,,ESA-AI1,AI1.10,"As a user, I can toggle Copilot with Ctrl/Cmd + K.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.11 — Copilot unread/attention indicator,,ESA-AI1,AI1.11,"As a user, I can see when Copilot has an important update (dot/badge).","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.12 — Conversation “pin/star”,,ESA-AI1,AI1.12,"As a user, I can pin important chat threads to the top.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.13 — Copilot dock tabs / mode switcher,,ESA-AI1,AI1.13,"User Story: As a user, I can switch Copilot modes (Chat / Actions / Search / Answer /
+Workflows) inside the Copilot dock.
+
+Acceptance Criteria:
+- Tabs visible inside Copilot dock; remembers last-used tab per user.
+- Keyboard accessible (tab focus + ARIA labels).
+- Each tab preserves its own state (e.g., search filters not lost when switching).","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI1.14 — “Workspace lookup in progress” indicator,,ESA-AI1,AI1.14,"Acceptance Criteria:
+- “Checking workspace…”) until the grounded response is ready; tool payloads remain hidden; errors show a friendly explanation + next actions.","ai,ai1,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI2] Workspace Q&A (RAG + Permissioned Knowledge),ESA-AI2,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI2.1 — Ask questions about workspace,,ESA-AI2,AI2.1,"As a user, I can ask “What RFQs are awaiting quotes?” and get an accurate answer.
+
+Acceptance Criteria:
+- response uses only my tenant + role-permitted data.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.2 — Company knowledge base indexing,,ESA-AI2,AI2.2,"As an admin, I can index internal docs (policies, catalogs) for Copilot Q&A.
+
+Acceptance Criteria:
+- upload/connect sources; reindex job; delete removes from index.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.3 — Permissioned retrieval,,ESA-AI2,AI2.3,"As the system, I only retrieve content the user can access.
+
+Acceptance Criteria:
+- access checks enforced for every citation/source.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.4 — RAG ingestion status + errors,,ESA-AI2,AI2.4,"As an admin/super admin, I can see indexing status, failures, and last indexed time.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.5 — RAG source management,,ESA-AI2,AI2.5,"As an admin/super admin, I can add/remove sources (uploads/URLs) used for RAG.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.6 — Knowledge base access audit,,ESA-AI2,AI2.6,"As an admin, I can see which users queried which KB sources (high-level).","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.7 — Semantic Search panel (filters/tags + open documents),,ESA-AI2,AI2.7,"User Story: As a user, I can search workspace/KB content using a dedicated Search
+panel with filters and open results.
+
+Acceptance Criteria:
+- Search supports filters/tags; result list shows snippets.
+- Opening a result respects permissions (no cross-tenant leaks).
+- Search actions are logged/auditable (high-level).","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI2.8 — Answer panel (grounded Q&A surface),,ESA-AI2,AI2.8,"User Story: As a user, I can ask a question in the Answer panel and get a grounded
+answer with citations.
+
+Acceptance Criteria:
+- Answer includes citations and links (permissioned).
+- “Copy answer” + “open cited source” supported.
+- If insufficient info, asks clarifying question / suggests where to find info.","ai,ai2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI3] Copilot Tools (Read-only Workspace Functions),ESA-AI3,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI3.1 — Copilot can fetch workspace data via tools,,ESA-AI3,AI3.1,"As the system, Copilot can call read-only tools to answer questions accurately.
+
+Acceptance Criteria:
+- tool-calls limited; results audited; no write operations.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.2 — Tool set: procurement,,ESA-AI3,AI3.2,"As Copilot, I can search RFQs, fetch RFQ details, list quotes, and summarize comparisons.
+
+Acceptance Criteria:
+- handlers exist for RFQ/quotes/POs; tenant scope enforced.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.3 — Tool set: inventory,,ESA-AI3,AI3.3,"As Copilot, I can query item stock, movement history, low stock, etc.
+
+Acceptance Criteria:
+- read-only; scoped by company and permissions.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.4 — Tool-call loop guardrails,,ESA-AI3,AI3.4,"As the system, I prevent infinite tool loops and cap tool calls per message.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.5 — Tool-call audit detail view,,ESA-AI3,AI3.5,"As a super admin, I can inspect tool calls and tool results per chat turn.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.6 — Tool registry + schema versioning,,ESA-AI3,AI3.6,"As the system, Copilot tools have a registry with schemas so tool calls remain compatible as
+APIs evolve.
+
+Acceptance Criteria:
+- tool definitions live in one place; versioned schemas; validation before execution; tool-call
+- failures are actionable.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.7 — Tool set: purchasing documents beyond RFQ,,ESA-AI3,AI3.7,"Acceptance Criteria:
+- search/get POs; list PO lines; PO status/ack/shipment/GRN links; permissioned +
+- tenant-scoped.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.8 — Tool set: receiving (GRN/Receipts),,ESA-AI3,AI3.8,"Acceptance Criteria:
+- list/search GRNs; get GRN details; show received vs ordered deltas.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.9 — Tool set: invoicing,,ESA-AI3,AI3.9,"Acceptance Criteria:
+- list/search invoices; get invoice details; show payable totals, due dates, statuses.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.10 — Tool set: 3-way match insights,,ESA-AI3,AI3.10,"Acceptance Criteria:
+- fetch match state + mismatch reasons + tolerance thresholds; show what’s blocking
+- posting/payment.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.11 — Tool set: payments (missing in FIN epic too),,ESA-AI3,AI3.11,"Acceptance Criteria:
+- list/search payments; payment status; linked invoices; remittance refs.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,"AI3.12 — Tool set: master data (items, UoM, tax, payment terms)",,ESA-AI3,AI3.12,"Acceptance Criteria:
+- search/get items; list UoMs/tax codes/terms; link to documents consistently.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.13 — Procurement/Finance snapshot tool,,ESA-AI3,AI3.13,"Acceptance Criteria:
+- single tool returns status counts + top urgent exceptions for dashboards and chat.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.14 — Tool: Supplier directory lookup (search/list suppliers for Copilot),,ESA-AI3,AI3.14,"Acceptance Criteria:
+- compact list, tenant-scoped, permissioned, audited.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.15 — Tool: RFQ awards lookup (latest awards + per-RFQ awards),,ESA-AI3,AI3.15,"Acceptance Criteria:
+- supplier + qty + status + timestamps; tenant-scoped; audited.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI3.16 — Tool: Quote statistics snapshot (status counts + recent quotes),,ESA-AI3,AI3.16,"Acceptance Criteria:
+- supplier info); tenant-scoped; audited; supports quick “ops snapshot” answers.","ai,ai3,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI4] Deterministic Actions as Drafts (Human-in-the-loop),ESA-AI4,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI4.1 — Draft RFQ from chat,,ESA-AI4,AI4.1,"As a buyer, I can ask Copilot to draft an RFQ and then review it.
+
+Acceptance Criteria:
+- draft includes items/specs/files; not auto-sent.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.2 — Draft supplier negotiation message,,ESA-AI4,AI4.2,"As a buyer, I can ask Copilot to draft an email/message to a supplier.
+
+Acceptance Criteria:
+- editable; includes key context; no auto-send without approval.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.3 — Draft maintenance / compliance checklist,,ESA-AI4,AI4.3,"As a user, I can generate structured checklists from prompts.
+
+Acceptance Criteria:
+- checklist format; export/copy.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.4 — Approve / Reject draft,,ESA-AI4,AI4.4,"As a user, I can approve to create the real entity (RFQ/message/workflow step) or reject.
+
+Acceptance Criteria:
+- approval creates records; rejection keeps audit trail; both logged.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.5 — Draft editing before approval,,ESA-AI4,AI4.5,"As a user, I can edit a draft RFQ/PO/message inside the Copilot UI before approving.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.6 — Draft library (history),,ESA-AI4,AI4.6,"As a user, I can view previously generated drafts and their status (approved/rejected).","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.7 — Draft GRN (Goods Receipt) from chat,,ESA-AI4,AI4.7,"As a user, I can draft a GRN (Goods Receipt) from chat and review it before creating it.
+
+Acceptance Criteria (shared for AI4.x drafts):
+- Never auto-executes actions.
+- Preview + validation before approval.
+- Approve/reject is explicitly captured and logged.
+- Audit trail retained; links to created entities when approved.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.8 — Draft supplier invoice submission from chat,,ESA-AI4,AI4.8,"As a user, I can draft a supplier invoice submission from chat and review it before creating it.
+
+Acceptance Criteria (shared for AI4.x drafts):
+- Never auto-executes actions.
+- Preview + validation before approval.
+- Approve/reject is explicitly captured and logged.
+- Audit trail retained; links to created entities when approved.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.9 — Draft buyer invoice decision (accept/reject/hold with reason),,ESA-AI4,AI4.9,"As a user, I can draft a buyer invoice decision (accept/reject/hold with reason) from chat and review it before applying it.
+
+Acceptance Criteria (shared for AI4.x drafts):
+- Never auto-executes actions.
+- Preview + validation before approval.
+- Approve/reject is explicitly captured and logged.
+- Audit trail retained; links to created entities when approved.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.10 — Draft mismatch resolution (tolerance apply / request credit note / adjust receipt,,ESA-AI4,AI4.10,suggestion — still human approved),"ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.11 — Draft payment (create payment proposal + allocation to invoices),,ESA-AI4,AI4.11,"As a user, I can draft a payment proposal (including allocations to invoices) from chat and review it before creating it.
+
+Acceptance Criteria (shared for AI4.x drafts):
+- Never auto-executes actions.
+- Preview + validation before approval.
+- Approve/reject is explicitly captured and logged.
+- Audit trail retained; links to created entities when approved.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.12 — Draft master-data updates (item create/update; supplier profile updates),,ESA-AI4,AI4.12,"As a user, I can draft master-data updates (item create/update; supplier profile updates) from chat and review it before applying it.
+
+Acceptance Criteria (shared for AI4.x drafts):
+- Never auto-executes actions.
+- Preview + validation before approval.
+- Approve/reject is explicitly captured and logged.
+- Audit trail retained; links to created entities when approved.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.13 — Draft “send/post/award” actions with mandatory confirmation,,ESA-AI4,AI4.13,"Acceptance Criteria:
+- never auto-executes; preview + validation; approve/reject logged (consistent
+- with AI4.4/AI4.5 expectations).","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.14 — Draft inventory “what-if” scenario from chat (reorder/stockout simulation),,ESA-AI4,AI4.14,"Acceptance Criteria:
+- Copilot can generate a what-if scenario draft (inputs + assumptions + output summary).
+- Draft is reviewable/editable; never auto-applies changes.
+- Draft can optionally suggest next actions (create RFQ, adjust reorder thresholds) but requires confirmation.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.15 — Actions Panel: structured action launcher (not only “from chat”),,ESA-AI4,AI4.15,"User Story: As a user, I can use the Actions panel to draft structured actions
+(RFQ/PO/GRN/invoice/payment/etc.) via guided inputs.
+
+Acceptance Criteria:
+- Action type picker + dynamic fields per action type.
+- Creates the same “draft” objects as chat-driven drafting.
+- Uses the same approval/reject flow (no silent writes).","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI4.16 — Draft review modal shows payload + warnings + citations before,,ESA-AI4,AI4.16,"approval
+User Story: As a user, before I approve a Copilot draft, I can review a clear summary of
+what will happen (including warnings/citations).
+
+Acceptance Criteria:
+- Shows key fields, detected risks/warnings, and supporting citations (if any).
+- Requires explicit confirm to approve; reject requires (optional) reason.
+- Approval/rejection is logged and linked back to the draft.","ai,ai4,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI5] AI Workflows Orchestration,ESA-AI5,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI5.1 — Start workflow from Copilot,,ESA-AI5,AI5.1,"As a user, I can start a multi-step workflow (e.g., RFQ → Compare → PO draft).
+
+Acceptance Criteria:
+- workflow instance created; steps visible; resumable.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.2 — Step approvals,,ESA-AI5,AI5.2,"As a user, I must approve each step before it changes data.
+
+Acceptance Criteria:
+- no silent writes; step state machine enforced.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.3 — Workflow history & audit,,ESA-AI5,AI5.3,"As a user/admin, I can see what happened in the workflow.
+
+Acceptance Criteria:
+- timeline; step inputs/outputs; actor; timestamps.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.4 — Workflow cancellation,,ESA-AI5,AI5.4,"As a user, I can cancel a workflow (with reason) before it creates final documents.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.5 — Workflow step error recovery,,ESA-AI5,AI5.5,"As a user, if a step fails, I can retry or skip (if allowed).","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.6 — Procure-to-Pay workflow template (end-to-end),,ESA-AI5,AI5.6,"RFQ → quotes → award → PO → shipment/ack → GRN → invoice → 3-way match →
+payment","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.7 — Workflow gates on match/exception states,,ESA-AI5,AI5.7,"Acceptance Criteria:
+- stops on mismatches; proposes fixes; requires approval to proceed.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.8 — Workflow “resume anywhere”,,ESA-AI5,AI5.8,"Acceptance Criteria:
+- user can say “continue this PO to payment”; Copilot identifies current stage and resumes.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.9 — Workflow summaries + next steps,,ESA-AI5,AI5.9,"Acceptance Criteria:
+- Copilot posts a progress summary after each step; integrates with “attention indicator”
+- behavior","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI5.10 — Workflow Panel: reviewer console for workflow queues & step,,ESA-AI5,AI5.10,"approvals
+User Story: As a user, I can review workflow queues, see step outputs, and
+approve/reject steps from the Workflows panel.
+
+Acceptance Criteria:
+- Queue list with status filters; step detail view.
+- Approve/reject actions update workflow state + write audit trail.
+- Clear error state + retry where permitted.","ai,ai5,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI6] Forecasting & Inventory AI Outputs,ESA-AI6,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI6.1 — Forecast generation & snapshots,,ESA-AI6,AI6.1,"As the system, forecasts are generated and stored as snapshots.
+
+Acceptance Criteria:
+- scheduled/manual runs; versioned; error handling.","ai,ai6,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI6.2 — Forecast recommendations (reorder/safety stock),,ESA-AI6,AI6.2,"As a buyer, I can see reorder recommendations derived from forecasts.
+
+Acceptance Criteria:
+- per item; shows assumptions; confidence/intervals if available.","ai,ai6,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI6.3 — Forecast scenario sandbox (if built),,ESA-AI6,AI6.3,"As a buyer, I can adjust assumptions and see impact.
+
+Acceptance Criteria:
+- scenario inputs; recomputed outputs; no data corruption.","ai,ai6,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI7] Supplier Risk Scoring (AI),ESA-AI7,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI7.1 — Risk score computation,,ESA-AI7,AI7.1,"As the system, suppliers have computed risk scores with categories.
+
+Acceptance Criteria:
+- stored score + last updated; explanation factors.","ai,ai7,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI7.2 — Risk visible in directory & quote compare,,ESA-AI7,AI7.2,"As a buyer, I can see risk badges and open details.
+
+Acceptance Criteria:
+- badge in lists; detail drawer includes explanation + timestamp.","ai,ai7,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI8] AI Administration & Governance (Super Admin),ESA-AI8,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI8.1 — AI activity log,,ESA-AI8,AI8.1,"As a super admin, I can see all AI calls (feature, user, entity, latency, status).
+
+Acceptance Criteria:
+- filters; pagination; export.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.2 — Model health dashboard,,ESA-AI8,AI8.2,"As a super admin, I can view model metrics (accuracy, errors, drift signals).
+
+Acceptance Criteria:
+- charts; last updated; alert thresholds.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.3 — Training console,,ESA-AI8,AI8.3,"As a super admin, I can trigger training/re-index jobs per AI module.
+
+Acceptance Criteria:
+- run now + schedule; job status; results stored; audit logged.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.4 — Training job history & job detail,,ESA-AI8,AI8.4,"As a super admin, I can see every training run per model with parameters and results.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.5 — Cancel/retry a training job,,ESA-AI8,AI8.5,"As a super admin, I can cancel a running job or retry a failed one.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.6 — Training schedules management,,ESA-AI8,AI8.6,"As a super admin, I can create/edit/disable training schedules per feature.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.7 — Model versioning / rollback,,ESA-AI8,AI8.7,"As a super admin, I can roll back to a previous model/version if metrics regress.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.8 — Training dataset management (upload / version / validate),,ESA-AI8,AI8.8,"As a super admin, I can upload/manage training datasets (per model type), validate schema,
+and version datasets so training runs are reproducible.
+
+Acceptance Criteria:
+- dataset list + upload; schema validation; version id; linked to training jobs; audit logged.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.9 — Compare training runs (metrics diff),,ESA-AI8,AI8.9,"As a super admin, I can compare two training runs to see if performance improved or
+regressed.
+
+Acceptance Criteria:
+- select two runs; show metric deltas; highlight regressions; export.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.10 — Training retention & artifact cleanup,,ESA-AI8,AI8.10,"As a super admin, I can configure how long training artifacts/logs/results are kept.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI8.11 — Training “dry run” / validation,,ESA-AI8,AI8.11,"As a super admin, I can validate datasets/config before starting a long training run.","ai,ai8,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI9] Supplier Discovery (AI Web Scraping) ,ESA-AI9,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI9.1 — Create supplier scrape job,,ESA-AI9,AI9.1,"As a super admin, I can enter keywords/region and start scraping.
+
+Acceptance Criteria:
+- job record created; status tracked; rate-limit safe.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.2 — Store scraped supplier candidates,,ESA-AI9,AI9.2,"As a super admin, I can see scraped candidates with confidence + source URL.
+
+Acceptance Criteria:
+- dedupe; pagination; searchable.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.3 — Review/edit scraped profile,,ESA-AI9,AI9.3,"As a super admin, I can correct scraped fields before onboarding.
+
+Acceptance Criteria:
+- editable form; validation; preserve source evidence.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.4 — Convert candidate to supplier record,,ESA-AI9,AI9.4,"As a super admin, I can “Create Supplier” (or “Create Supplier Application”) from candidate.
+
+Acceptance Criteria:
+- creates supplier + contacts; links back to scraped record; audit logged.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.5 — Discard/blacklist candidate,,ESA-AI9,AI9.5,"As a super admin, I can discard or blacklist domains.
+
+Acceptance Criteria:
+- discarded won’t reappear; blacklist prevents future scraping.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.6 — Scrape job list + detail,,ESA-AI9,AI9.6,"As a super admin, I can see all scrape jobs with status, counts and errors.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.7 — Evidence & field mapping,,ESA-AI9,AI9.7,"As a super admin, I can see which page/source produced each scraped field.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.8 — Deduplication / merge assistance,,ESA-AI9,AI9.8,"As a super admin, I get warnings when a scraped supplier likely matches an existing
+supplier.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.9 — Outreach tracking (lightweight),,ESA-AI9,AI9.9,"As a super admin, I can track whether a scraped lead was contacted and outcome.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.10 — Crawl compliance controls (robots/TOS + rate limits),,ESA-AI9,AI9.10,"As a super admin, I can control scraping rules (respect robots, per-domain allow/deny, crawl
+delays, max pages) to stay compliant and stable.
+
+Acceptance Criteria:
+- allow/deny list UI; per-domain delay; hard caps; job logs show “skipped due to policy”.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.11 — Merge action (not only “suggestion”),,ESA-AI9,AI9.11,"As a super admin, I can merge a scraped candidate into an existing supplier record when
+dedupe matches are found.
+
+Acceptance Criteria:
+- merge UI; field-level mapping; preserves source evidence; audit logged.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.12 — Export scraped leads,,ESA-AI9,AI9.12,"As a super admin, I can export scraped supplier candidates to CSV via Download
+Center.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI9.13 — Rescrape / refresh candidate,,ESA-AI9,AI9.13,"As a super admin, I can re-run scraping for a single candidate/domain to update info.","ai,ai9,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,"[AI10] AI Plan Gating, Limits & Safety Controls",ESA-AI10,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI10.1 — AI feature flags per tenant,,ESA-AI10,AI10.1,"As a super admin, I can enable/disable AI features per tenant.
+
+Acceptance Criteria:
+- UI + API gating; immediate effect.","ai,ai10,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI10.2 — Quotas & rate limits for AI,,ESA-AI10,AI10.2,"As the system, AI usage respects limits (requests/day, token budgets).
+
+Acceptance Criteria:
+- graceful errors; usage metrics.","ai,ai10,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI10.3 — Safe logging & privacy,,ESA-AI10,AI10.3,"As the system, sensitive data is not logged and chat retention is controlled.
+
+Acceptance Criteria:
+- PII rules; retention policy; delete thread.","ai,ai10,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI10.4 — Chat retention policy controls,,ESA-AI10,AI10.4,"As a super admin, I can configure chat retention (e.g., 30/90/365 days) per tenant.","ai,ai10,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI10.5 — Redaction rules for logs,,ESA-AI10,AI10.5,"As the system, I redact sensitive fields in ai_events and tool logs.","ai,ai10,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI12] Intent Planning & Tool Orchestration (LLM + deterministic routing),ESA-AI12,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI12.1 — Intent router (draft vs search vs workflow vs Q&A),,ESA-AI12,AI12.1,"Acceptance Criteria:
+- phrases like “Draft an RFQ” must route to rfq_draft (not “search drafts”); “Show
+- my draft RFQs” routes to search/list; routing covered by tests.","ai,ai12,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI12.2 — Slot-filling + constraint extraction,,ESA-AI12,AI12.2,"Acceptance Criteria:
+- user-provided values (e.g., RFQ name “Rotar Blades”) must be captured and
+- appear in the draft payload; missing required fields trigger a clarification question.","ai,ai12,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI12.3 — Multi-step plan execution (tool chaining),,ESA-AI12,AI12.3,"Acceptance Criteria:
+- Copilot can plan + call multiple tools in order; stops when it needs
+- confirmation/approval; logs plan + tool sequence for audits.","ai,ai12,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,"AI12.4 — Multi-intent handling (e.g., “Draft RFQ and suggest suppliers and forecast",,ESA-AI12,AI12.4,"demand”)
+
+Acceptance Criteria:
+- breaks into ordered steps; produces combined output; never drops sub-requests
+- silently.","ai,ai12,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,"[AI13] Clarification, Disambiguation, Safety & “User Guide Mode”",ESA-AI13,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI13.1 — Entity disambiguation (Entity Picker),,ESA-AI13,AI13.1,"Acceptance Criteria:
+- if multiple matches for supplier/item/PO/RFQ, show options and ask user to pick; no
+- random selection.","ai,ai13,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI13.2 — “Need more info” prompts with smart defaults,,ESA-AI13,AI13.2,"Acceptance Criteria:
+- asks only for missing fields; suggests defaults from workspace settings where safe;
+- remembers within thread.","ai,ai13,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI13.3 — Risky action confirmation,,ESA-AI13,AI13.3,"Acceptance Criteria:
+- publish/send/award/post/pay always requires explicit confirmation + preview;
+- includes “what will happen” summary.","ai,ai13,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI13.4 — Guided resolution fallback (User Guide),,ESA-AI13,AI13.4,"Acceptance Criteria:
+- if Copilot can’t complete an action, it must provide step-by-step guidance + deep
+- link to the exact screen/action.","ai,ai13,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI15] Policy & Approval Intelligence (preflight checks + routing),ESA-AI15,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI15.1 — Policy check tool (“can I do this?”),,ESA-AI15,AI15.1,"Acceptance Criteria:
+- before sensitive steps, Copilot runs policy checks (limits/roles/thresholds/approvals
+- required) and explains outcome.","ai,ai15,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI15.2 — Approval request initiation from Copilot,,ESA-AI15,AI15.2,"Acceptance Criteria:
+- Copilot can draft an approval request (who/why/what changes), and route it to the
+- right approver(s).","ai,ai15,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI15.3 — Approval status tracking in chat,,ESA-AI15,AI15.3,"Acceptance Criteria:
+- Copilot can tell who is pending and what’s blocking; integrates with “attention
+- indicator” concept already in AI1.","ai,ai15,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI15.4 — Approvals inbox + approve/reject workflow (UI + API),,ESA-AI15,AI15.4,"Acceptance Criteria:
+- Approvers have an inbox (filters: pending/approved/rejected; by type/date/requestor).
+- Approver can approve/reject with comments; action is audit-logged.
+- Copilot can deep-link an approver to the exact approval item.","ai,ai15,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI-OPS] LLM Provider & Prompt Governance (Ops/Admin),ESA-AI-OPS,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI-OPS1 — LLM provider configuration (OpenAI) + model routing by plan,,ESA-AI-OPS,AI-OPS1,"Server-side configuration only (no key exposure), environment/tenant feature gating, fallback
+model.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS2 — Prompt/instruction registry (versioned) + safe rollout,,ESA-AI-OPS,AI-OPS2,Store system prompts/tool-router prompts as versioned artifacts; allow staged rollout + rollback.,"ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS3 — Cost + token visibility per tenant/thread,,ESA-AI-OPS,AI-OPS3,"Extend AI usage analytics so ops can attribute usage/cost by tenant, feature, tool, time (beyond
+just “requests/latency/failures”). V18 has usage metrics, but not explicit “provider/prompt
+governance.”","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS4 — Imperative → Action routing rules,,ESA-AI-OPS,AI-OPS4,"Acceptance Criteria:
+- Copilot must prefer action intent over search intent unless the user explicitly says “find/show/list”.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS5 — Name/constraints must be echoed back before draft save,,ESA-AI-OPS,AI-OPS5,"Acceptance Criteria:
+- in a “Draft summary” before saving; if missing, it must ask only for missing fields.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS6 — Tool success-rate + latency dashboard,,ESA-AI-OPS,AI-OPS6,"Acceptance Criteria:
+- by tenant/date.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS7 — Top “misroutes” report,,ESA-AI-OPS,AI-OPS7,"Acceptance Criteria:
+- search), with counts and links to conversations.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS8 — Usage dashboard,,ESA-OPS,AI-OPS8,"As a super admin, I can view AI usage by tenant, feature, and time.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-OPS9 — Quota enforcement visibility,,ESA-OPS,AI-OPS9,"As a super admin, I can see when a tenant hit limits and why.","ai,ai-ops2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AI-UX] Copilot Action Reliability Feedback (User-facing),ESA-AI-UX,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI-UX1 — Intent preview before executing tools,,ESA-AI-UX,AI-UX1,"Copilot shows: “I’m going to draft a new RFQ” vs “I’m going to search draft RFQs” and the user
+confirms if ambiguous.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX2 — Tool failure “why + fix” card,,ESA-AI-UX,AI-UX2,"When a tool returns “no matches,” Copilot explains what it tried and offers next buttons: “Create
+new RFQ” / “Search drafts” / “Filter by status”.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX3 — Field-echo validation in draft cards,,ESA-AI-UX,AI-UX3,"Any user-provided entity (like RFQ name “Rotar Blades”) must be echoed back in the draft
+preview header + key fields to prevent silent omission.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX4 — “What happened” + Retry + Deep-link,,ESA-AI-UX,AI-UX4,"Acceptance Criteria:
+- button, and a deep link to do it manually (aligns with Guided Resolution).","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX5 — Partial completion guarantee,,ESA-AI-UX,AI-UX5,"Acceptance Criteria:
+- and clearly state what succeeded vs failed.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX6 — Navigation tool (deep links),,ESA-AI-UX,AI-UX6,"Acceptance Criteria:
+- Copilot can open the correct page (e.g., “Go to PO #PO-102”) and/or provide a link
+- target for UI.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX7 — Next best action recommendations,,ESA-AI-UX,AI-UX7,"Acceptance Criteria:
+- suggests actionable next steps based on status (RFQ awaiting quotes, PO awaiting
+- ack, invoice mismatch, etc.); respects permissions.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-UX8 — Workspace snapshot summary tool (procurement/finance overview),,ESA-AI-UX,AI-UX8,"Acceptance Criteria:
+- one call returns a compact summary: counts by status + most urgent items; used in
+- daily ops questions.","ai,ai-ux2,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[AN-ADV] Advanced Analytics & Reports,ESA-AN-ADV,,,Buyer reports (Forecast-focused),"analytics,phase-1-core-procurement",Phase 1 - Core Procurement
+Story,AN-ADV1 — Inventory AI Forecast Report (Buyer),,ESA-AN-ADV,AN-ADV1,"As a buyer, I can view a forecast report per item/category/location with charts + tables.
+Filters: date range, part/category, location, supplier, RFQ/PO status.
+Outputs: actual vs forecast line chart, forecast horizon selector, confidence band (if
+available).","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV2 — Forecast metrics table,,ESA-AN-ADV,AN-ADV2,"As a buyer, I can see MAPE/MAE, bias, reorder point, safety stock, and recommended
+order quantities in a sortable table.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV3 — Drilldowns from forecast → underlying data,,ESA-AN-ADV,AN-ADV3,"As a buyer, I can drill down from a forecast point to the supporting history
+(consumption/GRNs/POs/RFQs).","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV4 — Saved views & sharing,,ESA-AN-ADV,AN-ADV4,"As a buyer, I can save report filters as “views” and quickly switch between them.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV5 — Export forecast report,,ESA-AN-ADV,AN-ADV5,"As a buyer, I can export charts/tables to PDF/CSV and find them in Download Center.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV6 — AI narrative insights for the report,,ESA-AN-ADV,AN-ADV6,"As a buyer, I get an AI-generated summary (key drivers, anomalies, risks, recommended
+actions) based on the filtered report.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV7 — Supplier Performance Report (Supplier + Buyer view),,ESA-AN-ADV,AN-ADV7,"As a supplier, I can see my delivery performance, lead-time variability, quality issues,
+price trends, and risk score over time.
+As a buyer, I can compare suppliers (if permission allows).","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV8 — Supplier performance filters,,ESA-AN-ADV,AN-ADV8,"As a user, I can filter by date range, product lines/categories, locations, PO status, and
+buyer (supplier-side if applicable).","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV9 — AI performance coaching summary,,ESA-AN-ADV,AN-ADV9,"As a supplier, I receive AI insights: what improved, what deteriorated, and actionable
+recommendations.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV10 — Analytics API contracts + caching,,ESA-AN-ADV,AN-ADV10,"As the system, analytics endpoints support pagination, caching, and consistent schemas
+for charts/tables.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV11 — Analytics permissions + plan gating (detailed),,ESA-AN-ADV,AN-ADV11,"As the system, forecast analytics and supplier analytics are gated by role + plan, and
+never leak cross-tenant data.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV12 — Analytics dashboard (KPI cards),,ESA-AN-ADV,AN-ADV12,"As a user, I can view KPIs like Open RFQs, Quotes received (30d), Spend (30d), On-time
+receipts %, etc.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV13 — Analytics charts,,ESA-AN-ADV,AN-ADV13,"As a user, I can view charts (RFQs over time, spend by supplier, on-time vs late receipts).","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Story,AN-ADV14 — Analytics plan gating,,ESA-AN-ADV,AN-ADV14,"As the system, I hide/disable analytics when the plan doesn’t allow it.","an-adv,analytics,phase-1-core-procurement,story",Phase 1 - Core Procurement
+Epic,[PAY] Payments & Settlement,ESA-PAY,,,,"finance,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,PAY1 — Record payment against invoice(s) (partial + multi-invoice),,ESA-PAY,PAY1,"User can create a payment and allocate it to one or multiple invoices.
+Supports partial payments and shows remaining balance per invoice.
+Payment totals must equal allocated total (cannot over-allocate).
+Payment is saved with status, method, reference, and date.
+Allocation updates invoice payment status (e.g., Unpaid → Partially Paid → Paid).","finance,pay,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,PAY2 — Payment approval/void/refund states,,ESA-PAY,PAY2,"Payment can be submitted for approval (if required) and only approved users can
+approve.
+Payment status transitions are enforced: Draft → Pending Approval →
+Approved/Rejected.
+Approved payments can be voided with a reason (audit logged).
+Refund can be recorded against an approved payment with amount + reason.
+All transitions create an audit trail (who/when/what changed).","finance,pay,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,PAY3 — Remittance advice + supplier notification,,ESA-PAY,PAY3,"System can generate remittance advice (PDF/email content) for a payment.
+Remittance includes supplier, payment reference, date, total amount, and covered
+invoice list.
+User can send remittance to supplier via configured email channel.
+Send action logs delivery status (sent/failed) and stores a copy/record.
+Resending is supported and logged (version/timestamp).","finance,pay,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,PAY4 — Payment reconciliation report,,ESA-PAY,PAY4,"User can filter report by date range, supplier, method, status, currency.
+Report shows payments + allocations, and totals grouped by supplier and/or date.
+Export available (CSV at minimum).
+Reconciliation highlights anomalies: unallocated payments, over-allocations,
+voided/refunded entries.
+Totals match underlying payment + allocation records.","finance,pay,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[MD] Master Data Management,ESA-MD,,,,"master-data,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,"MD1 — Item master CRUD (SKU, UoM, categories, specs)",,ESA-MD,MD1,"User can create, view, update, deactivate items.
+SKU/item code must be unique within tenant.
+Item supports UoM, category, and specs/attributes (key-value fields).
+Item can be searched/filtered by name, SKU, category, active status.
+Changes are audit logged (who/when/what).","master-data,md,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,MD2 — Tax codes + payment terms dictionary,,ESA-MD,MD2,"User can create/edit/deactivate tax codes with rate + label.
+User can create/edit/deactivate payment terms (e.g., Net 30, due on receipt).
+Tax codes and payment terms are selectable in PO/Invoice flows.
+Deactivated values cannot be selected for new records but remain visible on historical
+records.
+Validation prevents invalid tax rates and duplicate codes.","master-data,md,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,MD3 — Supplier master finance fields (bank/tax/payment terms),,ESA-MD,MD3,"Supplier profile supports finance fields: tax ID, payment terms, bank details (where
+required).
+Finance fields are permission controlled (only finance/admin roles can edit).
+Supplier can have default tax/payment settings used when drafting invoices/POs.
+Changes are audit logged and visible in supplier history.
+Required fields enforced based on supplier type/country rules (configurable).","master-data,md,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,MD4 — Import/export master data (CSV),,ESA-MD,MD4,"User can export items/suppliers/tax/terms to CSV.
+User can import via CSV with validation + error report (row-level).
+Import supports upsert (update existing by unique key, create otherwise).
+System provides preview/summary before committing import.
+Successful import is logged with counts: created/updated/failed.","master-data,md,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[CON] Contracts,ESA-CON,,,,"contracts,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,CON1 — Contract repository (upload/version/link to supplier),,ESA-CON,CON1,"User can upload contracts and link them to a supplier (and optionally category/items).
+Supports versioning: uploading a new version keeps previous versions accessible.
+Contract metadata: contract number, start/end dates, status, key notes.
+Contract files are permission controlled and tenant scoped.
+Search/filter by supplier, status, expiry range, contract number.","con,contracts,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,CON2 — Contract expiry alerts + risk flags,,ESA-CON,CON2,"System triggers alerts for upcoming expiry (configurable windows e.g., 30/60/90 days).
+Alerts appear in dashboard/notifications and include contract + supplier + expiry date.
+Users can mark alerts as acknowledged or snoozed (logged).
+Risk flags generated when: expired contracts, missing renewal, high supplier risk, or
+missing required fields.
+Audit trail exists for alert actions (acknowledge/snooze/renew started).","con,contracts,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,CON3 — Contract-to-PO enforcement checks (optional),,ESA-CON,CON3,"When enabled, system blocks or warns on PO creation if no valid contract exists for
+supplier/category/items.
+Enforcement mode configurable: Warn only or Block.
+Copilot/workflows can surface the reason + suggested actions (link to contract
+upload/renew).
+Overrides require permission and capture justification.
+All enforcement events are logged for audit.","con,contracts,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[POL] Policy & Rules Configuration (Admin),ESA-POL,,,,"phase-3-procure-to-pay-expansion,policy",Phase 3 - Procure-to-Pay Expansion
+Story,POL1 — Approval policy rules editor (RFQ/PO/Invoice/Payment),,ESA-POL,POL1,"Configure thresholds, conditions, required approver roles, escalation rules.","phase-3-procure-to-pay-expansion,pol,policy,story",Phase 3 - Procure-to-Pay Expansion
+Story,POL2 — 3-way match tolerances configuration,,ESA-POL,POL2,"Configure tolerances by company (and optionally by supplier/item/category): qty variance, unit
+price variance, total variance, rounding rules.","phase-3-procure-to-pay-expansion,pol,policy,story",Phase 3 - Procure-to-Pay Expansion
+Story,POL3 — Policy simulation / “what would happen” test,,ESA-POL,POL3,"Admin can test a hypothetical document against current rules and see the resulting
+approvals/blocks.","phase-3-procure-to-pay-expansion,pol,policy,story",Phase 3 - Procure-to-Pay Expansion
+Story,POL4 — Policy versioning + audit log,,ESA-POL,POL4,Every change to policies creates a new version and is fully auditable/exportable.,"phase-3-procure-to-pay-expansion,pol,policy,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[BIL] Billing & Subscriptions (Stripe),ESA-BIL,,,,"billing,phase-2-platform-and-ops",Phase 2 - Platform & Ops
+Story,BIL1 — Choose plan & start subscription,,ESA-BIL,BIL1,"As a company owner, I can select a plan and start a paid subscription so my company can use
+Elements Supply AI beyond trial.
+
+Acceptance Criteria:
+- Pricing/Plans page shows available plans (Starter/Growth/Enterprise) with key limits (RFQs/month, users, storage, AI features).
+- “Get Started” / “Upgrade” button opens Stripe Checkout with correct plan + tenant ID.
+- On successful payment, subscription + plan are stored against the company (Stripe customer + subscription IDs).
+- Company status/plan immediately reflected in app (gates update without re-login).","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL2 — Trial with payment method on file,,ESA-BIL,BIL2,"As a company owner, I can start a trial by entering a payment method so billing becomes
+automatic when the trial ends.
+
+Acceptance Criteria:
+- Trial checkout requires valid card; trial end date stored on company record.
+- Plan entitlements are active during trial.
+- A background job or webhook updates subscription to “active” (paid) or “cancelled” at trial end.
+- If trial is cancelled before end date, access downgrades to free/limited plan.","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL3 — Billing portal & invoices,,ESA-BIL,BIL3,"As a company owner/finance user, I can manage my payment method and view invoices.
+
+Acceptance Criteria:
+- “Billing & Plan” page has “Manage billing” button that opens Stripe Billing Portal for the current tenant.
+- Users can update card, view Stripe invoices, download them.
+- No card details stored in application DB (only Stripe IDs + metadata).
+- Access restricted to roles with billing permission (e.g., owner, finance_admin).","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL4 — Plan upgrades & downgrades,,ESA-BIL,BIL4,"As a company owner, I can upgrade or downgrade my plan safely.
+
+Acceptance Criteria:
+- Upgrades apply immediately after Stripe confirmation (entitlements updated at once).
+- Downgrades scheduled according to Stripe subscription rules; app continues higher entitlements until effective date.
+- If plan downgrade would violate limits (e.g., more users than allowed), app surfaces clear guidance (who/what to change) rather than silently failing.
+- All plan changes logged (who, from→to, when).","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL5 — Failed payment grace period & read-only mode,,ESA-BIL,BIL5,"As the system, I protect data but control access when payments fail.
+
+Acceptance Criteria:
+- On invoice.payment_failed / subscription past_due, company is marked “grace_period” for X days.
+- After grace period, app enters read-only for that tenant: core data visible but write actions (new RFQs, POs, etc.) are blocked with clear message.
+- When payment is recovered, full access is restored automatically.
+- Notifications go to owner + billing contacts when entering/exiting grace/read-only states.","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL6 — Platform admin subscription overview,,ESA-BIL,BIL6,"As a super admin, I can see and adjust tenant subscriptions.
+
+Acceptance Criteria:
+- Admin console shows plan, Stripe subscription status, trial end, usage summary for each tenant.
+- Super admin can apply manual overrides (extra RFQ limit, temporary extension, etc.) with reason captured.
+- Changes are fully audit-logged.","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL7 — Stripe webhook reliability + replay,,ESA-BIL,BIL7,"As the system, Stripe webhook processing is reliable and recoverable.
+
+Acceptance Criteria:
+- Idempotency enforced for all Stripe events.
+- Failed webhook deliveries are stored with retry/backoff and a manual “replay” option (admin).
+- Webhook processing is observable (logs/metrics).","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL8 — Entitlement recompute job,,ESA-BIL,BIL8,"As the system, I can recompute tenant entitlements from source of truth.
+
+Acceptance Criteria:
+- Scheduled job re-syncs plan features/limits from Stripe + admin overrides.
+- Fixes drift (e.g., webhook missed) without manual DB edits.
+- Logged and visible in admin.","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,BIL9 — Supplier-first companies are exempt from plan selection & Stripe subscription,,ESA-BIL,BIL9,"As a Supplier-first company owner, I am not prompted to choose a plan or pay because suppliers can sign up for free.
+
+Acceptance Criteria:
+- Supplier-first companies never see plan selection prompts/modals during signup or onboarding.
+- Billing/Plans UI is hidden or shows “Suppliers are free” message (no Checkout CTA).
+- Stripe customer/subscription is not created for Supplier-first companies.
+- Any plan/usage gating middleware treats Supplier-first companies as “free supplier tier” (no buyer subscription required).","bil,billing,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[UP] User Profile & Personal Settings,ESA-UP,,,,"phase-2-platform-and-ops,profile",Phase 2 - Platform & Ops
+Story,"UP1 — Personal profile (name, avatar, contact)",,ESA-UP,UP1,"As a user, I can manage my own profile information.
+
+Acceptance Criteria:
+- “My Profile” page lets user change name, avatar, job title, phone.
+- Validation on formats (file size/type, phone format).
+- Changes affect avatar/name shown in navigation, comments, audit logs.
+- Profile updates are audit-logged (who/when; old vs new not required).","phase-2-platform-and-ops,profile,story,up",Phase 2 - Platform & Ops
+Story,UP2 — Personal timezone & locale,,ESA-UP,UP2,"As a user, I can choose my own timezone/locale so my dates and times make sense to me.
+
+Acceptance Criteria:
+- User can set timezone and optionally preferred date/number format.
+- Defaults inherit from company settings (CL2) when user hasn’t set their own.
+- UI and notification timestamps respect user settings wherever possible.
+- If conflicting with company defaults, rules are clearly defined (e.g., reporting uses company, UI uses user).","phase-2-platform-and-ops,profile,story,up",Phase 2 - Platform & Ops
+Story,UP3 — Personal notification preferences & digests,,ESA-UP,UP3,"As a user, I can choose how I receive notifications (in-app/email/digests).
+
+Acceptance Criteria:
+- “Notifications” tab under My Profile lets user toggle notification types (RFQ events, PO events, finance events, AI events, etc.) and channels (in-app, email, digest).
+- Digest frequency options: none/daily/weekly; integrates with EPIC N (Notification Center).
+- System respects these preferences when sending notifications (no hard-coded behaviour).
+- Reasonable defaults applied for new users.","phase-2-platform-and-ops,profile,story,up",Phase 2 - Platform & Ops
+Story,UP4 — Default organisation / remembered org,,ESA-UP,UP4,"As a user in multiple companies, I automatically land in the right org.
+
+Acceptance Criteria:
+- User can set a “default organisation” in profile or app remembers the last active company.
+- On login, app uses that company as active unless overridden by deep link.
+- If user is removed from that company, fallback to another membership with safe handling.","phase-2-platform-and-ops,profile,story,up",Phase 2 - Platform & Ops
+Epic,[QLT] Quality Inspection & NCR,ESA-QLT,,,,"phase-3-procure-to-pay-expansion,quality",Phase 3 - Procure-to-Pay Expansion
+Story,QLT1 — Record quality inspection on GRN,,ESA-QLT,QLT1,"As a buyer/quality user, I can record inspection results when goods are received.
+
+Acceptance Criteria:
+- GRN posting (FIN3) extended with inspection fields: accepted qty, rejected qty, defect type/category, notes, attachments (photos, reports).
+- Validation prevents accepted + rejected > received qty.
+- Inspection data is visible on GRN, PO, and item history.","phase-3-procure-to-pay-expansion,qlt,quality,story",Phase 3 - Procure-to-Pay Expansion
+Story,QLT2 — Create Non-Conformance Report (NCR),,ESA-QLT,QLT2,"As a user, I can raise an NCR when received goods don’t meet requirements.
+
+Acceptance Criteria:
+- Button “Raise NCR” on GRN line when rejected qty > 0.
+- NCR record includes supplier, item, PO/GRN refs, defect details, photos/docs, severity.
+- NCR gets its own number and appears in a Quality/NCR list.","phase-3-procure-to-pay-expansion,qlt,quality,story",Phase 3 - Procure-to-Pay Expansion
+Story,QLT3 — NCR workflow,,ESA-QLT,QLT3,"As the system, I guide NCRs through a clear lifecycle.
+
+Acceptance Criteria:
+- Statuses: raised → under_review → corrective_action → verified → closed.
+- Only certain roles can move NCR forward; each transition requires comment.
+- Timeline shows who changed what, and when.
+- NCR closure optionally requires attaching CAPA docs (corrective/preventive actions).","phase-3-procure-to-pay-expansion,qlt,quality,story",Phase 3 - Procure-to-Pay Expansion
+Story,QLT4 — NCR impact on supplier performance,,ESA-QLT,QLT4,"As the system, I feed NCRs into supplier performance and risk scoring.
+
+Acceptance Criteria:
+- NCR counts/severity are aggregated per supplier and surfaced in supplier performance reports (AN-ADV7/AI7 integration).
+- Risk score updated when NCRs are added/closed.
+- Supplier directory/quote compare shows a quality indicator derived from NCR history.","phase-3-procure-to-pay-expansion,qlt,quality,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[RMA] Returns & RMAs,ESA-RMA,,,,"phase-3-procure-to-pay-expansion,returns",Phase 3 - Procure-to-Pay Expansion
+Story,RMA1 — Buyer raises RMA/return request,,ESA-RMA,RMA1,"As a buyer, I can raise a formal return request for goods that arrived damaged/incorrect.
+
+Acceptance Criteria:
+- From GRN/Order detail, user can “Create RMA” for specific lines/quantities.
+- RMA records reason, photos, desired resolution (replacement, credit, rework, scrap).
+- Initial status raised; linked to original PO/GRN.","phase-3-procure-to-pay-expansion,returns,rma,story",Phase 3 - Procure-to-Pay Expansion
+Story,RMA2 — Supplier review & decision,,ESA-RMA,RMA2,"As a supplier, I can review RMAs and propose a resolution.
+
+Acceptance Criteria:
+- Supplier RMA list shows buyer, item, reason, qty.
+- Status transitions: raised → under_review → approved → rejected → closed.
+- Supplier can propose terms (who pays freight, replacement schedule, etc.).
+- All decisions and changes are logged.","phase-3-procure-to-pay-expansion,returns,rma,story",Phase 3 - Procure-to-Pay Expansion
+Story,RMA3 — Credit note or replacement linkage,,ESA-RMA,RMA3,"As the system, I connect RMAs to credit notes and replacement shipments.
+
+Acceptance Criteria:
+- Approved RMAs can:
+- Create a credit note (FIN5) for rejected amount, or
+- Trigger a replacement shipment (ORD2) with zero or discounted value.
+- RMA detail shows related credit notes/shipments.
+- Financial and inventory effects are consistent (no double-crediting).","phase-3-procure-to-pay-expansion,returns,rma,story",Phase 3 - Procure-to-Pay Expansion
+Story,RMA4 — Visibility in orders & analytics,,ESA-RMA,RMA4,"As a buyer, I can see which orders had returns and why.
+
+Acceptance Criteria:
+- Orders/PO lists show “Has RMA” indicator and count.
+- Analytics can filter by “orders with returns” to feed supplier performance/quality reports.","phase-3-procure-to-pay-expansion,returns,rma,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[RFP] Service & Project RFPs,ESA-RFP,,,,"phase-3-procure-to-pay-expansion,rfp",Phase 3 - Procure-to-Pay Expansion
+Story,RFP1 — Create project/service RFP,,ESA-RFP,RFP1,"As a buyer, I can create a request for proposal (RFP) for services/projects, not just parts.
+
+Acceptance Criteria:
+- Separate RFP creation flow capturing: objectives, scope, deliverables, timeline, budget range, evaluation criteria, proposal format (sections).
+- RFP supports attachments (SOW docs, drawings).
+- Status: draft → published → closed → awarded/cancelled.","phase-3-procure-to-pay-expansion,rfp,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFP2 — Suppliers submit structured proposals,,ESA-RFP,RFP2,"As a supplier, I can submit a structured proposal against an RFP.
+
+Acceptance Criteria:
+- Proposal form supports structured sections (approach, team, milestones, fees, assumptions) + attachments.
+- Supplier can revise proposals until deadline (versioned like G6).
+- Buyer sees latest version with access to history.","phase-3-procure-to-pay-expansion,rfp,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFP3 — RFP comparison & scoring,,ESA-RFP,RFP3,"As a buyer, I can compare proposals side-by-side and score them.
+
+Acceptance Criteria:
+- Compare view shows proposals in columns with key criteria rows (technical, commercial, timeline, risk).
+- Users can assign scores per criterion and see weighted totals.
+- Comments per supplier/criterion stored for audit.","phase-3-procure-to-pay-expansion,rfp,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFP4 — Convert awarded RFP to contract/service PO,,ESA-RFP,RFP4,"As a buyer, I can award an RFP and turn it into a contract or service PO.
+
+Acceptance Criteria:
+- Award action selects winning supplier(s) and triggers either:
+- Contract record (CON1) with linked RFP, or
+- Service PO with milestones and payment terms.
+- Non-awarded suppliers see polite regret status.
+- Awarded status reflected on RFP and visible in analytics.","phase-3-procure-to-pay-expansion,rfp,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[USG] Usage & Plan Enforcement,ESA-USG,,,,"phase-2-platform-and-ops,usage",Phase 2 - Platform & Ops
+Story,USG1 — Usage snapshot per tenant,,ESA-USG,USG1,"As the system, I maintain daily usage snapshots per tenant for enforcement and analytics.
+
+Acceptance Criteria:
+- Scheduled job computes: RFQs created, POs, invoices, active users, storage, AI requests, etc.
+- Snapshots stored in a usage_snapshots table keyed by tenant + date.
+- Admin console can display trend charts from these snapshots.","phase-2-platform-and-ops,story,usage,usg",Phase 2 - Platform & Ops
+Story,USG2 — Enforce soft/hard limits by plan,,ESA-USG,USG2,"As the system, I enforce plan limits using usage data.
+
+Acceptance Criteria:
+- For each plan, configurable limits (RFQs/month, storage GB, AI messages/day, etc.).
+- “Soft limit” behaviour: warnings + upsell banners but still allow operations.
+- “Hard limit” behaviour: block specific actions with clear explanation and CTA to upgrade.
+- All blocks/warnings are logged per tenant.","phase-2-platform-and-ops,story,usage,usg",Phase 2 - Platform & Ops
+Story,USG3 — Platform admin usage & limits view,,ESA-USG,USG3,"As a super admin, I can see which tenants are near or over limits.
+
+Acceptance Criteria:
+- Admin console shows usage vs limits per tenant (heat-map or list).
+- Can set per-tenant exceptions/overrides (with reason).
+- Export usage to CSV for billing/ops.","phase-2-platform-and-ops,story,usage,usg",Phase 2 - Platform & Ops
+Story,USG4 — Tenant-visible usage dashboard,,ESA-USG,USG4,"As a tenant admin, I can see my own usage vs plan limits.
+
+Acceptance Criteria:
+- “Plan & Usage” page shows progress bars for RFQs, storage, AI usage, etc.
+- Warnings appear before hitting hard limits.
+- Links to upgrade or contact sales.","phase-2-platform-and-ops,story,usage,usg",Phase 2 - Platform & Ops
+Epic,[OFF] Tenant Offboarding & Data Lifecycle,ESA-OFF,,,,"offboarding,phase-2-platform-and-ops",Phase 2 - Platform & Ops
+Story,OFF1 — Company data export bundle,,ESA-OFF,OFF1,"As a tenant admin, I can export a full copy of our company’s data for compliance/exit.
+
+Acceptance Criteria:
+- Export wizard lets admin request “Full company export” (entities + document metadata + files where feasible).
+- Export runs as background job and appears in Download Center (EXP2) with signed URL.
+- Bundle includes at least CSV/JSON for master data + key documents (or references).
+- Access strictly limited to tenant admins; action is audit-logged.","off,offboarding,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,OFF2 — Company suspension vs deletion,,ESA-OFF,OFF2,"As the system, I distinguish between suspending and deleting a company.
+
+Acceptance Criteria:
+- Statuses: active, suspended, scheduled_for_deletion, deleted.
+- Suspended: logins blocked, API blocked, data preserved.
+- Scheduled_for_deletion: retention countdown runs; admins warned.
+- Deleted: logins blocked; human-defined subset of data removed/anonymised; references kept where legally required.","off,offboarding,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,OFF3 — User deactivation & account closure,,ESA-OFF,OFF3,"As an admin or user, we can deactivate individual accounts safely.
+
+Acceptance Criteria:
+- Admin can deactivate users in their company; user can request self-deletion/closure.
+- Deactivated users cannot login or be re-invited without explicit action.
+- Historical records show their name but no longer active account link (depending on privacy rules).
+- Actions are audit-logged.","off,offboarding,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Story,OFF4 — Data retention policy & anonymisation,,ESA-OFF,OFF4,"As the system, I enforce data retention and anonymisation policies.
+
+Acceptance Criteria:
+- Configurable retention periods for logs, AI events, notifications, etc. (complements OPS/SEC stories).
+- Scheduled tasks purge or anonymise data after retention.
+- Critical audit/legal records are retained even if user/company is deleted (with PII minimised).","off,offboarding,phase-2-platform-and-ops,story",Phase 2 - Platform & Ops
+Epic,[RFQC] RFQ Clarifications & Amendments,ESA-RFQC,,,,"phase-3-procure-to-pay-expansion,rfq",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC1 — RFQ clarification Q&A thread,,ESA-RFQC,RFQC1,"As a supplier, I can ask clarification questions on an RFQ, and buyers can respond
+in a shared thread, so everyone has the same understanding.
+
+Acceptance Criteria:
+- RFQ detail (buyer & supplier views) shows a “Clarifications” / “Q&A” tab.
+- Suppliers can post questions while the RFQ is open.
+- Buyers can reply; replies are visible to all invited/open suppliers (not just the one who asked).
+- Timestamps and author (buyer/supplier) are shown.
+- Thread is read-only after RFQ is closed/awarded.","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC2 — Private vs broadcast answers (optional),,ESA-RFQC,RFQC2,"As a buyer, I can mark an answer as public (to all suppliers) or private (to one
+supplier) when needed.
+
+Acceptance Criteria:
+- Default: answers are public to all RFQ participants.
+- Buyer can choose “reply privately” for sensitive clarifications.
+- UI clearly marks private answers; only that supplier sees them.
+- System warns if buyer is about to share something public that references a specific supplier’s confidential info.","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC3 — RFQ amendments & version history,,ESA-RFQC,RFQC3,"As a buyer, I can amend an RFQ (e.g., change quantities, specs, or attach new
+files) with a clear version history, so suppliers know what changed.
+
+Acceptance Criteria:
+- RFQ has a version or revision indicator (e.g., v1, v2, v3).
+- Buyer can create an amendment that:
+- Updates specified fields (quantities, specs, deadlines, attachments).
+- Captures “reason for amendment”.
+- Version history panel shows each amendment (who, when, what changed).
+- Existing quotes are either:
+- Marked “Needs update” when a material field changes, or
+- Locked if amendment is too late (rules defined and enforced server-side).","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC4 — Supplier visibility & notifications for amendments,,ESA-RFQC,RFQC4,"As a supplier, I can clearly see when an RFQ has been amended and what
+changed.
+
+Acceptance Criteria:
+- When an RFQ is amended, suppliers get an in-app notification (and email if enabled).
+- RFQ detail shows a banner like “Updated on [date] — view changes”.
+- “View changes” shows a diff or summary vs the prior version.
+- Quotes submitted before an amendment are tagged with the RFQ version they were based on.","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,"RFQC5 — Deadlines: extend, close, reopen",,ESA-RFQC,RFQC5,"As a buyer, I can extend, close, or reopen RFQ deadlines with clear rules.
+
+Acceptance Criteria:
+- Buyer can:
+- Extend deadline while RFQ is open (requires reason, logged).
+- Close RFQ manually before deadline.
+- Optionally reopen a closed RFQ (new deadline required).
+- After deadline/closure:
+- Suppliers can’t submit or revise quotes.
+- System can auto-mark unanswered invitations as “No Response”.
+- Actions and reasons appear in the RFQ activity log (fits with U2 “RFQ activity log”).","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC1 — Buyer can manage an RFQ after sending,,ESA-RFQC,RFQC1,"As a buyer, I can perform actions on a sent RFQ (close/cancel, extend deadline, invite
+more suppliers), so I can control the sourcing event.
+
+Acceptance Criteria:
+- suppliers are notified (at least in UI state if email not built).","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Story,RFQC2 — Buyer can view RFQ activity log,,ESA-RFQC,RFQC2,"As a buyer, I can see an RFQ activity trail (created, sent, quote received, accepted), so I
+understand what happened.
+
+Acceptance Criteria:
+- V5 has R1 (supplier quote from details) but nothing equivalent for buyer RFQ “actions” beyond quote acceptance.","phase-3-procure-to-pay-expansion,rfq,rfqc,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[POC] Purchase Order Change Orders & Revisions,ESA-POC,,,,"orders,phase-3-procure-to-pay-expansion,purchase-orders",Phase 3 - Procure-to-Pay Expansion
+Story,POC1 — Supplier propose PO change,,ESA-POC,POC1,"As a supplier, I can propose changes to a PO (dates, quantities, prices, terms)
+instead of only accepting or rejecting it.
+
+Acceptance Criteria:
+- On a received PO, supplier has:
+- “Accept”, “Decline”, and “Propose changes” actions.
+- “Propose changes” opens a form where supplier can change:
+- Delivery dates
+- Line-level quantities (within configured tolerance)
+- Prices (if allowed)
+- Notes/terms
+- Submitting creates a Change Request linked to the PO with status pending_buyer_review.
+- Buyer is notified and sees the proposed changes highlighted.","orders,phase-3-procure-to-pay-expansion,poc,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,POC2 — Buyer review & approve/reject change request,,ESA-POC,POC2,"As a buyer, I can review supplier change requests and approve or reject them with
+a clear audit trail.
+
+Acceptance Criteria:
+- PO detail shows “Change requests” section with status (pending/approved/rejected).
+- For each request, buyer sees:
+- Original vs proposed values
+- Supplier’s reason
+- Buyer actions:
+- Approve → PO is updated; PO revision number increments (e.g., PO-1001 v2).
+- Reject → PO stays as-is; supplier notified with reason.
+- All decisions are audit-logged (who, when, what changed, reason).","orders,phase-3-procure-to-pay-expansion,poc,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,POC3 — PO revision history & visibility,,ESA-POC,POC3,"As a user, I can see the full revision history of a PO, including acknowledgements
+and change orders.
+
+Acceptance Criteria:
+- PO detail includes a “Revision history” or “Timeline” panel:
+- Creation, acknowledgement, change requests, approvals, cancellations.
+- Each revision shows what changed (lines, dates, prices, terms).
+- PDF exports/numbering reflect revision (e.g., “PO-1001 Rev 2”).
+- Older revisions remain viewable but clearly marked as superseded.","orders,phase-3-procure-to-pay-expansion,poc,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Story,"POC4 — Impact on shipments, GRN and invoices",,ESA-POC,POC4,"As the system, I keep shipments, GRN and invoices consistent when the PO
+changes.
+
+Acceptance Criteria:
+- Rules are defined and enforced:
+- If no goods shipped/received/invoiced yet → full change allowed.
+- If partially shipped/received/invoiced → only certain fields or lines can change, or a separate PO is required.
+- Change requests that would conflict with existing shipments/GRN/invoices are blocked with a clear error.
+- 3-way match (FIN4) takes PO revisions into account when comparing quantities/prices.","orders,phase-3-procure-to-pay-expansion,poc,purchase-orders,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[GS] Global Workspace Search,ESA-GS,,,,"phase-3-procure-to-pay-expansion,search",Phase 3 - Procure-to-Pay Expansion
+Story,GS1 — Global search bar,,ESA-GS,GS1,"As a user, I can type keywords into a single search bar (e.g., in the top nav) to find
+RFQs, POs, suppliers, invoices, and documents.
+
+Acceptance Criteria:
+- Global search bar is visible when logged in.
+- Results are grouped by entity type (RFQs, POs, Suppliers, Items, Docs).
+- Each result link deep-links to the correct detail page.
+- Results respect tenant & permission scoping (no cross-company leaks).","gs,phase-3-procure-to-pay-expansion,search,story",Phase 3 - Procure-to-Pay Expansion
+Story,GS2 — Search filters & recent searches,,ESA-GS,GS2,"As a user, I can filter global search results and quickly re-run recent searches.
+
+Acceptance Criteria:
+- Filter chips (e.g., “Only RFQs”, “Only Suppliers”, “Only Docs”).
+- Recent searches drop-down; click to rerun.
+- Pagination for large result sets.","gs,phase-3-procure-to-pay-expansion,search,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[AI-RFQ] Inline RFQ & Supplier AI Assist,ESA-AI-RFQ,,,,"ai,phase-4-ai-and-digital-twin",Phase 4 - AI & Digital Twin
+Story,AI-RFQ1 — RFQ spec sanity check,,ESA-AI-RFQ,AI-RFQ1,"As a buyer on the RFQ form, I can ask AI to review my RFQ and highlight
+missing/ambiguous data.
+
+Acceptance Criteria:
+- “Ask Copilot to review” button on RFQ draft.
+- AI returns a list of suggestions (e.g., missing tolerance, unclear material, inconsistent quantities) with links to fields.
+- No changes are auto-applied; user can apply suggestions manually.","ai,ai-rfq,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-RFQ2 — Suggested suppliers for an RFQ,,ESA-AI-RFQ,AI-RFQ2,"As a buyer, I can ask AI to suggest best-fit suppliers for this RFQ.
+
+Acceptance Criteria:
+- Button on RFQ draft (or Copilot panel) calls supplier-matching logic.
+- Result: ranked list of suppliers with explanation badges (capability match, past performance, region, risk).
+- User can add selected suppliers to the RFQ invite list in one click.","ai,ai-rfq,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Story,AI-RFQ3 — Cost band estimate,,ESA-AI-RFQ,AI-RFQ3,"As a buyer, I can see a rough “expected cost range” for my RFQ, so I know if
+quotes look reasonable.
+
+Acceptance Criteria:
+- AI returns min/median/max band with a simple rationale (not exact pricing).
+- Marked clearly as an estimate, not a formal price.
+- Does not auto-populate line prices, only displays guidance.","ai,ai-rfq,phase-4-ai-and-digital-twin,story",Phase 4 - AI & Digital Twin
+Epic,[APP] Approval Workflow Runtime (Not just policy editor),ESA-APP,,,,"approvals,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,APP1 — Submit document for approval,,ESA-APP,APP1,"As a requester, I can submit a PO/Invoice/Payment for approval, so it follows policy.
+
+Acceptance Criteria:
+- “Submit for approval” action exists on documents where policy requires it.
+- Status transitions: Draft → Pending Approval (or equivalent).
+- Document becomes read-only except permitted fields.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP2 — Approver inbox,,ESA-APP,APP2,"As an approver, I can view items awaiting my approval.
+
+Acceptance Criteria:
+- Inbox list filters: type (PO/Invoice/Payment), status, requester, date.
+- Each item shows summary + policy reason (threshold/rule matched).
+- Deep links to approval detail.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP3 — Approve / reject with comments,,ESA-APP,APP3,"As an approver, I can approve or reject with a comment.
+
+Acceptance Criteria:
+- Approve advances to next approval step or final Approved.
+- Reject returns to requester with reason and unlock rules clearly defined.
+- Audit event captured on every action.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP4 — Multi-step approval chain,,ESA-APP,APP4,"As the system, I enforce sequential approvals when policies require multiple approvers.
+
+Acceptance Criteria:
+- Only the current required approver(s) can act.
+- Next approver gets notified.
+- Timeline shows each step.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP5 — Approval delegation / out-of-office (optional),,ESA-APP,APP5,"As an approver, I can delegate approvals temporarily.
+
+Acceptance Criteria:
+- Delegation has start/end dates, scope (document types), and audit.
+- Delegated approver appears in timeline as “acting for”.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP6 — Withdraw/cancel an approval request (before completion),,ESA-APP,APP6,"As a requester, I can withdraw a pending approval request.
+
+Acceptance Criteria:
+- “withdrawn/cancelled”; audit logged.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP7 — Edit + resubmit after rejection,,ESA-APP,APP7,"As a requester, I can correct the record and resubmit after a rejection.
+
+Acceptance Criteria:
+- logged.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP8 — Approve/Reject from email (secure deep link),,ESA-APP,APP8,"As an approver, I can approve/reject directly from email.
+
+Acceptance Criteria:
+- prevents double-submit.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,APP9 — Reminders / escalation rules (runtime),,ESA-APP,APP9,"As the system, I remind/escalate when approvals are stuck.
+
+Acceptance Criteria:
+- opt-out per workflow; audit logged.","app,approvals,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Epic,[ATCH] Document Attachments Versioning & Previews,ESA-ATCH,,,(Beyond just “secure downloads”),"documents,files,phase-3-procure-to-pay-expansion",Phase 3 - Procure-to-Pay Expansion
+Story,ATCH1 — Attachment versioning (replace without losing history),,ESA-ATCH,ATCH1,"As a user, I can preview attachments in-app where supported.
+
+Acceptance Criteria:
+- PDFs/images preview in a modal/viewer (using signed URLs).
+- CAD/STL shows “download + external viewer” fallback (or a placeholder viewer).
+- Preview respects permissions and logs access.","doc2,documents,files,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,ATCH2 — Attachment versioning (replace without losing history),,ESA-ATCH,ATCH2,"As a user, I can upload a new version of an attachment without losing old versions.
+
+Acceptance Criteria:
+- New upload becomes latest; previous versions remain viewable.
+- Version metadata: uploaded_by, uploaded_at, note.
+- Export/PDF references latest by default.","doc2,documents,files,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion
+Story,ATCH3 — Attachment delete rules,,ESA-ATCH,ATCH3,"As the system, I prevent deleting attachments that are required for compliance/audit.
+
+Acceptance Criteria:
+- If an RFQ is sent / PO issued / invoice posted → attachment deletion is blocked or requires elevated permission + reason.
+- All delete attempts are logged.","doc2,documents,files,phase-3-procure-to-pay-expansion,story",Phase 3 - Procure-to-Pay Expansion

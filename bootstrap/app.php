@@ -13,6 +13,7 @@ use App\Http\Middleware\AuthenticateApiSession;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\EnsureAnalyticsAccess;
 use App\Http\Middleware\ApplyCompanyLocale;
+use App\Http\Middleware\TrustCloudflareHeaders;
 use App\Http\Middleware\EnsureAiAdminAccess;
 use App\Http\Middleware\EnsureAiServiceAvailable;
 use App\Http\Middleware\EnsureBuyerAccess;
@@ -72,6 +73,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ])
     ->withBroadcasting(__DIR__.'/../routes/channels.php')
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(TrustCloudflareHeaders::class);
+        $middleware->replace(\Illuminate\Http\Middleware\TrustProxies::class, \App\Http\Middleware\TrustProxies::class);
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(

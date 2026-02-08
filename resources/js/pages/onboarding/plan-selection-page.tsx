@@ -105,6 +105,11 @@ export function PlanSelectionPage() {
         if (state.status !== 'authenticated') {
             return false;
         }
+        const isSupplierStart =
+            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+        if (isSupplierStart) {
+            return false;
+        }
         return state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
     }, [state]);
 

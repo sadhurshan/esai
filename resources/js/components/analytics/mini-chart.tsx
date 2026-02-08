@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 const DEFAULT_COLORS = ['#2563eb', '#16a34a', '#f97316', '#a855f7', '#0ea5e9'];
+const GRID_COLOR = '#e2e8f0';
 
 export interface MiniChartSeriesConfig {
     key: string;
@@ -40,12 +41,14 @@ export function MiniChart({
     const safeData = Array.isArray(data) ? data : [];
 
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="text-base font-semibold">{title}</CardTitle>
-                {description ? <CardDescription className="text-sm text-muted-foreground">{description}</CardDescription> : null}
+        <Card className="h-full border-border/70 shadow-sm">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold text-foreground">{title}</CardTitle>
+                {description ? (
+                    <CardDescription className="text-sm text-muted-foreground">{description}</CardDescription>
+                ) : null}
             </CardHeader>
-            <CardContent className="h-full">
+            <CardContent className="h-full pt-0">
                 {isLoading ? (
                     <div style={{ height }} className="w-full">
                         <Skeleton className="h-full w-full" />
@@ -58,18 +61,30 @@ export function MiniChart({
                         {emptyMessage}
                     </div>
                 ) : (
-                    <div style={{ height }}>
+                    <div
+                        style={{ height }}
+                        className="rounded-md border border-border/60 bg-gradient-to-b from-background to-muted/20 p-2"
+                    >
                         <ResponsiveContainer width="100%" height="100%">
                             {chartType === 'line' ? (
-                                <LineChart data={safeData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                    <XAxis dataKey={categoryKey} tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
+                                <LineChart data={safeData} margin={{ top: 12, right: 12, left: 8, bottom: 8 }}>
+                                    <CartesianGrid strokeDasharray="4 4" stroke={GRID_COLOR} />
+                                    <XAxis
+                                        dataKey={categoryKey}
+                                        tick={{ fontSize: 12, fill: '#64748b' }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: GRID_COLOR }}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 12, fill: '#64748b' }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: GRID_COLOR }}
+                                    />
                                     <Tooltip
                                         content={<MiniChartTooltip valueFormatter={valueFormatter} />}
-                                        cursor={{ stroke: '#cbd5f5' }}
+                                        cursor={{ stroke: '#cbd5f5', strokeDasharray: '3 3' }}
                                     />
-                                    <Legend />
+                                    <Legend wrapperStyle={{ fontSize: 12, color: '#64748b' }} />
                                     {series.map((s, index) => (
                                         <Line
                                             key={s.key}
@@ -84,12 +99,21 @@ export function MiniChart({
                                     ))}
                                 </LineChart>
                             ) : (
-                                <BarChart data={safeData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                    <XAxis dataKey={categoryKey} tick={{ fontSize: 12 }} />
-                                    <YAxis tick={{ fontSize: 12 }} />
-                                    <Tooltip content={<MiniChartTooltip valueFormatter={valueFormatter} />} />
-                                    <Legend />
+                                <BarChart data={safeData} margin={{ top: 12, right: 12, left: 8, bottom: 8 }}>
+                                    <CartesianGrid strokeDasharray="4 4" stroke={GRID_COLOR} />
+                                    <XAxis
+                                        dataKey={categoryKey}
+                                        tick={{ fontSize: 12, fill: '#64748b' }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: GRID_COLOR }}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 12, fill: '#64748b' }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: GRID_COLOR }}
+                                    />
+                                    <Tooltip content={<MiniChartTooltip valueFormatter={valueFormatter} />} cursor={{ fill: 'rgba(148, 163, 184, 0.12)' }} />
+                                    <Legend wrapperStyle={{ fontSize: 12, color: '#64748b' }} />
                                     {series.map((s, index) => (
                                         <Bar
                                             key={s.key}
@@ -97,7 +121,7 @@ export function MiniChart({
                                             name={s.label}
                                             stackId={s.stackId}
                                             fill={s.color ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
-                                            radius={4}
+                                            radius={6}
                                         />
                                     ))}
                                 </BarChart>
@@ -128,7 +152,7 @@ function MiniChartTooltip({ active, payload, label, valueFormatter }: MiniChartT
     }
 
     return (
-        <div className="min-w-[160px] rounded-md border bg-background/95 p-3 text-xs shadow-lg">
+        <div className="min-w-[160px] rounded-lg border border-border/70 bg-background/95 p-3 text-xs shadow-lg backdrop-blur">
             <p className="mb-2 font-medium text-muted-foreground">{label}</p>
             <div className="space-y-1">
                 {payload.map((item) => {
@@ -145,7 +169,7 @@ function MiniChartTooltip({ active, payload, label, valueFormatter }: MiniChartT
                     return (
                         <div key={`${seriesKey}-${item.name}`} className="flex items-center justify-between gap-4">
                             <span className="flex items-center gap-2 text-muted-foreground">
-                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
                                 {item.name ?? seriesKey}
                             </span>
                             <span className="font-semibold text-foreground">{formattedValue}</span>

@@ -21,6 +21,10 @@ return new class extends Migration
             return;
         }
 
+        if ($driver === 'sqlite') {
+            return;
+        }
+
         Schema::table('plans', function (Blueprint $table): void {
             $table->string('code', 64)->unique()->change();
         });
@@ -37,6 +41,10 @@ return new class extends Migration
         if (in_array($driver, ['mysql', 'mariadb'], true)) {
             DB::statement('ALTER TABLE plans MODIFY code VARCHAR(32) NOT NULL');
 
+            return;
+        }
+
+        if ($driver === 'sqlite') {
             return;
         }
 

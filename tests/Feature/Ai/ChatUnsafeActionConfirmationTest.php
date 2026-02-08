@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\ChatService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 
 uses(RefreshDatabase::class);
 

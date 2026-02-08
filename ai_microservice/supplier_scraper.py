@@ -6,6 +6,7 @@ import os
 import time
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse, urljoin
 from urllib.robotparser import RobotFileParser
@@ -21,17 +22,27 @@ from ai_microservice.llm_provider import (
 )
 from ai_microservice.schemas import SCRAPED_SUPPLIER_SCHEMA
 
+try:  # pragma: no cover - optional dependency load
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - dependency not installed
+    load_dotenv = None
+
+if load_dotenv:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    load_dotenv(env_path)
+
 LOGGER = logging.getLogger(__name__)
 SCRAPED_SUPPLIER_VALIDATOR = Draft202012Validator(SCRAPED_SUPPLIER_SCHEMA)
 DEFAULT_USER_AGENT = os.getenv(
     "SUPPLIER_SCRAPER_USER_AGENT",
     "ElementsSupplyScraper/1.0 (+https://elements-supply.ai)",
 )
-SEARCH_ENDPOINT = os.getenv(
-    "SUPPLIER_SCRAPER_SEARCH_ENDPOINT",
-    "https://api.bing.microsoft.com/v7.0/search",
+GOOGLE_SEARCH_ENDPOINT = os.getenv(
+    "SUPPLIER_SCRAPER_GOOGLE_ENDPOINT",
+    "https://www.googleapis.com/customsearch/v1",
 )
-SEARCH_API_KEY = os.getenv("SUPPLIER_SCRAPER_SEARCH_KEY")
+GOOGLE_SEARCH_KEY = os.getenv("SUPPLIER_SCRAPER_GOOGLE_KEY")
+GOOGLE_SEARCH_CX = os.getenv("SUPPLIER_SCRAPER_GOOGLE_CX")
 MAX_PAGE_CHARS = int(os.getenv("SUPPLIER_SCRAPER_MAX_PAGE_CHARS", "8000"))
 SCRAPE_TIMEOUT_SECONDS = float(os.getenv("SUPPLIER_SCRAPER_HTTP_TIMEOUT", "12"))
 SCRAPE_DELAY_SECONDS = float(os.getenv("SUPPLIER_SCRAPER_DELAY_SECONDS", "1.0"))
@@ -73,8 +84,9 @@ class SupplierScraper:
     """Coordinates search -> fetch -> LLM extraction for suppliers."""
 
     llm_provider: LLMProvider = field(default_factory=lambda: build_llm_provider(os.getenv("AI_LLM_PROVIDER", "dummy")))
-    search_endpoint: str = SEARCH_ENDPOINT
-    search_api_key: Optional[str] = SEARCH_API_KEY
+    google_search_endpoint: str = GOOGLE_SEARCH_ENDPOINT
+    google_search_key: Optional[str] = GOOGLE_SEARCH_KEY
+    google_search_cx: Optional[str] = GOOGLE_SEARCH_CX
     max_page_chars: int = MAX_PAGE_CHARS
     request_timeout: float = SCRAPE_TIMEOUT_SECONDS
     inter_request_delay: float = SCRAPE_DELAY_SECONDS
@@ -115,38 +127,72 @@ class SupplierScraper:
         search_query = query.strip()
         if region:
             search_query = f"{search_query} {region.strip()}"
-        if not self.search_api_key:
-            LOGGER.warning("supplier_scrape_search_disabled", extra={"reason": "missing_api_key"})
-            return []
-        headers = {
-            "Ocp-Apim-Subscription-Key": self.search_api_key,
-            "User-Agent": self.user_agent,
+        return self._search_google(search_query, limit)
+
+    def _search_google(self, search_query: str, limit: int) -> List[Dict[str, Any]]:
+        if not self.google_search_key or not self.google_search_cx:
+            message = (
+                "Supplier scrape search is not configured. Set SUPPLIER_SCRAPER_GOOGLE_KEY "
+                "and SUPPLIER_SCRAPER_GOOGLE_CX."
+            )
+            LOGGER.error(
+                "supplier_scrape_search_disabled",
+                extra={"reason": "missing_google_credentials", "provider": "google"},
+            )
+            raise SupplierScraperError(message)
+        params = {
+            "q": search_query,
+            "key": self.google_search_key,
+            "cx": self.google_search_cx,
+            "num": max(1, min(limit, 10)),
         }
-        params = {"q": search_query, "count": max(5, min(limit, 30)), "responseFilter": "Webpages"}
+        headers = {"User-Agent": self.user_agent}
         try:
             response = httpx.get(
-                self.search_endpoint,
+                self.google_search_endpoint,
                 params=params,
                 headers=headers,
                 timeout=self.request_timeout,
             )
             response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            status = exc.response.status_code
+            if status in {401, 403}:
+                message = (
+                    "Google Custom Search API returned 403. Verify the API key is valid, the Custom Search API "
+                    "is enabled in Google Cloud, billing is active, and API key restrictions allow "
+                    "customsearch.googleapis.com."
+                )
+            elif status == 429:
+                message = "Google Custom Search API rate limit exceeded. Reduce request volume or raise quota."
+            else:
+                message = f"Google Custom Search API error: HTTP {status}."
+            LOGGER.warning(
+                "supplier_scrape_search_failed",
+                exc_info=True,
+                extra={"status": status, "provider": "google"},
+            )
+            raise SupplierScraperError(message) from exc
         except httpx.HTTPError as exc:
-            LOGGER.warning("supplier_scrape_search_failed", exc_info=True, extra={"error": str(exc)})
+            LOGGER.warning(
+                "supplier_scrape_search_failed",
+                exc_info=True,
+                extra={"error": str(exc), "provider": "google"},
+            )
             return []
         data = response.json()
-        web_pages = (data.get("webPages") or {}).get("value") or []
+        items = data.get("items") or []
         hits: List[Dict[str, Any]] = []
         seen_urls: set[str] = set()
-        for item in web_pages:
-            url = str(item.get("url") or "").strip()
+        for item in items:
+            url = str(item.get("link") or "").strip()
             if not url or url in seen_urls:
                 continue
             seen_urls.add(url)
             hits.append(
                 {
                     "url": url,
-                    "name": item.get("name"),
+                    "name": item.get("title"),
                     "snippet": item.get("snippet"),
                 }
             )

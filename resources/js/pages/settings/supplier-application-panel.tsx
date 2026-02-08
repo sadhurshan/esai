@@ -247,7 +247,12 @@ export function SupplierApplicationPanel() {
         : undefined;
     const supplierStatusQuery = useSupplierSelfStatus(initialStatus);
     const supplierStatusData = supplierStatusQuery.data ?? initialStatus;
-    const status = (supplierStatusData?.supplier_status ?? 'none') as SupplierStatus;
+    const rawStatus = (supplierStatusData?.supplier_status ?? 'none') as SupplierStatus;
+    const hasApplication = Boolean(supplierStatusData?.current_application);
+    const status =
+        rawStatus === 'pending' && !hasApplication && state.company?.start_mode === 'supplier'
+            ? 'none'
+            : rawStatus;
     const directoryVisibility = (supplierStatusData?.directory_visibility ?? 'private') as DirectoryVisibility;
     const supplierProfileCompletedAt = supplierStatusData?.supplier_profile_completed_at ?? null;
     const isListed = Boolean(supplierStatusData?.is_listed ?? false);

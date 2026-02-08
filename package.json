@@ -11,7 +11,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "types": "tsc --noEmit",
-        "dev:e2e": "concurrently -k -s first -n php,vite \"php artisan serve --host=127.0.0.1 --port=8000\" \"npm run dev -- --host\"",
+        "dev:e2e": "concurrently -k -s first -n php,vite \"php -d max_execution_time=0 artisan serve --host=127.0.0.1 --port=8000\" \"npm run dev -- --host\"",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
         "playwright:install": "playwright install",

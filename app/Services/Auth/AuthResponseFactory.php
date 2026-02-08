@@ -3,9 +3,12 @@
 namespace App\Services\Auth;
 
 use App\Models\Company;
+use App\Enums\CompanySupplierStatus;
 use App\Models\CompanyFeatureFlag;
 use App\Models\Plan;
+use App\Models\Supplier;
 use App\Models\User;
+use App\Services\SupplierPersonaService;
 use Illuminate\Support\Collection;
 use BackedEnum;
 
@@ -60,7 +63,10 @@ class AuthResponseFactory
         'suppliers.directory.browse',
     ];
 
-    public function __construct(private readonly PersonaResolver $personaResolver)
+    public function __construct(
+        private readonly PersonaResolver $personaResolver,
+        private readonly SupplierPersonaService $supplierPersonaService,
+    )
     {
     }
 
@@ -69,6 +75,7 @@ class AuthResponseFactory
         $user->loadMissing(['company.plan', 'company.featureFlags']);
 
         $company = $user->company;
+        $this->ensureSupplierPersona($user, $company);
         $personas = $this->personaResolver->resolve($user);
 
         return [
@@ -135,6 +142,7 @@ class AuthResponseFactory
             'id' => $company->id,
             'name' => $company->name,
             'status' => $status,
+            'start_mode' => $company->start_mode,
             'supplier_status' => $supplierStatus,
             'directory_visibility' => $company->directory_visibility,
             'supplier_profile_completed_at' => $company->supplier_profile_completed_at?->toIso8601String(),
@@ -291,7 +299,50 @@ class AuthResponseFactory
         if ($company === null) {
             return false;
         }
+        $supplierStatus = $company->supplier_status;
+
+        if ($company->start_mode === 'supplier') {
+            return false;
+        }
+
+        if (
+            ($supplierStatus instanceof CompanySupplierStatus && $supplierStatus !== CompanySupplierStatus::None)
+            || (is_string($supplierStatus) && $supplierStatus !== CompanySupplierStatus::None->value)
+        ) {
+            return false;
+        }
 
         return ! $company->plan_id && ! $company->plan_code;
+    }
+
+    private function ensureSupplierPersona(User $user, ?Company $company): void
+    {
+        if (! $company instanceof Company) {
+            return;
+        }
+
+        if ($company->start_mode !== 'supplier') {
+            return;
+        }
+
+        $supplier = Supplier::query()->where('company_id', $company->id)->first();
+
+        if (! $supplier instanceof Supplier) {
+            $supplier = new Supplier([
+                'company_id' => $company->id,
+                'name' => $company->name,
+                'status' => 'pending',
+                'email' => $company->primary_contact_email,
+                'phone' => $company->primary_contact_phone,
+                'address' => $company->address,
+                'country' => $company->country,
+                'website' => $company->website,
+                'capabilities' => [],
+            ]);
+
+            $supplier->save();
+        }
+
+        $this->supplierPersonaService->ensureBuyerContact($supplier, $company->id, $company, false);
     }
 }

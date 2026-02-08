@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -16,10 +16,52 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { HttpError } from '@/sdk';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { api } from '@/lib/api';
+import type {
+    CompaniesHouseProfileResponse,
+    CompaniesHouseSearchAddress,
+    CompaniesHouseSearchItem,
+    CompaniesHouseSearchResponse,
+} from '@/types/companies-house';
 
 const domainRegex = /^(?!-)(?:[a-z0-9-]+\.)+[a-z]{2,}$/i;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const UK_COUNTRY_INPUTS = ['UK', 'GB', 'GBR', 'UNITED KINGDOM', 'GREAT BRITAIN'];
+
+function isUkCountryInput(value?: string | null): boolean {
+    if (!value) {
+        return false;
+    }
+
+    const normalized = value.trim().toUpperCase();
+
+    if (UK_COUNTRY_INPUTS.includes(normalized)) {
+        return true;
+    }
+
+    return normalized.includes('UNITED KINGDOM') || normalized.includes('GREAT BRITAIN');
+}
+
+function formatCompaniesHouseAddress(address?: CompaniesHouseSearchAddress | null): string | null {
+    if (!address || typeof address !== 'object') {
+        return null;
+    }
+
+    const parts = [
+        address.address_line_1,
+        address.address_line_2,
+        address.locality,
+        address.region,
+        address.postal_code,
+        address.country,
+    ].filter((part) => Boolean(part && part.trim()));
+
+    return parts.length ? parts.join('\n') : null;
+}
 
 const documentTypeOptions = [
     { value: 'registration', label: 'Registration certificate' },
@@ -56,9 +98,10 @@ function createDocumentDraft(): DocumentDraft {
 
 const registerSchema = z
     .object({
+        startMode: z.enum(['buyer', 'supplier'], { required_error: 'Select how you want to start.' }),
         name: z
             .string({ required_error: 'Full name is required.' })
-            .min(2, 'Enter your full name.')
+            .min(2, 'Full name is required.')
             .max(160, 'Full name is too long.'),
         email: z
             .string({ required_error: 'Email is required.' })
@@ -103,7 +146,7 @@ const registerSchema = z
             .or(z.literal('')),
         country: z
             .string()
-            .length(2, 'Use the 2-letter ISO code, e.g. US.')
+            .length(2, 'Use a 2-letter country code, e.g. UK.')
             .optional()
             .or(z.literal('')),
     })
@@ -115,6 +158,7 @@ const registerSchema = z
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const serverFieldMap: Record<string, keyof RegisterFormValues> = {
+    start_mode: 'startMode',
     name: 'name',
     email: 'email',
     password: 'password',
@@ -135,15 +179,27 @@ export function RegisterPage() {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [documents, setDocuments] = useState<DocumentDraft[]>([createDocumentDraft()]);
     const [documentsError, setDocumentsError] = useState<string | null>(null);
+    const [companySearchResults, setCompanySearchResults] = useState<CompaniesHouseSearchItem[]>([]);
+    const [companySearchOpen, setCompanySearchOpen] = useState(false);
+    const [companySearchLoading, setCompanySearchLoading] = useState(false);
+    const [companySearchError, setCompanySearchError] = useState<string | null>(null);
+    const [companyProfileLoading, setCompanyProfileLoading] = useState(false);
+    const [companyProfileError, setCompanyProfileError] = useState<string | null>(null);
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [autoDetectedCountry, setAutoDetectedCountry] = useState(false);
+    const companySearchRef = useRef<HTMLDivElement | null>(null);
 
     const {
         register,
         handleSubmit,
         setError,
+        setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
+            startMode: 'buyer',
             name: '',
             email: '',
             password: '',
@@ -158,6 +214,182 @@ export function RegisterPage() {
             country: '',
         },
     });
+
+    const startMode = watch('startMode');
+    const companyNameInput = watch('companyName');
+    const countryInput = watch('country');
+    const debouncedCompanyName = useDebouncedValue(companyNameInput, 400);
+    const isUkRegistrant = isUkCountryInput(countryInput);
+
+    useEffect(() => {
+        if ((countryInput ?? '').trim().length > 0 || autoDetectedCountry) {
+            return;
+        }
+
+        if (typeof navigator === 'undefined') {
+            return;
+        }
+
+        const languageCandidates = [navigator.language, ...(navigator.languages ?? [])]
+            .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+
+        const looksUkLocale = languageCandidates.some((locale) => locale.toLowerCase().includes('en-gb'));
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+        const looksUkTimeZone = typeof timeZone === 'string' && timeZone.toLowerCase().includes('europe/london');
+
+        if (looksUkLocale || looksUkTimeZone) {
+            setValue('country', 'UK', { shouldDirty: true, shouldValidate: true });
+            setAutoDetectedCountry(true);
+        }
+    }, [autoDetectedCountry, countryInput, setValue]);
+
+    useEffect(() => {
+        if (!isUkRegistrant) {
+            setCompanySearchResults([]);
+            setCompanySearchOpen(false);
+            setCompanySearchError(null);
+            setCompanySearchLoading(false);
+            return;
+        }
+
+        const query = debouncedCompanyName.trim();
+
+        if (query.length < 2) {
+            setCompanySearchResults([]);
+            setCompanySearchOpen(false);
+            setCompanySearchError(null);
+            setCompanySearchLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        const runSearch = async () => {
+            setCompanySearchLoading(true);
+            setCompanySearchError(null);
+
+            try {
+                const response = (await api.get<CompaniesHouseSearchResponse>('/auth/companies-house/search', {
+                    params: {
+                        q: query,
+                        limit: 8,
+                    },
+                })) as unknown as CompaniesHouseSearchResponse;
+
+                if (cancelled) {
+                    return;
+                }
+
+                const items = response.items ?? [];
+                setCompanySearchResults(items);
+                setCompanySearchOpen(true);
+            } catch (error) {
+                if (cancelled) {
+                    return;
+                }
+
+                const message = error instanceof Error ? error.message : 'Unable to search Companies House.';
+                setCompanySearchError(message);
+                setCompanySearchResults([]);
+                setCompanySearchOpen(true);
+            } finally {
+                if (!cancelled) {
+                    setCompanySearchLoading(false);
+                }
+            }
+        };
+
+        runSearch();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [debouncedCompanyName, isUkRegistrant]);
+
+    useEffect(() => {
+        if (!companySearchOpen) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!companySearchRef.current) {
+                return;
+            }
+
+            if (!companySearchRef.current.contains(event.target as Node)) {
+                setCompanySearchOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [companySearchOpen]);
+
+    const handleCompanyFocus = () => {
+        if (companySearchResults.length > 0 || companySearchLoading || companySearchError) {
+            setCompanySearchOpen(true);
+        }
+    };
+
+    const handleCompanyBlur = () => {
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+
+        blurTimeoutRef.current = setTimeout(() => {
+            setCompanySearchOpen(false);
+        }, 150);
+    };
+
+    const handleCompanySelect = async (item: CompaniesHouseSearchItem) => {
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+
+        setCompanySearchOpen(false);
+        setCompanyProfileError(null);
+
+        if (item.company_name) {
+            setValue('companyName', item.company_name, { shouldDirty: true, shouldValidate: true });
+        }
+
+        if (item.company_number) {
+            setValue('registrationNo', item.company_number, { shouldDirty: true, shouldValidate: true });
+        }
+
+        if (!item.company_number) {
+            return;
+        }
+
+        setCompanyProfileLoading(true);
+
+        try {
+            const response = (await api.get<CompaniesHouseProfileResponse>('/auth/companies-house/profile', {
+                params: {
+                    company_number: item.company_number,
+                },
+            })) as unknown as CompaniesHouseProfileResponse;
+
+            const profile = response.profile;
+            const formattedAddress = formatCompaniesHouseAddress(profile?.registered_office_address ?? null);
+
+            if (formattedAddress) {
+                setValue('address', formattedAddress, { shouldDirty: true, shouldValidate: true });
+            }
+
+            if (isUkRegistrant && (countryInput ?? '').trim().length === 0) {
+                setValue('country', 'UK', { shouldDirty: true, shouldValidate: true });
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to load Companies House details.';
+            setCompanyProfileError(message);
+        } finally {
+            setCompanyProfileLoading(false);
+        }
+    };
 
     const handleAddDocument = () => {
         setDocumentsError(null);
@@ -260,9 +492,18 @@ export function RegisterPage() {
                 address: values.address?.trim() ? values.address : undefined,
                 country: values.country?.trim() ? values.country : undefined,
                 companyDocuments: documentPayload,
+                startMode: values.startMode,
             });
 
-            const destination = result.requiresEmailVerification ? '/verify-email' : '/app/setup/plan';
+            const isSupplierStart = values.startMode === 'supplier' || result.needsSupplierApproval;
+            const destination = result.requiresEmailVerification
+                ? '/verify-email'
+                : isSupplierStart
+                    ? '/app/setup/supplier-waiting'
+                    : result.requiresPlanSelection
+                        ? '/app/setup/plan'
+                        : '/app';
+
             navigate(destination, { replace: true });
         } catch (error) {
             if (error instanceof HttpError) {
@@ -286,8 +527,16 @@ export function RegisterPage() {
         if (state.requiresEmailVerification) {
             return <Navigate to="/verify-email" replace />;
         }
+        if (state.needsSupplierApproval || state.company?.supplier_status === 'pending') {
+            return <Navigate to="/app/setup/supplier-waiting" replace />;
+        }
 
-        const needsPlan = state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+        const isSupplierStart =
+            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+        const needsPlan =
+            !isSupplierStart &&
+            (state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan);
+
         return <Navigate to={needsPlan ? '/app/setup/plan' : '/app'} replace />;
     }
 
@@ -295,7 +544,7 @@ export function RegisterPage() {
         <div
             className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100"
             style={{
-                backgroundImage: "url('/3d-rendering-big-red-coronavirus-cell-left-with-black-background.jpg')",
+                backgroundImage: "url('/img/efa9c371-4ad2-49db-977f-098c4619ffc5-xxl.webp')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}
@@ -313,6 +562,27 @@ export function RegisterPage() {
                     <form className="space-y-6" onSubmit={onSubmit} noValidate>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
+                                <Label htmlFor="startMode">Start as</Label>
+                                <Select
+                                    value={startMode}
+                                    onValueChange={(value) =>
+                                        setValue('startMode', value as RegisterFormValues['startMode'], { shouldDirty: true })
+                                    }
+                                >
+                                    <SelectTrigger id="startMode">
+                                        <SelectValue placeholder="Choose a starting mode" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="buyer">Start as Buyer</SelectItem>
+                                        <SelectItem value="supplier">Start as Supplier</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-slate-400">
+                                    Buyer tools are enabled immediately; suppliers activate after approval.
+                                </p>
+                                {errors.startMode ? <p className="text-xs text-destructive">{errors.startMode.message}</p> : null}
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="name">Full name</Label>
                                 <Input className='border-slate-500 rounded-sm py-6' id="name" autoComplete="name" placeholder="Casey Owner" {...register('name')} />
                                 {errors.name ? <p className="text-xs text-destructive">{errors.name.message}</p> : null}
@@ -326,9 +596,72 @@ export function RegisterPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="companyName">Company name</Label>
-                                <Input className='border-slate-500 rounded-sm py-6' id="companyName" autoComplete="organization" placeholder="Elements Supply" {...register('companyName', {
-                                    setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
-                                })} />
+                                <div className="relative" ref={companySearchRef}>
+                                    {(() => {
+                                        const { onBlur, ...companyNameField } = register('companyName', {
+                                            setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
+                                        });
+
+                                        return (
+                                            <Input
+                                                className="border-slate-500 rounded-sm py-6"
+                                                id="companyName"
+                                                autoComplete="organization"
+                                                placeholder="Elements Supply"
+                                                onFocus={handleCompanyFocus}
+                                                onBlur={(event) => {
+                                                    onBlur(event);
+                                                    handleCompanyBlur();
+                                                }}
+                                                {...companyNameField}
+                                            />
+                                        );
+                                    })()}
+                                    {companySearchOpen ? (
+                                        <div className="absolute z-20 mt-2 w-full rounded-md border border-white/10 bg-slate-950/95 p-2 text-sm shadow-lg">
+                                            {companySearchLoading ? (
+                                                <div className="flex items-center gap-2 px-2 py-2 text-slate-300">
+                                                    <Spinner className="h-4 w-4" /> Searching Companies House…
+                                                </div>
+                                            ) : companySearchError ? (
+                                                <div className="px-2 py-2 text-destructive">{companySearchError}</div>
+                                            ) : companySearchResults.length === 0 ? (
+                                                <div className="px-2 py-2 text-slate-400">No Companies House matches found.</div>
+                                            ) : (
+                                                <div className="max-h-64 overflow-auto">
+                                                    {companySearchResults.map((item) => (
+                                                        <button
+                                                            type="button"
+                                                            key={`${item.company_number ?? item.company_name ?? 'result'}`}
+                                                            onMouseDown={(event) => event.preventDefault()}
+                                                            onClick={() => handleCompanySelect(item)}
+                                                            className="flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left hover:bg-slate-800/60"
+                                                        >
+                                                            <span className="font-medium text-slate-100">
+                                                                {item.company_name ?? 'Unnamed company'}
+                                                            </span>
+                                                            <span className="text-xs text-slate-400">
+                                                                {item.company_number ? `Reg #${item.company_number}` : 'Registration number unavailable'}
+                                                                {item.address_snippet ? ` · ${item.address_snippet}` : ''}
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                {isUkRegistrant ? (
+                                    <p className="text-xs text-slate-400">Start typing to search UK Companies House.</p>
+                                ) : companyNameInput.trim().length > 0 ? (
+                                    <p className="text-xs text-slate-400">Set country to UK to enable Companies House search.</p>
+                                ) : null}
+                                {companyProfileLoading ? (
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <Spinner className="h-3.5 w-3.5" /> Fetching Companies House details…
+                                    </div>
+                                ) : null}
+                                {companyProfileError ? <p className="text-xs text-destructive">{companyProfileError}</p> : null}
                                 {errors.companyName ? <p className="text-xs text-destructive">{errors.companyName.message}</p> : null}
                             </div>
                             <div className="space-y-2">
@@ -399,8 +732,8 @@ export function RegisterPage() {
                                 {errors.phone ? <p className="text-xs text-destructive">{errors.phone.message}</p> : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="country">Country (ISO code)</Label>
-                                <Input className='border-slate-500 rounded-sm py-6' id="country" placeholder="US" maxLength={2} {...register('country', {
+                                <Label htmlFor="country">Country (2-letter code)</Label>
+                                <Input className='border-slate-500 rounded-sm py-6' id="country" placeholder="UK" maxLength={2} {...register('country', {
                                     setValueAs: (value) => (typeof value === 'string' ? value.trim().toUpperCase() : value),
                                 })} />
                                 {errors.country ? <p className="text-xs text-destructive">{errors.country.message}</p> : null}

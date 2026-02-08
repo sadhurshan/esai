@@ -4,6 +4,7 @@ namespace App\Services\CompaniesHouse;
 
 use App\Exceptions\CompaniesHouseLookupException;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Log;
@@ -46,15 +47,52 @@ class CompaniesHouseClient
         return $this->requestProfile($normalized);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function searchCompanies(string $query, int $limit = 8): array
+    {
+        if (! $this->isEnabled()) {
+            throw new CompaniesHouseLookupException('Companies House API credentials are not configured.', 503);
+        }
+
+        $normalizedQuery = trim($query);
+
+        if ($normalizedQuery === '' || Str::length($normalizedQuery) < 2) {
+            throw new CompaniesHouseLookupException('A valid company name is required.');
+        }
+
+        $limit = max(1, min($limit, 10));
+
+        $cacheTtl = (int) $this->config('cache_ttl', 0);
+        $cacheKey = $this->cacheSearchKey($normalizedQuery, $limit);
+
+        if ($cacheTtl > 0) {
+            return $this->cache->remember($cacheKey, $cacheTtl, fn (): array => $this->requestSearch($normalizedQuery, $limit));
+        }
+
+        return $this->requestSearch($normalizedQuery, $limit);
+    }
+
     private function requestProfile(string $companyNumber): ?array
     {
-        $response = $this->http
-            ->baseUrl($this->config('base_url', 'https://api.company-information.service.gov.uk'))
-            ->timeout((int) $this->config('timeout', 10))
-            ->retry(2, 200)
-            ->acceptJson()
-            ->withBasicAuth((string) $this->config('api_key'), '')
-            ->get("/company/{$companyNumber}");
+        $baseUrl = (string) $this->config('base_url', 'https://api.company-information.service.gov.uk');
+
+        if (trim($baseUrl) === '') {
+            throw new CompaniesHouseLookupException('Companies House base URL is not configured.', 503);
+        }
+
+        try {
+            $response = $this->http
+                ->baseUrl($baseUrl)
+                ->timeout((int) $this->config('timeout', 10))
+                ->retry(2, 200)
+                ->acceptJson()
+                ->withBasicAuth((string) $this->config('api_key'), '')
+                ->get("/company/{$companyNumber}");
+        } catch (ConnectionException $exception) {
+            throw new CompaniesHouseLookupException('Companies House is currently unreachable. Please try again later.', 503, $exception);
+        }
 
         if ($response->successful()) {
             $payload = $response->json() ?? [];
@@ -66,9 +104,82 @@ class CompaniesHouseClient
             return null;
         }
 
+        if (in_array($response->status(), [401, 403], true)) {
+            $this->logFailure($response, $companyNumber);
+
+            throw new CompaniesHouseLookupException('Companies House API credentials are invalid or not authorized.', 503);
+        }
+
+        if ($response->status() === 429) {
+            $this->logFailure($response, $companyNumber);
+
+            throw new CompaniesHouseLookupException('Companies House rate limit exceeded. Please try again later.', 429);
+        }
+
+        if ($response->status() === 400) {
+            $this->logFailure($response, $companyNumber);
+
+            throw new CompaniesHouseLookupException('Companies House rejected the company number. Please verify it and try again.', 422);
+        }
+
         $this->logFailure($response, $companyNumber);
 
         throw new CompaniesHouseLookupException('Companies House lookup failed. Please try again later.', 502);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function requestSearch(string $query, int $limit): array
+    {
+        $baseUrl = (string) $this->config('base_url', 'https://api.company-information.service.gov.uk');
+
+        if (trim($baseUrl) === '') {
+            throw new CompaniesHouseLookupException('Companies House base URL is not configured.', 503);
+        }
+
+        try {
+            $response = $this->http
+                ->baseUrl($baseUrl)
+                ->timeout((int) $this->config('timeout', 10))
+                ->retry(2, 200)
+                ->acceptJson()
+                ->withBasicAuth((string) $this->config('api_key'), '')
+                ->get('/search/companies', [
+                    'q' => $query,
+                    'items_per_page' => $limit,
+                ]);
+        } catch (ConnectionException $exception) {
+            throw new CompaniesHouseLookupException('Companies House is currently unreachable. Please try again later.', 503, $exception);
+        }
+
+        if ($response->successful()) {
+            $payload = $response->json() ?? [];
+
+            return $this->transformSearchResults($payload);
+        }
+
+        if (in_array($response->status(), [401, 403], true)) {
+            $this->logSearchFailure($response, $query);
+
+            throw new CompaniesHouseLookupException('Companies House API credentials are invalid or not authorized.', 503);
+        }
+
+        if ($response->status() === 429) {
+            $this->logSearchFailure($response, $query);
+
+            throw new CompaniesHouseLookupException('Companies House rate limit exceeded. Please try again later.', 429);
+        }
+
+        if ($response->status() === 400) {
+            $this->logSearchFailure($response, $query);
+
+            throw new CompaniesHouseLookupException('Companies House rejected the search query. Please refine it and try again.', 422);
+        }
+
+        $this->logSearchFailure($response, $query);
+
+        throw new CompaniesHouseLookupException('Companies House search failed. Please try again later.', 502);
     }
 
     /**
@@ -95,6 +206,65 @@ class CompaniesHouseClient
             'retrieved_at' => now()->toIso8601String(),
             'raw' => $payload,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function transformSearchResults(array $payload): array
+    {
+        $items = array_values(array_filter(array_map(
+            fn ($entry): ?array => $this->transformSearchItem($entry),
+            $payload['items'] ?? [],
+        )));
+
+        return [
+            'items' => $items,
+            'total_results' => $payload['total_results'] ?? null,
+            'retrieved_at' => now()->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed>|mixed $entry
+     * @return array<string, mixed>|null
+     */
+    private function transformSearchItem(mixed $entry): ?array
+    {
+        if (! is_array($entry)) {
+            return null;
+        }
+
+        return array_filter([
+            'company_name' => $entry['title'] ?? null,
+            'company_number' => $entry['company_number'] ?? null,
+            'company_status' => $entry['company_status'] ?? null,
+            'company_type' => $entry['company_type'] ?? null,
+            'date_of_creation' => $entry['date_of_creation'] ?? null,
+            'address_snippet' => $entry['address_snippet'] ?? null,
+            'address' => $this->transformSearchAddress($entry['address'] ?? null),
+        ], static fn ($value) => $value !== null && $value !== '');
+    }
+
+    /**
+     * @param array<string, mixed>|null $address
+     * @return array<string, mixed>|null
+     */
+    private function transformSearchAddress(?array $address): ?array
+    {
+        if ($address === null) {
+            return null;
+        }
+
+        return array_filter([
+            'address_line_1' => $address['address_line_1'] ?? null,
+            'address_line_2' => $address['address_line_2'] ?? null,
+            'locality' => $address['locality'] ?? null,
+            'region' => $address['region'] ?? null,
+            'postal_code' => $address['postal_code'] ?? null,
+            'country' => $address['country'] ?? null,
+        ], static fn ($value) => $value !== null && $value !== '');
     }
 
     /**
@@ -206,6 +376,11 @@ class CompaniesHouseClient
         return sprintf('companies_house:profile:%s', $companyNumber);
     }
 
+    private function cacheSearchKey(string $query, int $limit): string
+    {
+        return sprintf('companies_house:search:%s:%d', sha1($query), $limit);
+    }
+
     private function config(string $key, mixed $default = null): mixed
     {
         return config("services.companies_house.{$key}", $default);
@@ -215,6 +390,15 @@ class CompaniesHouseClient
     {
         Log::warning('Companies House API request failed', [
             'company_number' => $companyNumber,
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ]);
+    }
+
+    private function logSearchFailure(Response $response, string $query): void
+    {
+        Log::warning('Companies House search request failed', [
+            'query' => $query,
             'status' => $response->status(),
             'body' => $response->json(),
         ]);

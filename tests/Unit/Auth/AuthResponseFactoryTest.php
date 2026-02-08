@@ -5,6 +5,7 @@ use App\Models\CompanyFeatureFlag;
 use App\Models\Plan;
 use App\Models\User;
 use App\Services\Auth\AuthResponseFactory;
+use App\Enums\CompanySupplierStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -219,4 +220,18 @@ it('enables digital twins for growth plans and above', function (): void {
     $starterPayload = app(AuthResponseFactory::class)->make($starterUser);
 
     expect($starterPayload['feature_flags'] ?? [])->toHaveKey('digital_twin_enabled', false);
+});
+
+it('does not require plan selection for supplier-first companies', function (): void {
+    $company = Company::factory()->create([
+        'plan_id' => null,
+        'plan_code' => null,
+        'start_mode' => 'supplier',
+        'supplier_status' => CompanySupplierStatus::Pending->value,
+    ]);
+    $user = User::factory()->for($company)->create();
+
+    $payload = app(AuthResponseFactory::class)->make($user);
+
+    expect($payload['requires_plan_selection'] ?? null)->toBeFalse();
 });

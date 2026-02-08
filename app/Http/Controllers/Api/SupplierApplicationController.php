@@ -80,7 +80,13 @@ class SupplierApplicationController extends ApiController
         $status = $company->supplier_status;
 
         if (! in_array($status, [CompanySupplierStatus::None, CompanySupplierStatus::Rejected], true)) {
-            return $this->fail('A supplier application is already pending or approved for this company.', 422);
+            $hasApplication = SupplierApplication::query()
+                ->where('company_id', $company->id)
+                ->exists();
+
+            if ($hasApplication || $company->start_mode !== 'supplier') {
+                return $this->fail('A supplier application is already pending or approved for this company.', 422);
+            }
         }
 
         $pendingExists = SupplierApplication::query()

@@ -24,6 +24,7 @@ const unauthenticatedState = {
     error: null,
     requiresEmailVerification: false,
     requiresPlanSelection: false,
+    needsSupplierApproval: false,
     company: null,
 };
 
@@ -40,7 +41,12 @@ describe('LoginPage', () => {
     beforeEach(() => {
         mockedNavigate.mockReset();
         loginMock.mockReset();
-        loginMock.mockResolvedValue({ requiresEmailVerification: false, requiresPlanSelection: false, userRole: 'buyer_admin' });
+        loginMock.mockResolvedValue({
+            requiresEmailVerification: false,
+            requiresPlanSelection: false,
+            needsSupplierApproval: false,
+            userRole: 'buyer_admin',
+        });
     });
 
     afterEach(() => {
@@ -77,6 +83,7 @@ describe('LoginPage', () => {
         loginMock.mockResolvedValueOnce({
             requiresEmailVerification: false,
             requiresPlanSelection: false,
+            needsSupplierApproval: false,
             userRole: 'platform_super',
         });
 

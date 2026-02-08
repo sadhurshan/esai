@@ -27,7 +27,19 @@ const STATUS_FILTERS: Array<{ value: 'all' | SalesOrderStatus; label: string }> 
 
 const PER_PAGE = 25;
 
-export function SupplierOrderListPage() {
+interface SupplierOrderListPageProps {
+    heading?: string;
+    pageTitle?: string;
+    contextLabel?: string;
+    description?: string;
+}
+
+export function SupplierOrderListPage({
+    heading = 'Sales orders',
+    pageTitle = 'Supplier Orders',
+    contextLabel = 'Supplier workspace',
+    description = 'Mirror of buyer purchase orders with acknowledgement and fulfillment tracking.',
+}: SupplierOrderListPageProps = {}) {
     const { formatMoney, formatDate } = useFormatting();
 
     const [statusFilter, setStatusFilter] = useState<(typeof STATUS_FILTERS)[number]['value']>('all');
@@ -163,17 +175,15 @@ export function SupplierOrderListPage() {
     return (
         <div className="flex flex-1 flex-col gap-6">
             <Helmet>
-                <title>Supplier Orders</title>
+                <title>{pageTitle}</title>
             </Helmet>
             <WorkspaceBreadcrumbs />
             <PlanUpgradeBanner />
 
             <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Supplier workspace</p>
-                <h1 className="text-2xl font-semibold text-foreground">Sales orders</h1>
-                <p className="text-sm text-muted-foreground">
-                    Mirror of buyer purchase orders with acknowledgement and fulfillment tracking.
-                </p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{contextLabel}</p>
+                <h1 className="text-2xl font-semibold text-foreground">{heading}</h1>
+                <p className="text-sm text-muted-foreground">{description}</p>
             </div>
 
             <Card className="border-border/70">
@@ -277,5 +287,16 @@ export function SupplierOrderListPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export function SupplierPurchaseOrdersPage() {
+    return (
+        <SupplierOrderListPage
+            heading="Purchase orders"
+            pageTitle="Purchase orders"
+            contextLabel="Supplier workspace"
+            description="Review purchase orders from buyers and confirm acknowledgement or fulfillment details."
+        />
     );
 }

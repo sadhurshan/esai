@@ -14,7 +14,7 @@ import { useRfqs, type RfqStatusFilter } from '@/hooks/api/use-rfqs';
 import { cn } from '@/lib/utils';
 import { Files, PlusCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useFormatting } from '@/contexts/formatting-context';
 import { getRfqMethodLabel } from '@/constants/rfq';
@@ -83,6 +83,7 @@ const BIDDING_OPTIONS: Array<{ value: BiddingFilter; label: string }> = [
 
 export function RfqListPage() {
     const { activePersona } = useAuth();
+    const navigate = useNavigate();
     const { formatNumber, formatDate } = useFormatting();
     const [statusFilter, setStatusFilter] = useState<RfqStatusFilter>('all');
     const [searchInput, setSearchInput] = useState('');
@@ -157,12 +158,14 @@ export function RfqListPage() {
                     </p>
                 </div>
                 {!isSupplierPersona ? (
-                    <Button asChild size="sm">
-                        <Link to="/app/rfqs/new">
-                            {/* TODO: confirm RFQ wizard route once implemented */}
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            New RFQ
-                        </Link>
+                    <Button
+                        size="sm"
+                        type="button"
+                        onClick={() => navigate('/app/rfqs/new')}
+                    >
+                        {/* TODO: confirm RFQ wizard route once implemented */}
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        New RFQ
                     </Button>
                 ) : null}
             </div>
@@ -339,13 +342,16 @@ export function RfqListPage() {
                         <div className="space-y-1">
                             <p className="text-base font-semibold text-foreground">No RFQs yet</p>
                             <p className="max-w-sm text-sm text-muted-foreground">
-                                Kick off your first sourcing event by creating an RFQ. Invite suppliers, collect quotes,
-                                and track responses in one place.
+                                {isSupplierPersona
+                                    ? 'You have not received any RFQ invitations yet. Check back once buyers invite you to bid.'
+                                    : 'Kick off your first sourcing event by creating an RFQ. Invite suppliers, collect quotes, and track responses in one place.'}
                             </p>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                            <Link to="/app/rfqs/new">Create RFQ</Link>
-                        </Button>
+                        {!isSupplierPersona ? (
+                            <Button asChild variant="outline" size="sm">
+                                <Link to="/app/rfqs/new">Create RFQ</Link>
+                            </Button>
+                        ) : null}
                     </div>
                 ) : null}
             </div>

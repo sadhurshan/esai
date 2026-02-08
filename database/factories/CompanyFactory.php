@@ -23,6 +23,7 @@ class CompanyFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name.'-'.$this->faker->unique()->randomNumber()),
             'status' => 'active',
+            'start_mode' => 'buyer',
             'supplier_status' => 'none',
             'directory_visibility' => 'private',
             'supplier_profile_completed_at' => null,

@@ -1,0 +1,208 @@
+{
+  "generatedAt": "2026-01-30T05:25:19.327Z",
+  "source": "docs\\UAT_BACKLOG_CHECKLIST.md",
+  "output": "docs\\UAT_SUBSET.md",
+  "epicFilter": null,
+  "selectedCount": 20,
+  "pendingCount": 388,
+  "items": [
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH1",
+      "label": "AUTH1 — AUTH1 — Register an account",
+      "criteria": [
+        "Form: name, email, password.",
+        "Validation + error states.",
+        "Success logs in (or email-verify if enabled) and redirects to onboarding."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH2",
+      "label": "AUTH2 — AUTH2 — Log in / Log out",
+      "criteria": [
+        "Valid creds → session established.",
+        "Invalid creds → error shown.",
+        "Logout clears session and returns to public/login."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH3",
+      "label": "AUTH3 — AUTH3 — Roles are enforced per company",
+      "criteria": [
+        "Role gates applied on routes/components.",
+        "Unauthorized → 403 (or redirect) + friendly message."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH4",
+      "label": "AUTH4 — AUTH4 — Multi-org switching",
+      "criteria": [
+        "“Switch organisation” menu shows all memberships.",
+        "Switching scopes data/permissions immediately."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH5",
+      "label": "AUTH5 — AUTH5 — Email verification & password reset",
+      "criteria": [
+        "send verify email on signup; locked until verified; forgot-password email."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH6",
+      "label": "AUTH6 — AUTH6 — Signup creates buyer company + owner membership (buyer or supplier-first)",
+      "criteria": [
+        "On successful signup, create: company record membership record for the user with role owner",
+        "Set initial company state: supplier_status = none (until super admin approves via SUPA2) company_profile_completed_at = null (until buyer wizard completed via ONB1)",
+        "If signup choice = Buyer (or choice not provided): Redirect to buyer onboarding wizard /onboarding/company (ONB1) Buyer features remain gated until onboarding completion (ONB2)",
+        "If signup choice = Supplier: Mark company as supplier-first (store onboarding/start mode on company) Do not redirect to buyer onboarding wizard Redirect to Supplier setup entry point (e.g., “Complete Supplier Application” / SUPA1) Supplier remains not visible in supplier directory until approved + public + profile complete (SUPD1/SUPD4) No plan selection / payment prompts are triggered for supplier-first onboarding (handled by BIL9)"
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH7",
+      "label": "AUTH7 — AUTH7 — Signup captures company name",
+      "criteria": [
+        "company name collected on signup OR prefilled in B1 wizard."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH8",
+      "label": "AUTH8 — AUTH8 — Verify company email domain",
+      "criteria": [
+        "Settings allow adding a domain (e.g., example.com) and give a DNS TXT or verification email method.",
+        "Once verified, domain is marked verified on company record.",
+        "Verification status affects invite and join flows (see next stories)."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH9",
+      "label": "AUTH9 — AUTH9 — Restrict invitations to verified domain (optional)",
+      "criteria": [
+        "Toggle in company settings: “Allow invites only for emails on verified domain(s)”.",
+        "When enabled, invites to external domains are blocked with clear error.",
+        "Owners/super admins can still override using a special flow if required (with audit entry)."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH10",
+      "label": "AUTH10 — AUTH10 — Join existing company by domain",
+      "criteria": [
+        "On signup, if email domain matches a verified company, user is offered “Request to join <Company>” instead of auto-creating a new tenant.",
+        "A join request is sent to that company’s admins (I1/I3 integration).",
+        "Admins can approve/deny join; approval attaches user to company and notifies them.",
+        "If denied, user may still create a separate company (with clear explanation)."
+      ]
+    },
+    {
+      "epic": "[AUTH] Authentication, Accounts & Roles",
+      "storyId": "AUTH11",
+      "label": "AUTH11 — AUTH11 — Choose Buyer vs Supplier at signup",
+      "criteria": [
+        "Signup form includes a required choice: “Start as Buyer” or “Start as Supplier”.",
+        "Buyer path follows existing flow (creates buyer company + owner membership; routes to buyer onboarding).",
+        "Supplier path creates a company flagged as supplier-first (supplier_status=pending; supplier_profile_completed_at is null) and routes to Supplier Onboarding/Apply flow.",
+        "The chosen start mode is stored on the company (e.g., company_type=buyer|supplier or onboarding_mode).",
+        "User is created as company owner; RBAC works as per AUTH3."
+      ]
+    },
+    {
+      "epic": "[ONB] Buyer Company Onboarding",
+      "storyId": "ONB1",
+      "label": "ONB1 — ONB1 — Company wizard after signup",
+      "criteria": [
+        "Redirect to /onboarding/company until completed.",
+        "Fields include legal name, country, address, optional tax/registration, industry, default currency.",
+        "Completing sets company_profile_completed_at."
+      ]
+    },
+    {
+      "epic": "[ONB] Buyer Company Onboarding",
+      "storyId": "ONB2",
+      "label": "ONB2 — ONB2 — Guard buyer features until onboarding",
+      "criteria": [
+        "Middleware blocks access; shows banner/redirect to onboarding.",
+        "Invited users into an existing company bypass the wizard."
+      ]
+    },
+    {
+      "epic": "[ONB] Buyer Company Onboarding",
+      "storyId": "ONB3",
+      "label": "ONB3 — Supplier-first tenants bypass buyer onboarding + buyer feature gating",
+      "criteria": [
+        "If company start mode = Supplier, do not redirect to /onboarding/company (buyer wizard).",
+        "Buyer-only routes/components are hidden or blocked with a clear message + CTA (e.g., “Switch to Buyer mode / Complete buyer onboarding”).",
+        "Supplier Onboarding/Apply flow remains accessible while supplier is pending approval.",
+        "If a Supplier-first company later enables Buyer mode, buyer onboarding wizard applies as normal (ONB1/ONB2)."
+      ]
+    },
+    {
+      "epic": "[ONB] Buyer Company Onboarding",
+      "storyId": "ONB4",
+      "label": "ONB4 — ONB4 — Edit company profile",
+      "criteria": [
+        "Editable fields with validation.",
+        "Changes audit-logged (who/when)."
+      ]
+    },
+    {
+      "epic": "[SUPA] Supplier Application & Approval",
+      "storyId": "SUPA1",
+      "label": "SUPA1 — SUPA1 — Apply as Supplier (company-level)",
+      "criteria": [
+        "“Apply as Supplier” entry point.",
+        "Collect supplier profile (capabilities, materials, locations, MOQ, lead time, certifications/quality standards, ESG/tax/bank docs).",
+        "Creates Supplier Application with status pending.",
+        "Sets supplier_profile_completed_at."
+      ]
+    },
+    {
+      "epic": "[SUPA] Supplier Application & Approval",
+      "storyId": "SUPA2",
+      "label": "SUPA2 — SUPA2 — Admin reviews supplier applications",
+      "criteria": [
+        "Review queue list + detail page with documents.",
+        "Approve → company supplier_status=approved, supplier_approved_at set; optional “List publicly” toggle.",
+        "Reject → supplier_status=rejected + reason + notification."
+      ]
+    },
+    {
+      "epic": "[SUPA] Supplier Application & Approval",
+      "storyId": "SUPA3",
+      "label": "SUPA3 — SUPA3 — Block supplier features until approved",
+      "criteria": [
+        "Middleware on supplier endpoints (RFQ respond, quotes, PO receive).",
+        "UI disables supplier actions with explanation banner."
+      ]
+    },
+    {
+      "epic": "[SUPA] Supplier Application & Approval",
+      "storyId": "SUPA4",
+      "label": "SUPA4 — SUPA4 — Supplier directory visibility toggle",
+      "criteria": [
+        "Toggle only if approved.",
+        "Directory uses approved + public + profile_completed filter."
+      ]
+    },
+    {
+      "epic": "[SUPA] Supplier Application & Approval",
+      "storyId": "SUPA5",
+      "label": "SUPA5 — SUPA5 — Supplier-first post-login status + “Complete Supplier Application” CTA",
+      "criteria": [
+        "After login, supplier-first companies see a persistent status banner/card: Not submitted / Submitted / Under review / Approved / Rejected.",
+        "Primary CTA: “Complete Supplier Application” → supplier application flow (reuses SUPA1 form/fields).",
+        "If Submitted/Under review: show “Please wait for approval” message + what’s allowed vs blocked.",
+        "If Rejected: show reason and CTA “Update & Resubmit”.",
+        "Supplier actions remain blocked until approved (SUPA3); directory listing remains hidden until approved + public + profile complete (SUPD1/SUPD4)."
+      ]
+    }
+  ]
+}

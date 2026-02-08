@@ -1,0 +1,1226 @@
+# UAT Backlog Checklist
+
+Generated from docs/Backlog - Elements Supply AI - Backlog v1.0.csv.
+Update this file by running tools/uat/generate-uat-checklist.mjs from the repo root.
+
+## [AUTH] Authentication, Accounts & Roles
+- [ ] AUTH1 — AUTH1 — Register an account
+  - Form: name, email, password.
+  - Validation + error states.
+  - Success logs in (or email-verify if enabled) and redirects to onboarding.
+- [ ] AUTH2 — AUTH2 — Log in / Log out
+  - Valid creds → session established.
+  - Invalid creds → error shown.
+  - Logout clears session and returns to public/login.
+- [ ] AUTH3 — AUTH3 — Roles are enforced per company
+  - Role gates applied on routes/components.
+  - Unauthorized → 403 (or redirect) + friendly message.
+- [ ] AUTH4 — AUTH4 — Multi-org switching
+  - “Switch organisation” menu shows all memberships.
+  - Switching scopes data/permissions immediately.
+- [ ] AUTH5 — AUTH5 — Email verification & password reset
+  - send verify email on signup; locked until verified; forgot-password email.
+- [ ] AUTH6 — AUTH6 — Signup creates buyer company + owner membership (buyer or supplier-first)
+  - On successful signup, create: company record membership record for the user with role owner
+  - Set initial company state: supplier_status = none (until super admin approves via SUPA2) company_profile_completed_at = null (until buyer wizard completed via ONB1)
+  - If signup choice = Buyer (or choice not provided): Redirect to buyer onboarding wizard /onboarding/company (ONB1) Buyer features remain gated until onboarding completion (ONB2)
+  - If signup choice = Supplier: Mark company as supplier-first (store onboarding/start mode on company) Do not redirect to buyer onboarding wizard Redirect to Supplier setup entry point (e.g., “Complete Supplier Application” / SUPA1) Supplier remains not visible in supplier directory until approved + public + profile complete (SUPD1/SUPD4) No plan selection / payment prompts are triggered for supplier-first onboarding (handled by BIL9)
+- [ ] AUTH7 — AUTH7 — Signup captures company name
+  - company name collected on signup OR prefilled in B1 wizard.
+- [ ] AUTH8 — AUTH8 — Verify company email domain
+  - Settings allow adding a domain (e.g., example.com) and give a DNS TXT or verification email method.
+  - Once verified, domain is marked verified on company record.
+  - Verification status affects invite and join flows (see next stories).
+- [ ] AUTH9 — AUTH9 — Restrict invitations to verified domain (optional)
+  - Toggle in company settings: “Allow invites only for emails on verified domain(s)”.
+  - When enabled, invites to external domains are blocked with clear error.
+  - Owners/super admins can still override using a special flow if required (with audit entry).
+- [ ] AUTH10 — AUTH10 — Join existing company by domain
+  - On signup, if email domain matches a verified company, user is offered “Request to join <Company>” instead of auto-creating a new tenant.
+  - A join request is sent to that company’s admins (I1/I3 integration).
+  - Admins can approve/deny join; approval attaches user to company and notifies them.
+  - If denied, user may still create a separate company (with clear explanation).
+- [ ] AUTH11 — AUTH11 — Choose Buyer vs Supplier at signup
+  - Signup form includes a required choice: “Start as Buyer” or “Start as Supplier”.
+  - Buyer path follows existing flow (creates buyer company + owner membership; routes to buyer onboarding).
+  - Supplier path creates a company flagged as supplier-first (supplier_status=pending; supplier_profile_completed_at is null) and routes to Supplier Onboarding/Apply flow.
+  - The chosen start mode is stored on the company (e.g., company_type=buyer|supplier or onboarding_mode).
+  - User is created as company owner; RBAC works as per AUTH3.
+
+## [ONB] Buyer Company Onboarding
+- [ ] ONB1 — ONB1 — Company wizard after signup
+  - Redirect to /onboarding/company until completed.
+  - Fields include legal name, country, address, optional tax/registration, industry, default currency.
+  - Completing sets company_profile_completed_at.
+- [ ] ONB2 — ONB2 — Guard buyer features until onboarding
+  - Middleware blocks access; shows banner/redirect to onboarding.
+  - Invited users into an existing company bypass the wizard.
+- [ ] ONB3 — Supplier-first tenants bypass buyer onboarding + buyer feature gating
+  - If company start mode = Supplier, do not redirect to /onboarding/company (buyer wizard).
+  - Buyer-only routes/components are hidden or blocked with a clear message + CTA (e.g., “Switch to Buyer mode / Complete buyer onboarding”).
+  - Supplier Onboarding/Apply flow remains accessible while supplier is pending approval.
+  - If a Supplier-first company later enables Buyer mode, buyer onboarding wizard applies as normal (ONB1/ONB2).
+- [ ] ONB4 — ONB4 — Edit company profile
+  - Editable fields with validation.
+  - Changes audit-logged (who/when).
+
+## [SUPA] Supplier Application & Approval
+- [ ] SUPA1 — SUPA1 — Apply as Supplier (company-level)
+  - “Apply as Supplier” entry point.
+  - Collect supplier profile (capabilities, materials, locations, MOQ, lead time, certifications/quality standards, ESG/tax/bank docs).
+  - Creates Supplier Application with status pending.
+  - Sets supplier_profile_completed_at.
+- [ ] SUPA2 — SUPA2 — Admin reviews supplier applications
+  - Review queue list + detail page with documents.
+  - Approve → company supplier_status=approved, supplier_approved_at set; optional “List publicly” toggle.
+  - Reject → supplier_status=rejected + reason + notification.
+- [ ] SUPA3 — SUPA3 — Block supplier features until approved
+  - Middleware on supplier endpoints (RFQ respond, quotes, PO receive).
+  - UI disables supplier actions with explanation banner.
+- [ ] SUPA4 — SUPA4 — Supplier directory visibility toggle
+  - Toggle only if approved.
+  - Directory uses approved + public + profile_completed filter.
+- [ ] SUPA5 — SUPA5 — Supplier-first post-login status + “Complete Supplier Application” CTA
+  - After login, supplier-first companies see a persistent status banner/card: Not submitted / Submitted / Under review / Approved / Rejected.
+  - Primary CTA: “Complete Supplier Application” → supplier application flow (reuses SUPA1 form/fields).
+  - If Submitted/Under review: show “Please wait for approval” message + what’s allowed vs blocked.
+  - If Rejected: show reason and CTA “Update & Resubmit”.
+  - Supplier actions remain blocked until approved (SUPA3); directory listing remains hidden until approved + public + profile complete (SUPD1/SUPD4).
+- [ ] SUPA6 — SUPA6 — Supplier Application supports draft save, submit, and resubmission
+  - Supplier application can be saved as Draft (manual save and/or auto-save).
+  - Submit sets application status to pending and locks the record from editing (read-only) until a decision is made.
+  - If rejected, applicant can edit and resubmit; previous submission is retained for audit/history.
+  - Uploaded documents are stored with metadata (type, uploaded_at, version) for admin review.
+
+## [SUPD] Supplier Directory & Profiles
+- [ ] SUPD1 — SUPD1 — Public supplier directory list
+  - Lists only: supplier_status=approved AND visibility=public AND profile completed.
+  - Search by text.
+  - Filters: capability, material, country, industry, certification, max MOQ, max lead time.
+  - Pagination.
+- [ ] SUPD2 — SUPD2 — Public supplier profile page
+  - Shows logo, tagline, capabilities, industries, certifications, locations, MOQ, lead-time.
+  - “Send RFQ” CTA (leads to RFQ creation with supplier preselected if direct RFQ).
+- [ ] SUPD3 — SUPD3 — Manage supplier directory profile
+  - Edit directory_* fields (logo/hero, tagline, chips for capabilities/industries, contacts).
+  - Validation + preview.
+  - Audit trail for changes.
+- [ ] SUPD4 — SUPD4 — Only approved + public suppliers appear in directory
+  - TODO: clarify with spec
+
+## [RFQ] RFQ Creation & Distribution
+- [ ] RFQ1 — RFQ1 — Create Ready-Made RFQ
+  - Fields: item/part name, quantity, delivery timeline, notes, category/part no.
+  - Submit adds RFQ to “Sent”.
+- [ ] RFQ2 — RFQ2 — Create Manufacture RFQ with CAD
+  - Fields: material, finish/tolerance, manufacturing method, notes.
+  - CAD upload (validated types), stored securely.
+  - Submit adds RFQ to “Sent”.
+- [ ] RFQ3 — RFQ3 — Choose Direct vs Open Bidding
+  - Direct: pick supplier(s) by ID; send invitations.
+  - Open: RFQ appears in “Open RFQs” feed for approved suppliers.
+  - Deadlines supported.
+- [ ] RFQ4 — RFQ4 — Attach special instructions & files
+  - Notes visible to recipients.
+  - Files downloadable only by authorized users.
+- [ ] RFQ5 — RFQ5 — Save RFQ as draft
+  - draft appears in RFQ list with Draft status; can edit and publish/send later.
+- [ ] RFQ6 — RFQ6 — Edit a sent RFQ (restricted) (optional if you built it)
+  - rules enforced; suppliers notified if changes affect them.
+
+## [RFQM] RFQ Management (Buyer & Supplier)
+- [ ] RFQM1 — RFQM1 — Sent RFQs (Buyer)
+  - Columns: RFQ #, type, status, deadline, responses count.
+  - Search + filters; pagination.
+  - Row opens “RFQ Sent Details”.
+- [ ] RFQM2 — RFQM2 — Received RFQs (Supplier)
+  - Columns: RFQ #, buyer, deadline, status (Not Quoted/Quoted/Declined).
+  - Search + filters; pagination.
+  - Row opens “RFQ Received Details”.
+- [ ] RFQM3 — RFQM3 — Open RFQs (Supplier)
+  - List of open RFQs.
+  - Only visible to approved suppliers.
+  - “Bid / View Details” actions.
+- [ ] RFQM4 — RFQM4 — RFQ details (Buyer view)
+  - RFQ metadata, attachments, notes.
+  - Table of supplier responses (price, lead time, notes, files).
+  - Link to compare view.
+- [ ] RFQM5 — RFQM5 — RFQ details (Supplier view)
+  - CAD/file access if authorized.
+  - Quote/decline actions available before deadline.
+
+## [QUO] Quotes (Supplier submission & Buyer comparison)
+- [ ] QUO1 — QUO1 — Submit quote
+  - Fields: unit price (currency), lead time, remarks; optional attachments.
+  - Validation; status changes to Quoted for that supplier.
+  - Buyer sees it immediately.
+- [ ] QUO2 — QUO2 — Decline quote
+  - Marked “Declined”.
+  - Buyer sees decline reason (optional).
+- [ ] QUO3 — QUO3 — Compare quotes
+  - Comparison grid: supplier, price, lead time, notes, files.
+  - Sorting by price/lead-time.
+- [ ] QUO4 — QUO4 — Accept a quote
+  - Accept action marks the winning quote.
+  - Triggers PO creation flow.
+- [ ] QUO5 — QUO5 — Withdraw a submitted quote
+  - status becomes Withdrawn; buyer sees it; optional reason; audit logged.
+- [ ] QUO6 — QUO6 — Revise/resubmit a quote (versioning)
+  - version history kept; buyer sees latest + “view history”; compare uses latest by default.
+- [ ] QUO7 — QUO7 — Buyer can view quote revision history
+  - timestamp + changed fields; files tracked; audit.
+- [ ] QUO8 — QUO8 — Award selected RFQ lines
+  - each line has awarded supplier + awarded qty; supports split awards.
+- [ ] QUO9 — QUO9 — Buyer can see supplier participation state per RFQ
+  - TODO: clarify with spec
+- [ ] QUO10 — QUO10 — Supplier can see their response state clearly
+  - TODO: clarify with spec
+
+## [PO] Purchase Orders & Orders
+- [ ] PO1 — PO1 — Purchase Orders index (Buyer)
+  - Columns: PO #, supplier, total, status, date.
+  - Search + filters; pagination.
+  - Row opens PO details.
+- [ ] PO2 — PO2 — Purchase Order detail (Buyer)
+  - Shows items, qty, unit price/total, supplier info, status timeline.
+  - Links back to RFQ/quote.
+- [ ] PO3 — PO3 — Orders: Requested (Buyer)
+  - Orders page for requested orders.
+  - Status: Pending/Confirmed/In Production/Delivered/Cancelled.
+- [ ] PO4 — PO4 — Orders: Received (Supplier)
+  - Orders page for supplier side.
+  - Same status lifecycle visibility.
+- [ ] PO5 — PO5 — Buyer can create a PO from an accepted quote
+  - “Create PO” is available after quote acceptance.
+  - PO contains supplier, items, price, lead time, attachments/notes from quote.
+  - PO status starts as “Issued” (or equivalent).
+- [ ] PO6 — PO6 — Supplier can view PO details
+  - Supplier sees PO line items, totals, delivery dates, attachments.
+  - Supplier only sees POs addressed to their company.
+- [ ] PO7 — PO7 — Supplier can update fulfillment status of an order
+  - Status update actions exist on order detail.
+  - Status changes are logged/audited.
+  - Buyer sees the updated status immediately.
+- [ ] PO8 — PO8 — Buyer can view order details
+  - Shows order timeline/history and current status.
+  - Shows linked PO/RFQ/Quote if applicable.
+- [ ] PO9 — PO9 — Create PO(s) from awarded lines
+  - creates separate PO per supplier; totals correct; links back to RFQ/awards.
+- [ ] PO10 — PO10 — Buyer sends PO to supplier
+  - PO moves to “Sent” (or equivalent); delivery recorded (timestamp/channel).
+- [ ] PO11 — PO11 — Supplier acknowledges PO (accept/decline)
+  - PO/SO status updates; buyer notified; audit logged; decline prevents shipments/invoicing.
+- [ ] PO12 — PO12 — Buyer sees acknowledgement status
+  - visible on PO detail + timeline; filters in PO list.
+
+## [INVT] Invitations & Team
+- [ ] INVT1 — INVT1 — Invite users to company
+  - Invite by email + assign role (buyer/supplier/finance).
+  - Email invite with token; joining attaches user to company.
+- [ ] INVT2 — INVT2 — Block supplier-role invites until approved
+  - Attempt to invite supplier_admin/supplier_estimator before approval → 422 with message.
+- [ ] INVT3 — INVT3 — Manage members
+  - Member list with role, last active.
+  - Role change controls gated by permissions.
+- [ ] INVT4 — INVT4 — Manage pending invitations (resend/revoke)
+  - “Pending invites” list with invited email, role, invited_at, invited_by, status.
+  - Resend sends a new email and updates “last_sent_at”.
+  - Revoke invalidates token immediately; invite becomes “revoked”.
+  - Actions are audit-logged.
+- [ ] INVT5 — INVT5 — Invitation expiry + invalid token handling
+  - Invite tokens expire after configurable time (e.g., 7 days).
+  - Visiting expired token shows friendly screen with “Request new invite”.
+  - Expired/revoked token cannot be used to join.
+  - Admin can resend to generate a fresh token.
+- [ ] INVT6 — INVT6 — Join requests queue (for domain join + general access request)
+  - Admin sees a “Join requests” queue with requester email, domain, requested role (optional), reason.
+  - Approve attaches membership + role; deny records reason.
+  - Requester is notified of outcome.
+  - Audit logged.
+
+## [DOC] Files, Docs & KYC
+- [ ] DOC1 — DOC1 — Upload company documents (KYC)
+  - Types (tax cert, ISO, bank letter, ESG report, other).
+  - Metadata: issued/expires/verified.
+  - Secure storage & access control.
+- [ ] DOC2 — DOC2 — Doc expiry management (baseline)
+  - Near-expiry banner on settings.
+  - (Future: auto-suspend supplier if critical docs expire—tracked as next phase.)
+- [ ] DOC3 — DOC3 — RFQ/Quote attachments (secure)
+  - Only authorized users can download.
+  - Logged access (who/when).
+- [ ] DOC4 — DOC4 — KYC document verification actions
+  - approval decision.
+
+## [ADM] Admin Console
+- [ ] ADM1 — ADM1 — Supplier application review queue
+  - Filter by status (pending/approved/rejected).
+  - Search by company.
+  - Approve/Reject with reason; email notifications.
+- [ ] ADM2 — ADM2 — Governance flags on companies
+  - Toggle directory visibility.
+  - View/edit supplier_status reason notes.
+- [ ] ADM3 — ADM3 — Tenant plan/features matrix (admin)
+  - matrix UI; validations; reduces require confirmation; audit logged.
+- [ ] ADM4 — ADM4 — Roles & permissions editor (admin)
+  - prevents removing last admin capability; audit logged.
+- [ ] ADM5 — ADM5 — API Keys management
+  - plaintext token shown once; last used shown; revoke confirm.
+- [ ] ADM6 — ADM6 — Webhooks endpoint management
+  - https-only; secret rotation invalidates old signature; test event supported.
+- [ ] ADM7 — ADM7 — Webhook delivery logs + retry/DLQ
+  - filters, status, attempt count, response code/latency; retry action.
+- [ ] ADM8 — ADM8 — Rate limit rules editor
+  - window + max req; immediate apply; audit logged.
+- [ ] ADM9 — ADM9 — Audit log viewer
+  - filters by actor/event/resource/date; pagination; export.
+- [ ] ADM10 — ADM10 — Start impersonation
+  - Only super admins can impersonate; action available from admin console.
+  - When impersonating:
+  - Banner clearly shows “Impersonating: [user@company]”.
+  - All actions are logged against the impersonated user, but audit log notes “performed via impersonation by [super admin]”.
+- [ ] ADM11 — ADM11 — Stop impersonation
+  - “Stop impersonation” button in header/banner.
+  - Session immediately returns to original super admin identity.
+  - Start/stop events are audit-logged.
+
+## [UX] Navigation, UX & Feedback
+- [ ] UX1 — UX1 — Role/context-aware sidebar
+  - Buyers: Request Quote, RFQs (Sent), Suppliers (Directory), Orders Requested, Purchase Orders.
+  - Suppliers (approved): RFQs (Received), Open RFQs, Orders Received.
+  - Settings: Company, Supplier Profile/Visibility.
+  - Admin: Supplier Review.
+- [ ] UX2 — UX2 — Empty states & errors
+  - All lists show empty-state messages with CTA where applicable.
+  - Validation and server errors shown inline and non-blocking.
+- [ ] UX3 — UX3 — Sidebar shows “Complete Setup / Apply as Supplier” gating links
+  - If company onboarding incomplete → sidebar prominently shows “Complete Company Setup”.
+  - If supplier not approved → shows “Apply as Supplier” (or “Supplier approval pending”).
+  - Supplier-only menus hidden/disabled until approval.
+- [ ] UX4 — UX4 — All built pages are reachable via UI navigation
+  - Sidebar contains correct links for:
+  - Supplier Directory
+  - RFQ pages (Sent/Received/Open)
+  - Quote compare page
+  - Purchase Orders pages
+  - Orders Requested/Received
+  - Links are role + approval gated appropriately.
+- [ ] UX5 — UX5 — Contextual deep links exist between related pages
+  - RFQ Sent Details shows “Compare Quotes” when quotes exist.
+  - Quote Compare shows “Accept Quote” and then “Create/View PO” if implemented.
+  - PO detail links back to originating RFQ/quote.
+- [ ] UX6 — UX6 — All implemented pages have routes and are accessible
+  - open/received/sent details.
+- [ ] UX7 — UX7 — Supplier can submit quote from RFQ details (not only from list)
+  - “Submit Quote” action visible on RFQ Received Details / Open Bidding Details.
+  - Submission returns to RFQ detail showing the submitted quote status.
+- [ ] UX8 — UX8 — When gated, user sees a clear “what to do next”
+  - Blocked buyer routes redirect to company onboarding with banner.
+  - Supplier-only pages show approval status + CTA to apply (or “pending approval”).
+
+## [DASH] Dashboard & Home
+- [ ] DASH1 — DASH1 — Home dashboard loads role-aware overview
+  - Buyer sees summary cards/links for Sent RFQs, Orders Requested, Purchase Orders, Supplier Directory.
+  - Supplier (approved) sees Received RFQs, Open RFQs, Orders Received.
+  - Links navigate to the correct pages.
+- [ ] DASH2 — DASH2 — Quick actions from dashboard
+  - Buyer: “Create RFQ”, “Browse Suppliers”.
+  - Supplier: “View Open RFQs”, “View Received RFQs”.
+
+## [SUPS] Supplier Application Status & Company Gating Pages
+- [ ] SUPS1 — SUPS1 — Supplier applicant can view application status
+  - rejected shows reason; pending shows “under review”.
+- [ ] SUPS2 — SUPS2 — Applicant can edit supplier application while Pending (if your code allows
+  - TODO: clarify with spec
+- [ ] SUPS3 — SUPS3 — Supplier approval gating message page
+  - TODO: clarify with spec
+
+## [DT] Digital Twin Library (Platform-Curated)
+- [ ] DT1 — DT1 — Super Admin manages Digital Twin categories
+  - nested categories supported; slug uniqueness; active/inactive toggle.
+- [ ] DT2 — DT2 — Super Admin uploads a Digital Twin
+  - draft/published/archived; version + revision notes; audit history.
+- [ ] DT3 — DT3 — Super Admin uploads Digital Twin assets
+  - file type/size validation; secure storage; primary asset; virus-scan hook stub.
+- [ ] DT4 — DT4 — Buyer browses/searches Digital Twin Library
+  - pagination; filters; detail view; only published shown.
+- [ ] DT5 — DT5 — Buyer “Use for RFQ” (prefill RFQ from DT)
+  - RFQ wizard opens with DT context; DT assets attached as references; DT id stored on
+  - RFQ.
+- [ ] DT6 — DT6 — Supplier cannot access Library listing
+  - only allows DT viewing when referenced inside RFQ/PO they are involved in (optional).
+- [ ] DT7 — DT7 — RFQ stores & displays Digital Twin reference
+  - RFQ has digital_twin_id; DT summary shown in RFQ detail; DT assets visible
+  - (permissioned).
+- [ ] DT8 — DT8 — DT asset permissions when RFQ is shared
+  - secure downloads; access logged; blocked otherwise.
+- [ ] DT9 — DT9 — Digital Twin Library plan gating
+  - if disabled, DT library routes show upgrade banner; API returns 403/402; sidebar hides
+  - link.
+- [ ] DT10 — DT10 — Super admin Digital Twin management UI (explicit screens)
+  - admin routes exist; audit timeline visible; bulk publish/archive supported.
+- [ ] DT11 — DT11 — Clone Digital Twin (create new version from existing)
+  - TODO: clarify with spec
+- [ ] DT12 — DT12 — Deprecate old versions + enforce “latest” in new RFQs
+  - configurable.
+- [ ] DT13 — DT13 — Asset processing pipeline (thumbnails/preview + safety)
+  - to admin; retry.
+- [ ] DT14 — DT14 — Digital Twin usage analytics
+  - TODO: clarify with spec
+
+## [CL] Company Localization & Document
+- [ ] CL1 — CL1 — Company profile settings (addresses, contacts, branding)
+  - validation; audit logged; logo optional.
+- [ ] CL2 — CL2 — Localization settings
+  - live preview; applies across UI.
+- [ ] CL3 — CL3 — UoM mapping
+  - prevents cycles; consistent display.
+- [ ] CL4 — CL4 — Document numbering rules
+  - sample preview; server assigns final numbers; safe updates.
+
+## [NC] Notifications Center (In-App + Email)
+- [ ] NC1 — NC1 — Notification bell + unread count
+  - mark read; deep links.
+- [ ] NC2 — NC2 — Notification Center page
+  - pagination; bulk mark read.
+- [ ] NC3 — NC3 — Email notifications for key events
+  - uses localization formatting; configurable templates baseline.
+- [ ] NC4 — NC4 — Notification template manager (admin UI)
+  - (This supports your “configurable templates baseline” note in N3 .)
+- [ ] NC5 — NC5 — Digest scheduler + batching job
+  - retries; observability (logs/metrics).
+
+## [EXP] Exports, PDFs, CSV & Download Center
+- [ ] EXP1 — EXP1 — Request export (PDF/CSV) from document pages
+  - job queued; toast + link to download center.
+- [ ] EXP2 — EXP2 — Download Center
+  - status: queued/processing/ready/failed; expiry; polling.
+- [ ] EXP3 — EXP3 — Branded PDF templates
+  - consistent across document types.
+- [ ] EXP4 — EXP4 — Secure download links (signed URL + expiry)
+  - expiry enforced; download attempt logged; unauthorized access blocked.
+- [ ] EXP5 — EXP5 — Export retention cleanup job
+  - TODO: clarify with spec
+- [ ] EXP6 — EXP6 — Export access logging + admin review
+  - TODO: clarify with spec
+
+## [INV] Inventory & Stock (Movements + Low Stock)
+- [ ] INV1 — INV1 — Item stock overview
+  - pagination; filters; permissions.
+- [ ] INV2 — INV2 — Stock movements ledger
+  - shows source doc (GRN/adjustment); audit.
+- [ ] INV3 — INV3 — Low-stock rules + alerts
+  - warnings surfaced; optional notification.
+- [ ] INV4 — INV4 — Approve forecast-driven reorder setting updates (human-in-the-loop)
+  - reviews a draft; approval applies the change; all changes are audit-logged; rollback is possible (at least via edit history).
+
+## [FIN] Invoice + Credit Notes + 3-Way Match (PO↔GRN↔Invoice)
+- [ ] FIN1 — FIN1 — Supplier invoice creation/hand-off
+  - line-level amounts; attachments; status.
+- [ ] FIN2 — FIN2 — Buyer invoice review & posting
+  - approvals; audit log.
+- [ ] FIN3 — FIN3 — GRN posting (Goods Receipt)
+  - partial receipts; attachments; audit.
+- [ ] FIN4 — FIN4 — 3-way match
+  - tolerances; mismatch reasons; UI indicators.
+- [ ] FIN5 — FIN5 — Credit note flow
+  - links to invoice; audit; affects match status.
+
+## [ORD] Orders Enhancements (Shipments)
+- [ ] ORD1 — ORD1 — Sales order mirror created from PO
+  - links PO→SO; status pending_ack.
+- [ ] ORD2 — ORD2 — Supplier shipments (partial allowed)
+  - cannot ship > remaining; supports multiple shipments.
+- [ ] ORD3 — ORD3 — Buyer shipment tracking
+  - read-only; timeline events.
+- [ ] ORD4 — ORD4 — Shipment status updates
+  - delivered timestamp required; audit logged.
+- [ ] ORD5 — ORD5 — SO mirrors PO and requires acknowledgement
+  - SO status pending_ack → accepted|cancelled; ties into shipment creation rules.
+- [ ] ORD6 — ORD6 — “Create GRN from delivered shipment” shortcut (optional)
+  - prefilled PO + lines + remaining qty; user can adjust received qty and post.
+- [ ] ORD7 — ORD7 — Prevent shipments until acknowledgement
+  - create shipment returns 422/403 if not accepted; UI shows explanation.
+
+## [OPS] Security Hardening, Monitoring & Operational Readiness
+- [ ] OPS1 — OPS1 — Security headers/CSP baseline
+  - validated in staging.
+- [ ] OPS2 — OPS2 — Rate limiting + bot protection rules
+  - documented; tested.
+- [ ] OPS3 — OPS3 — Sentry integration (FE+BE)
+  - test error captured.
+- [ ] OPS4 — OPS4 — Health endpoint + uptime checks
+  - green checks; alert hooks.
+- [ ] OPS5 — OPS5 — Backups + retention + restore runbook
+  - restore steps documented and verified.
+- [ ] OPS6 — OPS6 — AI microservice health/readiness + dependency checks
+  - separate AI readiness checks; alerts; visible status in admin.
+- [ ] OPS7 — OPS7 — AI job worker monitoring (training/scraping/indexing)
+  - dashboard cards; retry actions; failure reasons; retention.
+- [ ] OPS8 — OPS8 — Copilot tool execution safeguards (timeouts, retries, circuit breaker, caching)
+  - Per-tool timeout + retry policy; circuit breaker trips on repeated failures.
+  - Safe caching for read-only tools (list/search) with TTL.
+  - Metrics: tool latency/error rate; surfaced in ops dashboard (pairs well with OPS6/OPS7).
+- [ ] OPS9 — OPS9 — Privacy & scoping
+  - Queries scoped by active company/permissions.
+  - Cross-company access blocked.
+- [ ] OPS10 — OPS10 — Event delivery logs page
+  - TODO: clarify with spec
+- [ ] OPS11 — OPS11 — Retry failed deliveries
+  - TODO: clarify with spec
+- [ ] OPS12 — OPS12 — Replay DLQ (if enabled)
+  - TODO: clarify with spec
+- [ ] AI-OPS8 — AI-OPS8 — Usage dashboard
+  - TODO: clarify with spec
+- [ ] AI-OPS9 — AI-OPS9 — Quota enforcement visibility
+  - TODO: clarify with spec
+
+## [CI] Testing, Contract Tests & CI/CD
+- [ ] CI1 — CI1 — OpenAPI ↔ SDK contract test pipeline
+  - auto-regenerate; checks enforced.
+- [ ] CI2 — CI2 — Unit/component tests for hooks/forms
+  - runs in CI.
+- [ ] CI3 — CI3 — E2E smoke path
+  - auth → RFQ → quote → award → PO → order/ship → GRN/match.
+- [ ] CI4 — CI4 — Staging auto deploy, production manual approval
+  - rollback documented.
+- [ ] CI5 — CI5 — AI regression test suite (golden prompts → expected action type)
+  - “Draft an RFQ” must produce an RFQ draft action; “Create RFQ named X” must include X;
+  - fails CI if broken.
+- [ ] CI6 — CI6 — Tool contract tests for Copilot tools
+  - tool schemas validated; changes require version bump (aligns with AI3.6 intent
+- [ ] CI7 — CI7 — Workflow template ↔ action schema contract tests (end-to-end compatibility)
+  - CI fails if a workflow template references an unknown/unsupported action type.
+  - CI fails if required fields for an action type are missing/mismatched between services/UI.
+  - Includes a small fixture set that loads templates and validates against the current action JSON schema.
+
+## [GO] Launch Readiness & QA Sweep
+- [ ] GO1 — GO1 — Remove legacy/unused frontend and routes
+  - TODO: clarify with spec
+- [ ] GO2 — GO2 — Global UX/a11y/error-state sweep
+  - TODO: clarify with spec
+- [ ] GO3 — GO3 — Release/runbook documentation
+  - TODO: clarify with spec
+- [ ] GO4 — GO4 — Production readiness checklist is enforced
+  - checklist doc exists + verified in staging; smoke test passes.
+
+## [SEC] Advanced Security Hardening (production checklist items)
+- [ ] SEC1 — SEC1 — Privileged accounts
+  - TODO: clarify with spec
+- [ ] SEC2 — SEC2 — Multi factor authentication
+  - TODO: clarify with spec
+- [ ] SEC3 — SEC3 — Monitoring + alerting + log retention
+  - TODO: clarify with spec
+- [ ] SEC4 — SEC4 — Pen testing readiness
+  - TODO: clarify with spec
+- [ ] SEC5 — SEC5 — Edge protection (WAF/CDN/SSL/DDoS)
+  - Each tool/action type declares required permission(s) + plan gate (if any).
+  - Runtime enforcement blocks unauthorized calls with a consistent error contract.
+  - CI job validates “no tool/action without policy mapping”.
+- [ ] SEC6 — SEC6 — Copilot tool/action permission matrix enforcement + audit
+  - TODO: clarify with spec
+- [ ] SEC7 — SEC7 — Password policy + brute-force protection
+  - Password rules are enforced.
+  - Lockout/backoff for repeated failed attempts.
+  - Suspicious login alerts.
+  - Audit trail retained.
+- [ ] SEC8 — SEC8 — Session management controls
+  - TODO: clarify with spec
+- [ ] SEC9 — SEC9 — Privileged access protections (admin roles)
+  - procedure logged.
+- [ ] SEC10 — SEC10 — Audit events emitted across core entities
+  - Standard audit schema: actor, tenant, entity_type, entity_id, action, timestamp, metadata.
+  - Captures create/update/status change/send/post/approve/reject actions.
+  - PII/secrets redacted.
+- [ ] SEC11 — SEC11 — Entity timeline view
+  - Timeline shows events in chronological order with clear labels.
+  - Each event links to related entities (RFQ → Quote → PO → Shipment → GRN → Invoice).
+  - Permissions enforced (no leaking other tenants/roles).
+
+## [AI1] Copilot Conversational Assistant (Universal Chat)
+- [ ] AI1.1 — AI1.1 — Open Copilot from anywhere
+  - bubble visible only when logged-in; opens/closes; persists state across navigation.
+- [ ] AI1.2 — AI1.2 — Chat threads (conversations)
+  - thread list; open thread shows history; thread is tenant-scoped.
+- [ ] AI1.3 — AI1.3 — Send message & get assistant response
+  - messages stored; roles shown; errors handled; retries possible.
+- [ ] AI1.4 — AI1.4 — Streaming responses (optional if built)
+  - SSE/stream fallback; cancel supported; no UI freeze.
+- [ ] AI1.5 — AI1.5 — Citations shown in answers
+  - citation list per message; links are permissioned; no leaking cross-tenant info.
+- [ ] AI1.6 — AI1.6 — Quick replies & suggested actions
+  - suggested chips render; clicking sends.
+- [ ] AI1.7 — AI1.7 — Conversation memory management (thread summaries)
+  - stable.
+- [ ] AI1.8 — AI1.8 — Manage conversations (rename / close / delete)
+  - immediately.
+- [ ] AI1.9 — AI1.9 — Export conversation
+  - TODO: clarify with spec
+- [ ] AI1.10 — AI1.10 — Keyboard shortcut to open Copilot
+  - TODO: clarify with spec
+- [ ] AI1.11 — AI1.11 — Copilot unread/attention indicator
+  - TODO: clarify with spec
+- [ ] AI1.12 — AI1.12 — Conversation “pin/star”
+  - TODO: clarify with spec
+- [ ] AI1.13 — AI1.13 — Copilot dock tabs / mode switcher
+  - Tabs visible inside Copilot dock; remembers last-used tab per user.
+  - Keyboard accessible (tab focus + ARIA labels).
+  - Each tab preserves its own state (e.g., search filters not lost when switching).
+- [ ] AI1.14 — AI1.14 — “Workspace lookup in progress” indicator
+  - “Checking workspace…”) until the grounded response is ready; tool payloads remain hidden; errors show a friendly explanation + next actions.
+
+## [AI2] Workspace Q&A (RAG + Permissioned Knowledge)
+- [ ] AI2.1 — AI2.1 — Ask questions about workspace
+  - response uses only my tenant + role-permitted data.
+- [ ] AI2.2 — AI2.2 — Company knowledge base indexing
+  - upload/connect sources; reindex job; delete removes from index.
+- [ ] AI2.3 — AI2.3 — Permissioned retrieval
+  - access checks enforced for every citation/source.
+- [ ] AI2.4 — AI2.4 — RAG ingestion status + errors
+  - TODO: clarify with spec
+- [ ] AI2.5 — AI2.5 — RAG source management
+  - TODO: clarify with spec
+- [ ] AI2.6 — AI2.6 — Knowledge base access audit
+  - TODO: clarify with spec
+- [ ] AI2.7 — AI2.7 — Semantic Search panel (filters/tags + open documents)
+  - Search supports filters/tags; result list shows snippets.
+  - Opening a result respects permissions (no cross-tenant leaks).
+  - Search actions are logged/auditable (high-level).
+- [ ] AI2.8 — AI2.8 — Answer panel (grounded Q&A surface)
+  - Answer includes citations and links (permissioned).
+  - “Copy answer” + “open cited source” supported.
+  - If insufficient info, asks clarifying question / suggests where to find info.
+
+## [AI3] Copilot Tools (Read-only Workspace Functions)
+- [ ] AI3.1 — AI3.1 — Copilot can fetch workspace data via tools
+  - tool-calls limited; results audited; no write operations.
+- [ ] AI3.2 — AI3.2 — Tool set: procurement
+  - handlers exist for RFQ/quotes/POs; tenant scope enforced.
+- [ ] AI3.3 — AI3.3 — Tool set: inventory
+  - read-only; scoped by company and permissions.
+- [ ] AI3.4 — AI3.4 — Tool-call loop guardrails
+  - TODO: clarify with spec
+- [ ] AI3.5 — AI3.5 — Tool-call audit detail view
+  - TODO: clarify with spec
+- [ ] AI3.6 — AI3.6 — Tool registry + schema versioning
+  - tool definitions live in one place; versioned schemas; validation before execution; tool-call
+  - failures are actionable.
+- [ ] AI3.7 — AI3.7 — Tool set: purchasing documents beyond RFQ
+  - search/get POs; list PO lines; PO status/ack/shipment/GRN links; permissioned +
+  - tenant-scoped.
+- [ ] AI3.8 — AI3.8 — Tool set: receiving (GRN/Receipts)
+  - list/search GRNs; get GRN details; show received vs ordered deltas.
+- [ ] AI3.9 — AI3.9 — Tool set: invoicing
+  - list/search invoices; get invoice details; show payable totals, due dates, statuses.
+- [ ] AI3.10 — AI3.10 — Tool set: 3-way match insights
+  - fetch match state + mismatch reasons + tolerance thresholds; show what’s blocking
+  - posting/payment.
+- [ ] AI3.11 — AI3.11 — Tool set: payments (missing in FIN epic too)
+  - list/search payments; payment status; linked invoices; remittance refs.
+- [ ] AI3.12 — AI3.12 — Tool set: master data (items, UoM, tax, payment terms)
+  - search/get items; list UoMs/tax codes/terms; link to documents consistently.
+- [ ] AI3.13 — AI3.13 — Procurement/Finance snapshot tool
+  - single tool returns status counts + top urgent exceptions for dashboards and chat.
+- [ ] AI3.14 — AI3.14 — Tool: Supplier directory lookup (search/list suppliers for Copilot)
+  - compact list, tenant-scoped, permissioned, audited.
+- [ ] AI3.15 — AI3.15 — Tool: RFQ awards lookup (latest awards + per-RFQ awards)
+  - supplier + qty + status + timestamps; tenant-scoped; audited.
+- [ ] AI3.16 — AI3.16 — Tool: Quote statistics snapshot (status counts + recent quotes)
+  - supplier info); tenant-scoped; audited; supports quick “ops snapshot” answers.
+
+## [AI4] Deterministic Actions as Drafts (Human-in-the-loop)
+- [ ] AI4.1 — AI4.1 — Draft RFQ from chat
+  - draft includes items/specs/files; not auto-sent.
+- [ ] AI4.2 — AI4.2 — Draft supplier negotiation message
+  - editable; includes key context; no auto-send without approval.
+- [ ] AI4.3 — AI4.3 — Draft maintenance / compliance checklist
+  - checklist format; export/copy.
+- [ ] AI4.4 — AI4.4 — Approve / Reject draft
+  - approval creates records; rejection keeps audit trail; both logged.
+- [ ] AI4.5 — AI4.5 — Draft editing before approval
+  - TODO: clarify with spec
+- [ ] AI4.6 — AI4.6 — Draft library (history)
+  - TODO: clarify with spec
+- [ ] AI4.7 — AI4.7 — Draft GRN (Goods Receipt) from chat
+  - TODO: clarify with spec
+- [ ] AI4.8 — AI4.8 — Draft supplier invoice submission from chat
+  - TODO: clarify with spec
+- [ ] AI4.9 — AI4.9 — Draft buyer invoice decision (accept/reject/hold with reason)
+  - TODO: clarify with spec
+- [ ] AI4.10 — AI4.10 — Draft mismatch resolution (tolerance apply / request credit note / adjust receipt
+  - TODO: clarify with spec
+- [ ] AI4.11 — AI4.11 — Draft payment (create payment proposal + allocation to invoices)
+  - TODO: clarify with spec
+- [ ] AI4.12 — AI4.12 — Draft master-data updates (item create/update; supplier profile updates)
+  - TODO: clarify with spec
+- [ ] AI4.13 — AI4.13 — Draft “send/post/award” actions with mandatory confirmation
+  - never auto-executes; preview + validation; approve/reject logged (consistent
+  - with AI4.4/AI4.5 expectations).
+- [ ] AI4.14 — AI4.14 — Draft inventory “what-if” scenario from chat (reorder/stockout simulation)
+  - Copilot can generate a what-if scenario draft (inputs + assumptions + output summary).
+  - Draft is reviewable/editable; never auto-applies changes.
+  - Draft can optionally suggest next actions (create RFQ, adjust reorder thresholds) but requires confirmation.
+- [ ] AI4.15 — AI4.15 — Actions Panel: structured action launcher (not only “from chat”)
+  - Action type picker + dynamic fields per action type.
+  - Creates the same “draft” objects as chat-driven drafting.
+  - Uses the same approval/reject flow (no silent writes).
+- [ ] AI4.16 — AI4.16 — Draft review modal shows payload + warnings + citations before
+  - Shows key fields, detected risks/warnings, and supporting citations (if any).
+  - Requires explicit confirm to approve; reject requires (optional) reason.
+  - Approval/rejection is logged and linked back to the draft.
+
+## [AI5] AI Workflows Orchestration
+- [ ] AI5.1 — AI5.1 — Start workflow from Copilot
+  - workflow instance created; steps visible; resumable.
+- [ ] AI5.2 — AI5.2 — Step approvals
+  - no silent writes; step state machine enforced.
+- [ ] AI5.3 — AI5.3 — Workflow history & audit
+  - timeline; step inputs/outputs; actor; timestamps.
+- [ ] AI5.4 — AI5.4 — Workflow cancellation
+  - TODO: clarify with spec
+- [ ] AI5.5 — AI5.5 — Workflow step error recovery
+  - TODO: clarify with spec
+- [ ] AI5.6 — AI5.6 — Procure-to-Pay workflow template (end-to-end)
+  - TODO: clarify with spec
+- [ ] AI5.7 — AI5.7 — Workflow gates on match/exception states
+  - stops on mismatches; proposes fixes; requires approval to proceed.
+- [ ] AI5.8 — AI5.8 — Workflow “resume anywhere”
+  - user can say “continue this PO to payment”; Copilot identifies current stage and resumes.
+- [ ] AI5.9 — AI5.9 — Workflow summaries + next steps
+  - Copilot posts a progress summary after each step; integrates with “attention indicator”
+  - behavior
+- [ ] AI5.10 — AI5.10 — Workflow Panel: reviewer console for workflow queues & step
+  - Queue list with status filters; step detail view.
+  - Approve/reject actions update workflow state + write audit trail.
+  - Clear error state + retry where permitted.
+
+## [AI6] Forecasting & Inventory AI Outputs
+- [ ] AI6.1 — AI6.1 — Forecast generation & snapshots
+  - scheduled/manual runs; versioned; error handling.
+- [ ] AI6.2 — AI6.2 — Forecast recommendations (reorder/safety stock)
+  - per item; shows assumptions; confidence/intervals if available.
+- [ ] AI6.3 — AI6.3 — Forecast scenario sandbox (if built)
+  - scenario inputs; recomputed outputs; no data corruption.
+
+## [AI7] Supplier Risk Scoring (AI)
+- [ ] AI7.1 — AI7.1 — Risk score computation
+  - stored score + last updated; explanation factors.
+- [ ] AI7.2 — AI7.2 — Risk visible in directory & quote compare
+  - badge in lists; detail drawer includes explanation + timestamp.
+
+## [AI8] AI Administration & Governance (Super Admin)
+- [ ] AI8.1 — AI8.1 — AI activity log
+  - filters; pagination; export.
+- [ ] AI8.2 — AI8.2 — Model health dashboard
+  - charts; last updated; alert thresholds.
+- [ ] AI8.3 — AI8.3 — Training console
+  - run now + schedule; job status; results stored; audit logged.
+- [ ] AI8.4 — AI8.4 — Training job history & job detail
+  - TODO: clarify with spec
+- [ ] AI8.5 — AI8.5 — Cancel/retry a training job
+  - TODO: clarify with spec
+- [ ] AI8.6 — AI8.6 — Training schedules management
+  - TODO: clarify with spec
+- [ ] AI8.7 — AI8.7 — Model versioning / rollback
+  - TODO: clarify with spec
+- [ ] AI8.8 — AI8.8 — Training dataset management (upload / version / validate)
+  - dataset list + upload; schema validation; version id; linked to training jobs; audit logged.
+- [ ] AI8.9 — AI8.9 — Compare training runs (metrics diff)
+  - select two runs; show metric deltas; highlight regressions; export.
+- [ ] AI8.10 — AI8.10 — Training retention & artifact cleanup
+  - TODO: clarify with spec
+- [ ] AI8.11 — AI8.11 — Training “dry run” / validation
+  - TODO: clarify with spec
+
+## [AI9] Supplier Discovery (AI Web Scraping)
+- [ ] AI9.1 — AI9.1 — Create supplier scrape job
+  - job record created; status tracked; rate-limit safe.
+- [ ] AI9.2 — AI9.2 — Store scraped supplier candidates
+  - dedupe; pagination; searchable.
+- [ ] AI9.3 — AI9.3 — Review/edit scraped profile
+  - editable form; validation; preserve source evidence.
+- [ ] AI9.4 — AI9.4 — Convert candidate to supplier record
+  - creates supplier + contacts; links back to scraped record; audit logged.
+- [ ] AI9.5 — AI9.5 — Discard/blacklist candidate
+  - discarded won’t reappear; blacklist prevents future scraping.
+- [ ] AI9.6 — AI9.6 — Scrape job list + detail
+  - TODO: clarify with spec
+- [ ] AI9.7 — AI9.7 — Evidence & field mapping
+  - TODO: clarify with spec
+- [ ] AI9.8 — AI9.8 — Deduplication / merge assistance
+  - TODO: clarify with spec
+- [ ] AI9.9 — AI9.9 — Outreach tracking (lightweight)
+  - TODO: clarify with spec
+- [ ] AI9.10 — AI9.10 — Crawl compliance controls (robots/TOS + rate limits)
+  - allow/deny list UI; per-domain delay; hard caps; job logs show “skipped due to policy”.
+- [ ] AI9.11 — AI9.11 — Merge action (not only “suggestion”)
+  - merge UI; field-level mapping; preserves source evidence; audit logged.
+- [ ] AI9.12 — AI9.12 — Export scraped leads
+  - TODO: clarify with spec
+- [ ] AI9.13 — AI9.13 — Rescrape / refresh candidate
+  - TODO: clarify with spec
+
+## [AI10] AI Plan Gating, Limits & Safety Controls
+- [ ] AI10.1 — AI10.1 — AI feature flags per tenant
+  - UI + API gating; immediate effect.
+- [ ] AI10.2 — AI10.2 — Quotas & rate limits for AI
+  - graceful errors; usage metrics.
+- [ ] AI10.3 — AI10.3 — Safe logging & privacy
+  - PII rules; retention policy; delete thread.
+- [ ] AI10.4 — AI10.4 — Chat retention policy controls
+  - TODO: clarify with spec
+- [ ] AI10.5 — AI10.5 — Redaction rules for logs
+  - TODO: clarify with spec
+
+## [AI12] Intent Planning & Tool Orchestration (LLM + deterministic routing)
+- [ ] AI12.1 — AI12.1 — Intent router (draft vs search vs workflow vs Q&A)
+  - phrases like “Draft an RFQ” must route to rfq_draft (not “search drafts”); “Show
+  - my draft RFQs” routes to search/list; routing covered by tests.
+- [ ] AI12.2 — AI12.2 — Slot-filling + constraint extraction
+  - user-provided values (e.g., RFQ name “Rotar Blades”) must be captured and
+  - appear in the draft payload; missing required fields trigger a clarification question.
+- [ ] AI12.3 — AI12.3 — Multi-step plan execution (tool chaining)
+  - Copilot can plan + call multiple tools in order; stops when it needs
+  - confirmation/approval; logs plan + tool sequence for audits.
+- [ ] AI12.4 — AI12.4 — Multi-intent handling (e.g., “Draft RFQ and suggest suppliers and forecast
+  - breaks into ordered steps; produces combined output; never drops sub-requests
+  - silently.
+
+## [AI13] Clarification, Disambiguation, Safety & “User Guide Mode”
+- [ ] AI13.1 — AI13.1 — Entity disambiguation (Entity Picker)
+  - if multiple matches for supplier/item/PO/RFQ, show options and ask user to pick; no
+  - random selection.
+- [ ] AI13.2 — AI13.2 — “Need more info” prompts with smart defaults
+  - asks only for missing fields; suggests defaults from workspace settings where safe;
+  - remembers within thread.
+- [ ] AI13.3 — AI13.3 — Risky action confirmation
+  - publish/send/award/post/pay always requires explicit confirmation + preview;
+  - includes “what will happen” summary.
+- [ ] AI13.4 — AI13.4 — Guided resolution fallback (User Guide)
+  - if Copilot can’t complete an action, it must provide step-by-step guidance + deep
+  - link to the exact screen/action.
+
+## [AI15] Policy & Approval Intelligence (preflight checks + routing)
+- [ ] AI15.1 — AI15.1 — Policy check tool (“can I do this?”)
+  - before sensitive steps, Copilot runs policy checks (limits/roles/thresholds/approvals
+  - required) and explains outcome.
+- [ ] AI15.2 — AI15.2 — Approval request initiation from Copilot
+  - Copilot can draft an approval request (who/why/what changes), and route it to the
+  - right approver(s).
+- [ ] AI15.3 — AI15.3 — Approval status tracking in chat
+  - Copilot can tell who is pending and what’s blocking; integrates with “attention
+  - indicator” concept already in AI1.
+- [ ] AI15.4 — AI15.4 — Approvals inbox + approve/reject workflow (UI + API)
+  - Approvers have an inbox (filters: pending/approved/rejected; by type/date/requestor).
+  - Approver can approve/reject with comments; action is audit-logged.
+  - Copilot can deep-link an approver to the exact approval item.
+
+## [AI-OPS] LLM Provider & Prompt Governance (Ops/Admin)
+- [ ] AI-OPS1 — AI-OPS1 — LLM provider configuration (OpenAI) + model routing by plan
+  - TODO: clarify with spec
+- [ ] AI-OPS2 — AI-OPS2 — Prompt/instruction registry (versioned) + safe rollout
+  - TODO: clarify with spec
+- [ ] AI-OPS3 — AI-OPS3 — Cost + token visibility per tenant/thread
+  - TODO: clarify with spec
+- [ ] AI-OPS4 — AI-OPS4 — Imperative → Action routing rules
+  - Copilot must prefer action intent over search intent unless the user explicitly says “find/show/list”.
+- [ ] AI-OPS5 — AI-OPS5 — Name/constraints must be echoed back before draft save
+  - in a “Draft summary” before saving; if missing, it must ask only for missing fields.
+- [ ] AI-OPS6 — AI-OPS6 — Tool success-rate + latency dashboard
+  - by tenant/date.
+- [ ] AI-OPS7 — AI-OPS7 — Top “misroutes” report
+  - search), with counts and links to conversations.
+
+## [AI-UX] Copilot Action Reliability Feedback (User-facing)
+- [ ] AI-UX1 — AI-UX1 — Intent preview before executing tools
+  - TODO: clarify with spec
+- [ ] AI-UX2 — AI-UX2 — Tool failure “why + fix” card
+  - TODO: clarify with spec
+- [ ] AI-UX3 — AI-UX3 — Field-echo validation in draft cards
+  - TODO: clarify with spec
+- [ ] AI-UX4 — AI-UX4 — “What happened” + Retry + Deep-link
+  - button, and a deep link to do it manually (aligns with Guided Resolution).
+- [ ] AI-UX5 — AI-UX5 — Partial completion guarantee
+  - and clearly state what succeeded vs failed.
+- [ ] AI-UX6 — AI-UX6 — Navigation tool (deep links)
+  - Copilot can open the correct page (e.g., “Go to PO #PO-102”) and/or provide a link
+  - target for UI.
+- [ ] AI-UX7 — AI-UX7 — Next best action recommendations
+  - suggests actionable next steps based on status (RFQ awaiting quotes, PO awaiting
+  - ack, invoice mismatch, etc.); respects permissions.
+- [ ] AI-UX8 — AI-UX8 — Workspace snapshot summary tool (procurement/finance overview)
+  - one call returns a compact summary: counts by status + most urgent items; used in
+  - daily ops questions.
+
+## [AN-ADV] Advanced Analytics & Reports
+- [ ] AN-ADV1 — AN-ADV1 — Inventory AI Forecast Report (Buyer)
+  - TODO: clarify with spec
+- [ ] AN-ADV2 — AN-ADV2 — Forecast metrics table
+  - TODO: clarify with spec
+- [ ] AN-ADV3 — AN-ADV3 — Drilldowns from forecast → underlying data
+  - TODO: clarify with spec
+- [ ] AN-ADV4 — AN-ADV4 — Saved views & sharing
+  - TODO: clarify with spec
+- [ ] AN-ADV5 — AN-ADV5 — Export forecast report
+  - TODO: clarify with spec
+- [ ] AN-ADV6 — AN-ADV6 — AI narrative insights for the report
+  - TODO: clarify with spec
+- [ ] AN-ADV7 — AN-ADV7 — Supplier Performance Report (Supplier + Buyer view)
+  - TODO: clarify with spec
+- [ ] AN-ADV8 — AN-ADV8 — Supplier performance filters
+  - TODO: clarify with spec
+- [ ] AN-ADV9 — AN-ADV9 — AI performance coaching summary
+  - TODO: clarify with spec
+- [ ] AN-ADV10 — AN-ADV10 — Analytics API contracts + caching
+  - TODO: clarify with spec
+- [ ] AN-ADV11 — AN-ADV11 — Analytics permissions + plan gating (detailed)
+  - TODO: clarify with spec
+- [ ] AN-ADV12 — AN-ADV12 — Analytics dashboard (KPI cards)
+  - TODO: clarify with spec
+- [ ] AN-ADV13 — AN-ADV13 — Analytics charts
+  - TODO: clarify with spec
+- [ ] AN-ADV14 — AN-ADV14 — Analytics plan gating
+  - TODO: clarify with spec
+
+## [PAY] Payments & Settlement
+- [ ] PAY1 — PAY1 — Record payment against invoice(s) (partial + multi-invoice)
+  - TODO: clarify with spec
+- [ ] PAY2 — PAY2 — Payment approval/void/refund states
+  - TODO: clarify with spec
+- [ ] PAY3 — PAY3 — Remittance advice + supplier notification
+  - TODO: clarify with spec
+- [ ] PAY4 — PAY4 — Payment reconciliation report
+  - TODO: clarify with spec
+
+## [MD] Master Data Management
+- [ ] MD1 — MD1 — Item master CRUD (SKU, UoM, categories, specs)
+  - TODO: clarify with spec
+- [ ] MD2 — MD2 — Tax codes + payment terms dictionary
+  - TODO: clarify with spec
+- [ ] MD3 — MD3 — Supplier master finance fields (bank/tax/payment terms)
+  - TODO: clarify with spec
+- [ ] MD4 — MD4 — Import/export master data (CSV)
+  - TODO: clarify with spec
+
+## [CON] Contracts
+- [ ] CON1 — CON1 — Contract repository (upload/version/link to supplier)
+  - TODO: clarify with spec
+- [ ] CON2 — CON2 — Contract expiry alerts + risk flags
+  - TODO: clarify with spec
+- [ ] CON3 — CON3 — Contract-to-PO enforcement checks (optional)
+  - TODO: clarify with spec
+
+## [POL] Policy & Rules Configuration (Admin)
+- [ ] POL1 — POL1 — Approval policy rules editor (RFQ/PO/Invoice/Payment)
+  - TODO: clarify with spec
+- [ ] POL2 — POL2 — 3-way match tolerances configuration
+  - TODO: clarify with spec
+- [ ] POL3 — POL3 — Policy simulation / “what would happen” test
+  - TODO: clarify with spec
+- [ ] POL4 — POL4 — Policy versioning + audit log
+  - TODO: clarify with spec
+
+## [BIL] Billing & Subscriptions (Stripe)
+- [ ] BIL1 — BIL1 — Choose plan & start subscription
+  - Pricing/Plans page shows available plans (Starter/Growth/Enterprise) with key limits (RFQs/month, users, storage, AI features).
+  - “Get Started” / “Upgrade” button opens Stripe Checkout with correct plan + tenant ID.
+  - On successful payment, subscription + plan are stored against the company (Stripe customer + subscription IDs).
+  - Company status/plan immediately reflected in app (gates update without re-login).
+- [ ] BIL2 — BIL2 — Trial with payment method on file
+  - Trial checkout requires valid card; trial end date stored on company record.
+  - Plan entitlements are active during trial.
+  - A background job or webhook updates subscription to “active” (paid) or “cancelled” at trial end.
+  - If trial is cancelled before end date, access downgrades to free/limited plan.
+- [ ] BIL3 — BIL3 — Billing portal & invoices
+  - “Billing & Plan” page has “Manage billing” button that opens Stripe Billing Portal for the current tenant.
+  - Users can update card, view Stripe invoices, download them.
+  - No card details stored in application DB (only Stripe IDs + metadata).
+  - Access restricted to roles with billing permission (e.g., owner, finance_admin).
+- [ ] BIL4 — BIL4 — Plan upgrades & downgrades
+  - Upgrades apply immediately after Stripe confirmation (entitlements updated at once).
+  - Downgrades scheduled according to Stripe subscription rules; app continues higher entitlements until effective date.
+  - If plan downgrade would violate limits (e.g., more users than allowed), app surfaces clear guidance (who/what to change) rather than silently failing.
+  - All plan changes logged (who, from→to, when).
+- [ ] BIL5 — BIL5 — Failed payment grace period & read-only mode
+  - On invoice.payment_failed / subscription past_due, company is marked “grace_period” for X days.
+  - After grace period, app enters read-only for that tenant: core data visible but write actions (new RFQs, POs, etc.) are blocked with clear message.
+  - When payment is recovered, full access is restored automatically.
+  - Notifications go to owner + billing contacts when entering/exiting grace/read-only states.
+- [ ] BIL6 — BIL6 — Platform admin subscription overview
+  - Admin console shows plan, Stripe subscription status, trial end, usage summary for each tenant.
+  - Super admin can apply manual overrides (extra RFQ limit, temporary extension, etc.) with reason captured.
+  - Changes are fully audit-logged.
+- [ ] BIL7 — BIL7 — Stripe webhook reliability + replay
+  - Idempotency enforced for all Stripe events.
+  - Failed webhook deliveries are stored with retry/backoff and a manual “replay” option (admin).
+  - Webhook processing is observable (logs/metrics).
+- [ ] BIL8 — BIL8 — Entitlement recompute job
+  - Scheduled job re-syncs plan features/limits from Stripe + admin overrides.
+  - Fixes drift (e.g., webhook missed) without manual DB edits.
+  - Logged and visible in admin.
+- [ ] BIL9 — BIL9 — Supplier-first companies are exempt from plan selection & Stripe subscription
+  - Supplier-first companies never see plan selection prompts/modals during signup or onboarding.
+  - Billing/Plans UI is hidden or shows “Suppliers are free” message (no Checkout CTA).
+  - Stripe customer/subscription is not created for Supplier-first companies.
+  - Any plan/usage gating middleware treats Supplier-first companies as “free supplier tier” (no buyer subscription required).
+
+## [UP] User Profile & Personal Settings
+- [ ] UP1 — UP1 — Personal profile (name, avatar, contact)
+  - “My Profile” page lets user change name, avatar, job title, phone.
+  - Validation on formats (file size/type, phone format).
+  - Changes affect avatar/name shown in navigation, comments, audit logs.
+  - Profile updates are audit-logged (who/when; old vs new not required).
+- [ ] UP2 — UP2 — Personal timezone & locale
+  - User can set timezone and optionally preferred date/number format.
+  - Defaults inherit from company settings (CL2) when user hasn’t set their own.
+  - UI and notification timestamps respect user settings wherever possible.
+  - If conflicting with company defaults, rules are clearly defined (e.g., reporting uses company, UI uses user).
+- [ ] UP3 — UP3 — Personal notification preferences & digests
+  - “Notifications” tab under My Profile lets user toggle notification types (RFQ events, PO events, finance events, AI events, etc.) and channels (in-app, email, digest).
+  - Digest frequency options: none/daily/weekly; integrates with EPIC N (Notification Center).
+  - System respects these preferences when sending notifications (no hard-coded behaviour).
+  - Reasonable defaults applied for new users.
+- [ ] UP4 — UP4 — Default organisation / remembered org
+  - User can set a “default organisation” in profile or app remembers the last active company.
+  - On login, app uses that company as active unless overridden by deep link.
+  - If user is removed from that company, fallback to another membership with safe handling.
+
+## [QLT] Quality Inspection & NCR
+- [ ] QLT1 — QLT1 — Record quality inspection on GRN
+  - GRN posting (FIN3) extended with inspection fields: accepted qty, rejected qty, defect type/category, notes, attachments (photos, reports).
+  - Validation prevents accepted + rejected > received qty.
+  - Inspection data is visible on GRN, PO, and item history.
+- [ ] QLT2 — QLT2 — Create Non-Conformance Report (NCR)
+  - Button “Raise NCR” on GRN line when rejected qty > 0.
+  - NCR record includes supplier, item, PO/GRN refs, defect details, photos/docs, severity.
+  - NCR gets its own number and appears in a Quality/NCR list.
+- [ ] QLT3 — QLT3 — NCR workflow
+  - Statuses: raised → under_review → corrective_action → verified → closed.
+  - Only certain roles can move NCR forward; each transition requires comment.
+  - Timeline shows who changed what, and when.
+  - NCR closure optionally requires attaching CAPA docs (corrective/preventive actions).
+- [ ] QLT4 — QLT4 — NCR impact on supplier performance
+  - NCR counts/severity are aggregated per supplier and surfaced in supplier performance reports (AN-ADV7/AI7 integration).
+  - Risk score updated when NCRs are added/closed.
+  - Supplier directory/quote compare shows a quality indicator derived from NCR history.
+
+## [RMA] Returns & RMAs
+- [ ] RMA1 — RMA1 — Buyer raises RMA/return request
+  - From GRN/Order detail, user can “Create RMA” for specific lines/quantities.
+  - RMA records reason, photos, desired resolution (replacement, credit, rework, scrap).
+  - Initial status raised; linked to original PO/GRN.
+- [ ] RMA2 — RMA2 — Supplier review & decision
+  - Supplier RMA list shows buyer, item, reason, qty.
+  - Status transitions: raised → under_review → approved → rejected → closed.
+  - Supplier can propose terms (who pays freight, replacement schedule, etc.).
+  - All decisions and changes are logged.
+- [ ] RMA3 — RMA3 — Credit note or replacement linkage
+  - Approved RMAs can:
+  - Create a credit note (FIN5) for rejected amount, or
+  - Trigger a replacement shipment (ORD2) with zero or discounted value.
+  - RMA detail shows related credit notes/shipments.
+  - Financial and inventory effects are consistent (no double-crediting).
+- [ ] RMA4 — RMA4 — Visibility in orders & analytics
+  - Orders/PO lists show “Has RMA” indicator and count.
+  - Analytics can filter by “orders with returns” to feed supplier performance/quality reports.
+
+## [RFP] Service & Project RFPs
+- [ ] RFP1 — RFP1 — Create project/service RFP
+  - Separate RFP creation flow capturing: objectives, scope, deliverables, timeline, budget range, evaluation criteria, proposal format (sections).
+  - RFP supports attachments (SOW docs, drawings).
+  - Status: draft → published → closed → awarded/cancelled.
+- [ ] RFP2 — RFP2 — Suppliers submit structured proposals
+  - Proposal form supports structured sections (approach, team, milestones, fees, assumptions) + attachments.
+  - Supplier can revise proposals until deadline (versioned like G6).
+  - Buyer sees latest version with access to history.
+- [ ] RFP3 — RFP3 — RFP comparison & scoring
+  - Compare view shows proposals in columns with key criteria rows (technical, commercial, timeline, risk).
+  - Users can assign scores per criterion and see weighted totals.
+  - Comments per supplier/criterion stored for audit.
+- [ ] RFP4 — RFP4 — Convert awarded RFP to contract/service PO
+  - Award action selects winning supplier(s) and triggers either:
+  - Contract record (CON1) with linked RFP, or
+  - Service PO with milestones and payment terms.
+  - Non-awarded suppliers see polite regret status.
+  - Awarded status reflected on RFP and visible in analytics.
+
+## [USG] Usage & Plan Enforcement
+- [ ] USG1 — USG1 — Usage snapshot per tenant
+  - Scheduled job computes: RFQs created, POs, invoices, active users, storage, AI requests, etc.
+  - Snapshots stored in a usage_snapshots table keyed by tenant + date.
+  - Admin console can display trend charts from these snapshots.
+- [ ] USG2 — USG2 — Enforce soft/hard limits by plan
+  - For each plan, configurable limits (RFQs/month, storage GB, AI messages/day, etc.).
+  - “Soft limit” behaviour: warnings + upsell banners but still allow operations.
+  - “Hard limit” behaviour: block specific actions with clear explanation and CTA to upgrade.
+  - All blocks/warnings are logged per tenant.
+- [ ] USG3 — USG3 — Platform admin usage & limits view
+  - Admin console shows usage vs limits per tenant (heat-map or list).
+  - Can set per-tenant exceptions/overrides (with reason).
+  - Export usage to CSV for billing/ops.
+- [ ] USG4 — USG4 — Tenant-visible usage dashboard
+  - “Plan & Usage” page shows progress bars for RFQs, storage, AI usage, etc.
+  - Warnings appear before hitting hard limits.
+  - Links to upgrade or contact sales.
+
+## [OFF] Tenant Offboarding & Data Lifecycle
+- [ ] OFF1 — OFF1 — Company data export bundle
+  - Export wizard lets admin request “Full company export” (entities + document metadata + files where feasible).
+  - Export runs as background job and appears in Download Center (EXP2) with signed URL.
+  - Bundle includes at least CSV/JSON for master data + key documents (or references).
+  - Access strictly limited to tenant admins; action is audit-logged.
+- [ ] OFF2 — OFF2 — Company suspension vs deletion
+  - Statuses: active, suspended, scheduled_for_deletion, deleted.
+  - Suspended: logins blocked, API blocked, data preserved.
+  - Scheduled_for_deletion: retention countdown runs; admins warned.
+  - Deleted: logins blocked; human-defined subset of data removed/anonymised; references kept where legally required.
+- [ ] OFF3 — OFF3 — User deactivation & account closure
+  - Admin can deactivate users in their company; user can request self-deletion/closure.
+  - Deactivated users cannot login or be re-invited without explicit action.
+  - Historical records show their name but no longer active account link (depending on privacy rules).
+  - Actions are audit-logged.
+- [ ] OFF4 — OFF4 — Data retention policy & anonymisation
+  - Configurable retention periods for logs, AI events, notifications, etc. (complements OPS/SEC stories).
+  - Scheduled tasks purge or anonymise data after retention.
+  - Critical audit/legal records are retained even if user/company is deleted (with PII minimised).
+
+## [RFQC] RFQ Clarifications & Amendments
+- [ ] RFQC1 — RFQC1 — RFQ clarification Q&A thread
+  - RFQ detail (buyer & supplier views) shows a “Clarifications” / “Q&A” tab.
+  - Suppliers can post questions while the RFQ is open.
+  - Buyers can reply; replies are visible to all invited/open suppliers (not just the one who asked).
+  - Timestamps and author (buyer/supplier) are shown.
+  - Thread is read-only after RFQ is closed/awarded.
+- [ ] RFQC2 — RFQC2 — Private vs broadcast answers (optional)
+  - Default: answers are public to all RFQ participants.
+  - Buyer can choose “reply privately” for sensitive clarifications.
+  - UI clearly marks private answers; only that supplier sees them.
+  - System warns if buyer is about to share something public that references a specific supplier’s confidential info.
+- [ ] RFQC3 — RFQC3 — RFQ amendments & version history
+  - RFQ has a version or revision indicator (e.g., v1, v2, v3).
+  - Buyer can create an amendment that:
+  - Updates specified fields (quantities, specs, deadlines, attachments).
+  - Captures “reason for amendment”.
+  - Version history panel shows each amendment (who, when, what changed).
+  - Existing quotes are either:
+  - Marked “Needs update” when a material field changes, or
+  - Locked if amendment is too late (rules defined and enforced server-side).
+- [ ] RFQC4 — RFQC4 — Supplier visibility & notifications for amendments
+  - When an RFQ is amended, suppliers get an in-app notification (and email if enabled).
+  - RFQ detail shows a banner like “Updated on [date] — view changes”.
+  - “View changes” shows a diff or summary vs the prior version.
+  - Quotes submitted before an amendment are tagged with the RFQ version they were based on.
+- [ ] RFQC5 — RFQC5 — Deadlines: extend, close, reopen
+  - Buyer can:
+  - Extend deadline while RFQ is open (requires reason, logged).
+  - Close RFQ manually before deadline.
+  - Optionally reopen a closed RFQ (new deadline required).
+  - After deadline/closure:
+  - Suppliers can’t submit or revise quotes.
+  - System can auto-mark unanswered invitations as “No Response”.
+  - Actions and reasons appear in the RFQ activity log (fits with U2 “RFQ activity log”).
+- [ ] RFQC1 — RFQC1 — Buyer can manage an RFQ after sending
+  - suppliers are notified (at least in UI state if email not built).
+- [ ] RFQC2 — RFQC2 — Buyer can view RFQ activity log
+  - V5 has R1 (supplier quote from details) but nothing equivalent for buyer RFQ “actions” beyond quote acceptance.
+
+## [POC] Purchase Order Change Orders & Revisions
+- [ ] POC1 — POC1 — Supplier propose PO change
+  - On a received PO, supplier has:
+  - “Accept”, “Decline”, and “Propose changes” actions.
+  - “Propose changes” opens a form where supplier can change:
+  - Delivery dates
+  - Line-level quantities (within configured tolerance)
+  - Prices (if allowed)
+  - Notes/terms
+  - Submitting creates a Change Request linked to the PO with status pending_buyer_review.
+  - Buyer is notified and sees the proposed changes highlighted.
+- [ ] POC2 — POC2 — Buyer review & approve/reject change request
+  - PO detail shows “Change requests” section with status (pending/approved/rejected).
+  - For each request, buyer sees:
+  - Original vs proposed values
+  - Supplier’s reason
+  - Buyer actions:
+  - Approve → PO is updated; PO revision number increments (e.g., PO-1001 v2).
+  - Reject → PO stays as-is; supplier notified with reason.
+  - All decisions are audit-logged (who, when, what changed, reason).
+- [ ] POC3 — POC3 — PO revision history & visibility
+  - PO detail includes a “Revision history” or “Timeline” panel:
+  - Creation, acknowledgement, change requests, approvals, cancellations.
+  - Each revision shows what changed (lines, dates, prices, terms).
+  - PDF exports/numbering reflect revision (e.g., “PO-1001 Rev 2”).
+  - Older revisions remain viewable but clearly marked as superseded.
+- [ ] POC4 — POC4 — Impact on shipments, GRN and invoices
+  - Rules are defined and enforced:
+  - If no goods shipped/received/invoiced yet → full change allowed.
+  - If partially shipped/received/invoiced → only certain fields or lines can change, or a separate PO is required.
+  - Change requests that would conflict with existing shipments/GRN/invoices are blocked with a clear error.
+  - 3-way match (FIN4) takes PO revisions into account when comparing quantities/prices.
+
+## [GS] Global Workspace Search
+- [ ] GS1 — GS1 — Global search bar
+  - Global search bar is visible when logged in.
+  - Results are grouped by entity type (RFQs, POs, Suppliers, Items, Docs).
+  - Each result link deep-links to the correct detail page.
+  - Results respect tenant & permission scoping (no cross-company leaks).
+- [ ] GS2 — GS2 — Search filters & recent searches
+  - Filter chips (e.g., “Only RFQs”, “Only Suppliers”, “Only Docs”).
+  - Recent searches drop-down; click to rerun.
+  - Pagination for large result sets.
+
+## [AI-RFQ] Inline RFQ & Supplier AI Assist
+- [ ] AI-RFQ1 — AI-RFQ1 — RFQ spec sanity check
+  - “Ask Copilot to review” button on RFQ draft.
+  - AI returns a list of suggestions (e.g., missing tolerance, unclear material, inconsistent quantities) with links to fields.
+  - No changes are auto-applied; user can apply suggestions manually.
+- [ ] AI-RFQ2 — AI-RFQ2 — Suggested suppliers for an RFQ
+  - Button on RFQ draft (or Copilot panel) calls supplier-matching logic.
+  - Result: ranked list of suppliers with explanation badges (capability match, past performance, region, risk).
+  - User can add selected suppliers to the RFQ invite list in one click.
+- [ ] AI-RFQ3 — AI-RFQ3 — Cost band estimate
+  - AI returns min/median/max band with a simple rationale (not exact pricing).
+  - Marked clearly as an estimate, not a formal price.
+  - Does not auto-populate line prices, only displays guidance.
+
+## [APP] Approval Workflow Runtime (Not just policy editor)
+- [ ] APP1 — APP1 — Submit document for approval
+  - “Submit for approval” action exists on documents where policy requires it.
+  - Status transitions: Draft → Pending Approval (or equivalent).
+  - Document becomes read-only except permitted fields.
+- [ ] APP2 — APP2 — Approver inbox
+  - Inbox list filters: type (PO/Invoice/Payment), status, requester, date.
+  - Each item shows summary + policy reason (threshold/rule matched).
+  - Deep links to approval detail.
+- [ ] APP3 — APP3 — Approve / reject with comments
+  - Approve advances to next approval step or final Approved.
+  - Reject returns to requester with reason and unlock rules clearly defined.
+  - Audit event captured on every action.
+- [ ] APP4 — APP4 — Multi-step approval chain
+  - Only the current required approver(s) can act.
+  - Next approver gets notified.
+  - Timeline shows each step.
+- [ ] APP5 — APP5 — Approval delegation / out-of-office (optional)
+  - Delegation has start/end dates, scope (document types), and audit.
+  - Delegated approver appears in timeline as “acting for”.
+- [ ] APP6 — APP6 — Withdraw/cancel an approval request (before completion)
+  - “withdrawn/cancelled”; audit logged.
+- [ ] APP7 — APP7 — Edit + resubmit after rejection
+  - logged.
+- [ ] APP8 — APP8 — Approve/Reject from email (secure deep link)
+  - prevents double-submit.
+- [ ] APP9 — APP9 — Reminders / escalation rules (runtime)
+  - opt-out per workflow; audit logged.
+
+## [ATCH] Document Attachments Versioning & Previews
+- [ ] ATCH1 — ATCH1 — Attachment versioning (replace without losing history)
+  - PDFs/images preview in a modal/viewer (using signed URLs).
+  - CAD/STL shows “download + external viewer” fallback (or a placeholder viewer).
+  - Preview respects permissions and logs access.
+- [ ] ATCH2 — ATCH2 — Attachment versioning (replace without losing history)
+  - New upload becomes latest; previous versions remain viewable.
+  - Version metadata: uploaded_by, uploaded_at, note.
+  - Export/PDF references latest by default.
+- [ ] ATCH3 — ATCH3 — Attachment delete rules
+  - If an RFQ is sent / PO issued / invoice posted → attachment deletion is blocked or requires elevated permission + reason.
+  - All delete attempts are logged.
+

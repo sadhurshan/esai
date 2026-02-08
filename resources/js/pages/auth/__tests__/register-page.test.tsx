@@ -23,6 +23,7 @@ const unauthenticatedState = {
     error: null,
     requiresEmailVerification: false,
     requiresPlanSelection: false,
+    needsSupplierApproval: false,
     company: null,
 };
 
@@ -41,6 +42,7 @@ describe('RegisterPage', () => {
         registerMock.mockResolvedValue({
             requiresEmailVerification: false,
             requiresPlanSelection: true,
+            needsSupplierApproval: false,
             userRole: 'buyer_admin',
         });
     });
@@ -97,6 +99,7 @@ describe('RegisterPage', () => {
                     file: documentFile,
                 },
             ],
+            startMode: 'buyer',
         });
 
         await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/app/setup/plan', { replace: true }));

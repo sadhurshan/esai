@@ -15,9 +15,17 @@ export function VerifyEmailPage() {
     const [isChecking, setIsChecking] = useState(false);
 
     const nextRoute = useMemo(() => {
-        const needsPlan = state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+        if (state.needsSupplierApproval || state.company?.supplier_status === 'pending') {
+            return '/app/setup/supplier-waiting';
+        }
+
+        const isSupplierStart =
+            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+        const needsPlan =
+            !isSupplierStart && (state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan);
+
         return needsPlan ? '/app/setup/plan' : '/app';
-    }, [state.company?.plan, state.company?.requires_plan_selection, state.requiresPlanSelection]);
+    }, [state.company?.plan, state.company?.requires_plan_selection, state.company?.start_mode, state.company?.supplier_status, state.needsSupplierApproval, state.requiresPlanSelection]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -74,7 +82,12 @@ export function VerifyEmailPage() {
                     title: 'Email verified',
                     description: 'Thanks for confirming your account. Redirecting you now.',
                 });
-                navigate(result.requiresPlanSelection ? '/app/setup/plan' : '/app', { replace: true });
+                const destination = result.needsSupplierApproval
+                    ? '/app/setup/supplier-waiting'
+                    : result.requiresPlanSelection
+                        ? '/app/setup/plan'
+                        : '/app';
+                navigate(destination, { replace: true });
                 return;
             }
 

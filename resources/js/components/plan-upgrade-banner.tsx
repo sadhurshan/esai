@@ -7,7 +7,11 @@ export function PlanUpgradeBanner() {
     const { state, clearPlanLimit } = useAuth();
     const navigate = useNavigate();
 
-    if (!state.planLimit) {
+    const supplierStatus = state.company?.supplier_status ?? null;
+    const isSupplierStart =
+        state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+
+    if (!state.planLimit || isSupplierStart) {
         return null;
     }
 

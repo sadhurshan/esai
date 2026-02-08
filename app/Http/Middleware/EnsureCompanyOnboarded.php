@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Enums\CompanySupplierStatus;
 use App\Support\ActivePersonaContext;
 use App\Support\ApiResponse;
 use App\Support\Permissions\PermissionRegistry;
@@ -73,7 +74,12 @@ class EnsureCompanyOnboarded
             return $next($request);
         }
 
-        if ($company->hasCompletedBuyerOnboarding()) {
+        $supplierStatus = $company->supplier_status;
+        $isSupplierStart = $company->start_mode === 'supplier'
+            || ($supplierStatus instanceof CompanySupplierStatus && $supplierStatus !== CompanySupplierStatus::None)
+            || (is_string($supplierStatus) && $supplierStatus !== CompanySupplierStatus::None->value);
+
+        if ($company->hasCompletedBuyerOnboarding() || $isSupplierStart) {
             return $next($request);
         }
 

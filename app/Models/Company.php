@@ -74,6 +74,7 @@ class Company extends Model
         'name',
         'slug',
         'status',
+        'start_mode',
         'registration_no',
         'tax_id',
         'country',

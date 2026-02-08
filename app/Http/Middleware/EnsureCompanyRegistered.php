@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Enums\CompanySupplierStatus;
 use App\Support\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
@@ -28,7 +29,12 @@ class EnsureCompanyRegistered
         $user->loadMissing('company');
         $company = $user->company;
 
-        if ($company === null || ! $company->hasCompletedBuyerOnboarding()) {
+        $supplierStatus = $company?->supplier_status;
+        $isSupplierStart = $company?->start_mode === 'supplier'
+            || ($supplierStatus instanceof CompanySupplierStatus && $supplierStatus !== CompanySupplierStatus::None)
+            || (is_string($supplierStatus) && $supplierStatus !== CompanySupplierStatus::None->value);
+
+        if ($company === null || (! $company->hasCompletedBuyerOnboarding() && ! $isSupplierStart)) {
             if ($request->routeIs('company.registration')) {
                 return $next($request);
             }
